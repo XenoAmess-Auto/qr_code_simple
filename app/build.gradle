@@ -15,7 +15,7 @@ android {
         versionName "1.0"
 
         ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
     }
 
@@ -53,11 +53,10 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.0'
 
-    // OpenCV + WeChatQRCode - 分开引入确保原生库正确
+    // OpenCV + WeChatQRCode - 仅 ARM 架构（wechat-qrcode native 层不支持 x86_64）
     implementation 'com.github.jenly1314.WeChatQRCode:opencv:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv7a:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv64:2.4.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv-x86_64:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode-scanning:2.4.0'
 
