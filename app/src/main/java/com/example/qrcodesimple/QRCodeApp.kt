@@ -18,9 +18,14 @@ class QRCodeApp : Application() {
 
         fun initWeChatQRCodeDetector(app: Application): Boolean {
             if (isWeChatQRCodeInitialized) return true
-            
+
             return try {
                 Log.d(TAG, "Starting WeChatQRCodeDetector initialization...")
+
+                // 先加载 OpenCV native 库
+                System.loadLibrary("opencv_java4")
+                Log.d(TAG, "OpenCV native library loaded")
+
                 WeChatQRCodeDetector.init(app)
                 isWeChatQRCodeInitialized = true
                 initErrorMessage = null
