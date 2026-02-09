@@ -37,7 +37,6 @@ android {
     }
     packagingOptions {
         jniLibs {
-            pickFirsts += ['lib/arm64-v8a/libopencv_java4.so', 'lib/armeabi-v7a/libopencv_java4.so', 'lib/x86_64/libopencv_java4.so']
             useLegacyPackaging true
         }
     }
@@ -58,6 +57,7 @@ dependencies {
     implementation 'com.github.jenly1314.WeChatQRCode:opencv:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv7a:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv64:2.4.0'
+    implementation 'com.github.jenly1314.WeChatQRCode:opencv-x86_64:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode:2.4.0'
     implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode-scanning:2.4.0'
 
