@@ -1,47 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Camera Scan"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Point camera at QR code"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp" />
-
-    <FrameLayout
+    <!-- Camera Preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@android:color/darker_gray">
+        android:layout_height="match_parent" />
+
+    <!-- Overlay UI -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Camera Preview"
-            android:layout_gravity="center"
-            android:textColor="@android:color/white" />
+            android:text="Camera Scan"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:textColor="@android:color/white"
+            android:shadowColor="@android:color/black"
+            android:shadowRadius="4" />
 
-    </FrameLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Point camera at QR code"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:textColor="@android:color/white"
+            android:shadowColor="@android:color/black"
+            android:shadowRadius="4" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnStopScan"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Stop Scanning"
-        android:layout_marginTop="16dp" />
+        <!-- Spacer -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-</LinearLayout>
+        <!-- Result Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/resultCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Scan Result"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/btnCloseResult"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_close"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Close" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Scanning..."
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:textIsSelectable="true" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCopyResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Copy"
+                    app:icon="@drawable/ic_copy" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopScan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stop Scanning" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
