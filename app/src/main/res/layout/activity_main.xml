@@ -24,6 +24,14 @@
         app:icon="@drawable/ic_gallery" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCameraScan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/camera_scan"
+        android:layout_marginBottom="16dp"
+        app:icon="@drawable/ic_camera" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnGenerate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
