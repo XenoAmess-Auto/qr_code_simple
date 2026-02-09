@@ -79,6 +79,38 @@ res/layout/
 ./gradlew assembleDebug
 ```
 
+## 签名问题解决方案
+
+如果安装 GitHub Actions 构建的 APK 时出现"更新包与已安装应用的签名不一致"错误，说明本地和 CI 使用的 debug 签名不同。
+
+### 方法一：同步 CI 签名到本地（推荐）
+
+1. 从 GitHub Actions 下载 `debug-keystore` artifact
+2. 复制到本地：
+```bash
+cp debug.keystore ~/.android/debug.keystore
+```
+
+### 方法二：使用项目内置签名
+
+项目使用 `app/debug.keystore` 作为固定签名，确保本地和 CI 一致。
+
+如果 `app/debug.keystore` 不存在，运行：
+```bash
+keytool -genkey -v -keystore app/debug.keystore -alias androiddebugkey \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storepass android -keypass android \
+  -dname "CN=Android Debug,O=Android,C=US"
+```
+
+### 方法三：完全卸载重装
+
+```bash
+adb uninstall com.example.qrcodesimple
+# 然后安装新的 APK
+adb install app-debug.apk
+```
+
 ## 使用说明
 
 1. 打开应用后选择功能：
