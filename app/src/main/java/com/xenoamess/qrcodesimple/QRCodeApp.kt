@@ -59,10 +59,10 @@ class QRCodeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // 应用启动时预加载 WeChatQRCode 库
+        // 应用启动时预加载 WeChatQRCode 库（可选，失败不影响其他库）
         val success = initWeChatQRCodeDetector(this)
         if (!success) {
-            Log.w(TAG, "Pre-initialization failed, will retry on demand. Error: $initErrorMessage")
+            Log.w(TAG, "WeChatQRCode pre-initialization failed, will use ZXing/ML Kit as fallback. Error: $initErrorMessage")
         }
     }
 }

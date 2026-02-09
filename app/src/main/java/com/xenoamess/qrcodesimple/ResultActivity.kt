@@ -6,10 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Path
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,20 +16,21 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.xenoamess.qrcodesimple.databinding.ActivityResultBinding
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
-import com.king.wechat.qrcode.WeChatQRCodeDetector
-import org.opencv.core.Mat
-import java.util.ArrayList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ResultActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityResultBinding
     private lateinit var adapter: QRResultAdapter
     private val results = mutableListOf<QRResult>()
-    private var processedBitmap: Bitmap? = null
+    private val scanResults = mutableListOf<QRCodeScanner.ScanResult>()
 
     companion object {
         const val EXTRA_BITMAP_URI = "bitmap_uri"
@@ -41,7 +38,8 @@ class ResultActivity : AppCompatActivity() {
 
     data class QRResult(
         val text: String,
-        var isSelected: Boolean = false
+        var isSelected: Boolean = false,
+        val library: QRCodeScanner.Library? = null
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,13 +54,6 @@ class ResultActivity : AppCompatActivity() {
 
         val uriString = intent.getStringExtra(EXTRA_BITMAP_URI)
         if (uriString != null) {
-            // 确保 WeChatQRCode 已初始化（启动时已预加载，这里做二次确认）
-            if (!QRCodeApp.ensureInitialized(application)) {
-                val errorMsg = QRCodeApp.initErrorMessage ?: "Unknown error"
-                Toast.makeText(this, "QR library failed: $errorMsg", Toast.LENGTH_LONG).show()
-                finish()
-                return
-            }
             processImage(Uri.parse(uriString))
         } else {
             Toast.makeText(this, "No image provided", Toast.LENGTH_SHORT).show()
@@ -104,54 +95,58 @@ class ResultActivity : AppCompatActivity() {
     private fun processImage(uri: Uri) {
         binding.progressBar.visibility = View.VISIBLE
 
-        Thread {
+        lifecycleScope.launch {
             try {
-                val bitmap = loadBitmapFromUri(uri)
+                val bitmap = withContext(Dispatchers.IO) {
+                    loadBitmapFromUri(uri)
+                }
+                
                 if (bitmap == null) {
-                    runOnUiThread {
-                        binding.progressBar.visibility = View.GONE
-                        Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show()
-                    }
-                    return@Thread
-                }
-
-                val points = ArrayList<Mat>()
-                val detectedResults = WeChatQRCodeDetector.detectAndDecode(bitmap, points)
-
-                runOnUiThread {
                     binding.progressBar.visibility = View.GONE
-
-                    if (detectedResults.isEmpty()) {
-                        binding.tvNoResults.visibility = View.VISIBLE
-                        binding.recyclerView.visibility = View.GONE
-                        binding.layoutButtons.visibility = View.GONE
-                    } else {
-                        binding.tvNoResults.visibility = View.GONE
-                        binding.recyclerView.visibility = View.VISIBLE
-                        binding.layoutButtons.visibility = View.VISIBLE
-                        binding.ivProcessedImage.visibility = View.VISIBLE
-
-                        // Draw rectangles on bitmap
-                        processedBitmap = drawQRCodeRects(bitmap, points)
-                        binding.ivProcessedImage.setImageBitmap(processedBitmap)
-
-                        results.clear()
-                        results.addAll(detectedResults.map { QRResult(it) })
-                        adapter.notifyDataSetChanged()
-                        updateSelectionCount()
-                    }
+                    Toast.makeText(this@ResultActivity, "Failed to load image", Toast.LENGTH_SHORT).show()
+                    return@launch
                 }
 
-                // Release Mats
-                points.forEach { it.release() }
+                val detectedResults = withContext(Dispatchers.Default) {
+                    QRCodeScanner.scan(this@ResultActivity, bitmap)
+                }
+
+                binding.progressBar.visibility = View.GONE
+
+                if (detectedResults.isEmpty()) {
+                    binding.tvNoResults.visibility = View.VISIBLE
+                    binding.tvNoResults.text = "No QR codes found (tried WeChatQR, ZXing, ML Kit)"
+                    binding.recyclerView.visibility = View.GONE
+                    binding.layoutButtons.visibility = View.GONE
+                } else {
+                    binding.tvNoResults.visibility = View.GONE
+                    binding.recyclerView.visibility = View.VISIBLE
+                    binding.layoutButtons.visibility = View.VISIBLE
+                    binding.ivProcessedImage.visibility = View.VISIBLE
+                    
+                    // 显示原图
+                    binding.ivProcessedImage.setImageBitmap(bitmap)
+
+                    results.clear()
+                    results.addAll(detectedResults.map { 
+                        QRResult(it.text, false, it.library) 
+                    })
+                    scanResults.clear()
+                    scanResults.addAll(detectedResults)
+                    
+                    adapter.notifyDataSetChanged()
+                    updateSelectionCount()
+                    
+                    // 显示使用了哪个库
+                    val libsUsed = detectedResults.map { it.library.name }.distinct().joinToString(", ")
+                    Toast.makeText(this@ResultActivity, "Detected with: $libsUsed", Toast.LENGTH_SHORT).show()
+                }
 
             } catch (e: Exception) {
-                runOnUiThread {
-                    binding.progressBar.visibility = View.GONE
-                    Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+                binding.progressBar.visibility = View.GONE
+                Toast.makeText(this@ResultActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-        }.start()
+        }
     }
 
     private fun loadBitmapFromUri(uri: Uri): Bitmap? {
@@ -162,36 +157,6 @@ class ResultActivity : AppCompatActivity() {
         } catch (e: Exception) {
             null
         }
-    }
-
-    private fun drawQRCodeRects(bitmap: Bitmap, points: List<Mat>): Bitmap {
-        val mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val canvas = Canvas(mutableBitmap)
-        val paint = Paint().apply {
-            color = Color.GREEN
-            style = Paint.Style.STROKE
-            strokeWidth = 5f
-        }
-
-        points.forEach { mat ->
-            if (mat.rows() >= 4 && mat.cols() >= 1) {
-                val path = Path()
-                val x0 = mat[0, 0][0].toFloat()
-                val y0 = mat[0, 1][0].toFloat()
-                path.moveTo(x0, y0)
-
-                for (i in 1 until 4) {
-                    val x = mat[i, 0][0].toFloat()
-                    val y = mat[i, 1][0].toFloat()
-                    path.lineTo(x, y)
-                }
-                path.lineTo(x0, y0)
-
-                canvas.drawPath(path, paint)
-            }
-        }
-
-        return mutableBitmap
     }
 
     private fun updateSelectionCount() {
@@ -322,7 +287,10 @@ class ResultActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = items[position]
             holder.binding.apply {
-                tvResult.text = item.text
+                // 显示内容和使用库的信息
+                val libPrefix = item.library?.let { "[${it.name}] " } ?: ""
+                tvResult.text = "$libPrefix${item.text}"
+                
                 checkbox.isChecked = item.isSelected
 
                 checkbox.setOnCheckedChangeListener { _, isChecked ->
