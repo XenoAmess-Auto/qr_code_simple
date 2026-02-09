@@ -28,7 +28,7 @@ class ScanImageActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
-                processImage(uri)
+                processMedia(uri)
             }
         }
     }
@@ -72,7 +72,8 @@ class ScanImageActivity : AppCompatActivity() {
     private fun pickFromFile() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "image/*"
+            type = "*/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
         }
         pickImageLauncher.launch(intent)
     }
@@ -97,6 +98,27 @@ class ScanImageActivity : AppCompatActivity() {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+    }
+
+    private fun processMedia(uri: Uri) {
+        try {
+            val mimeType = contentResolver.getType(uri)
+            when {
+                mimeType?.startsWith("video/") == true -> {
+                    // 视频文件，跳转到视频扫描页面
+                    val intent = Intent(this, VideoScanActivity::class.java).apply {
+                        putExtra(VideoScanActivity.EXTRA_VIDEO_URI, uri.toString())
+                    }
+                    startActivity(intent)
+                }
+                else -> {
+                    // 图片文件
+                    processImage(uri)
+                }
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun processImage(uri: Uri) {
