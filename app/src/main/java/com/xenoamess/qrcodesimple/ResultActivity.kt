@@ -1,4 +1,4 @@
-package com.example.qrcodesimple
+package com.xenoamess.qrcodesimple
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -22,8 +22,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.qrcodesimple.databinding.ActivityResultBinding
-import com.example.qrcodesimple.databinding.ItemQrResultBinding
+import com.xenoamess.qrcodesimple.databinding.ActivityResultBinding
+import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import com.king.wechat.qrcode.WeChatQRCodeDetector
 import org.opencv.core.Mat
 import java.util.ArrayList

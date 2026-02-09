@@ -1,4 +1,4 @@
-package com.example.qrcodesimple
+package com.xenoamess.qrcodesimple
 
 import android.app.Application
 import android.util.Log
