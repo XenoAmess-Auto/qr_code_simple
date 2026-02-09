@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">QR Code Simple</string>
+    <string name="scan_image">Scan Image</string>
+    <string name="camera_scan">Camera Scan</string>
+    <string name="generate_qr">Generate QR Code</string>
+    <string name="scan_results">Scan Results</string>
+    <string name="select_image_source">Select image source</string>
+    <string name="from_gallery">From Gallery</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="from_file">From File</string>
+    <string name="enter_content">Enter text to encode</string>
+    <string name="generate">Generate</string>
+    <string name="clear">Clear</string>
+    <string name="save">Save</string>
+    <string name="share">Share</string>
+    <string name="copy">Copy</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="qr_code_image">QR Code</string>
+    <string name="processed_image">Processed Image</string>
+    <string name="no_qr_codes_found">No QR codes found in this image</string>
+    <string name="copy_all">Copy All</string>
+    <string name="share_all">Share All</string>
+</resources>
