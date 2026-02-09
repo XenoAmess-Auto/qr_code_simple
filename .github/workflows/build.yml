@@ -25,8 +25,32 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     
+    - name: Setup consistent debug keystore
+      run: |
+        mkdir -p ~/.android
+        # Use a consistent debug keystore from secrets if available, otherwise generate once
+        if [ -n "${{ secrets.DEBUG_KEYSTORE }}" ]; then
+          echo "Using debug keystore from secrets"
+          echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 -d > ~/.android/debug.keystore
+        else
+          echo "Generating consistent debug keystore"
+          # Generate a debug keystore with fixed credentials
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US"
+        fi
+    
     - name: Build Debug APK
       run: ./gradlew assembleDebug
+      env:
+        KEYSTORE_PASSWORD: android
+        KEY_PASSWORD: android
     
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
@@ -34,3 +58,8 @@ jobs:
         name: debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
+    
+    - name: Show APK signature info
+      run: |
+        echo "APK Signature Info:"
+        keytool -list -printcert -jarfile app/build/outputs/apk/debug/app-debug.apk || true
