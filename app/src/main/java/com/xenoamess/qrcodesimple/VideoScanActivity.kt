@@ -8,8 +8,6 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -22,9 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.xenoamess.qrcodesimple.databinding.ActivityVideoScanBinding
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
-import com.king.wechat.qrcode.WeChatQRCodeDetector
-import org.opencv.core.Mat
-import java.util.ArrayList
 import java.util.LinkedHashSet
 
 class VideoScanActivity : AppCompatActivity() {
@@ -45,7 +40,8 @@ class VideoScanActivity : AppCompatActivity() {
 
     data class QRResult(
         val text: String,
-        var isSelected: Boolean = false
+        var isSelected: Boolean = false,
+        val library: QRCodeScanner.Library? = null
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,13 +56,6 @@ class VideoScanActivity : AppCompatActivity() {
 
         val uriString = intent.getStringExtra(EXTRA_VIDEO_URI)
         if (uriString != null) {
-            // 确保 WeChatQRCode 已初始化
-            if (!QRCodeApp.ensureInitialized(application)) {
-                val errorMsg = QRCodeApp.initErrorMessage ?: "Unknown error"
-                Toast.makeText(this, "QR library failed: $errorMsg", Toast.LENGTH_LONG).show()
-                finish()
-                return
-            }
             startVideoProcessing(Uri.parse(uriString))
         } else {
             Toast.makeText(this, "No video provided", Toast.LENGTH_SHORT).show()
@@ -173,19 +162,17 @@ class VideoScanActivity : AppCompatActivity() {
 
     private fun processFrame(bitmap: Bitmap, currentTime: Long, totalDuration: Long) {
         try {
-            val points = ArrayList<Mat>()
-            val detectedResults = WeChatQRCodeDetector.detectAndDecode(bitmap, points)
+            // 使用多库扫描器
+            val scanResults = QRCodeScanner.scanSync(this, bitmap)
 
-            // 释放 Mat
-            points.forEach { it.release() }
-
-            if (detectedResults.isNotEmpty()) {
+            if (scanResults.isNotEmpty()) {
                 var hasNewResult = false
-                detectedResults.forEach { text ->
+                scanResults.forEach { text ->
                     if (detectedTexts.add(text)) {
                         hasNewResult = true
-                        // 新检测到的二维码
-                        addResult(QRResult(text))
+                        // 记录使用了哪个库（只记录第一个检测到的库）
+                        // 由于是同步方法，scanSync 不返回库信息，这里设为 null
+                        addResult(QRResult(text, false, null))
                     }
                 }
                 if (hasNewResult) {

@@ -23,7 +23,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.xenoamess.qrcodesimple.databinding.ActivityCameraScanBinding
-import com.king.wechat.qrcode.WeChatQRCodeDetector
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.nio.ByteBuffer
@@ -37,7 +36,7 @@ class CameraScanActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private var isProcessing = false
     private var lastScanTime = 0L
-    private val scanInterval = 500L // 扫描间隔 500ms
+    private val scanInterval = 300L // 扫描间隔 300ms，稍微加快
 
     companion object {
         private const val TAG = "CameraScanActivity"
@@ -52,14 +51,6 @@ class CameraScanActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         cameraExecutor = Executors.newSingleThreadExecutor()
-
-        // 确保 WeChatQRCode 已初始化（启动时已预加载，这里做二次确认）
-        if (!QRCodeApp.ensureInitialized(application)) {
-            val errorMsg = QRCodeApp.initErrorMessage ?: "Unknown error"
-            Toast.makeText(this, "QR library failed: $errorMsg", Toast.LENGTH_LONG).show()
-            finish()
-            return
-        }
 
         // 检查并请求相机权限
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -170,7 +161,6 @@ class CameraScanActivity : AppCompatActivity() {
 
         try {
             // 获取图像缓冲区
-            val buffer = imageProxy.planes[0].buffer
             val yBuffer = imageProxy.planes[0].buffer
             val uBuffer = imageProxy.planes[1].buffer
             val vBuffer = imageProxy.planes[2].buffer
@@ -201,9 +191,8 @@ class CameraScanActivity : AppCompatActivity() {
             mat.release()
             rgbMat.release()
 
-            // 检测二维码
-            val points = ArrayList<Mat>()
-            val results = WeChatQRCodeDetector.detectAndDecode(bitmap, points)
+            // 使用多库扫描器检测二维码
+            val results = QRCodeScanner.scanSync(this, bitmap)
 
             if (results.isNotEmpty()) {
                 val result = results[0]
@@ -212,7 +201,6 @@ class CameraScanActivity : AppCompatActivity() {
             }
 
             // 释放资源
-            points.forEach { it.release() }
             bitmap.recycle()
 
         } catch (e: Exception) {
