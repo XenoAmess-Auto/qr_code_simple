@@ -1,4 +1,4 @@
-package com.example.qrcodesimple
+package com.xenoamess.qrcodesimple
 
 import android.content.ContentValues
 import android.content.Intent
@@ -11,7 +11,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.qrcodesimple.databinding.ActivityGenerateBinding
+import com.xenoamess.qrcodesimple.databinding.ActivityGenerateBinding
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter

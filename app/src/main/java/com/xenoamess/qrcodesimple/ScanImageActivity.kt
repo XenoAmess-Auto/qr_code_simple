@@ -1,4 +1,4 @@
-package com.example.qrcodesimple
+package com.xenoamess.qrcodesimple
 
 import android.app.Activity
 import android.content.Intent
@@ -12,7 +12,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import com.example.qrcodesimple.databinding.ActivityScanImageBinding
+import com.xenoamess.qrcodesimple.databinding.ActivityScanImageBinding
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date

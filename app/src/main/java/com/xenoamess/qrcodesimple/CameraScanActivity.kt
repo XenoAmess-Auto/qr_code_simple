@@ -1,4 +1,4 @@
-package com.example.qrcodesimple
+package com.xenoamess.qrcodesimple
 
 import android.Manifest
 import android.content.ClipData
@@ -22,7 +22,7 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.example.qrcodesimple.databinding.ActivityCameraScanBinding
+import com.xenoamess.qrcodesimple.databinding.ActivityCameraScanBinding
 import com.king.wechat.qrcode.WeChatQRCodeDetector
 import org.opencv.core.CvType
 import org.opencv.core.Mat
