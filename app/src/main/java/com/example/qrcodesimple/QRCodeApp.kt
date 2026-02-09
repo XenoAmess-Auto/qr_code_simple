@@ -8,6 +8,7 @@ class QRCodeApp : Application() {
 
     companion object {
         private const val TAG = "QRCodeApp"
+        
         @Volatile
         var isWeChatQRCodeInitialized = false
             private set
@@ -15,6 +16,19 @@ class QRCodeApp : Application() {
         @Volatile
         var initErrorMessage: String? = null
             private set
+
+        /**
+         * 检查库是否已初始化，未初始化则尝试初始化
+         * 用于 Activity 在需要时检查状态
+         */
+        fun ensureInitialized(app: Application): Boolean {
+            return if (isWeChatQRCodeInitialized) {
+                true
+            } else {
+                // 如果启动时初始化失败，尝试再次初始化
+                initWeChatQRCodeDetector(app)
+            }
+        }
 
         fun initWeChatQRCodeDetector(app: Application): Boolean {
             if (isWeChatQRCodeInitialized) return true
@@ -45,7 +59,10 @@ class QRCodeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // 延迟初始化，放到实际使用时再进行
-        // initWeChatQRCodeDetector(this)
+        // 应用启动时预加载 WeChatQRCode 库
+        val success = initWeChatQRCodeDetector(this)
+        if (!success) {
+            Log.w(TAG, "Pre-initialization failed, will retry on demand. Error: $initErrorMessage")
+        }
     }
 }

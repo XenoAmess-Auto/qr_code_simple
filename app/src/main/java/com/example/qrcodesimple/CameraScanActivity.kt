@@ -53,8 +53,8 @@ class CameraScanActivity : AppCompatActivity() {
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
-        // 初始化 WeChatQRCode
-        if (!QRCodeApp.initWeChatQRCodeDetector(application)) {
+        // 确保 WeChatQRCode 已初始化（启动时已预加载，这里做二次确认）
+        if (!QRCodeApp.ensureInitialized(application)) {
             val errorMsg = QRCodeApp.initErrorMessage ?: "Unknown error"
             Toast.makeText(this, "QR library failed: $errorMsg", Toast.LENGTH_LONG).show()
             finish()
