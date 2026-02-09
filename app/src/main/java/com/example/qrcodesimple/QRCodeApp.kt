@@ -11,19 +11,28 @@ class QRCodeApp : Application() {
         @Volatile
         var isWeChatQRCodeInitialized = false
             private set
+        
+        @Volatile
+        var initErrorMessage: String? = null
+            private set
 
         fun initWeChatQRCodeDetector(app: Application): Boolean {
             if (isWeChatQRCodeInitialized) return true
+            
             return try {
+                Log.d(TAG, "Starting WeChatQRCodeDetector initialization...")
                 WeChatQRCodeDetector.init(app)
                 isWeChatQRCodeInitialized = true
+                initErrorMessage = null
                 Log.i(TAG, "WeChatQRCodeDetector initialized successfully")
                 true
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to initialize WeChatQRCodeDetector", e)
-                false
             } catch (e: UnsatisfiedLinkError) {
+                initErrorMessage = "Native library load failed: ${e.message}"
                 Log.e(TAG, "Native library load failed", e)
+                false
+            } catch (e: Exception) {
+                initErrorMessage = "Initialization failed: ${e.message}"
+                Log.e(TAG, "Failed to initialize WeChatQRCodeDetector", e)
                 false
             }
         }
