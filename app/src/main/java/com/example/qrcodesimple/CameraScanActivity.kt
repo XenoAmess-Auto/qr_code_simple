@@ -4,23 +4,15 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.view.SurfaceHolder
-import android.view.SurfaceView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.qrcodesimple.databinding.ActivityCameraScanBinding
-import com.king.wechat.qrcode.WeChatQRCodeDetector
-import com.king.wechat.qrcode.scanning.AnalyzeCallback
-import org.opencv.android.CameraBridgeViewBase
-import org.opencv.android.OpenCVLoader
-import org.opencv.core.Mat
 
 class CameraScanActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCameraScanBinding
-    private var isProcessing = false
 
     companion object {
         private const val TAG = "CameraScanActivity"
@@ -50,7 +42,8 @@ class CameraScanActivity : AppCompatActivity() {
     private fun initCamera() {
         // Initialize WeChatQRCode if not already done
         if (!QRCodeApp.initWeChatQRCodeDetector(application)) {
-            Toast.makeText(this, "QR detection library failed to load", Toast.LENGTH_LONG).show()
+            val errorMsg = QRCodeApp.initErrorMessage ?: "Unknown error"
+            Toast.makeText(this, "QR library failed: $errorMsg", Toast.LENGTH_LONG).show()
             finish()
             return
         }
@@ -71,7 +64,7 @@ class CameraScanActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<out String>,
+        permissions: Array<String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
