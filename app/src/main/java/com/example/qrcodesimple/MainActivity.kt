@@ -30,6 +30,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ScanImageActivity::class.java))
         }
 
+        binding.btnCameraScan.setOnClickListener {
+            startActivity(Intent(this, CameraScanActivity::class.java))
+        }
+
         binding.btnGenerate.setOnClickListener {
             startActivity(Intent(this, GenerateActivity::class.java))
         }

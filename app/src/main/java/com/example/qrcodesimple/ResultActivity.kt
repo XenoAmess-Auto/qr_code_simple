@@ -58,7 +58,8 @@ class ResultActivity : AppCompatActivity() {
         if (uriString != null) {
             // 延迟初始化 WeChatQRCode
             if (!QRCodeApp.initWeChatQRCodeDetector(application)) {
-                Toast.makeText(this, "QR code detection library failed to load", Toast.LENGTH_LONG).show()
+                val errorMsg = QRCodeApp.initErrorMessage ?: "Unknown error"
+                Toast.makeText(this, "QR library failed: $errorMsg", Toast.LENGTH_LONG).show()
                 finish()
                 return
             }

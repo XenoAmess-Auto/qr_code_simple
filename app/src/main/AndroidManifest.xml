@@ -30,6 +30,10 @@
         </activity>
 
         <activity
+            android:name=".CameraScanActivity"
+            android:label="Camera Scan" />
+
+        <activity
             android:name=".ScanImageActivity"
             android:label="@string/scan_image" />
 
