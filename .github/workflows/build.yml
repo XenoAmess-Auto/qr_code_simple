@@ -60,14 +60,14 @@ jobs:
         sha256sum app/debug.keystore || true
     
     - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
     
     - name: Upload Keystore (for local sync)
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: debug-keystore
         path: app/debug.keystore
