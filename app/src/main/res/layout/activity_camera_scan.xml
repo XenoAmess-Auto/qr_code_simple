@@ -96,12 +96,30 @@
                     android:layout_marginBottom="8dp"
                     android:textIsSelectable="true" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCopyResult"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Copy"
-                    app:icon="@drawable/ic_copy" />
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCopyResult"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Copy"
+                        android:layout_marginEnd="4dp"
+                        app:icon="@drawable/ic_copy" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnShareResult"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Share"
+                        android:layout_marginStart="4dp"
+                        app:icon="@drawable/ic_share" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

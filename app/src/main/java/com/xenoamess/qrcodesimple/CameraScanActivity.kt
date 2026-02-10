@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
@@ -72,12 +73,28 @@ class CameraScanActivity : AppCompatActivity() {
             copyResult()
         }
 
+        binding.btnShareResult.setOnClickListener {
+            shareResult()
+        }
+
         binding.resultCard.setOnClickListener {
             copyResult()
         }
 
         binding.btnCloseResult.setOnClickListener {
             hideResult()
+        }
+    }
+
+    private fun shareResult() {
+        val text = binding.tvResult.text.toString()
+        if (text.isNotBlank() && text != "Scanning...") {
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+            }
+            startActivity(Intent.createChooser(shareIntent, "Share QR Code"))
         }
     }
 
