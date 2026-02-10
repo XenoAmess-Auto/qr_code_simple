@@ -121,10 +121,21 @@ object QRCodeScanner {
             put(DecodeHintType.CHARACTER_SET, "UTF-8")
             put(DecodeHintType.TRY_HARDER, true)
             put(DecodeHintType.POSSIBLE_FORMATS, listOf(
+                // 二维码格式
                 com.google.zxing.BarcodeFormat.QR_CODE,
                 com.google.zxing.BarcodeFormat.DATA_MATRIX,
                 com.google.zxing.BarcodeFormat.AZTEC,
-                com.google.zxing.BarcodeFormat.PDF_417
+                com.google.zxing.BarcodeFormat.PDF_417,
+                // 一维条码格式
+                com.google.zxing.BarcodeFormat.CODE_128,
+                com.google.zxing.BarcodeFormat.CODE_39,
+                com.google.zxing.BarcodeFormat.CODE_93,
+                com.google.zxing.BarcodeFormat.EAN_13,
+                com.google.zxing.BarcodeFormat.EAN_8,
+                com.google.zxing.BarcodeFormat.UPC_A,
+                com.google.zxing.BarcodeFormat.UPC_E,
+                com.google.zxing.BarcodeFormat.CODABAR,
+                com.google.zxing.BarcodeFormat.ITF
             ))
         }
         
@@ -157,10 +168,21 @@ object QRCodeScanner {
         
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(
+                // 二维码格式
                 Barcode.FORMAT_QR_CODE,
                 Barcode.FORMAT_DATA_MATRIX,
                 Barcode.FORMAT_AZTEC,
-                Barcode.FORMAT_PDF417
+                Barcode.FORMAT_PDF417,
+                // 一维条码格式
+                Barcode.FORMAT_CODE_128,
+                Barcode.FORMAT_CODE_39,
+                Barcode.FORMAT_CODE_93,
+                Barcode.FORMAT_EAN_13,
+                Barcode.FORMAT_EAN_8,
+                Barcode.FORMAT_UPC_A,
+                Barcode.FORMAT_UPC_E,
+                Barcode.FORMAT_CODABAR,
+                Barcode.FORMAT_ITF
             )
             .build()
         
