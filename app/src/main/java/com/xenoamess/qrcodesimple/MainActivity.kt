@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
                 1 -> "Image"
                 2 -> "Generate"
                 3 -> "History"
+                4 -> "About"
                 else -> ""
             }
         }.attach()
