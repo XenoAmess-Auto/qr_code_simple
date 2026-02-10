@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> "Camera Scan"
+                0 -> "Realtime"
                 1 -> "Scan Image"
                 2 -> "Generate QR"
                 3 -> "History"
