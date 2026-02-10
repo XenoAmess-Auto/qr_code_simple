@@ -28,4 +28,5 @@
     <string name="generated">Generated</string>
     <string name="no_history">No history yet</string>
     <string name="clear_all">Clear All</string>
+    <string name="share_qr">Share QR</string>
 </resources>

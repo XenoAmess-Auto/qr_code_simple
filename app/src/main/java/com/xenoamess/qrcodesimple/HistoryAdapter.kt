@@ -14,6 +14,7 @@ import java.util.*
 class HistoryAdapter(
     private val onEdit: (HistoryItem) -> Unit,
     private val onShare: (HistoryItem) -> Unit,
+    private val onShareQR: (HistoryItem) -> Unit,
     private val onDelete: (HistoryItem) -> Unit
 ) : ListAdapter<HistoryItem, HistoryAdapter.ViewHolder>(DiffCallback()) {
 
@@ -49,6 +50,7 @@ class HistoryAdapter(
 
             binding.btnEdit.setOnClickListener { onEdit(item) }
             binding.btnShare.setOnClickListener { onShare(item) }
+            binding.btnShareQR.setOnClickListener { onShareQR(item) }
             binding.btnDelete.setOnClickListener { onDelete(item) }
         }
     }
