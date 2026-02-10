@@ -27,9 +27,11 @@ jobs:
     
     - name: Setup consistent debug keystore
       run: |
-        # Create debug.keystore with fixed parameters
-        # Using project-local keystore for consistency
-        if [ -f "app/debug.keystore" ]; then
+        # 优先使用 GitHub Secret 中的 keystore（如果存在）
+        if [ -n "$DEBUG_KEYSTORE" ]; then
+          echo "Using keystore from GitHub Secret"
+          echo "$DEBUG_KEYSTORE" | base64 -d > app/debug.keystore
+        elif [ -f "app/debug.keystore" ]; then
           echo "Using existing app/debug.keystore"
         else
           echo "Generating new debug.keystore"
@@ -44,6 +46,8 @@ jobs:
             -dname "CN=Android Debug,O=Android,C=US"
         fi
         ls -la app/debug.keystore
+      env:
+        DEBUG_KEYSTORE: ${{ secrets.DEBUG_KEYSTORE }}
     
     - name: Build Debug APK
       run: ./gradlew assembleDebug
