@@ -53,11 +53,8 @@ class CameraScanFragment : Fragment() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            Log.d(TAG, "Camera permission granted")
-            // 权限被授予后，确保在 UI 线程启动相机
-            binding.root.post {
-                startCamera()
-            }
+            Log.d(TAG, "Camera permission granted, starting camera...")
+            startCamera()
         } else {
             Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
         }
@@ -162,50 +159,51 @@ class CameraScanFragment : Fragment() {
         // 确保 view 仍然存在
         if (_binding == null) return
         
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        // 等待 PreviewView 准备好
+        binding.previewView.post {
+            if (_binding == null) return@post
+            
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
-        cameraProviderFuture.addListener({
-            try {
-                // 再次检查 view 是否存在
-                if (_binding == null) return@addListener
-                
-                val cameraProvider = cameraProviderFuture.get()
+            cameraProviderFuture.addListener({
+                try {
+                    if (_binding == null) return@addListener
+                    
+                    val cameraProvider = cameraProviderFuture.get()
 
-                val preview = Preview.Builder()
-                    .build()
-                    .also {
-                        it.setSurfaceProvider(binding.previewView.surfaceProvider)
-                    }
-
-                imageAnalysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
-                    .build()
-                    .also {
-                        it.setAnalyzer(cameraExecutor) { imageProxy ->
-                            processImage(imageProxy)
+                    val preview = Preview.Builder()
+                        .build()
+                        .also {
+                            it.setSurfaceProvider(binding.previewView.surfaceProvider)
                         }
-                    }
 
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                    imageAnalysis = ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
+                        .build()
+                        .also {
+                            it.setAnalyzer(cameraExecutor) { imageProxy ->
+                                processImage(imageProxy)
+                            }
+                        }
 
-                // 先解绑所有用例
-                cameraProvider.unbindAll()
-                
-                // 绑定生命周期
-                cameraProvider.bindToLifecycle(
-                    viewLifecycleOwner,
-                    cameraSelector,
-                    preview,
-                    imageAnalysis
-                )
-                
-                Log.d(TAG, "Camera started successfully")
-            } catch (exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
-                Toast.makeText(requireContext(), "Failed to start camera: ${exc.message}", Toast.LENGTH_SHORT).show()
-            }
-        }, ContextCompat.getMainExecutor(requireContext()))
+                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(
+                        viewLifecycleOwner,
+                        cameraSelector,
+                        preview,
+                        imageAnalysis
+                    )
+                    
+                    Log.d(TAG, "Camera started successfully")
+                } catch (exc: Exception) {
+                    Log.e(TAG, "Use case binding failed", exc)
+                    Toast.makeText(requireContext(), "Failed to start camera: ${exc.message}", Toast.LENGTH_SHORT).show()
+                }
+            }, ContextCompat.getMainExecutor(requireContext()))
+        }
     }
 
     private fun processImage(imageProxy: ImageProxy) {
