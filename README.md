@@ -2,6 +2,11 @@
 
 A simple Android QR code scanner and generator app.
 
+![Screenshot_20260211_062927_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_062927_com_xenoamess_qrcodesi.jpg)
+![Screenshot_20260211_062932_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_062932_com_xenoamess_qrcodesi.jpg)
+![Screenshot_20260211_063044_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_063044_com_xenoamess_qrcodesi.jpg)
+![Screenshot_20260211_063050_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_063050_com_xenoamess_qrcodesi.jpg)
+
 ## Features
 
 ### 1. Realtime Scan (Camera)
