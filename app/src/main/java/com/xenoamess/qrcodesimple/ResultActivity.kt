@@ -19,6 +19,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.xenoamess.qrcodesimple.data.HistoryRepository
+import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.ActivityResultBinding
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +31,7 @@ class ResultActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityResultBinding
     private lateinit var adapter: QRResultAdapter
+    private lateinit var historyRepository: HistoryRepository
     private val results = mutableListOf<QRResult>()
     private val scanResults = mutableListOf<QRCodeScanner.ScanResult>()
 
@@ -46,6 +49,8 @@ class ResultActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        historyRepository = HistoryRepository(this)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -136,6 +141,9 @@ class ResultActivity : AppCompatActivity() {
                     
                     adapter.notifyDataSetChanged()
                     updateSelectionCount()
+                    
+                    // 保存到历史记录
+                    saveToHistory(detectedResults)
                     
                     // 显示使用了哪个库
                     val libsUsed = detectedResults.map { it.library.name }.distinct().joinToString(", ")
@@ -262,6 +270,18 @@ class ResultActivity : AppCompatActivity() {
             putExtra(Intent.EXTRA_TEXT, text)
         }
         startActivity(Intent.createChooser(intent, "Share all QR Code content"))
+    }
+
+    private fun saveToHistory(detectedResults: List<QRCodeScanner.ScanResult>) {
+        lifecycleScope.launch {
+            try {
+                detectedResults.forEach { result ->
+                    historyRepository.insertScan(result.text, HistoryType.QR_CODE)
+                }
+            } catch (e: Exception) {
+                // 静默失败，不影响用户体验
+            }
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
