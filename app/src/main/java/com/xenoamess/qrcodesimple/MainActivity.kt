@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
             tab.text = when (position) {
                 0 -> "Realtime"
                 1 -> "Image"
-                2 -> "Generate QR"
+                2 -> "Generate"
                 3 -> "History"
                 else -> ""
             }
