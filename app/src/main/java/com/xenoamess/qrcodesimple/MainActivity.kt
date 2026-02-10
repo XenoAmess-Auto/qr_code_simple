@@ -1,7 +1,6 @@
 package com.xenoamess.qrcodesimple
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.tabs.TabLayoutMediator
 import com.xenoamess.qrcodesimple.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -25,18 +25,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         checkPermissions()
+        setupViewPager()
+    }
 
-        binding.btnScanImage.setOnClickListener {
-            startActivity(Intent(this, ScanImageActivity::class.java))
-        }
+    private fun setupViewPager() {
+        val adapter = ViewPagerAdapter(this)
+        binding.viewPager.adapter = adapter
 
-        binding.btnCameraScan.setOnClickListener {
-            startActivity(Intent(this, CameraScanActivity::class.java))
-        }
-
-        binding.btnGenerate.setOnClickListener {
-            startActivity(Intent(this, GenerateActivity::class.java))
-        }
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "Camera Scan"
+                1 -> "Scan Image"
+                2 -> "Generate QR"
+                else -> ""
+            }
+        }.attach()
     }
 
     private fun checkPermissions() {
