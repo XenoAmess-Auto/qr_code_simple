@@ -14,8 +14,10 @@ import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.king.wechat.qrcode.WeChatQRCodeDetector
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.opencv.core.Mat
 import java.util.ArrayList
 import java.util.EnumMap
@@ -106,9 +108,64 @@ object QRCodeScanner {
     }
     
     /**
-     * 使用 ZXing 扫描
+     * 使用 ZXing 扫描 - 优化版本，支持条形码
      */
     private fun scanWithZXing(bitmap: Bitmap): List<String> {
+        // 尝试多种配置
+        val configs = listOf(
+            // 配置1: 所有格式
+            EnumMap<DecodeHintType, Any>(DecodeHintType::class.java).apply {
+                put(DecodeHintType.CHARACTER_SET, "UTF-8")
+                put(DecodeHintType.TRY_HARDER, true)
+                put(DecodeHintType.POSSIBLE_FORMATS, listOf(
+                    com.google.zxing.BarcodeFormat.QR_CODE,
+                    com.google.zxing.BarcodeFormat.DATA_MATRIX,
+                    com.google.zxing.BarcodeFormat.AZTEC,
+                    com.google.zxing.BarcodeFormat.PDF_417,
+                    com.google.zxing.BarcodeFormat.CODE_128,
+                    com.google.zxing.BarcodeFormat.CODE_39,
+                    com.google.zxing.BarcodeFormat.CODE_93,
+                    com.google.zxing.BarcodeFormat.EAN_13,
+                    com.google.zxing.BarcodeFormat.EAN_8,
+                    com.google.zxing.BarcodeFormat.UPC_A,
+                    com.google.zxing.BarcodeFormat.UPC_E,
+                    com.google.zxing.BarcodeFormat.CODABAR,
+                    com.google.zxing.BarcodeFormat.ITF
+                ))
+            },
+            // 配置2: 仅一维条码（更宽松）
+            EnumMap<DecodeHintType, Any>(DecodeHintType::class.java).apply {
+                put(DecodeHintType.TRY_HARDER, true)
+                put(DecodeHintType.POSSIBLE_FORMATS, listOf(
+                    com.google.zxing.BarcodeFormat.CODE_128,
+                    com.google.zxing.BarcodeFormat.CODE_39,
+                    com.google.zxing.BarcodeFormat.EAN_13,
+                    com.google.zxing.BarcodeFormat.UPC_A
+                ))
+            }
+        )
+        
+        // 尝试原始图像
+        for (config in configs) {
+            val result = tryDecode(bitmap, config)
+            if (result.isNotEmpty()) return result
+        }
+        
+        // 尝试旋转图像（条形码可能在不同方向）
+        val rotatedBitmap = rotateBitmap(bitmap, 90f)
+        for (config in configs) {
+            val result = tryDecode(rotatedBitmap, config)
+            if (result.isNotEmpty()) {
+                rotatedBitmap.recycle()
+                return result
+            }
+        }
+        rotatedBitmap.recycle()
+        
+        return emptyList()
+    }
+    
+    private fun tryDecode(bitmap: Bitmap, hints: EnumMap<DecodeHintType, Any>): List<String> {
         val width = bitmap.width
         val height = bitmap.height
         val pixels = IntArray(width * height)
@@ -117,28 +174,6 @@ object QRCodeScanner {
         val source = RGBLuminanceSource(width, height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
         
-        val hints = EnumMap<DecodeHintType, Any>(DecodeHintType::class.java).apply {
-            put(DecodeHintType.CHARACTER_SET, "UTF-8")
-            put(DecodeHintType.TRY_HARDER, true)
-            put(DecodeHintType.POSSIBLE_FORMATS, listOf(
-                // 二维码格式
-                com.google.zxing.BarcodeFormat.QR_CODE,
-                com.google.zxing.BarcodeFormat.DATA_MATRIX,
-                com.google.zxing.BarcodeFormat.AZTEC,
-                com.google.zxing.BarcodeFormat.PDF_417,
-                // 一维条码格式
-                com.google.zxing.BarcodeFormat.CODE_128,
-                com.google.zxing.BarcodeFormat.CODE_39,
-                com.google.zxing.BarcodeFormat.CODE_93,
-                com.google.zxing.BarcodeFormat.EAN_13,
-                com.google.zxing.BarcodeFormat.EAN_8,
-                com.google.zxing.BarcodeFormat.UPC_A,
-                com.google.zxing.BarcodeFormat.UPC_E,
-                com.google.zxing.BarcodeFormat.CODABAR,
-                com.google.zxing.BarcodeFormat.ITF
-            ))
-        }
-        
         val reader = MultiFormatReader()
         reader.setHints(hints)
         
@@ -146,18 +181,24 @@ object QRCodeScanner {
             val result = reader.decode(binaryBitmap)
             listOf(result.text)
         } catch (e: Exception) {
-            // 尝试反转图像（某些二维码可能是反色的）
+            // 尝试全局直方图二值化（对某些图像效果更好）
             try {
-                val invertedSource = RGBLuminanceSource(width, height, pixels.map { 
-                    0xFFFFFF - it or 0xFF000000.toInt() 
-                }.toIntArray())
-                val invertedBinaryBitmap = BinaryBitmap(HybridBinarizer(invertedSource))
-                val invertedResult = reader.decode(invertedBinaryBitmap)
-                listOf(invertedResult.text)
+                val globalSource = RGBLuminanceSource(width, height, pixels)
+                val globalBinaryBitmap = BinaryBitmap(
+                    com.google.zxing.common.GlobalHistogramBinarizer(globalSource)
+                )
+                val globalResult = reader.decode(globalBinaryBitmap)
+                listOf(globalResult.text)
             } catch (e2: Exception) {
                 emptyList()
             }
         }
+    }
+    
+    private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
+        val matrix = android.graphics.Matrix()
+        matrix.postRotate(degrees)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
     
     /**
@@ -208,9 +249,10 @@ object QRCodeScanner {
     
     /**
      * 同步扫描（用于非协程环境，如视频扫描）
+     * 支持条形码扫描
      */
     fun scanSync(context: Context, bitmap: Bitmap): List<String> {
-        // 1. 尝试 WeChatQRCode
+        // 1. 尝试 WeChatQRCode（只支持二维码）
         if (QRCodeApp.isWeChatQRCodeInitialized) {
             try {
                 val results = scanWithWeChatQRCode(bitmap)
@@ -223,7 +265,7 @@ object QRCodeScanner {
             }
         }
         
-        // 2. 尝试 ZXing
+        // 2. 尝试 ZXing（支持二维码和条形码）
         try {
             val results = scanWithZXing(bitmap)
             if (results.isNotEmpty()) {
@@ -234,9 +276,23 @@ object QRCodeScanner {
             Log.e(TAG, "ZXing scan failed", e)
         }
         
-        // 3. ML Kit 需要协程，在非协程环境跳过或使用 runBlocking
-        // 由于 ML Kit 是异步 API，在同步方法中跳过
-        Log.d(TAG, "No QR codes detected by any library")
+        // 3. 尝试 ML Kit（支持二维码和条形码）
+        // 使用 runBlocking 在同步环境中调用异步 API
+        try {
+            val results = runBlocking(Dispatchers.Default) {
+                withTimeoutOrNull(5000) {
+                    scanWithMLKit(bitmap)
+                } ?: emptyList()
+            }
+            if (results.isNotEmpty()) {
+                Log.d(TAG, "ML Kit detected ${results.size} codes")
+                return results
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "ML Kit scan failed", e)
+        }
+        
+        Log.d(TAG, "No codes detected by any library")
         return emptyList()
     }
 }
