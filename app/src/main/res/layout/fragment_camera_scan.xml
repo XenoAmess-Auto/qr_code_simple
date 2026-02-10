@@ -58,7 +58,7 @@
         android:orientation="horizontal"
         android:paddingStart="8dp"
         android:paddingTop="80dp"
-        android:paddingBottom="120dp">
+        android:paddingBottom="80dp">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="wrap_content"
@@ -74,7 +74,7 @@
 
                 <com.google.android.material.slider.Slider
                     android:id="@+id/zoomSlider"
-                    android:layout_width="280dp"
+                    android:layout_width="360dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:rotation="270"
