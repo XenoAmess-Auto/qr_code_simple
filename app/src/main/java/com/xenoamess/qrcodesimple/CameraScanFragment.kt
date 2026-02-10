@@ -13,10 +13,13 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -33,6 +36,8 @@ import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.max
+import kotlin.math.min
 
 class CameraScanFragment : Fragment() {
 
@@ -46,9 +51,14 @@ class CameraScanFragment : Fragment() {
     private var lastDetectedContent: String? = null
     private var isCameraStarted = false
     private val handler = Handler(Looper.getMainLooper())
+    private var camera: Camera? = null
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
+    private var currentZoom = 1f
 
     companion object {
         private const val TAG = "CameraScanFragment"
+        private const val MIN_ZOOM = 1f
+        private const val MAX_ZOOM = 10f
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -82,11 +92,11 @@ class CameraScanFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         setupButtons()
+        setupZoomGesture()
         
         // 检查权限
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
-            // 延迟启动相机，确保 view 完全准备好
             startCameraWithDelay()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
@@ -95,7 +105,6 @@ class CameraScanFragment : Fragment() {
     
     override fun onResume() {
         super.onResume()
-        // 如果相机还没启动，尝试启动
         if (!isCameraStarted && 
             ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
@@ -103,11 +112,27 @@ class CameraScanFragment : Fragment() {
         }
     }
     
-    private fun startCameraWithDelay() {
-        // 清除之前的延迟任务
-        handler.removeCallbacksAndMessages(null)
+    private fun setupZoomGesture() {
+        scaleGestureDetector = ScaleGestureDetector(requireContext(),
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val scale = detector.scaleFactor
+                    currentZoom = max(MIN_ZOOM, min(currentZoom * scale, MAX_ZOOM))
+                    
+                    camera?.cameraControl?.setZoomRatio(currentZoom)
+                    Log.d(TAG, "Zoom: $currentZoom")
+                    return true
+                }
+            })
         
-        // 延迟启动，确保 PreviewView 准备好
+        binding.previewView.setOnTouchListener { _, event ->
+            scaleGestureDetector.onTouchEvent(event)
+            true
+        }
+    }
+    
+    private fun startCameraWithDelay() {
+        handler.removeCallbacksAndMessages(null)
         handler.postDelayed({
             if (isAdded && _binding != null) {
                 startCameraInternal()
@@ -133,18 +158,14 @@ class CameraScanFragment : Fragment() {
                 }
                 
                 val cameraProvider = cameraProviderFuture.get()
-                
-                // 先解绑所有
                 cameraProvider.unbindAll()
                 
-                // 构建 Preview
                 val preview = Preview.Builder()
                     .build()
                     .also {
                         it.setSurfaceProvider(binding.previewView.surfaceProvider)
                     }
                 
-                // 构建 ImageAnalysis
                 val imageAnalysis = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
@@ -155,20 +176,21 @@ class CameraScanFragment : Fragment() {
                         }
                     }
                 
-                // 绑定到生命周期
-                cameraProvider.bindToLifecycle(
+                camera = cameraProvider.bindToLifecycle(
                     viewLifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     imageAnalysis
                 )
                 
+                // 恢复之前的缩放级别
+                camera?.cameraControl?.setZoomRatio(currentZoom)
+                
                 Log.d(TAG, "Camera started successfully")
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start camera", e)
                 isCameraStarted = false
-                // 重试一次
                 handler.postDelayed({
                     if (isAdded && _binding != null) {
                         startCameraInternal()
@@ -283,6 +305,7 @@ class CameraScanFragment : Fragment() {
         super.onDestroyView()
         handler.removeCallbacksAndMessages(null)
         cameraExecutor?.shutdown()
+        camera = null
         _binding = null
     }
 }
