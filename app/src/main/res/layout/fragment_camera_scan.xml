@@ -108,7 +108,8 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:background="#CC000000"
-        android:padding="4dp 8dp"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
         android:visibility="gone" />
 
     <!-- Result Card (Bottom) -->
