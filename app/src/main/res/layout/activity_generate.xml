@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minLines="3"
-            android:maxLines="6"
+            android:maxLines="15"
             android:gravity="top"
             android:inputType="textMultiLine" />
 
@@ -58,6 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:minHeight="200dp"
         android:layout_marginTop="16dp"
         android:scaleType="fitCenter"
         android:contentDescription="@string/qr_code_image" />
