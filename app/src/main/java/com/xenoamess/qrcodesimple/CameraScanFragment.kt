@@ -22,7 +22,11 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.xenoamess.qrcodesimple.data.HistoryRepository
+import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentCameraScanBinding
+import kotlinx.coroutines.launch
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.util.concurrent.ExecutorService
@@ -34,9 +38,11 @@ class CameraScanFragment : Fragment() {
     private val binding get() = _binding!!
     private var imageAnalysis: ImageAnalysis? = null
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var historyRepository: HistoryRepository
     private var isProcessing = false
     private var lastScanTime = 0L
     private val scanInterval = 300L
+    private var lastDetectedContent: String? = null
 
     companion object {
         private const val TAG = "CameraScanFragment"
@@ -56,6 +62,7 @@ class CameraScanFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+        historyRepository = HistoryRepository(requireContext())
         setupButtons()
 
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
@@ -117,6 +124,18 @@ class CameraScanFragment : Fragment() {
         activity?.runOnUiThread {
             binding.tvResult.text = result
             binding.resultCard.visibility = View.VISIBLE
+            
+            // 保存到历史记录（避免重复保存相同内容）
+            if (result != lastDetectedContent && result.isNotBlank()) {
+                lastDetectedContent = result
+                lifecycleScope.launch {
+                    try {
+                        historyRepository.insertScan(result, HistoryType.QR_CODE)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to save history", e)
+                    }
+                }
+            }
         }
     }
 
