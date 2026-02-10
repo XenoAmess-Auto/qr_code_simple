@@ -28,6 +28,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.slider.Slider
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentCameraScanBinding
@@ -54,11 +55,13 @@ class CameraScanFragment : Fragment() {
     private var camera: Camera? = null
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var currentZoom = 1f
+    private var isFlashOn = false
+    private var isBackCamera = true
+    private var maxZoom = 10f
 
     companion object {
         private const val TAG = "CameraScanFragment"
         private const val MIN_ZOOM = 1f
-        private const val MAX_ZOOM = 10f
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -92,9 +95,9 @@ class CameraScanFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         setupButtons()
+        setupZoomControls()
         setupZoomGesture()
         
-        // 检查权限
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
             startCameraWithDelay()
@@ -112,14 +115,35 @@ class CameraScanFragment : Fragment() {
         }
     }
     
+    private fun setupZoomControls() {
+        binding.zoomSlider.apply {
+            valueFrom = MIN_ZOOM
+            valueTo = maxZoom
+            stepSize = 0.1f
+            value = currentZoom
+            
+            addOnChangeListener { _, value, fromUser ->
+                if (fromUser) {
+                    currentZoom = value
+                    camera?.cameraControl?.setZoomRatio(currentZoom)
+                }
+            }
+        }
+    }
+    
+    private fun updateZoomSlider() {
+        binding.zoomSlider.value = currentZoom.coerceIn(MIN_ZOOM, maxZoom)
+    }
+    
     private fun setupZoomGesture() {
         scaleGestureDetector = ScaleGestureDetector(requireContext(),
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
                     val scale = detector.scaleFactor
-                    currentZoom = max(MIN_ZOOM, min(currentZoom * scale, MAX_ZOOM))
+                    currentZoom = max(MIN_ZOOM, min(currentZoom * scale, maxZoom))
                     
                     camera?.cameraControl?.setZoomRatio(currentZoom)
+                    updateZoomSlider()
                     Log.d(TAG, "Zoom: $currentZoom")
                     return true
                 }
@@ -129,6 +153,34 @@ class CameraScanFragment : Fragment() {
             scaleGestureDetector.onTouchEvent(event)
             true
         }
+    }
+    
+    private fun setupButtons() {
+        binding.btnCopyResult.setOnClickListener { copyResult() }
+        binding.btnShareResult.setOnClickListener { shareResult() }
+        binding.resultCard.setOnClickListener { copyResult() }
+        binding.btnCloseResult.setOnClickListener { hideResult() }
+        
+        binding.btnFlash.setOnClickListener { toggleFlash() }
+        binding.btnSwitchCamera.setOnClickListener { switchCamera() }
+    }
+    
+    private fun toggleFlash() {
+        isFlashOn = !isFlashOn
+        camera?.cameraControl?.enableTorch(isFlashOn)
+        binding.btnFlash.setImageResource(
+            if (isFlashOn) R.drawable.ic_flash_on else R.drawable.ic_flash_off
+        )
+        Toast.makeText(requireContext(), if (isFlashOn) "Flash ON" else "Flash OFF", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun switchCamera() {
+        isBackCamera = !isBackCamera
+        isCameraStarted = false
+        isFlashOn = false
+        binding.btnFlash.setImageResource(R.drawable.ic_flash_off)
+        startCameraWithDelay()
+        Toast.makeText(requireContext(), if (isBackCamera) "Back Camera" else "Front Camera", Toast.LENGTH_SHORT).show()
     }
     
     private fun startCameraWithDelay() {
@@ -160,6 +212,20 @@ class CameraScanFragment : Fragment() {
                 val cameraProvider = cameraProviderFuture.get()
                 cameraProvider.unbindAll()
                 
+                val cameraSelector = if (isBackCamera) {
+                    CameraSelector.DEFAULT_BACK_CAMERA
+                } else {
+                    CameraSelector.DEFAULT_FRONT_CAMERA
+                }
+                
+                // 检查是否有前置摄像头
+                if (!isBackCamera && !cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
+                    Toast.makeText(requireContext(), "Front camera not available", Toast.LENGTH_SHORT).show()
+                    isBackCamera = true
+                    isCameraStarted = false
+                    return@addListener
+                }
+                
                 val preview = Preview.Builder()
                     .build()
                     .also {
@@ -178,13 +244,24 @@ class CameraScanFragment : Fragment() {
                 
                 camera = cameraProvider.bindToLifecycle(
                     viewLifecycleOwner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    cameraSelector,
                     preview,
                     imageAnalysis
                 )
                 
-                // 恢复之前的缩放级别
+                // 获取最大缩放级别
+                camera?.cameraInfo?.zoomState?.value?.maxZoomRatio?.let {
+                    maxZoom = it
+                    binding.zoomSlider.valueTo = maxZoom
+                }
+                
                 camera?.cameraControl?.setZoomRatio(currentZoom)
+                updateZoomSlider()
+                
+                // 恢复闪光灯状态
+                if (isFlashOn && isBackCamera) {
+                    camera?.cameraControl?.enableTorch(true)
+                }
                 
                 Log.d(TAG, "Camera started successfully")
                 
@@ -198,13 +275,6 @@ class CameraScanFragment : Fragment() {
                 }, 1000)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
-    }
-
-    private fun setupButtons() {
-        binding.btnCopyResult.setOnClickListener { copyResult() }
-        binding.btnShareResult.setOnClickListener { shareResult() }
-        binding.resultCard.setOnClickListener { copyResult() }
-        binding.btnCloseResult.setOnClickListener { hideResult() }
     }
 
     private fun shareResult() {
