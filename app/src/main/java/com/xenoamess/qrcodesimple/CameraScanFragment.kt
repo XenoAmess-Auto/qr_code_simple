@@ -9,13 +9,14 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -37,16 +38,14 @@ class CameraScanFragment : Fragment() {
 
     private var _binding: FragmentCameraScanBinding? = null
     private val binding get() = _binding!!
-    private var imageAnalysis: ImageAnalysis? = null
-    private var preview: Preview? = null
-    private var camera: Camera? = null
-    private lateinit var cameraExecutor: ExecutorService
+    private var cameraExecutor: ExecutorService? = null
     private lateinit var historyRepository: HistoryRepository
     private var isProcessing = false
     private var lastScanTime = 0L
     private val scanInterval = 300L
     private var lastDetectedContent: String? = null
-    private var cameraProvider: ProcessCameraProvider? = null
+    private var isCameraStarted = false
+    private val handler = Handler(Looper.getMainLooper())
 
     companion object {
         private const val TAG = "CameraScanFragment"
@@ -56,8 +55,9 @@ class CameraScanFragment : Fragment() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            Log.d(TAG, "Permission granted, will start camera in onResume")
-            // 权限被授予，等待 onResume 启动相机
+            Log.d(TAG, "Permission granted, starting camera...")
+            isCameraStarted = false
+            startCameraInternal()
         } else {
             Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
         }
@@ -66,6 +66,7 @@ class CameraScanFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         cameraExecutor = Executors.newSingleThreadExecutor()
+        historyRepository = HistoryRepository(requireContext())
     }
 
     override fun onCreateView(
@@ -79,90 +80,127 @@ class CameraScanFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        historyRepository = HistoryRepository(requireContext())
+        
         setupButtons()
         
-        // 请求权限（如果需要）
-        checkCameraPermission()
+        // 检查权限
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED) {
+            // 延迟启动相机，确保 view 完全准备好
+            startCameraWithDelay()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
     }
-
+    
     override fun onResume() {
         super.onResume()
-        // 在 onResume 中启动相机，确保 Fragment 完全可见
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+        // 如果相机还没启动，尝试启动
+        if (!isCameraStarted && 
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
             startCameraWithDelay()
         }
     }
-
-    override fun onPause() {
-        super.onPause()
-        // 停止相机以释放资源
-        cameraProvider?.unbindAll()
-    }
-
+    
     private fun startCameraWithDelay() {
-        // 使用 postDelayed 确保 PreviewView 已经完全准备好
-        binding.previewView.postDelayed({
+        // 清除之前的延迟任务
+        handler.removeCallbacksAndMessages(null)
+        
+        // 延迟启动，确保 PreviewView 准备好
+        handler.postDelayed({
             if (isAdded && _binding != null) {
-                startCamera()
+                startCameraInternal()
             }
-        }, 300) // 300ms 延迟，确保 view 准备好
+        }, 500)
     }
-
-    private fun checkCameraPermission() {
-        when {
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_GRANTED -> {
-                // 权限已有，在 onResume 中会启动相机
-            }
-            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
-                // 显示权限说明
-                Toast.makeText(requireContext(), "Camera permission is needed for scanning", Toast.LENGTH_LONG).show()
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
+    
+    private fun startCameraInternal() {
+        if (isCameraStarted || _binding == null || !isAdded) {
+            return
         }
+        
+        Log.d(TAG, "Starting camera...")
+        isCameraStarted = true
+        
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        
+        cameraProviderFuture.addListener({
+            try {
+                if (_binding == null || !isAdded) {
+                    isCameraStarted = false
+                    return@addListener
+                }
+                
+                val cameraProvider = cameraProviderFuture.get()
+                
+                // 先解绑所有
+                cameraProvider.unbindAll()
+                
+                // 构建 Preview
+                val preview = Preview.Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(binding.previewView.surfaceProvider)
+                    }
+                
+                // 构建 ImageAnalysis
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
+                    .build()
+                    .also {
+                        it.setAnalyzer(cameraExecutor!!) { imageProxy ->
+                            processImage(imageProxy)
+                        }
+                    }
+                
+                // 绑定到生命周期
+                cameraProvider.bindToLifecycle(
+                    viewLifecycleOwner,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
+                    imageAnalysis
+                )
+                
+                Log.d(TAG, "Camera started successfully")
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to start camera", e)
+                isCameraStarted = false
+                // 重试一次
+                handler.postDelayed({
+                    if (isAdded && _binding != null) {
+                        startCameraInternal()
+                    }
+                }, 1000)
+            }
+        }, ContextCompat.getMainExecutor(requireContext()))
     }
 
     private fun setupButtons() {
-        binding.btnCopyResult.setOnClickListener {
-            copyResult()
-        }
-
-        binding.btnShareResult.setOnClickListener {
-            shareResult()
-        }
-
-        binding.resultCard.setOnClickListener {
-            copyResult()
-        }
-
-        binding.btnCloseResult.setOnClickListener {
-            hideResult()
-        }
+        binding.btnCopyResult.setOnClickListener { copyResult() }
+        binding.btnShareResult.setOnClickListener { shareResult() }
+        binding.resultCard.setOnClickListener { copyResult() }
+        binding.btnCloseResult.setOnClickListener { hideResult() }
     }
 
     private fun shareResult() {
         val text = binding.tvResult.text.toString()
         if (text.isNotBlank() && text != "Scanning...") {
-            val shareIntent = Intent().apply {
+            startActivity(Intent.createChooser(Intent().apply {
                 action = Intent.ACTION_SEND
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, text)
-            }
-            startActivity(Intent.createChooser(shareIntent, "Share QR Code"))
+            }, "Share QR Code"))
         }
     }
 
     private fun copyResult() {
         val text = binding.tvResult.text.toString()
         if (text.isNotBlank() && text != "Scanning...") {
-            val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("QR Code", text))
+            (requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                .setPrimaryClip(ClipData.newPlainText("QR Code", text))
             Toast.makeText(requireContext(), "Copied to clipboard", Toast.LENGTH_SHORT).show()
         }
     }
@@ -172,6 +210,7 @@ class CameraScanFragment : Fragment() {
     }
 
     private fun showResult(result: String) {
+        if (!isAdded) return
         activity?.runOnUiThread {
             binding.tvResult.text = result
             binding.resultCard.visibility = View.VISIBLE
@@ -187,57 +226,6 @@ class CameraScanFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun startCamera() {
-        if (_binding == null) return
-        
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
-
-        cameraProviderFuture.addListener({
-            try {
-                if (_binding == null) return@addListener
-                
-                // 保存 provider 引用以便后续解绑
-                cameraProvider = cameraProviderFuture.get()
-                
-                // 构建 Preview
-                preview = Preview.Builder()
-                    .build()
-                    .also {
-                        it.setSurfaceProvider(binding.previewView.surfaceProvider)
-                    }
-
-                // 构建 ImageAnalysis
-                imageAnalysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
-                    .build()
-                    .also {
-                        it.setAnalyzer(cameraExecutor) { imageProxy ->
-                            processImage(imageProxy)
-                        }
-                    }
-
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-                // 解绑之前绑定的用例
-                cameraProvider?.unbindAll()
-                
-                // 绑定用例到相机
-                camera = cameraProvider?.bindToLifecycle(
-                    this,
-                    cameraSelector,
-                    preview,
-                    imageAnalysis
-                )
-                
-                Log.d(TAG, "Camera started successfully")
-            } catch (exc: Exception) {
-                Log.e(TAG, "Camera binding failed", exc)
-                Toast.makeText(requireContext(), "Failed to start camera", Toast.LENGTH_SHORT).show()
-            }
-        }, ContextCompat.getMainExecutor(requireContext()))
     }
 
     private fun processImage(imageProxy: ImageProxy) {
@@ -259,7 +247,6 @@ class CameraScanFragment : Fragment() {
             val ySize = yBuffer.remaining()
             val uSize = uBuffer.remaining()
             val vSize = vBuffer.remaining()
-
             val nv21 = ByteArray(ySize + uSize + vSize)
 
             yBuffer.get(nv21, 0, ySize)
@@ -279,11 +266,8 @@ class CameraScanFragment : Fragment() {
             rgbMat.release()
 
             val results = QRCodeScanner.scanSync(requireContext(), bitmap)
-
             if (results.isNotEmpty()) {
-                val result = results[0]
-                Log.d(TAG, "QR Code detected: $result")
-                showResult(result)
+                showResult(results[0])
             }
 
             bitmap.recycle()
@@ -297,8 +281,8 @@ class CameraScanFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        cameraProvider?.unbindAll()
-        cameraExecutor.shutdown()
+        handler.removeCallbacksAndMessages(null)
+        cameraExecutor?.shutdown()
         _binding = null
     }
 }
