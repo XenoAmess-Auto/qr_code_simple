@@ -23,4 +23,9 @@
     <string name="no_qr_codes_found">No QR codes found in this image</string>
     <string name="copy_all">Copy All</string>
     <string name="share_all">Share All</string>
+    <string name="all">All</string>
+    <string name="scanned">Scanned</string>
+    <string name="generated">Generated</string>
+    <string name="no_history">No history yet</string>
+    <string name="clear_all">Clear All</string>
 </resources>

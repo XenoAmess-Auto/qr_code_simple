@@ -1,0 +1,163 @@
+package com.xenoamess.qrcodesimple
+
+import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.xenoamess.qrcodesimple.data.HistoryItem
+import com.xenoamess.qrcodesimple.data.HistoryRepository
+import com.xenoamess.qrcodesimple.databinding.FragmentHistoryBinding
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+
+class HistoryFragment : Fragment() {
+
+    private var _binding: FragmentHistoryBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var repository: HistoryRepository
+    private lateinit var adapter: HistoryAdapter
+    private var currentFilter = FilterType.ALL
+
+    enum class FilterType {
+        ALL, SCANNED, GENERATED
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentHistoryBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        repository = HistoryRepository(requireContext())
+        setupRecyclerView()
+        setupFilterTabs()
+        setupClearButton()
+        loadHistory()
+    }
+
+    private fun setupRecyclerView() {
+        adapter = HistoryAdapter(
+            onEdit = { item -> showEditDialog(item) },
+            onShare = { item -> shareContent(item.content) },
+            onDelete = { item -> deleteItem(item) }
+        )
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.adapter = adapter
+    }
+
+    private fun setupFilterTabs() {
+        binding.filterTabLayout.addOnTabSelectedListener(object : 
+            com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.Tab?) {
+                currentFilter = when (tab?.position) {
+                    0 -> FilterType.ALL
+                    1 -> FilterType.SCANNED
+                    2 -> FilterType.GENERATED
+                    else -> FilterType.ALL
+                }
+                loadHistory()
+            }
+
+            override fun onTabUnselected(tab: com.google.android.material.tabs.Tab?) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.Tab?) {}
+        })
+    }
+
+    private fun setupClearButton() {
+        binding.btnClearAll.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Clear History")
+                .setMessage("Are you sure you want to clear all history?")
+                .setPositiveButton("Clear") { _, _ ->
+                    lifecycleScope.launch {
+                        repository.deleteAll()
+                        Toast.makeText(requireContext(), "History cleared", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun loadHistory() {
+        lifecycleScope.launch {
+            when (currentFilter) {
+                FilterType.ALL -> repository.allHistory
+                FilterType.SCANNED -> repository.scannedHistory
+                FilterType.GENERATED -> repository.generatedHistory
+            }.collectLatest { items ->
+                adapter.submitList(items)
+                binding.tvEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+                binding.recyclerView.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+            }
+        }
+    }
+
+    private fun showEditDialog(item: HistoryItem) {
+        val editText = EditText(requireContext()).apply {
+            setText(item.content)
+            setSelection(item.content.length)
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Edit Content")
+            .setView(editText)
+            .setPositiveButton("Save") { _, _ ->
+                val newContent = editText.text.toString()
+                if (newContent.isNotBlank() && newContent != item.content) {
+                    lifecycleScope.launch {
+                        repository.updateContent(item.id, newContent)
+                        Toast.makeText(requireContext(), "Updated", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun shareContent(content: String) {
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, content)
+        }
+        startActivity(Intent.createChooser(shareIntent, "Share"))
+    }
+
+    private fun deleteItem(item: HistoryItem) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete")
+            .setMessage("Delete this item?")
+            .setPositiveButton("Delete") { _, _ ->
+                lifecycleScope.launch {
+                    repository.delete(item)
+                    Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

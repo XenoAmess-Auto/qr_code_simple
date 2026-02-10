@@ -6,13 +6,14 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class ViewPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
 
-    override fun getItemCount(): Int = 3
+    override fun getItemCount(): Int = 4
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> CameraScanFragment()
             1 -> ScanImageFragment()
             2 -> GenerateFragment()
+            3 -> HistoryFragment()
             else -> throw IllegalStateException("Invalid position: $position")
         }
     }

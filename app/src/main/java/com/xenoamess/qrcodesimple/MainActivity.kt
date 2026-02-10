@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
                 0 -> "Camera Scan"
                 1 -> "Scan Image"
                 2 -> "Generate QR"
+                3 -> "History"
                 else -> ""
             }
         }.attach()

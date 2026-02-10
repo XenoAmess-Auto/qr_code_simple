@@ -9,17 +9,22 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.xenoamess.qrcodesimple.data.HistoryRepository
+import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentGenerateBinding
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -32,6 +37,12 @@ class GenerateFragment : Fragment() {
     private var _binding: FragmentGenerateBinding? = null
     private val binding get() = _binding!!
     private var currentQRBitmap: Bitmap? = null
+    private lateinit var historyRepository: HistoryRepository
+    private var lastGeneratedContent: String? = null
+
+    companion object {
+        private const val TAG = "GenerateFragment"
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,6 +55,8 @@ class GenerateFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        historyRepository = HistoryRepository(requireContext())
 
         binding.btnGenerate.setOnClickListener {
             generateQRCode()
@@ -76,6 +89,18 @@ class GenerateFragment : Fragment() {
             val bitmap = createQRCode(content, size)
             currentQRBitmap = bitmap
             binding.ivQRCode.setImageBitmap(bitmap)
+            
+            // 保存到历史记录
+            if (content != lastGeneratedContent) {
+                lastGeneratedContent = content
+                lifecycleScope.launch {
+                    try {
+                        historyRepository.insertGenerate(content, HistoryType.QR_CODE)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to save history", e)
+                    }
+                }
+            }
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Failed to generate QR code: ${e.message}", Toast.LENGTH_SHORT).show()
         }
