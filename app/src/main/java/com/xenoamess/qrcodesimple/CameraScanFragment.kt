@@ -13,8 +13,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -53,7 +51,6 @@ class CameraScanFragment : Fragment() {
     private var isCameraStarted = false
     private val handler = Handler(Looper.getMainLooper())
     private var camera: Camera? = null
-    private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var currentZoom = 1f
     private var isFlashOn = false
     private var isBackCamera = true
@@ -96,7 +93,6 @@ class CameraScanFragment : Fragment() {
         
         setupButtons()
         setupZoomControls()
-        setupZoomGesture()
         
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
@@ -133,26 +129,6 @@ class CameraScanFragment : Fragment() {
     
     private fun updateZoomSlider() {
         binding.zoomSlider.value = currentZoom.coerceIn(MIN_ZOOM, maxZoom)
-    }
-    
-    private fun setupZoomGesture() {
-        scaleGestureDetector = ScaleGestureDetector(requireContext(),
-            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    val scale = detector.scaleFactor
-                    currentZoom = max(MIN_ZOOM, min(currentZoom * scale, maxZoom))
-                    
-                    camera?.cameraControl?.setZoomRatio(currentZoom)
-                    updateZoomSlider()
-                    Log.d(TAG, "Zoom: $currentZoom")
-                    return true
-                }
-            })
-        
-        binding.previewView.setOnTouchListener { _, event ->
-            scaleGestureDetector.onTouchEvent(event)
-            true
-        }
     }
     
     private fun setupButtons() {
