@@ -14,12 +14,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -46,7 +46,21 @@ class CameraScanFragment : Fragment() {
 
     companion object {
         private const val TAG = "CameraScanFragment"
-        private const val REQUEST_CAMERA = 100
+    }
+
+    // 使用 Activity Result API 申请权限
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d(TAG, "Camera permission granted")
+            // 权限被授予后，确保在 UI 线程启动相机
+            binding.root.post {
+                startCamera()
+            }
+        } else {
+            Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreateView(
@@ -65,15 +79,20 @@ class CameraScanFragment : Fragment() {
         historyRepository = HistoryRepository(requireContext())
         setupButtons()
 
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.CAMERA),
-                REQUEST_CAMERA
-            )
-        } else {
-            startCamera()
+        checkCameraPermission()
+    }
+
+    private fun checkCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED -> {
+                // 已有权限，直接启动相机
+                startCamera()
+            }
+            else -> {
+                // 申请权限
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
         }
     }
 
@@ -140,39 +159,51 @@ class CameraScanFragment : Fragment() {
     }
 
     private fun startCamera() {
+        // 确保 view 仍然存在
+        if (_binding == null) return
+        
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
-                }
-
-            imageAnalysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
-                .build()
-                .also {
-                    it.setAnalyzer(cameraExecutor) { imageProxy ->
-                        processImage(imageProxy)
-                    }
-                }
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             try {
+                // 再次检查 view 是否存在
+                if (_binding == null) return@addListener
+                
+                val cameraProvider = cameraProviderFuture.get()
+
+                val preview = Preview.Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(binding.previewView.surfaceProvider)
+                    }
+
+                imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
+                    .build()
+                    .also {
+                        it.setAnalyzer(cameraExecutor) { imageProxy ->
+                            processImage(imageProxy)
+                        }
+                    }
+
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                // 先解绑所有用例
                 cameraProvider.unbindAll()
+                
+                // 绑定生命周期
                 cameraProvider.bindToLifecycle(
                     viewLifecycleOwner,
                     cameraSelector,
                     preview,
                     imageAnalysis
                 )
+                
+                Log.d(TAG, "Camera started successfully")
             } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
+                Toast.makeText(requireContext(), "Failed to start camera: ${exc.message}", Toast.LENGTH_SHORT).show()
             }
         }, ContextCompat.getMainExecutor(requireContext()))
     }
@@ -229,16 +260,6 @@ class CameraScanFragment : Fragment() {
         } finally {
             isProcessing = false
             imageProxy.close()
-        }
-    }
-
-    fun onRequestCameraPermissionResult(requestCode: Int, grantResults: IntArray) {
-        if (requestCode == REQUEST_CAMERA) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startCamera()
-            } else {
-                Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 
