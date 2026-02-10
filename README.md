@@ -85,31 +85,73 @@ res/layout/
 
 ### 方法一：同步 CI 签名到本地（推荐）
 
-1. 从 GitHub Actions 下载 `debug-keystore` artifact
-2. 复制到本地：
+GitHub Actions 每次构建都会生成 `debug.keystore`，你可以在 Actions 页面下载。
+
+**步骤：**
+
+1. 打开 GitHub 仓库页面 → Actions → 选择最新的工作流运行
+2. 在 **Artifacts** 部分下载 `debug-keystore` 文件
+3. 解压并安装到本地：
 ```bash
-cp debug.keystore ~/.android/debug.keystore
+# 解压下载的文件
+unzip debug-keystore.zip -d /tmp/
+
+# 备份本地原有的 keystore（可选）
+mv ~/.android/debug.keystore ~/.android/debug.keystore.backup.$(date +%Y%m%d)
+
+# 安装 CI 的 keystore
+mkdir -p ~/.android
+cp /tmp/debug.keystore ~/.android/debug.keystore
 ```
 
-### 方法二：使用项目内置签名
-
-项目使用 `app/debug.keystore` 作为固定签名，确保本地和 CI 一致。
-
-如果 `app/debug.keystore` 不存在，运行：
+4. 重新构建本地 APK：
 ```bash
+./gradlew assembleDebug
+```
+
+### 方法二：下载 CI 构建的 APK 安装
+
+直接使用 GitHub Actions 构建的 APK，不需要本地构建：
+
+1. 打开 GitHub 仓库页面 → Actions → 选择最新的工作流运行
+2. 下载 `debug-apk` artifact
+3. 安装 APK：
+```bash
+adb install -r app-debug.apk
+```
+
+### 方法三：完全卸载重装（会丢失数据）
+
+```bash
+adb uninstall com.xenoamess.qrcodesimple
+adb install app-debug.apk
+```
+
+### 方法四：使用项目内置签名（开发者）
+
+如果你是项目开发者，可以运行以下命令生成固定的 debug.keystore：
+
+```bash
+# 生成 keystore
 keytool -genkey -v -keystore app/debug.keystore -alias androiddebugkey \
   -keyalg RSA -keysize 2048 -validity 10000 \
   -storepass android -keypass android \
   -dname "CN=Android Debug,O=Android,C=US"
+
+# 同时安装到本地
+cp app/debug.keystore ~/.android/debug.keystore
 ```
 
-### 方法三：完全卸载重装
+**注意：** 如果你修改了 `app/debug.keystore`，需要将其 base64 编码后设置为 GitHub Secret `DEBUG_KEYSTORE`，这样 CI 会使用相同的签名。
 
 ```bash
-adb uninstall com.example.qrcodesimple
-# 然后安装新的 APK
-adb install app-debug.apk
+# 生成 base64
+cat app/debug.keystore | base64
 ```
+
+然后在 GitHub 仓库 Settings → Secrets and variables → Actions → New repository secret 中添加：
+- Name: `DEBUG_KEYSTORE`
+- Value: 上面生成的 base64 字符串
 
 ## 使用说明
 
