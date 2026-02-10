@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+import com.google.android.material.tabs.TabLayout
+
 class HistoryFragment : Fragment() {
 
     private var _binding: FragmentHistoryBinding? = null
@@ -64,9 +66,8 @@ class HistoryFragment : Fragment() {
     }
 
     private fun setupFilterTabs() {
-        binding.filterTabLayout.addOnTabSelectedListener(object : 
-            com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: com.google.android.material.tabs.Tab?) {
+        binding.filterTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
                 currentFilter = when (tab?.position) {
                     0 -> FilterType.ALL
                     1 -> FilterType.SCANNED
@@ -76,8 +77,8 @@ class HistoryFragment : Fragment() {
                 loadHistory()
             }
 
-            override fun onTabUnselected(tab: com.google.android.material.tabs.Tab?) {}
-            override fun onTabReselected(tab: com.google.android.material.tabs.Tab?) {}
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
     }
 
