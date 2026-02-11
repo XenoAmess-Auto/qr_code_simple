@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QR Code Simple</string>
+
+    <!-- タブ -->
+    <string name="tab_realtime">リアルタイム</string>
+    <string name="tab_image">画像</string>
+    <string name="tab_generate">生成</string>
+    <string name="tab_history">履歴</string>
+    <string name="tab_about">情報</string>
+
+    <!-- カメラスキャン -->
+    <string name="scanning">スキャン中…</string>
+    <string name="flash_on">フラッシュ ON</string>
+    <string name="flash_off">フラッシュ OFF</string>
+    <string name="back_camera">背面カメラ</string>
+    <string name="front_camera">前面カメラ</string>
+    <string name="camera_permission_required">カメラの許可が必要です</string>
+
+    <!-- 画像スキャン -->
+    <string name="scan_image">画像をスキャン</string>
+    <string name="from_gallery">ギャラリーから</string>
+    <string name="take_photo">写真を撮影</string>
+
+    <!-- QR生成 -->
+    <string name="generate_qr">QRコードを生成</string>
+    <string name="enter_content">テキストを入力</string>
+    <string name="generate">生成</string>
+    <string name="save">保存</string>
+    <string name="share">共有</string>
+
+    <!-- 履歴 -->
+    <string name="history">履歴</string>
+    <string name="search">検索</string>
+    <string name="delete">削除</string>
+    <string name="cancel">キャンセル</string>
+    <string name="confirm">確認</string>
+    <string name="copied">コピーしました</string>
+
+    <!-- 言語 -->
+    <string name="language">言語</string>
+    <string name="select_language">言語を選択</string>
+    <string name="language_changed">言語が変更されました</string>
+    <string name="restart">再起動</string>
+    <string name="later">後で</string>
+
+</resources>

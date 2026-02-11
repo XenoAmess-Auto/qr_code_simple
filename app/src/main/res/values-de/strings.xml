@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QR Code Simple</string>
+
+    <!-- Tabs -->
+    <string name="tab_realtime">Echtzeit</string>
+    <string name="tab_image">Bild</string>
+    <string name="tab_generate">Erzeugen</string>
+    <string name="tab_history">Verlauf</string>
+    <string name="tab_about">Über</string>
+
+    <!-- Chips -->
+    <string name="chip_all">Alle</string>
+    <string name="chip_favorites">Favoriten</string>
+    <string name="chip_scanned">Gescannt</string>
+    <string name="chip_generated">Erzeugt</string>
+
+    <!-- Scanning -->
+    <string name="scanning">Scanne…</string>
+    <string name="flash_on">Blitz AN</string>
+    <string name="flash_off">Blitz AUS</string>
+    <string name="back_camera">Rückkamera</string>
+    <string name="front_camera">Frontkamera</string>
+    <string name="camera_permission_required">Kamera-Berechtigung erforderlich</string>
+
+    <!-- Image Scan -->
+    <string name="scan_image">Bild scannen</string>
+    <string name="from_gallery">Aus Galerie</string>
+    <string name="take_photo">Foto aufnehmen</string>
+
+    <!-- QR Generation -->
+    <string name="generate_qr">QR-Code erzeugen</string>
+    <string name="enter_content">Text eingeben</string>
+    <string name="generate">Erzeugen</string>
+    <string name="save">Speichern</string>
+    <string name="share">Teilen</string>
+
+    <!-- History -->
+    <string name="history">Verlauf</string>
+    <string name="search">Suchen</string>
+    <string name="delete">Löschen</string>
+    <string name="copy">Kopieren</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="confirm">Bestätigen</string>
+    <string name="copied">Kopiert</string>
+
+    <!-- Language -->
+    <string name="language">Sprache</string>
+    <string name="select_language">Sprache auswählen</string>
+    <string name="language_changed">Sprache geändert</string>
+    <string name="restart">Neustart</string>
+    <string name="later">Später</string>
+
+    <!-- Content Types -->
+    <string name="content_type_link">Link</string>
+    <string name="content_type_text">Text</string>
+    <string name="content_type_wifi">WiFi</string>
+    <string name="content_type_contact">Kontakt</string>
+    <string name="content_type_email">E-Mail</string>
+    <string name="content_type_phone">Telefon</string>
+    <string name="content_type_sms">SMS</string>
+    <string name="content_type_location">Standort</string>
+
+    <!-- Smart Actions -->
+    <string name="action_connect_wifi">Verbinden</string>
+    <string name="action_add_contact">Kontakt hinzufügen</string>
+    <string name="action_add_event">Zum Kalender hinzufügen</string>
+    <string name="action_send_email">E-Mail senden</string>
+    <string name="action_open_url">Öffnen</string>
+    <string name="action_open_map">Karte anzeigen</string>
+    <string name="action_call">Anrufen</string>
+    <string name="action_send_sms">SMS senden</string>
+
+    <!-- WiFi Messages -->
+    <string name="wifi_invalid">Ungültige WiFi-Konfiguration</string>
+    <string name="wifi_connecting">Verbinde mit %1$s…</string>
+    <string name="wifi_add_failed">WiFi-Netzwerk konnte nicht hinzugefügt werden</string>
+    <string name="wifi_permission_denied">WiFi-Berechtigung verweigert</string>
+
+    <!-- Error Messages -->
+    <string name="no_app_found">Keine geeignete App gefunden</string>
+    <string name="no_calendar_app">Keine Kalender-App gefunden</string>
+    <string name="no_email_app">Keine E-Mail-App gefunden</string>
+    <string name="no_browser_found">Kein Browser gefunden</string>
+    <string name="no_map_app">Keine Karten-App gefunden</string>
+    <string name="no_phone_app">Keine Telefon-App gefunden</string>
+    <string name="no_sms_app">Keine SMS-App gefunden</string>
+
+    <!-- Phone -->
+    <string name="confirm_call">Diese Nummer anrufen?</string>
+    <string name="call">Anruf</string>
+
+    <!-- Batch Generate -->
+    <string name="batch_generate">Stapelverarbeitung</string>
+    <string name="batch_result">Ergebnis</string>
+    <string name="select_csv_file">CSV-Datei auswählen</string>
+    <string name="csv_file_selected">CSV-Datei ausgewählt</string>
+    <string name="generating">Erzeuge %1$d/%2$d…</string>
+    <string name="generation_complete">Erzeugung abgeschlossen</string>
+    <string name="total_generated">Insgesamt %1$d erzeugt</string>
+    <string name="download_zip">ZIP herunterladen</string>
+    <string name="share_zip">ZIP teilen</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_scan_short">Scannen</string>
+    <string name="shortcut_scan_long">Schnell scannen</string>
+    <string name="shortcut_generate_short">Erzeugen</string>
+    <string name="shortcut_generate_long">QR-Code erzeugen</string>
+    <string name="shortcut_history_short">Verlauf</string>
+    <string name="shortcut_history_long">Verlauf anzeigen</string>
+    <string name="shortcut_batch_short">Stapel</string>
+    <string name="shortcut_batch_long">Stapelverarbeitung</string>
+
+    <!-- Continuous Scan -->
+    <string name="continuous_scan">Dauerscan</string>
+    <string name="stop_scanning">Scannen stoppen</string>
+    <string name="results">Ergebnisse</string>
+    <string name="auto_save">Automatisch speichern</string>
+
+    <!-- Privacy Settings -->
+    <string name="privacy_settings">Datenschutz-Einstellungen</string>
+    <string name="privacy_mode">Privatsphäre-Modus</string>
+    <string name="privacy_mode_description">Gescannte QR-Codes werden nicht im Verlauf gespeichert</string>
+    <string name="privacy_mode_enabled">Privatsphäre-Modus aktiviert</string>
+    <string name="privacy_mode_disabled">Privatsphäre-Modus deaktiviert</string>
+
+    <!-- About -->
+    <string name="version_with_prefix">Version: %1$s</string>
+    <string name="sources">Quellcode</string>
+    <string name="maintainer">Betreuer</string>
+    <string name="license">Lizenziert unter MIT</string>
+    <string name="buy_me_a_coffee">Kauf mir einen Kaffee</string>
+
+    <!-- Widget -->
+    <string name="widget_quick_scan">Schneller Scan</string>
+    <string name="widget_quick_generate">Schnell erzeugen</string>
+    <string name="widget_tap_to_scan">Zum Scannen tippen</string>
+    <string name="widget_tap_to_generate">Zum Erzeugen tippen</string>
+
+    <!-- Types -->
+    <string name="type_qr_code">QR-Code</string>
+    <string name="type_barcode">Strichcode</string>
+
+</resources>

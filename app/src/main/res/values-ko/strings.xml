@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QR Code Simple</string>
+
+    <!-- 탭 -->
+    <string name="tab_realtime">실시간</string>
+    <string name="tab_image">이미지</string>
+    <string name="tab_generate">생성</string>
+    <string name="tab_history">기록</string>
+    <string name="tab_about">정보</string>
+
+    <!-- 칩 -->
+    <string name="chip_all">전체</string>
+    <string name="chip_favorites">즐겨찾기</string>
+    <string name="chip_scanned">스캔됨</string>
+    <string name="chip_generated">생성됨</string>
+
+    <!-- 칩 유형 -->
+    <string name="chip_type_qr">QR 코드</string>
+    <string name="chip_type_barcode">바코드</string>
+
+    <!-- 칩 콘텐츠 유형 -->
+    <string name="chip_content_link">링크</string>
+    <string name="chip_content_text">텍스트</string>
+    <string name="chip_content_wifi">WiFi</string>
+    <string name="chip_content_contact">연락처</string>
+
+    <!-- 칩 바코드 형식 -->
+    <string name="chip_format_qr">QR 코드</string>
+    <string name="chip_format_ean13">EAN-13</string>
+    <string name="chip_format_code128">Code 128</string>
+    <string name="chip_format_code39">Code 39</string>
+
+    <!-- 칩 정렬 -->
+    <string name="chip_sort_newest">최신순</string>
+    <string name="chip_sort_oldest">오래된순</string>
+
+    <!-- 검색 -->
+    <string name="search_hint">콘텐츠로 검색...</string>
+    <string name="clear_search">검색 지우기</string>
+
+    <!-- 침 -->
+    <string name="scanning">스캔 중...</string>
+    <string name="flash_on">플래시 ON</string>
+    <string name="flash_off">플래시 OFF</string>
+    <string name="back_camera">후면 칩</string>
+    <string name="front_camera">전면 칩</string>
+    <string name="camera_permission_required">칩 권한이 필요합니다</string>
+    <string name="permissions_granted">권한이 승인되었습니다</string>
+    <string name="permissions_denied">일부 권한이 거부되었습니다</string>
+
+    <!-- 이미지 스캔 -->
+    <string name="scan_image">이미지 스캔</string>
+    <string name="select_image_source">이미지 소스 선택</string>
+    <string name="from_gallery">갤러리에서</string>
+    <string name="take_photo">사진 촬영</string>
+    <string name="from_file">파일에서</string>
+
+    <!-- QR 생성 -->
+    <string name="generate_qr">QR 코드 생성</string>
+    <string name="enter_content">인코딩할 텍스트 입력</string>
+    <string name="generate">생성</string>
+    <string name="clear">지우기</string>
+    <string name="save">저장</string>
+    <string name="share">공유</string>
+    <string name="please_enter_content">콘텐츠를 입력해 주세요</string>
+    <string name="please_generate_qr_first">먼저 QR 코드를 생성하세요</string>
+    <string name="saved_to_gallery">갤러리에 저장됨: %1$s</string>
+    <string name="saved_to">저장 위치: %1$s</string>
+    <string name="failed_to_save">저장 실패: %1$s</string>
+    <string name="failed_to_generate">QR 코드 생성 실패: %1$s</string>
+
+    <!-- 결과 -->
+    <string name="scan_results">스캔 결과</string>
+    <string name="no_qr_codes_found">이미지에서 QR 코드를 찾을 수 없습니다</string>
+    <string name="no_qr_codes_found_detail">QR 코드를 찾을 수 없습니다 (WeChatQR, ZXing, ML Kit 시도)</string>
+    <string name="no_image_provided">제공된 이미지가 없습니다</string>
+    <string name="failed_to_load_image">이미지 로드 실패</string>
+    <string name="detected_with">%1$s로 감지됨</string>
+
+    <!-- 기록 -->
+    <string name="history">기록</string>
+    <string name="search">검색</string>
+    <string name="delete">삭제</string>
+    <string name="copy">복사</string>
+    <string name="edit">편집</string>
+    <string name="cancel">취소</string>
+    <string name="save_action">저장</string>
+    <string name="copied">복사됨</string>
+    <string name="copy_all">모두 복사</string>
+    <string name="share_all">모두 공유</string>
+    <string name="copied_n_items">%1$d개 항목이 복사되었습니다</string>
+    <string name="copied_all_n_items">모든 %1$d개 항목이 복사되었습니다</string>
+    <string name="delete_selected">선택 삭제</string>
+    <string name="delete_selected_confirm">정말로 %1$d개 항목을 삭제하시겠습니까?</string>
+    <string name="no_items_selected">선택된 항목이 없습니다</string>
+    <string name="selected_n_of_m">%2$d개 중 %1$d개 선택됨</string>
+    <string name="select_all">전체 선택</string>
+    <string name="deselect_all">전체 선택 해제</string>
+    <string name="edit_qr_code_content">QR 코드 내용 편집</string>
+    <string name="share_qr_code_content">QR 코드 내용 공유</string>
+    <string name="share_all_qr_code_content">모든 QR 코드 내용 공유</string>
+    <string name="no_history_found">기록이 없습니다</string>
+    <string name="search_results">검색 결과</string>
+    <string name="items_found">%1$d개 항목 발견</string>
+    <string name="add_notes">노트 추가</string>
+    <string name="edit_notes">노트 편집</string>
+    <string name="notes_hint">이 항목에 대한 노트를 입력하세요...</string>
+
+    <!-- 콘텐츠 유형 -->
+    <string name="content_type_link">링크</string>
+    <string name="content_type_text">텍스트</string>
+    <string name="content_type_wifi">WiFi</string>
+    <string name="content_type_contact">연락처</string>
+    <string name="content_type_email">이메일</string>
+    <string name="content_type_phone">전화</string>
+    <string name="content_type_sms">SMS</string>
+    <string name="content_type_location">위치</string>
+    <string name="content_type_event">이벤트</string>
+    <string name="content_type_barcode">바코드</string>
+
+    <!-- 스마트 작업 -->
+    <string name="action_connect_wifi">연결</string>
+    <string name="action_add_contact">연락처 추가</string>
+    <string name="action_add_event">캘린더에 추가</string>
+    <string name="action_send_email">이메일 복사</string>
+    <string name="action_open_url">열기</string>
+    <string name="action_open_map">지도 보기</string>
+    <string name="action_call">전화</string>
+    <string name="action_send_sms">SMS 복사</string>
+
+    <!-- WiFi 메시지 -->
+    <string name="wifi_invalid">잘못된 WiFi 설정</string>
+    <string name="wifi_connecting">%1$s에 연결 중...</string>
+    <string name="wifi_add_failed">WiFi 네트워크 추가 실패</string>
+    <string name="wifi_permission_denied">WiFi 권한이 거부되었습니다</string>
+    <string name="wifi_manual_connect">수동으로 %1$s에 연결해 주세요</string>
+
+    <!-- 오류 메시지 -->
+    <string name="no_app_found">적합한 앱을 찾을 수 없습니다</string>
+    <string name="no_calendar_app">캘린더 앱을 찾을 수 없습니다</string>
+    <string name="no_email_app">이메일 앱을 찾을 수 없습니다</string>
+    <string name="no_browser_found">브라우저를 찾을 수 없습니다</string>
+    <string name="no_map_app">지도 앱을 찾을 수 없습니다</string>
+    <string name="no_phone_app">전화 앱을 찾을 수 없습니다</string>
+    <string name="no_sms_app">SMS 앱을 찾을 수 없습니다</string>
+
+    <!-- 전화 -->
+    <string name="confirm_call">이 번호로 전화하시겠습니까?</string>
+    <string name="call">전화</string>
+
+    <!-- 대량 생성 -->
+    <string name="batch_generate">대량 생성</string>
+    <string name="batch_result">대량 생성 결과</string>
+    <string name="select_csv_file">CSV 파일 선택</string>
+    <string name="csv_file_selected">CSV 파일 선택됨</string>
+    <string name="csv_file_empty">CSV 파일이 비어 있습니다</string>
+    <string name="csv_parse_error">CSV 분석 오류</string>
+    <string name="generating">생성 중 %1$d/%2$d...</string>
+    <string name="generation_complete">생성 완료</string>
+    <string name="generation_failed">생성 실패: %1$s</string>
+    <string name="total_generated">총 %1$d개 생성됨</string>
+    <string name="success_count">성공: %1$d</string>
+    <string name="failed_count">실패: %1$d</string>
+    <string name="download_zip">ZIP 다운로드</string>
+    <string name="share_zip">ZIP 공유</string>
+    <string name="generating_zip">ZIP 생성 중...</string>
+    <string name="zip_saved">ZIP 저장됨: %1$s</string>
+    <string name="zip_save_failed">ZIP 저장 실패</string>
+
+    <!-- 앱 바로가기 -->
+    <string name="shortcut_scan_short">스캔</string>
+    <string name="shortcut_scan_long">빠른 스캔</string>
+    <string name="shortcut_scan_disabled">스캔이 비활성화되었습니다</string>
+    <string name="shortcut_generate_short">생성</string>
+    <string name="shortcut_generate_long">QR 코드 생성</string>
+    <string name="shortcut_generate_disabled">생성이 비활성화되었습니다</string>
+    <string name="shortcut_history_short">기록</string>
+    <string name="shortcut_history_long">기록 보기</string>
+    <string name="shortcut_history_disabled">기록이 비활성화되었습니다</string>
+    <string name="shortcut_batch_short">대량</string>
+    <string name="shortcut_batch_long">대량 생성</string>
+    <string name="shortcut_batch_disabled">대량 생성이 비활성화되었습니다</string>
+
+    <!-- 연속 스캔 -->
+    <string name="continuous_scan">연속 스캔</string>
+    <string name="stop_scanning">스캔 중지</string>
+    <string name="results">결과</string>
+    <string name="auto_save">자동 저장</string>
+    <string name="deduplication">중복 제거</string>
+
+    <!-- 개인정보 설정 -->
+    <string name="privacy_settings">개인정보 설정</string>
+    <string name="privacy_mode">개인정보 모드</string>
+    <string name="privacy_mode_description">스캔한 QR 코드가 기록에 저장되지 않습니다</string>
+    <string name="privacy_mode_enabled">개인정보 모드가 활성화되었습니다</string>
+    <string name="privacy_mode_disabled">개인정보 모드가 비활성화되었습니다</string>
+
+    <!-- 정보 -->
+    <string name="version_with_prefix">버전: %1$s</string>
+    <string name="sources">소스 코드</string>
+    <string name="maintainer">유지보수자</string>
+    <string name="license">MIT 라이선스에 따라 배포됨</string>
+    <string name="buy_me_a_coffee">커피 한 잔 사주세요</string>
+
+    <!-- 위젯 -->
+    <string name="widget_quick_scan">빠른 스캔</string>
+    <string name="widget_quick_generate">빠른 생성</string>
+    <string name="widget_tap_to_scan">터치하여 스캔</string>
+    <string name="widget_tap_to_generate">터치하여 생성</string>
+
+    <!-- 언어 -->
+    <string name="language">언어</string>
+    <string name="select_language">언어 선택</string>
+    <string name="language_changed">언어가 변경되었습니다</string>
+    <string name="restart">재시작</string>
+    <string name="later">나중에</string>
+
+    <!-- 유형 -->
+    <string name="type_qr_code">QR 코드</string>
+    <string name="type_barcode">바코드</string>
+
+</resources>

@@ -20,7 +20,10 @@ object LocaleHelper {
     val SUPPORTED_LANGUAGES = listOf(
         Language("system", "跟随系统 / System default"),
         Language("en", "English"),
-        Language("zh", "中文")
+        Language("zh", "中文"),
+        Language("ja", "日本語"),
+        Language("ko", "한국어"),
+        Language("de", "Deutsch")
     )
 
     data class Language(val code: String, val displayName: String)
