@@ -164,4 +164,17 @@
     <!-- Phone -->
     <string name="confirm_call">Call this number?</string>
     <string name="call">Call</string>
+
+    <!-- Batch Generate -->
+    <string name="batch_generate">Batch Generate</string>
+    <string name="batch_result">Batch Result</string>
+    <string name="import_csv">Import CSV</string>
+    <string name="download_template">Download Template</string>
+    <string name="generate_batch">Generate Batch</string>
+    <string name="save_all_zip">Save All as ZIP</string>
+    <string name="batch_template_saved">Template saved</string>
+    <string name="batch_items_imported">Imported %1$d items</string>
+    <string name="batch_no_items">No valid items found</string>
+    <string name="batch_generated_count">Generated: %1$d/%2$d</string>
+
 </resources>

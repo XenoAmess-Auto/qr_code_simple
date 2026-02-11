@@ -95,6 +95,9 @@ dependencies {
     // Flexbox Layout
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
+    // Apache Commons CSV
+    implementation 'org.apache.commons:commons-csv:1.10.0'
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.22'

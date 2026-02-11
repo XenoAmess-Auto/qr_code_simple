@@ -51,6 +51,14 @@
             android:name=".VideoScanActivity"
             android:label="Video Scan" />
 
+        <activity
+            android:name=".BatchGenerateActivity"
+            android:label="@string/batch_generate" />
+
+        <activity
+            android:name=".BatchResultActivity"
+            android:label="@string/batch_result" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
