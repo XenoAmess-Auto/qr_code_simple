@@ -29,6 +29,17 @@ class MainActivity : AppCompatActivity() {
 
         checkPermissions()
         setupViewPager()
+        
+        // 处理快捷方式跳转
+        handleShortcutIntent()
+    }
+
+    private fun handleShortcutIntent() {
+        val data = intent.data
+        if (data != null && data.toString() == "history") {
+            // 跳转到历史记录页面（第4个 tab，索引3）
+            binding.viewPager.setCurrentItem(3, false)
+        }
     }
 
     private fun setupViewPager() {

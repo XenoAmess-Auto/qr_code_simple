@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 快速扫码 -->
+    <shortcut
+        android:shortcutId="quick_scan"
+        android:enabled="true"
+        android:icon="@drawable/ic_camera"
+        android:shortcutShortLabel="@string/shortcut_scan_short"
+        android:shortcutLongLabel="@string/shortcut_scan_long"
+        android:shortcutDisabledMessage="@string/shortcut_scan_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.xenoamess.qrcodesimple.CameraScanActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- 快速生成 -->
+    <shortcut
+        android:shortcutId="quick_generate"
+        android:enabled="true"
+        android:icon="@drawable/ic_qr_code"
+        android:shortcutShortLabel="@string/shortcut_generate_short"
+        android:shortcutLongLabel="@string/shortcut_generate_long"
+        android:shortcutDisabledMessage="@string/shortcut_generate_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.xenoamess.qrcodesimple.GenerateActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- 历史记录 -->
+    <shortcut
+        android:shortcutId="quick_history"
+        android:enabled="true"
+        android:icon="@drawable/ic_history"
+        android:shortcutShortLabel="@string/shortcut_history_short"
+        android:shortcutLongLabel="@string/shortcut_history_long"
+        android:shortcutDisabledMessage="@string/shortcut_history_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.xenoamess.qrcodesimple.MainActivity"
+            android:data="history" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <!-- 批量生成 -->
+    <shortcut
+        android:shortcutId="quick_batch"
+        android:enabled="true"
+        android:icon="@drawable/ic_batch"
+        android:shortcutShortLabel="@string/shortcut_batch_short"
+        android:shortcutLongLabel="@string/shortcut_batch_long"
+        android:shortcutDisabledMessage="@string/shortcut_batch_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.xenoamess.qrcodesimple.BatchGenerateActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+</shortcuts>

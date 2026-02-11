@@ -177,4 +177,18 @@
     <string name="batch_no_items">No valid items found</string>
     <string name="batch_generated_count">Generated: %1$d/%2$d</string>
 
+    <!-- App Shortcuts -->
+    <string name="shortcut_scan_short">Scan</string>
+    <string name="shortcut_scan_long">Quick Scan</string>
+    <string name="shortcut_scan_disabled">Scan is disabled</string>
+    <string name="shortcut_generate_short">Generate</string>
+    <string name="shortcut_generate_long">Generate QR Code</string>
+    <string name="shortcut_generate_disabled">Generate is disabled</string>
+    <string name="shortcut_history_short">History</string>
+    <string name="shortcut_history_long">View History</string>
+    <string name="shortcut_history_disabled">History is disabled</string>
+    <string name="shortcut_batch_short">Batch</string>
+    <string name="shortcut_batch_long">Batch Generate</string>
+    <string name="shortcut_batch_disabled">Batch is disabled</string>
+
 </resources>
