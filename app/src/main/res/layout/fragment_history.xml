@@ -14,34 +14,36 @@
         app:iconifiedByDefault="false" />
 
     <!-- 过滤器 Tab -->
-    <com.google.android.material.tabs.TabLayout
+    <LinearLayout
         android:id="@+id/filterTabLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:tabMode="fixed"
-        app:tabGravity="fill">
+        android:layout_height="wrap_content">
 
-        <com.google.android.material.tabs.TabItem
+        <Button
+            android:id="@+id/btnFilterAll"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/all" />
 
-        <com.google.android.material.tabs.TabItem
+        <Button
+            android:id="@+id/btnFilterScanned"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/scanned" />
 
-        <com.google.android.material.tabs.TabItem
+        <Button
+            android:id="@+id/btnFilterGenerated"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/generated" />
 
-        <com.google.android.material.tabs.TabItem
+        <Button
+            android:id="@+id/btnFilterFavorite"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Favorite" />
 
-    </com.google.android.material.tabs.TabLayout>
+    </LinearLayout>
 
     <!-- 类型筛选 Chips -->
     <HorizontalScrollView
@@ -49,13 +51,12 @@
         android:layout_height="wrap_content"
         android:scrollbars="none">
 
-        <com.google.android.material.chip.ChipGroup
+        <LinearLayout
             android:id="@+id/chipGroupType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
-            app:singleSelection="true"
             app:selectionRequired="false" />
 
     </HorizontalScrollView>
@@ -78,13 +79,12 @@
         android:visibility="gone" />
 
     <!-- 清除全部按钮 -->
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btnClearAll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="@string/clear_all"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        app:icon="@drawable/ic_delete" />
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
 </LinearLayout>

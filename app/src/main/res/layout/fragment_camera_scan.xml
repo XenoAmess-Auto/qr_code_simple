@@ -34,7 +34,7 @@
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:src="@drawable/ic_flash_off"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:contentDescription="Flash"
             app:tint="@android:color/white" />
 
@@ -44,7 +44,7 @@
             android:layout_height="44dp"
             android:layout_marginStart="8dp"
             android:src="@drawable/ic_switch_camera"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:contentDescription="Switch Camera"
             app:tint="@android:color/white" />
 
@@ -60,38 +60,22 @@
         android:paddingTop="80dp"
         android:paddingBottom="80dp">
 
-        <com.google.android.material.card.MaterialCardView
+        <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="#CC000000">
+            android:background="#CC000000"
+            android:padding="8dp">
 
-            <FrameLayout
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:padding="8dp">
+            <SeekBar
+                android:id="@+id/zoomSlider"
+                android:layout_width="360dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:rotation="270"
+                android:max="90"
+                android:progress="0" />
 
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/zoomSlider"
-                    android:layout_width="360dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:rotation="270"
-                    android:valueFrom="1"
-                    android:valueTo="10"
-                    android:stepSize="0.1"
-                    app:trackHeight="6dp"
-                    app:thumbRadius="8dp"
-                    app:thumbColor="@android:color/white"
-                    app:trackColorActive="?attr/colorPrimary"
-                    app:trackColorInactive="@android:color/darker_gray"
-                    app:haloColor="?attr/colorPrimary"
-                    app:haloRadius="16dp" />
-
-            </FrameLayout>
-
-        </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
 
     </LinearLayout>
 
@@ -113,21 +97,21 @@
         android:visibility="gone" />
 
     <!-- Result Card (Bottom) -->
-    <com.google.android.material.card.MaterialCardView
+    <FrameLayout
         android:id="@+id/resultCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
         android:visibility="gone"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp">
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -148,7 +132,7 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:src="@drawable/ic_close"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Close" />
 
             </LinearLayout>
@@ -168,27 +152,25 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnCopyResult"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Copy"
-                    android:layout_marginEnd="8dp"
-                    app:icon="@drawable/ic_copy" />
+                    android:layout_marginEnd="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnShareResult"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Share"
-                    app:icon="@drawable/ic_share" />
+                    android:text="Share" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-    </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
 </FrameLayout>

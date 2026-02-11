@@ -26,7 +26,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.slider.Slider
+import android.widget.SeekBar
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentCameraScanBinding
@@ -113,22 +113,25 @@ class CameraScanFragment : Fragment() {
     
     private fun setupZoomControls() {
         binding.zoomSlider.apply {
-            valueFrom = MIN_ZOOM
-            valueTo = maxZoom
-            stepSize = 0.1f
-            value = currentZoom
-            
-            addOnChangeListener { _, value, fromUser ->
-                if (fromUser) {
-                    currentZoom = value
-                    camera?.cameraControl?.setZoomRatio(currentZoom)
+            min = (MIN_ZOOM * 10).toInt()
+            max = (maxZoom * 10).toInt()
+            progress = (currentZoom * 10).toInt()
+
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (fromUser) {
+                        currentZoom = progress / 10f
+                        camera?.cameraControl?.setZoomRatio(currentZoom)
+                    }
                 }
-            }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
         }
     }
-    
+
     private fun updateZoomSlider() {
-        binding.zoomSlider.value = currentZoom.coerceIn(MIN_ZOOM, maxZoom)
+        binding.zoomSlider.progress = (currentZoom.coerceIn(MIN_ZOOM, maxZoom) * 10).toInt()
     }
     
     private fun setupButtons() {
@@ -232,7 +235,7 @@ class CameraScanFragment : Fragment() {
                 // 获取最大缩放级别
                 camera?.cameraInfo?.zoomState?.value?.maxZoomRatio?.let {
                     maxZoom = it
-                    binding.zoomSlider.valueTo = maxZoom
+                    binding.zoomSlider.max = (maxZoom * 10).toInt()
                 }
                 
                 camera?.cameraControl?.setZoomRatio(currentZoom)

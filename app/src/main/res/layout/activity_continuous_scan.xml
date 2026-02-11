@@ -30,32 +30,28 @@
             android:layout_gravity="bottom"
             android:padding="16dp">
 
-            <com.google.android.material.button.MaterialButton
+            <Button
                 android:id="@+id/btnStartScan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Start Scan"
-                app:icon="@drawable/ic_camera" />
+                android:text="Start Scan" />
 
-            <com.google.android.material.button.MaterialButton
+            <Button
                 android:id="@+id/btnStopScan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Stop Scan"
-                android:visibility="gone"
-                app:icon="@drawable/ic_close" />
+                android:visibility="gone" />
 
         </LinearLayout>
 
     </FrameLayout>
 
     <!-- 结果列表区域 -->
-    <com.google.android.material.card.MaterialCardView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp">
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -84,7 +80,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@drawable/ic_settings"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Settings" />
 
                 <ImageButton
@@ -92,16 +88,16 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@drawable/ic_delete"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Clear All" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnSaveAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Save All"
                     android:layout_marginStart="8dp"
-                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+                    style="?android:attr/borderlessButtonStyle" />
 
             </LinearLayout>
 
@@ -112,6 +108,6 @@
 
         </LinearLayout>
 
-    </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
 </LinearLayout>

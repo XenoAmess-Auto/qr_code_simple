@@ -4,41 +4,63 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.android.material.tabs.TabLayoutMediator
+import androidx.fragment.app.FragmentActivity
 import com.xenoamess.qrcodesimple.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : FragmentActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var tabButtons: List<Button>
 
     companion object {
         private const val REQUEST_PERMISSIONS = 100
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 应用语言设置
-        LocaleHelper.applyLanguage(this)
-        
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        checkPermissions()
+        setupTabButtons()
         setupViewPager()
-        
-        // 处理快捷方式跳转
+        checkPermissions()
         handleShortcutIntent()
+    }
+
+    private fun setupTabButtons() {
+        tabButtons = listOf(
+            binding.btnTabRealtime,
+            binding.btnTabImage,
+            binding.btnTabGenerate,
+            binding.btnTabHistory,
+            binding.btnTabAbout
+        )
+
+        tabButtons.forEachIndexed { index, button ->
+            button.setOnClickListener {
+                binding.viewPager.setCurrentItem(index, true)
+                updateTabSelection(index)
+            }
+        }
+    }
+
+    private fun updateTabSelection(selectedIndex: Int) {
+        tabButtons.forEachIndexed { index, button ->
+            button.alpha = if (index == selectedIndex) 1.0f else 0.6f
+        }
     }
 
     private fun handleShortcutIntent() {
         val data = intent.data
         if (data != null && data.toString() == "history") {
-            // 跳转到历史记录页面（第4个 tab，索引3）
             binding.viewPager.setCurrentItem(3, false)
+            updateTabSelection(3)
+        } else {
+            updateTabSelection(0)
         }
     }
 
@@ -46,16 +68,11 @@ class MainActivity : AppCompatActivity() {
         val adapter = ViewPagerAdapter(this)
         binding.viewPager.adapter = adapter
 
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> getString(R.string.tab_realtime)
-                1 -> getString(R.string.tab_image)
-                2 -> getString(R.string.tab_generate)
-                3 -> getString(R.string.tab_history)
-                4 -> getString(R.string.tab_about)
-                else -> ""
+        binding.viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                updateTabSelection(position)
             }
-        }.attach()
+        })
     }
 
     private fun checkPermissions() {

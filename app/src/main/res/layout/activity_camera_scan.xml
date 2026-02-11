@@ -53,14 +53,12 @@
             android:layout_weight="1" />
 
         <!-- Result Card -->
-        <com.google.android.material.card.MaterialCardView
+        <FrameLayout
             android:id="@+id/resultCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:visibility="gone"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="8dp">
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -87,7 +85,7 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:src="@drawable/ic_close"
-                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:background="@android:color/transparent"
                         android:contentDescription="Close" />
 
                 </LinearLayout>
@@ -107,31 +105,29 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
+                    <Button
                         android:id="@+id/btnCopyResult"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Copy"
-                        android:layout_marginEnd="4dp"
-                        app:icon="@drawable/ic_copy" />
+                        android:layout_marginEnd="4dp" />
 
-                    <com.google.android.material.button.MaterialButton
+                    <Button
                         android:id="@+id/btnShareResult"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Share"
-                        android:layout_marginStart="4dp"
-                        app:icon="@drawable/ic_share" />
+                        android:layout_marginStart="4dp" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnStopScan"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -13,6 +13,7 @@ import android.provider.MediaStore
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -153,7 +154,7 @@ class GenerateActivity : AppCompatActivity() {
             BarcodeFormat.CODE_128 -> "Enter any ASCII characters"
             else -> getString(R.string.enter_content)
         }
-        binding.etContent.hint = hint
+        (binding.etContent as EditText).hint = hint
     }
 
     private fun setupButtons() {
@@ -170,14 +171,14 @@ class GenerateActivity : AppCompatActivity() {
         }
 
         binding.btnClear.setOnClickListener {
-            binding.etContent.text?.clear()
+            (binding.etContent as EditText).text?.clear()
             currentBitmap = null
             binding.ivQRCode.setImageBitmap(null)
         }
     }
 
     private fun generateBarcode() {
-        val content = binding.etContent.text?.toString()?.trim()
+        val content = (binding.etContent as EditText).text?.toString()?.trim()
         if (content.isNullOrEmpty()) {
             Toast.makeText(this, getString(R.string.please_enter_content), Toast.LENGTH_SHORT).show()
             return

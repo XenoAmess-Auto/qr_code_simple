@@ -27,31 +27,29 @@
         android:layout_marginBottom="16dp" />
 
     <!-- 内容输入 -->
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/enter_content"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <EditText
             android:id="@+id/etContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minLines="3"
             android:maxLines="15"
             android:gravity="top"
+            android:hint="@string/enter_content"
             android:inputType="textMultiLine" />
 
-    </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
 
     <!-- 样式控制面板 -->
-    <com.google.android.material.card.MaterialCardView
+    <FrameLayout
         android:id="@+id/cardStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="2dp">
+        android:layout_marginTop="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -82,7 +80,7 @@
                 android:columnCount="4"
                 android:layout_marginBottom="16dp">
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorClassic"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -92,7 +90,7 @@
                     android:text=""
                     app:cornerRadius="20dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorBlue"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -102,7 +100,7 @@
                     android:text=""
                     app:cornerRadius="20dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorGreen"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -112,7 +110,7 @@
                     android:text=""
                     app:cornerRadius="20dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorRed"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -122,7 +120,7 @@
                     android:text=""
                     app:cornerRadius="20dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorPurple"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -132,7 +130,7 @@
                     android:text=""
                     app:cornerRadius="20dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorOrange"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -142,7 +140,7 @@
                     android:text=""
                     app:cornerRadius="20dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorCyan"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -152,7 +150,7 @@
                     android:text=""
                     app:cornerRadius="20dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnColorDark"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
@@ -232,7 +230,7 @@
                 android:orientation="horizontal"
                 android:layout_marginTop="12dp">
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnAddLogo"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -241,7 +239,7 @@
                     android:layout_marginEnd="4dp"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnRemoveLogo"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -263,7 +261,7 @@
 
         </LinearLayout>
 
-    </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
     <!-- 按钮行 -->
     <LinearLayout
@@ -272,7 +270,7 @@
         android:orientation="horizontal"
         android:layout_marginTop="16dp">
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnGenerate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -280,7 +278,7 @@
             android:text="@string/generate"
             android:layout_marginEnd="8dp" />
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnClear"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -308,22 +306,20 @@
         android:orientation="horizontal"
         android:layout_marginTop="16dp">
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnSave"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/save"
-            android:layout_marginEnd="8dp"
-            app:icon="@drawable/ic_save" />
+            android:layout_marginEnd="8dp" />
 
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnShare"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/share"
-            app:icon="@drawable/ic_share" />
+            android:text="@string/share" />
 
     </LinearLayout>
 
