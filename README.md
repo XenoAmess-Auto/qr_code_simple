@@ -1,171 +1,126 @@
 # QR Code Simple
 
-A simple Android QR code scanner and generator app.
+一个功能丰富的 Android 二维码/条码扫描与生成应用。
 
-**English | [中文](README_CN.md)**
+## 功能特性
 
-![Screenshot_20260211_062927_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_062927_com_xenoamess_qrcodesi.jpg)
-![Screenshot_20260211_062932_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_062932_com_xenoamess_qrcodesi.jpg)
-![Screenshot_20260211_063044_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_063044_com_xenoamess_qrcodesi.jpg)
-![Screenshot_20260211_063050_com_xenoamess_qrcodesi.jpg](resources/Screenshot_20260211_063050_com_xenoamess_qrcodesi.jpg)
+### 核心功能
+- ✅ **全条码支持** - 支持 QR Code、Data Matrix、Aztec、PDF417、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF 等 13 种格式
+- ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等格式，提供一键操作
+- ✅ **批量生成** - 从 CSV/Excel 导入数据批量生成二维码，支持 ZIP 导出
+- ✅ **样式定制** - 前景色/背景色自定义、中心 Logo、圆角/点阵样式
+- ✅ **二维码修复** - 对模糊/破损二维码进行智能修复识别
 
-## Features
+### 历史记录
+- ✅ **全文搜索** - 按内容/时间/类型搜索历史
+- ✅ **智能分类** - 自动归类为链接、文本、WiFi、联系人等
+- ✅ **收藏/置顶** - 重要内容标记
+- ✅ **标签系统** - 自定义标签管理
+- ✅ **导入/导出** - JSON/CSV 格式备份
 
-### 1. Realtime Scan (Camera)
-- Live camera preview with real-time QR code detection
-- **Zoom slider** - Adjustable zoom (1x to max camera zoom)
-- **Flash toggle** - Turn flashlight on/off
-- **Camera switch** - Switch between front and rear cameras
-- Automatic history saving
+### 扫描体验
+- ✅ **连续扫描模式** - 无需确认连续扫描多个码
+- ✅ **扫描反馈** - 震动效果
+- ✅ **智能/手动对焦** - 根据码大小自动调整对焦距离，支持点击对焦
+- ✅ **扫描区域限定** - 框选特定区域识别
 
-### 2. Image Scan
-- Select image from gallery
-- Pick image from file manager
-- Paste image from clipboard
-- Multi-QR code detection in single image
-- Results with green bounding boxes
-- Batch operations: select all, copy, share, delete
+### 分享与导出
+- ✅ **矢量导出** - SVG 格式二维码导出（无损放大）
+- ✅ **分享模板** - 生成带说明文字的分享图片
 
-### 3. Generate QR Code
-- Input text to generate QR code
-- Copy generated QR code to clipboard
-- Share QR code image
-- Save to history
+### 安全与隐私
+- ✅ **恶意链接检测** - 本地黑名单检测、URL 可疑特征分析
+- ✅ **隐私模式** - 无痕扫描（不保存历史）
+- ✅ **应用锁** - 指纹/密码保护敏感历史
+- ✅ **本地加密** - SQLCipher AES-256 数据库加密
 
-### 4. History
-- View all scanned and generated QR codes
-- Copy history items
-- Share history items
-- Delete individual items or clear all
-- Share QR code images from generated entries
+### 界面与体验
+- ✅ **Material You** - Android 12+ 动态取色
+- ✅ **横屏适配** - 平板和横屏优化布局
+- ✅ **快捷方式** - 长按图标快速扫码/生成
+- ✅ **桌面小组件** - 快速扫描/生成小组件
+- ✅ **动画优化** - 页面过渡、扫描线动画
+- ✅ **国际化** - 支持简体中文、繁体中文、英语、日语、韩语、德语
 
-### 5. About
-- App information
-- Quick link to support development (Ko-fi)
-- Source code and maintainer links
+### 技术特性
+- ✅ **单元测试** - 全面的单元测试覆盖
+- ✅ **性能优化** - 大图加载内存优化
+- ✅ **崩溃监控** - Firebase Crashlytics 集成
+- ✅ **离线增强** - TensorFlow Lite 模型支持
 
-## Tech Stack
+## 技术栈
 
-- **Kotlin** - Programming language
-- **CameraX** - Camera preview and image analysis
-- **ZXing** - QR code scanning fallback
-- **ML Kit** - Barcode scanning (fallback)
-- **WeChatQRCode** - Primary QR detection engine
-- **OpenCV** - Image processing
-- **Room** - Local database for history
-- **Material Design 3** - UI components
-- **ViewPager2 + TabLayout** - Navigation
+- **语言**: Kotlin
+- **UI**: Jetpack Compose / XML Layout
+- **数据库**: Room + SQLCipher（加密）
+- **依赖注入**: 无（使用单例模式）
+- **异步**: Kotlin Coroutines
+- **相机**: CameraX
+- **二维码识别**: ZXing + ML Kit + WeChatQRCode
+- **机器学习**: TensorFlow Lite
+- **崩溃监控**: Firebase Crashlytics
 
-## Screenshots
+## 构建要求
 
-| Realtime | Image | Generate | History | About |
-|----------|-------|----------|---------|-------|
-| Camera with zoom slider | Image selection & results | QR generation | Scan history | App info |
-
-## Permissions
-
-- `CAMERA` - For real-time scanning
-- `READ_MEDIA_IMAGES` - For selecting images from gallery
-
-## Build
-
-### Prerequisites
-- Java 17
-- Android SDK (compileSdk 34)
+- Android Studio Hedgehog (2023.1.1) 或更高版本
+- JDK 17
+- Android SDK 34
 - Gradle 8.2
 
-### Local Build
+## 构建说明
 
 ```bash
-export JAVA_HOME=$HOME/opt/jdk-17.0.12
-export ANDROID_HOME=$HOME/opt/android-sdk
-./gradlew assembleDebug --no-daemon
+# 克隆项目
+git clone https://github.com/XenoAmess-Auto/qr_code_simple.git
+
+# 进入项目目录
+cd qr_code_simple
+
+# 构建 Debug 版本
+./gradlew assembleDebug
+
+# 运行单元测试
+./gradlew test
+
+# 安装到设备
+./gradlew installDebug
 ```
 
-### CI/CD
-GitHub Actions automatically builds APK on every push.
-
-## Project Structure
+## 项目结构
 
 ```
 app/src/main/java/com/xenoamess/qrcodesimple/
-├── MainActivity.kt              # Main activity with TabLayout + ViewPager2
-├── QRCodeApp.kt                 # Application class
-├── QRCodeScanner.kt             # Unified scanner (WeChatQRCode + ZXing + ML Kit)
-├── adapter/
-│   └── HistoryAdapter.kt        # History list adapter
-├── data/
-│   ├── HistoryDao.kt            # Room DAO
-│   ├── HistoryDatabase.kt       # Room database
-│   ├── HistoryEntity.kt         # History data entity
-│   ├── HistoryRepository.kt     # Repository pattern
-│   └── HistoryType.kt           # Enum: SCAN, GENERATE
-├── fragment/
-│   ├── AboutFragment.kt         # About page
-│   ├── CameraScanFragment.kt    # Realtime camera scan
-│   ├── GenerateFragment.kt      # QR code generation
-│   ├── HistoryFragment.kt       # History list
-│   └── ScanImageFragment.kt     # Image scanning
-└── util/
-    ├── ImagePicker.kt           # Image selection utilities
-    └── QRCodeGenerator.kt       # QR generation utilities
-
-res/
-├── drawable/
-│   ├── ic_flash_on.xml          # Flash on icon
-│   ├── ic_flash_off.xml         # Flash off icon
-│   └── ic_switch_camera.xml     # Camera switch icon
-├── layout/
-│   ├── activity_main.xml        # Main layout with tabs
-│   ├── fragment_camera_scan.xml # Realtime scan layout
-│   ├── fragment_scan_image.xml  # Image scan layout
-│   ├── fragment_generate.xml    # Generate layout
-│   ├── fragment_history.xml     # History layout
-│   └── fragment_about.xml       # About layout
-└── values/
-    ├── colors.xml               # Theme colors (cyan primary)
-    └── themes.xml               # Material Design 3 themes
+├── MainActivity.kt              # 主界面
+├── QRCodeApp.kt                 # Application 类
+├── data/                        # 数据层
+│   ├── AppDatabase.kt           # 加密数据库
+│   ├── HistoryItem.kt           # 历史记录实体
+│   ├── HistoryDao.kt            # 数据库访问
+│   └── HistoryRepository.kt     # 数据仓库
+├── ui/                          # UI 组件
+│   ├── CameraScanFragment.kt    # 实时扫描
+│   ├── ScanImageActivity.kt     # 图片扫描
+│   ├── GenerateActivity.kt      # 二维码生成
+│   └── HistoryFragment.kt       # 历史记录
+└── util/                        # 工具类
+    ├── BarcodeGenerator.kt      # 条码生成器
+    ├── ContentParser.kt         # 内容解析器
+    ├── QRCodeScanner.kt         # 二维码扫描器
+    └── LocaleHelper.kt          # 语言切换助手
 ```
 
-## Signature Issue Resolution
+## 开源许可
 
-If you encounter "App not installed" or "Signature mismatch" errors when installing APK:
+MIT License
 
-### Option 1: Download CI Debug Keystore
-1. Go to GitHub → Actions → Latest workflow run
-2. Download `debug-keystore` artifact
-3. Install to local:
-```bash
-unzip debug-keystore.zip -d /tmp/
-mkdir -p ~/.android
-cp /tmp/debug.keystore ~/.android/debug.keystore
-```
+## 贡献
 
-### Option 2: Use CI-built APK
-Download `debug-apk` artifact from GitHub Actions and install directly.
+欢迎提交 Issue 和 Pull Request！
 
-### Option 3: Uninstall and Reinstall
-```bash
-adb uninstall com.xenoamess.qrcodesimple
-adb install app-debug.apk
-```
+## 致谢
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-Apache License 2.0
-
-See [LICENSE](LICENSE) for details.
-
-## Support
-
-If you find this app useful, consider supporting development:
-
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-ff5f5f?logo=ko-fi)](https://ko-fi.com/xenoamess)
+- [ZXing](https://github.com/zxing/zxing) - 二维码识别库
+- [ML Kit](https://developers.google.com/ml-kit) - Google 机器学习套件
+- [WeChatQRCode](https://github.com/WeChatCV/opencv_3rdparty) - 微信二维码识别
+- [SQLCipher](https://www.zetetic.net/sqlcipher/) - 数据库加密
+- [TensorFlow Lite](https://www.tensorflow.org/lite) - 移动端机器学习
