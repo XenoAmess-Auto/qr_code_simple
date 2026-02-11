@@ -11,22 +11,22 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <LinearLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:hint="@string/enter_content"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-            <EditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minLines="3"
                 android:maxLines="15"
                 android:gravity="top"
-                android:hint="@string/enter_content"
                 android:inputType="textMultiLine" />
 
-        </LinearLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,7 +34,7 @@
             android:orientation="horizontal"
             android:layout_marginTop="16dp">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGenerate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
                 android:text="@string/generate"
                 android:layout_marginEnd="4dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBatchGenerate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -52,7 +52,7 @@
                 android:layout_marginEnd="4dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClear"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -79,20 +79,22 @@
             android:orientation="horizontal"
             android:layout_marginTop="16dp">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/save"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginEnd="8dp"
+                app:icon="@drawable/ic_save" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShare"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/share" />
+                android:text="@string/share"
+                app:icon="@drawable/ic_share" />
 
         </LinearLayout>
 

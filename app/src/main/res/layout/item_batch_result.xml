@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -43,14 +45,15 @@
             android:textSize="10sp"
             android:textColor="?android:attr/textColorSecondary" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/save"
             android:textSize="12sp"
-            style="?android:attr/borderlessButtonStyle" />
+            app:icon="@drawable/ic_save"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
 
     </LinearLayout>
 

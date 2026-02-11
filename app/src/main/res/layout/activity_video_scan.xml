@@ -25,7 +25,7 @@
         android:layout_margin="16dp"
         android:visibility="gone" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStopScan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -71,23 +71,23 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSelectAll"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Select All"
                 android:textSize="12sp"
-                style="?android:attr/borderlessButtonStyle" />
+                style="@style/Widget.MaterialComponents.Button.TextButton" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeselectAll"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Deselect All"
                 android:textSize="12sp"
-                style="?android:attr/borderlessButtonStyle" />
+                style="@style/Widget.MaterialComponents.Button.TextButton" />
 
         </LinearLayout>
 
@@ -96,29 +96,32 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCopySelected"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Copy"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                app:icon="@drawable/ic_copy" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShareSelected"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Share"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                app:icon="@drawable/ic_share" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteSelected"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Delete"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                app:icon="@drawable/ic_delete" />
 
         </LinearLayout>
 

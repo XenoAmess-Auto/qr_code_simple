@@ -78,10 +78,9 @@ class QRCodeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
         // 应用保存的语言设置
-        // LocaleHelper.applyLanguage(this)
-
+        LocaleHelper.applyLanguage(this)
+        
         // 初始化标签管理器
         TagManager.init(this)
         

@@ -19,11 +19,12 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import android.widget.Button
+import com.google.android.material.chip.Chip
 import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentHistoryBinding
+import com.google.android.material.tabs.TabLayout
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
@@ -83,22 +84,21 @@ class HistoryFragment : Fragment() {
     }
 
     private fun setupFilterTabs() {
-        binding.btnFilterAll.setOnClickListener {
-            currentFilter = FilterType.ALL
-            loadHistory()
-        }
-        binding.btnFilterScanned.setOnClickListener {
-            currentFilter = FilterType.SCANNED
-            loadHistory()
-        }
-        binding.btnFilterGenerated.setOnClickListener {
-            currentFilter = FilterType.GENERATED
-            loadHistory()
-        }
-        binding.btnFilterFavorite.setOnClickListener {
-            currentFilter = FilterType.FAVORITE
-            loadHistory()
-        }
+        binding.filterTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                currentFilter = when (tab?.position) {
+                    0 -> FilterType.ALL
+                    1 -> FilterType.SCANNED
+                    2 -> FilterType.GENERATED
+                    3 -> FilterType.FAVORITE
+                    else -> FilterType.ALL
+                }
+                loadHistory()
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
     }
 
     private fun setupSearchView() {
@@ -122,13 +122,18 @@ class HistoryFragment : Fragment() {
             // 加载类型筛选
             val types = repository.getAllTypes()
             types.forEach { type ->
-                val btn = Button(requireContext()).apply {
+                val chip = Chip(requireContext()).apply {
                     text = getTypeDisplayName(type)
-                    setOnClickListener {
-                        filterByType(type)
+                    isCheckable = true
+                    setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) {
+                            filterByType(type)
+                        } else {
+                            loadHistory()
+                        }
                     }
                 }
-                binding.chipGroupType.addView(btn)
+                binding.chipGroupType.addView(chip)
             }
         }
     }
