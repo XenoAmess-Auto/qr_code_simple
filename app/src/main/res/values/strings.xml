@@ -96,6 +96,9 @@
     <string name="type_scanned">Scanned</string>
     <string name="type_qr_code">QR Code</string>
     <string name="type_barcode">Barcode</string>
+    <string name="type_data_matrix">Data Matrix</string>
+    <string name="type_aztec">Aztec</string>
+    <string name="type_pdf417">PDF417</string>
     <string name="type_text">Text</string>
 
     <!-- About -->

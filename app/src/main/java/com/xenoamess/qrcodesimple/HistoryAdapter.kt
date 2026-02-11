@@ -44,8 +44,16 @@ class HistoryAdapter(
                 append(when (item.type) {
                     HistoryType.QR_CODE -> context.getString(R.string.type_qr_code)
                     HistoryType.BARCODE -> context.getString(R.string.type_barcode)
+                    HistoryType.DATA_MATRIX -> "Data Matrix"
+                    HistoryType.AZTEC -> "Aztec"
+                    HistoryType.PDF417 -> "PDF417"
                     HistoryType.TEXT -> context.getString(R.string.type_text)
                 })
+                // 显示具体的条码格式
+                item.barcodeFormat?.let {
+                    append(" • ")
+                    append(it)
+                }
             }
             binding.tvTime.text = dateFormat.format(Date(item.timestamp))
 
