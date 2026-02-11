@@ -1,12 +1,13 @@
 package com.xenoamess.qrcodesimple.data
 
 import android.content.Context
+import com.xenoamess.qrcodesimple.QRCodeApp
 import kotlinx.coroutines.flow.Flow
 
 /**
  * 历史记录仓库
  */
-class HistoryRepository(context: Context) {
+class HistoryRepository(private val context: Context) {
     
     private val historyDao = AppDatabase.getDatabase(context).historyDao()
     
@@ -14,11 +15,23 @@ class HistoryRepository(context: Context) {
     val scannedHistory: Flow<List<HistoryItem>> = historyDao.getScannedHistory()
     val generatedHistory: Flow<List<HistoryItem>> = historyDao.getGeneratedHistory()
     
+    /**
+     * 检查是否处于隐私模式
+     */
+    private fun isPrivacyMode(): Boolean {
+        return QRCodeApp.isPrivacyMode(context)
+    }
+    
     suspend fun insert(item: HistoryItem): Long {
+        // 隐私模式下不保存
+        if (isPrivacyMode()) return -1
         return historyDao.insert(item)
     }
     
     suspend fun insertScan(content: String, type: HistoryType = HistoryType.QR_CODE) {
+        // 隐私模式下不保存
+        if (isPrivacyMode()) return
+        
         // 检查是否已存在
         val existing = historyDao.findByContent(content)
         if (existing == null) {
@@ -27,6 +40,9 @@ class HistoryRepository(context: Context) {
     }
     
     suspend fun insertGenerate(content: String, type: HistoryType = HistoryType.QR_CODE) {
+        // 隐私模式下不保存
+        if (isPrivacyMode()) return
+        
         // 检查是否已存在
         val existing = historyDao.findByContent(content)
         if (existing == null) {

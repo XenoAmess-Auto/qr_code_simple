@@ -70,6 +70,10 @@
             android:name=".ContinuousScanActivity"
             android:label="@string/continuous_scan" />
 
+        <activity
+            android:name=".PrivacySettingsActivity"
+            android:label="@string/privacy_settings" />
+
         <!-- 桌面小组件 -->
         <receiver
             android:name=".QuickScanWidget"

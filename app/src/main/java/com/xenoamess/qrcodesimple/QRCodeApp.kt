@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import com.king.wechat.qrcode.WeChatQRCodeDetector
 
@@ -8,6 +9,8 @@ class QRCodeApp : Application() {
 
     companion object {
         private const val TAG = "QRCodeApp"
+        private const val PREFS_NAME = "app_settings"
+        private const val KEY_PRIVACY_MODE = "privacy_mode"
         
         @Volatile
         var isWeChatQRCodeInitialized = false
@@ -16,6 +19,22 @@ class QRCodeApp : Application() {
         @Volatile
         var initErrorMessage: String? = null
             private set
+
+        /**
+         * 检查是否处于隐私模式（无痕扫描）
+         */
+        fun isPrivacyMode(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_PRIVACY_MODE, false)
+        }
+
+        /**
+         * 设置隐私模式
+         */
+        fun setPrivacyMode(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_PRIVACY_MODE, enabled).apply()
+        }
 
         /**
          * 检查库是否已初始化，未初始化则尝试初始化

@@ -194,4 +194,7 @@
     <!-- Continuous Scan -->
     <string name="continuous_scan">Continuous Scan</string>
 
+    <!-- Privacy Settings -->
+    <string name="privacy_settings">Privacy Settings</string>
+
 </resources>
