@@ -74,6 +74,14 @@
             android:name=".PrivacySettingsActivity"
             android:label="@string/privacy_settings" />
 
+        <activity
+            android:name=".DatabaseSecurityActivity"
+            android:label="@string/database_security" />
+
+        <activity
+            android:name=".BackupActivity"
+            android:label="@string/backup_restore" />
+
         <!-- 桌面小组件 -->
         <receiver
             android:name=".QuickScanWidget"

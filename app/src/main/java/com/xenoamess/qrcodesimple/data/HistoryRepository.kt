@@ -2,6 +2,7 @@ package com.xenoamess.qrcodesimple.data
 
 import android.content.Context
 import com.xenoamess.qrcodesimple.QRCodeApp
+import com.xenoamess.qrcodesimple.TagManager
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -105,5 +106,43 @@ class HistoryRepository(private val context: Context) {
 
     suspend fun getAllBarcodeFormats(): List<String> {
         return historyDao.getAllBarcodeFormats()
+    }
+
+    suspend fun addTags(id: Long, tags: String) {
+        val item = historyDao.getById(id)
+        item?.let {
+            val currentTags = TagManager.parseTags(it.tags).toMutableSet()
+            currentTags.addAll(TagManager.parseTags(tags))
+            historyDao.updateTags(id, TagManager.tagsToString(currentTags.toList()))
+        }
+    }
+
+    suspend fun removeTag(id: Long, tag: String) {
+        val item = historyDao.getById(id)
+        item?.let {
+            val currentTags = TagManager.parseTags(it.tags).toMutableList()
+            currentTags.remove(tag)
+            historyDao.updateTags(id, if (currentTags.isEmpty()) null else TagManager.tagsToString(currentTags))
+        }
+    }
+
+    suspend fun setTags(id: Long, tags: List<String>) {
+        historyDao.updateTags(id, if (tags.isEmpty()) null else TagManager.tagsToString(tags))
+    }
+
+    fun getHistoryByTag(tag: String): Flow<List<HistoryItem>> {
+        return historyDao.getHistoryByTag(tag)
+    }
+
+    suspend fun getAllTags(): List<String> {
+        return historyDao.getAllTags().flatMap { TagManager.parseTags(it) }.distinct()
+    }
+
+    suspend fun updateNotes(id: Long, notes: String?) {
+        historyDao.updateNotes(id, notes)
+    }
+
+    suspend fun updateFavorite(id: Long, isFavorite: Boolean) {
+        historyDao.updateFavorite(id, isFavorite)
     }
 }

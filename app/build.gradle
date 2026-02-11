@@ -101,6 +101,10 @@ dependencies {
     // Biometric
     implementation 'androidx.biometric:biometric:1.1.0'
 
+    // SQLCipher - 数据库加密
+    implementation 'net.zetetic:android-database-sqlcipher:4.5.4'
+    implementation 'androidx.sqlite:sqlite:2.3.1'
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.22'

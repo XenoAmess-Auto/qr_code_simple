@@ -198,4 +198,27 @@
     <!-- Privacy Settings -->
     <string name="privacy_settings">Privacy Settings</string>
 
+    <!-- Database Security -->
+    <string name="database_security">Database Security</string>
+    <string name="encryption_enabled">Encryption Enabled</string>
+    <string name="reset_database">Reset Database</string>
+    <string name="reset_database_confirm">This will delete all history data and reset encryption keys. This action cannot be undone. Continue?</string>
+    <string name="database_reset_success">Database reset successfully. App will restart.</string>
+    <string name="database_reset_failed">Failed to reset database: %1$s</string>
+
+    <!-- Backup -->
+    <string name="backup_restore">Backup &amp; Restore</string>
+    <string name="export_json">Export as JSON</string>
+    <string name="export_csv">Export as CSV</string>
+    <string name="import_data">Import Data</string>
+    <string name="export_success">Export successful</string>
+    <string name="export_failed">Export failed: %1$s</string>
+    <string name="import_failed">Import failed: %1$s</string>
+
+    <!-- Tags -->
+    <string name="tags">Tags</string>
+    <string name="add_tag">Add Tag</string>
+    <string name="edit_tags">Edit Tags</string>
+    <string name="tag_hint">Enter tags separated by commas</string>
+
 </resources>

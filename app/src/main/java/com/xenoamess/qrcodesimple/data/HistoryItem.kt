@@ -16,7 +16,8 @@ data class HistoryItem(
     val isGenerated: Boolean = false,
     val barcodeFormat: String? = null,  // 条码格式（如 EAN_13, CODE_128 等）
     val isFavorite: Boolean = false,     // 是否收藏
-    val notes: String? = null            // 备注
+    val notes: String? = null,            // 备注
+    val tags: String? = null              // 标签（逗号分隔）
 )
 
 enum class HistoryType {

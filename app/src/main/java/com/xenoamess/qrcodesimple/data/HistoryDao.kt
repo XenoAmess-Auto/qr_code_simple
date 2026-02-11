@@ -64,4 +64,19 @@ interface HistoryDao {
 
     @Query("SELECT DISTINCT barcodeFormat FROM history WHERE barcodeFormat IS NOT NULL")
     suspend fun getAllBarcodeFormats(): List<String>
+
+    @Query("SELECT * FROM history WHERE tags LIKE '%' || :tag || '%' ORDER BY timestamp DESC")
+    fun getHistoryByTag(tag: String): Flow<List<HistoryItem>>
+
+    @Query("SELECT DISTINCT tags FROM history WHERE tags IS NOT NULL AND tags != ''")
+    suspend fun getAllTags(): List<String>
+
+    @Query("UPDATE history SET tags = :tags WHERE id = :id")
+    suspend fun updateTags(id: Long, tags: String?)
+
+    @Query("UPDATE history SET notes = :notes WHERE id = :id")
+    suspend fun updateNotes(id: Long, notes: String?)
+
+    @Query("UPDATE history SET isFavorite = :isFavorite WHERE id = :id")
+    suspend fun updateFavorite(id: Long, isFavorite: Boolean)
 }

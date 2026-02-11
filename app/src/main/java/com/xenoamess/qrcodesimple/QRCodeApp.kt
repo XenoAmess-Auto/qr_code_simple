@@ -81,6 +81,9 @@ class QRCodeApp : Application() {
         // 应用保存的语言设置
         LocaleHelper.applyLanguage(this)
         
+        // 初始化标签管理器
+        TagManager.init(this)
+        
         // 应用启动时预加载 WeChatQRCode 库（可选，失败不影响其他库）
         val success = initWeChatQRCodeDetector(this)
         if (!success) {
