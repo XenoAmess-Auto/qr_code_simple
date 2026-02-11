@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
@@ -12,10 +13,14 @@ import android.provider.MediaStore
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.SeekBar
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ActivityGenerateBinding
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -27,6 +32,16 @@ class GenerateActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGenerateBinding
     private var currentBitmap: Bitmap? = null
     private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
+    private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
+    private var cornerRadius = 0f
+    private var dotScale = 1f
+    private var logoBitmap: Bitmap? = null
+
+    private val pickLogoLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { loadLogo(it) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         LocaleHelper.applyLanguage(this)
@@ -37,6 +52,7 @@ class GenerateActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         setupFormatSpinner()
+        setupStyleControls()
         setupButtons()
     }
 
@@ -54,9 +70,76 @@ class GenerateActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 selectedFormat = formats[position]
                 updateHintForFormat()
+                updateStyleControlsVisibility()
             }
-
             override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun setupStyleControls() {
+        // 颜色方案按钮
+        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; generateBarcode() }
+        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; generateBarcode() }
+        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; generateBarcode() }
+        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; generateBarcode() }
+        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; generateBarcode() }
+        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; generateBarcode() }
+        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; generateBarcode() }
+        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; generateBarcode() }
+
+        // 圆角滑块
+        binding.seekBarCornerRadius.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                cornerRadius = progress / 100f * 20f  // 0-20px
+                binding.tvCornerRadiusValue.text = "${progress}%"
+                if (fromUser) generateBarcode()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        // 点阵大小滑块
+        binding.seekBarDotScale.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                dotScale = 0.3f + (progress / 100f) * 0.7f  // 0.3-1.0
+                binding.tvDotScaleValue.text = "${(dotScale * 100).toInt()}%"
+                if (fromUser) generateBarcode()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        // Logo 按钮
+        binding.btnAddLogo.setOnClickListener {
+            pickLogoLauncher.launch("image/*")
+        }
+
+        binding.btnRemoveLogo.setOnClickListener {
+            logoBitmap = null
+            binding.ivLogoPreview.setImageBitmap(null)
+            binding.ivLogoPreview.visibility = View.GONE
+            generateBarcode()
+        }
+    }
+
+    private fun updateStyleControlsVisibility() {
+        // 只有 QR Code 支持高级样式
+        val isQR = selectedFormat == BarcodeFormat.QR_CODE
+        binding.cardStyle.visibility = if (isQR) View.VISIBLE else View.GONE
+    }
+
+    private fun loadLogo(uri: Uri) {
+        lifecycleScope.launch {
+            try {
+                contentResolver.openInputStream(uri)?.use { inputStream ->
+                    logoBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+                    binding.ivLogoPreview.setImageBitmap(logoBitmap)
+                    binding.ivLogoPreview.visibility = View.VISIBLE
+                    generateBarcode()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@GenerateActivity, "Failed to load logo: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -108,13 +191,26 @@ class GenerateActivity : AppCompatActivity() {
         }
 
         try {
-            val config = BarcodeGenerator.BarcodeConfig(
-                format = selectedFormat,
-                width = 800,
-                height = 600
-            )
-            
-            val bitmap = BarcodeGenerator.generate(content, config)
+            val bitmap = if (selectedFormat == BarcodeFormat.QR_CODE) {
+                // 使用高级生成器
+                val style = selectedStyle.copy(
+                    cornerRadius = cornerRadius,
+                    dotScale = dotScale,
+                    logoBitmap = logoBitmap
+                )
+                AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
+            } else {
+                // 使用基础生成器
+                val config = BarcodeGenerator.BarcodeConfig(
+                    format = selectedFormat,
+                    width = 800,
+                    height = 600,
+                    foregroundColor = selectedStyle.foregroundColor,
+                    backgroundColor = selectedStyle.backgroundColor
+                )
+                BarcodeGenerator.generate(content, config)
+            }
+
             if (bitmap != null) {
                 currentBitmap = bitmap
                 binding.ivQRCode.setImageBitmap(bitmap)
