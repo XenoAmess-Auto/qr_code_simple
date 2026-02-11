@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.QRCodeSimple" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.QRCodeSimple" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/cyan_500</item>
         <item name="colorPrimaryVariant">@color/cyan_700</item>
         <item name="colorOnPrimary">@color/black</item>
@@ -9,7 +9,7 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
     </style>
 
-    <style name="Theme.QRCodeSimple.ActionBar" parent="Theme.Material3.DayNight">
+    <style name="Theme.QRCodeSimple.ActionBar" parent="Theme.MaterialComponents.DayNight">
         <item name="colorPrimary">@color/cyan_500</item>
         <item name="colorPrimaryVariant">@color/cyan_700</item>
         <item name="colorOnPrimary">@color/black</item>
