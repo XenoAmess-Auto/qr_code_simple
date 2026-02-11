@@ -126,7 +126,7 @@ class ScanImageFragment : Fragment() {
                 }
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -139,10 +139,10 @@ class ScanImageFragment : Fragment() {
                 }
                 startActivity(intent)
             } else {
-                Toast.makeText(requireContext(), "Failed to load image", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 

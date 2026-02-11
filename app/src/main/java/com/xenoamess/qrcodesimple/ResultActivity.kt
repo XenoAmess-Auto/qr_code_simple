@@ -61,7 +61,7 @@ class ResultActivity : AppCompatActivity() {
         if (uriString != null) {
             processImage(Uri.parse(uriString))
         } else {
-            Toast.makeText(this, "No image provided", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_image_provided), Toast.LENGTH_SHORT).show()
             finish()
         }
     }
@@ -108,7 +108,7 @@ class ResultActivity : AppCompatActivity() {
                 
                 if (bitmap == null) {
                     binding.progressBar.visibility = View.GONE
-                    Toast.makeText(this@ResultActivity, "Failed to load image", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ResultActivity, getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
@@ -120,7 +120,7 @@ class ResultActivity : AppCompatActivity() {
 
                 if (detectedResults.isEmpty()) {
                     binding.tvNoResults.visibility = View.VISIBLE
-                    binding.tvNoResults.text = "No QR codes found (tried WeChatQR, ZXing, ML Kit)"
+                    binding.tvNoResults.text = getString(R.string.no_qr_codes_found_detail)
                     binding.recyclerView.visibility = View.GONE
                     binding.layoutButtons.visibility = View.GONE
                 } else {
@@ -147,12 +147,12 @@ class ResultActivity : AppCompatActivity() {
                     
                     // 显示使用了哪个库
                     val libsUsed = detectedResults.map { it.library.name }.distinct().joinToString(", ")
-                    Toast.makeText(this@ResultActivity, "Detected with: $libsUsed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ResultActivity, getString(R.string.detected_with, libsUsed), Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
                 binding.progressBar.visibility = View.GONE
-                Toast.makeText(this@ResultActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ResultActivity, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -169,7 +169,7 @@ class ResultActivity : AppCompatActivity() {
 
     private fun updateSelectionCount() {
         val count = results.count { it.isSelected }
-        binding.tvSelectionCount.text = "Selected: $count/${results.size}"
+        binding.tvSelectionCount.text = getString(R.string.selected_n_of_m, count, results.size)
     }
 
     private fun selectAll(select: Boolean) {
@@ -181,20 +181,20 @@ class ResultActivity : AppCompatActivity() {
     private fun copySelected() {
         val selected = results.filter { it.isSelected }
         if (selected.isEmpty()) {
-            Toast.makeText(this, "No items selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_items_selected), Toast.LENGTH_SHORT).show()
             return
         }
 
         val text = selected.joinToString("\n") { it.text }
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("QR Codes", text))
-        Toast.makeText(this, "Copied ${selected.size} item(s)", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.copied_n_items, selected.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareSelected() {
         val selected = results.filter { it.isSelected }
         if (selected.isEmpty()) {
-            Toast.makeText(this, "No items selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_items_selected), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -203,20 +203,20 @@ class ResultActivity : AppCompatActivity() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, "Share QR Code content"))
+        startActivity(Intent.createChooser(intent, getString(R.string.share_qr_code_content)))
     }
 
     private fun deleteSelected() {
         val selected = results.filter { it.isSelected }
         if (selected.isEmpty()) {
-            Toast.makeText(this, "No items selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_items_selected), Toast.LENGTH_SHORT).show()
             return
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Delete Selected")
-            .setMessage("Delete ${selected.size} item(s)?")
-            .setPositiveButton("Delete") { _, _ ->
+            .setTitle(getString(R.string.delete_selected))
+            .setMessage(getString(R.string.delete_selected_confirm, selected.size))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 results.removeAll { it.isSelected }
                 adapter.notifyDataSetChanged()
                 updateSelectionCount()
@@ -227,7 +227,7 @@ class ResultActivity : AppCompatActivity() {
                     binding.layoutButtons.visibility = View.GONE
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -259,7 +259,7 @@ class ResultActivity : AppCompatActivity() {
         val text = results.joinToString("\n") { it.text }
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("QR Codes", text))
-        Toast.makeText(this, "Copied all ${results.size} item(s)", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.copied_all_n_items, results.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareAll() {
@@ -269,7 +269,7 @@ class ResultActivity : AppCompatActivity() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, "Share all QR Code content"))
+        startActivity(Intent.createChooser(intent, getString(R.string.share_all_qr_code_content)))
     }
 
     private fun saveToHistory(detectedResults: List<QRCodeScanner.ScanResult>) {
@@ -324,7 +324,7 @@ class ResultActivity : AppCompatActivity() {
                 btnCopy.setOnClickListener {
                     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     clipboard.setPrimaryClip(ClipData.newPlainText("QR Code", item.text))
-                    Toast.makeText(this@ResultActivity, "Copied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ResultActivity, getString(R.string.copied), Toast.LENGTH_SHORT).show()
                 }
 
                 btnShare.setOnClickListener {
@@ -332,7 +332,7 @@ class ResultActivity : AppCompatActivity() {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, item.text)
                     }
-                    startActivity(Intent.createChooser(intent, "Share"))
+                    startActivity(Intent.createChooser(intent, getString(R.string.share)))
                 }
 
                 btnEdit.setOnClickListener {
@@ -349,13 +349,13 @@ class ResultActivity : AppCompatActivity() {
             }
 
             AlertDialog.Builder(this@ResultActivity)
-                .setTitle("Edit QR Code Content")
+                .setTitle(getString(R.string.edit_qr_code_content))
                 .setView(editText)
-                .setPositiveButton("Save") { _, _ ->
+                .setPositiveButton(getString(R.string.save_action)) { _, _ ->
                     results[position] = results[position].copy(text = editText.text.toString())
                     notifyItemChanged(position)
                 }
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show()
         }
     }

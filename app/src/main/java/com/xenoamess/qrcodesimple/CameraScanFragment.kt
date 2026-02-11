@@ -69,7 +69,7 @@ class CameraScanFragment : Fragment() {
             isCameraStarted = false
             startCameraInternal()
         } else {
-            Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -147,7 +147,9 @@ class CameraScanFragment : Fragment() {
         binding.btnFlash.setImageResource(
             if (isFlashOn) R.drawable.ic_flash_on else R.drawable.ic_flash_off
         )
-        Toast.makeText(requireContext(), if (isFlashOn) "Flash ON" else "Flash OFF", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), 
+            if (isFlashOn) getString(R.string.flash_on) else getString(R.string.flash_off), 
+            Toast.LENGTH_SHORT).show()
     }
     
     private fun switchCamera() {
@@ -156,7 +158,9 @@ class CameraScanFragment : Fragment() {
         isFlashOn = false
         binding.btnFlash.setImageResource(R.drawable.ic_flash_off)
         startCameraWithDelay()
-        Toast.makeText(requireContext(), if (isBackCamera) "Back Camera" else "Front Camera", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), 
+            if (isBackCamera) getString(R.string.back_camera) else getString(R.string.front_camera), 
+            Toast.LENGTH_SHORT).show()
     }
     
     private fun startCameraWithDelay() {
@@ -196,7 +200,7 @@ class CameraScanFragment : Fragment() {
                 
                 // 检查是否有前置摄像头
                 if (!isBackCamera && !cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
-                    Toast.makeText(requireContext(), "Front camera not available", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.front_camera_not_available), Toast.LENGTH_SHORT).show()
                     isBackCamera = true
                     isCameraStarted = false
                     return@addListener
@@ -255,21 +259,21 @@ class CameraScanFragment : Fragment() {
 
     private fun shareResult() {
         val text = binding.tvResult.text.toString()
-        if (text.isNotBlank() && text != "Scanning...") {
+        if (text.isNotBlank() && text != getString(R.string.scanning)) {
             startActivity(Intent.createChooser(Intent().apply {
                 action = Intent.ACTION_SEND
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, text)
-            }, "Share QR Code"))
+            }, getString(R.string.share_qr_code_content)))
         }
     }
 
     private fun copyResult() {
         val text = binding.tvResult.text.toString()
-        if (text.isNotBlank() && text != "Scanning...") {
+        if (text.isNotBlank() && text != getString(R.string.scanning)) {
             (requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
                 .setPrimaryClip(ClipData.newPlainText("QR Code", text))
-            Toast.makeText(requireContext(), "Copied to clipboard", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
         }
     }
 

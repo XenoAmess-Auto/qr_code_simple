@@ -36,14 +36,15 @@ class HistoryAdapter(
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
 
         fun bind(item: HistoryItem) {
+            val context = binding.root.context
             binding.tvContent.text = item.content
             binding.tvType.text = buildString {
-                append(if (item.isGenerated) "Generated" else "Scanned")
+                append(if (item.isGenerated) context.getString(R.string.type_generated) else context.getString(R.string.type_scanned))
                 append(" • ")
                 append(when (item.type) {
-                    HistoryType.QR_CODE -> "QR Code"
-                    HistoryType.BARCODE -> "Barcode"
-                    HistoryType.TEXT -> "Text"
+                    HistoryType.QR_CODE -> context.getString(R.string.type_qr_code)
+                    HistoryType.BARCODE -> context.getString(R.string.type_barcode)
+                    HistoryType.TEXT -> context.getString(R.string.type_text)
                 })
             }
             binding.tvTime.text = dateFormat.format(Date(item.timestamp))

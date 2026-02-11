@@ -97,15 +97,15 @@ class HistoryFragment : Fragment() {
     private fun setupClearButton() {
         binding.btnClearAll.setOnClickListener {
             AlertDialog.Builder(requireContext())
-                .setTitle("Clear History")
-                .setMessage("Are you sure you want to clear all history?")
-                .setPositiveButton("Clear") { _, _ ->
+                .setTitle(getString(R.string.clear_history))
+                .setMessage(getString(R.string.clear_history_confirm))
+                .setPositiveButton(getString(R.string.clear_all)) { _, _ ->
                     lifecycleScope.launch {
                         repository.deleteAll()
-                        Toast.makeText(requireContext(), "History cleared", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), getString(R.string.history_cleared), Toast.LENGTH_SHORT).show()
                     }
                 }
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show()
         }
     }
@@ -131,18 +131,18 @@ class HistoryFragment : Fragment() {
         }
 
         AlertDialog.Builder(requireContext())
-            .setTitle("Edit Content")
+            .setTitle(getString(R.string.edit_content))
             .setView(editText)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.save_action)) { _, _ ->
                 val newContent = editText.text.toString()
                 if (newContent.isNotBlank() && newContent != item.content) {
                     lifecycleScope.launch {
                         repository.updateContent(item.id, newContent)
-                        Toast.makeText(requireContext(), "Updated", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), getString(R.string.updated), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -152,7 +152,7 @@ class HistoryFragment : Fragment() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, content)
         }
-        startActivity(Intent.createChooser(shareIntent, "Share"))
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
     }
 
     private fun shareQRCode(content: String) {
@@ -179,10 +179,10 @@ class HistoryFragment : Fragment() {
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "image/png"
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_TEXT, "QR Code for: $content")
+                    putExtra(Intent.EXTRA_TEXT, getString(R.string.qr_code_for, content))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                startActivity(Intent.createChooser(intent, "Share QR Code"))
+                startActivity(Intent.createChooser(intent, getString(R.string.share_qr_code)))
                 
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Failed to generate QR: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -214,15 +214,15 @@ class HistoryFragment : Fragment() {
 
     private fun deleteItem(item: HistoryItem) {
         AlertDialog.Builder(requireContext())
-            .setTitle("Delete")
-            .setMessage("Delete this item?")
-            .setPositiveButton("Delete") { _, _ ->
+            .setTitle(getString(R.string.delete_item))
+            .setMessage(getString(R.string.delete_item_confirm))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 lifecycleScope.launch {
                     repository.delete(item)
-                    Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.deleted), Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 

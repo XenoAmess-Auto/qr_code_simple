@@ -80,7 +80,7 @@ class GenerateFragment : Fragment() {
     private fun generateQRCode() {
         val content = binding.etContent.text?.toString()?.trim()
         if (content.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "Please enter content", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.please_enter_content), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -102,7 +102,7 @@ class GenerateFragment : Fragment() {
                 }
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to generate QR code: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.failed_to_generate, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -132,7 +132,7 @@ class GenerateFragment : Fragment() {
     private fun saveQRCode() {
         val bitmap = currentQRBitmap
         if (bitmap == null) {
-            Toast.makeText(requireContext(), "Please generate QR code first", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -152,7 +152,7 @@ class GenerateFragment : Fragment() {
                     requireContext().contentResolver.openOutputStream(it)?.use { outputStream ->
                         bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                     }
-                    Toast.makeText(requireContext(), "Saved to gallery: $fileName", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.saved_to_gallery, fileName), Toast.LENGTH_SHORT).show()
                 }
             } else {
                 val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
@@ -160,17 +160,17 @@ class GenerateFragment : Fragment() {
                 FileOutputStream(file).use { outputStream ->
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                 }
-                Toast.makeText(requireContext(), "Saved to: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.saved_to, file.absolutePath), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun shareQRCode() {
         val bitmap = currentQRBitmap
         if (bitmap == null) {
-            Toast.makeText(requireContext(), "Please generate QR code first", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -195,7 +195,7 @@ class GenerateFragment : Fragment() {
             }
             startActivity(Intent.createChooser(intent, "Share QR Code"))
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to share: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -34,11 +34,11 @@ class MainActivity : AppCompatActivity() {
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> "Realtime"
-                1 -> "Image"
-                2 -> "Generate"
-                3 -> "History"
-                4 -> "About"
+                0 -> getString(R.string.tab_realtime)
+                1 -> getString(R.string.tab_image)
+                2 -> getString(R.string.tab_generate)
+                3 -> getString(R.string.tab_history)
+                4 -> getString(R.string.tab_about)
                 else -> ""
             }
         }.attach()
@@ -81,9 +81,9 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_PERMISSIONS) {
             if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                Toast.makeText(this, "Permissions granted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.permissions_granted), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "Some permissions denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.permissions_denied), Toast.LENGTH_SHORT).show()
             }
         }
     }

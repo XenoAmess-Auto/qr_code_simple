@@ -1,0 +1,118 @@
+<resources>
+    <string name="app_name">简码</string>
+
+    <!-- Tab titles -->
+    <string name="tab_realtime">实时</string>
+    <string name="tab_image">图片</string>
+    <string name="tab_generate">生成</string>
+    <string name="tab_history">历史</string>
+    <string name="tab_about">关于</string>
+
+    <!-- Camera Scan -->
+    <string name="scanning">正在扫描…</string>
+    <string name="flash_on">闪光灯已开启</string>
+    <string name="flash_off">闪光灯已关闭</string>
+    <string name="back_camera">后置摄像头</string>
+    <string name="front_camera">前置摄像头</string>
+    <string name="front_camera_not_available">前置摄像头不可用</string>
+    <string name="camera_permission_required">需要相机权限</string>
+    <string name="permissions_granted">权限已授予</string>
+    <string name="permissions_denied">部分权限被拒绝</string>
+
+    <!-- Image Scan -->
+    <string name="scan_image">扫描图片</string>
+    <string name="select_image_source">选择图片来源</string>
+    <string name="from_gallery">从相册选择</string>
+    <string name="take_photo">拍照</string>
+    <string name="from_file">从文件选择</string>
+
+    <!-- Generate QR -->
+    <string name="generate_qr">生成二维码</string>
+    <string name="enter_content">输入要编码的文本</string>
+    <string name="generate">生成</string>
+    <string name="clear">清空</string>
+    <string name="save">保存</string>
+    <string name="share">分享</string>
+    <string name="please_enter_content">请输入内容</string>
+    <string name="please_generate_qr_first">请先生成二维码</string>
+    <string name="saved_to_gallery">已保存到相册：%1$s</string>
+    <string name="saved_to">已保存到：%1$s</string>
+    <string name="failed_to_save">保存失败：%1$s</string>
+    <string name="failed_to_generate">生成二维码失败：%1$s</string>
+
+    <!-- Results -->
+    <string name="scan_results">扫描结果</string>
+    <string name="no_qr_codes_found">未在此图片中找到二维码</string>
+    <string name="no_qr_codes_found_detail">未找到二维码（已尝试 WeChatQR、ZXing、ML Kit）</string>
+    <string name="no_image_provided">未提供图片</string>
+    <string name="no_video_provided">未提供视频</string>
+    <string name="failed_to_load_image">加载图片失败</string>
+    <string name="detected_with">识别库：%1$s</string>
+    <string name="copied">已复制</string>
+    <string name="copied_to_clipboard">已复制到剪贴板</string>
+    <string name="copied_n_items">已复制 %1$d 项</string>
+    <string name="copied_all_n_items">已复制全部 %1$d 项</string>
+    <string name="selected_n_of_m">已选：%1$d/%2$d</string>
+    <string name="no_items_selected">未选择任何项目</string>
+    <string name="share_qr_code_content">分享二维码内容</string>
+    <string name="share_all_qr_code_content">分享所有二维码内容</string>
+    <string name="qr_code_for">二维码内容：%1$s</string>
+    <string name="share_qr_code">分享二维码</string>
+
+    <!-- Video Scan -->
+    <string name="invalid_video_duration">无效的视频时长</string>
+    <string name="scanning_video">正在扫描视频…</string>
+    <string name="scanning_progress">正在扫描：%1$d%%（已找到 %2$d 个码，已处理 %3$d 帧）</string>
+    <string name="scan_complete">扫描完成！找到 %1$d 个二维码</string>
+    <string name="error_processing_video">处理视频时出错：%1$s</string>
+
+    <!-- History -->
+    <string name="history">历史记录</string>
+    <string name="all">全部</string>
+    <string name="scanned">扫描</string>
+    <string name="generated">生成</string>
+    <string name="no_history">暂无历史记录</string>
+    <string name="clear_all">清空全部</string>
+    <string name="clear_history">清空历史</string>
+    <string name="clear_history_confirm">确定要清空所有历史记录吗？</string>
+    <string name="delete">删除</string>
+    <string name="cancel">取消</string>
+    <string name="edit">编辑</string>
+    <string name="edit_content">编辑内容</string>
+    <string name="save_action">保存</string>
+    <string name="updated">已更新</string>
+    <string name="delete_item">删除</string>
+    <string name="delete_item_confirm">删除此项目？</string>
+    <string name="deleted">已删除</string>
+    <string name="history_cleared">历史记录已清空</string>
+    <string name="copy">复制</string>
+    <string name="select_all">全选</string>
+    <string name="deselect_all">取消全选</string>
+    <string name="delete_selected">删除所选</string>
+    <string name="delete_selected_confirm">删除 %1$d 个项目？</string>
+
+    <!-- History Type -->
+    <string name="type_generated">生成</string>
+    <string name="type_scanned">扫描</string>
+    <string name="type_qr_code">二维码</string>
+    <string name="type_barcode">条形码</string>
+    <string name="type_text">文本</string>
+
+    <!-- About -->
+    <string name="about">关于</string>
+    <string name="version_with_prefix">%1$s 版</string>
+    <string name="buy_me_a_coffee">请作者喝咖啡</string>
+    <string name="sources">源代码</string>
+    <string name="maintainer">维护者：XenoAmess</string>
+    <string name="license">Apache License 2.0</string>
+    <string name="edit_qr_code_content">编辑二维码内容</string>
+    <string name="share_qr">分享二维码</string>
+
+    <!-- Menu -->
+    <string name="copy_all">复制全部</string>
+    <string name="share_all">分享全部</string>
+
+    <!-- Content Descriptions -->
+    <string name="qr_code_image">二维码</string>
+    <string name="processed_image">处理后的图片</string>
+</resources>

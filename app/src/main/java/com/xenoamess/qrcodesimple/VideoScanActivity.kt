@@ -58,7 +58,7 @@ class VideoScanActivity : AppCompatActivity() {
         if (uriString != null) {
             startVideoProcessing(Uri.parse(uriString))
         } else {
-            Toast.makeText(this, "No video provided", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_video_provided), Toast.LENGTH_SHORT).show()
             finish()
         }
     }
@@ -102,7 +102,7 @@ class VideoScanActivity : AppCompatActivity() {
         isProcessing = true
         binding.progressBar.visibility = View.VISIBLE
         binding.btnStopScan.visibility = View.VISIBLE
-        binding.tvStatus.text = "Scanning video..."
+        binding.tvStatus.text = getString(R.string.scanning_video)
         binding.tvStatus.visibility = View.VISIBLE
 
         processingThread = Thread {
@@ -116,7 +116,7 @@ class VideoScanActivity : AppCompatActivity() {
                 val durationMs = durationStr?.toLongOrNull() ?: 0L
 
                 if (durationMs <= 0) {
-                    showError("Invalid video duration")
+                    showError(getString(R.string.invalid_video_duration))
                     return@Thread
                 }
 
@@ -149,7 +149,7 @@ class VideoScanActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                showError("Error processing video: ${e.message}")
+                showError(getString(R.string.error_processing_video, e.message))
             } finally {
                 try {
                     retriever?.release()
@@ -204,7 +204,7 @@ class VideoScanActivity : AppCompatActivity() {
 
     private fun updateProgress(progress: Int, frameCount: Int) {
         runOnUiThread {
-            binding.tvStatus.text = "Scanning: $progress% (${results.size} codes found, $frameCount frames processed)"
+            binding.tvStatus.text = getString(R.string.scanning_progress, progress, results.size, frameCount)
         }
     }
 
@@ -212,7 +212,7 @@ class VideoScanActivity : AppCompatActivity() {
         runOnUiThread {
             binding.progressBar.visibility = View.GONE
             binding.btnStopScan.visibility = View.GONE
-            binding.tvStatus.text = "Scan complete! Found ${results.size} QR code(s)"
+            binding.tvStatus.text = getString(R.string.scan_complete, results.size)
             
             if (results.isEmpty()) {
                 binding.tvNoResults.visibility = View.VISIBLE
@@ -239,7 +239,7 @@ class VideoScanActivity : AppCompatActivity() {
 
     private fun updateSelectionCount() {
         val count = results.count { it.isSelected }
-        binding.tvSelectionCount.text = "Selected: $count/${results.size}"
+        binding.tvSelectionCount.text = getString(R.string.selected_n_of_m, count, results.size)
     }
 
     private fun selectAll(select: Boolean) {
@@ -251,20 +251,20 @@ class VideoScanActivity : AppCompatActivity() {
     private fun copySelected() {
         val selected = results.filter { it.isSelected }
         if (selected.isEmpty()) {
-            Toast.makeText(this, "No items selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_items_selected), Toast.LENGTH_SHORT).show()
             return
         }
 
         val text = selected.joinToString("\n") { it.text }
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("QR Codes", text))
-        Toast.makeText(this, "Copied ${selected.size} item(s)", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.copied_n_items, selected.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareSelected() {
         val selected = results.filter { it.isSelected }
         if (selected.isEmpty()) {
-            Toast.makeText(this, "No items selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_items_selected), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -273,20 +273,20 @@ class VideoScanActivity : AppCompatActivity() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, "Share QR Code content"))
+        startActivity(Intent.createChooser(intent, getString(R.string.share_qr_code_content)))
     }
 
     private fun deleteSelected() {
         val selected = results.filter { it.isSelected }
         if (selected.isEmpty()) {
-            Toast.makeText(this, "No items selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_items_selected), Toast.LENGTH_SHORT).show()
             return
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Delete Selected")
-            .setMessage("Delete ${selected.size} item(s)?")
-            .setPositiveButton("Delete") { _, _ ->
+            .setTitle(getString(R.string.delete_selected))
+            .setMessage(getString(R.string.delete_selected_confirm, selected.size))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 results.removeAll { it.isSelected }
                 adapter.notifyDataSetChanged()
                 updateSelectionCount()
@@ -297,7 +297,7 @@ class VideoScanActivity : AppCompatActivity() {
                     binding.layoutButtons.visibility = View.GONE
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -306,7 +306,7 @@ class VideoScanActivity : AppCompatActivity() {
         val text = results.joinToString("\n") { it.text }
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("QR Codes", text))
-        Toast.makeText(this, "Copied all ${results.size} item(s)", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.copied_all_n_items, results.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareAll() {
@@ -316,7 +316,7 @@ class VideoScanActivity : AppCompatActivity() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, "Share all QR Code content"))
+        startActivity(Intent.createChooser(intent, getString(R.string.share_all_qr_code_content)))
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -385,7 +385,7 @@ class VideoScanActivity : AppCompatActivity() {
                 btnCopy.setOnClickListener {
                     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     clipboard.setPrimaryClip(ClipData.newPlainText("QR Code", item.text))
-                    Toast.makeText(this@VideoScanActivity, "Copied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@VideoScanActivity, getString(R.string.copied), Toast.LENGTH_SHORT).show()
                 }
 
                 btnShare.setOnClickListener {
@@ -393,7 +393,7 @@ class VideoScanActivity : AppCompatActivity() {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, item.text)
                     }
-                    startActivity(Intent.createChooser(intent, "Share"))
+                    startActivity(Intent.createChooser(intent, getString(R.string.share)))
                 }
 
                 btnEdit.setOnClickListener {
@@ -410,13 +410,13 @@ class VideoScanActivity : AppCompatActivity() {
             }
 
             AlertDialog.Builder(this@VideoScanActivity)
-                .setTitle("Edit QR Code Content")
+                .setTitle(getString(R.string.edit_qr_code_content))
                 .setView(editText)
-                .setPositiveButton("Save") { _, _ ->
+                .setPositiveButton(getString(R.string.save_action)) { _, _ ->
                     results[position] = results[position].copy(text = editText.text.toString())
                     notifyItemChanged(position)
                 }
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(getString(R.string.cancel), null)
                 .show()
         }
     }

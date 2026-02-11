@@ -1,32 +1,118 @@
 <resources>
     <string name="app_name">QR Code Simple</string>
+
+    <!-- Tab titles -->
+    <string name="tab_realtime">Realtime</string>
+    <string name="tab_image">Image</string>
+    <string name="tab_generate">Generate</string>
+    <string name="tab_history">History</string>
+    <string name="tab_about">About</string>
+
+    <!-- Camera Scan -->
+    <string name="scanning">Scanning…</string>
+    <string name="flash_on">Flash ON</string>
+    <string name="flash_off">Flash OFF</string>
+    <string name="back_camera">Back Camera</string>
+    <string name="front_camera">Front Camera</string>
+    <string name="front_camera_not_available">Front camera not available</string>
+    <string name="camera_permission_required">Camera permission required</string>
+    <string name="permissions_granted">Permissions granted</string>
+    <string name="permissions_denied">Some permissions denied</string>
+
+    <!-- Image Scan -->
     <string name="scan_image">Scan Image</string>
-    <string name="camera_scan">Camera Scan</string>
-    <string name="generate_qr">Generate QR Code</string>
-    <string name="scan_results">Scan Results</string>
     <string name="select_image_source">Select image source</string>
     <string name="from_gallery">From Gallery</string>
     <string name="take_photo">Take Photo</string>
     <string name="from_file">From File</string>
+
+    <!-- Generate QR -->
+    <string name="generate_qr">Generate QR Code</string>
     <string name="enter_content">Enter text to encode</string>
     <string name="generate">Generate</string>
     <string name="clear">Clear</string>
     <string name="save">Save</string>
     <string name="share">Share</string>
-    <string name="copy">Copy</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Delete</string>
-    <string name="select_all">Select All</string>
-    <string name="deselect_all">Deselect All</string>
-    <string name="qr_code_image">QR Code</string>
-    <string name="processed_image">Processed Image</string>
+    <string name="please_enter_content">Please enter content</string>
+    <string name="please_generate_qr_first">Please generate QR code first</string>
+    <string name="saved_to_gallery">Saved to gallery: %1$s</string>
+    <string name="saved_to">Saved to: %1$s</string>
+    <string name="failed_to_save">Failed to save: %1$s</string>
+    <string name="failed_to_generate">Failed to generate QR code: %1$s</string>
+
+    <!-- Results -->
+    <string name="scan_results">Scan Results</string>
     <string name="no_qr_codes_found">No QR codes found in this image</string>
-    <string name="copy_all">Copy All</string>
-    <string name="share_all">Share All</string>
+    <string name="no_qr_codes_found_detail">No QR codes found (tried WeChatQR, ZXing, ML Kit)</string>
+    <string name="no_image_provided">No image provided</string>
+    <string name="no_video_provided">No video provided</string>
+    <string name="failed_to_load_image">Failed to load image</string>
+    <string name="detected_with">Detected with: %1$s</string>
+    <string name="copied">Copied</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="copied_n_items">Copied %1$d item(s)</string>
+    <string name="copied_all_n_items">Copied all %1$d item(s)</string>
+    <string name="selected_n_of_m">Selected: %1$d/%2$d</string>
+    <string name="no_items_selected">No items selected</string>
+    <string name="share_qr_code_content">Share QR Code content</string>
+    <string name="share_all_qr_code_content">Share all QR Code content</string>
+    <string name="qr_code_for">QR Code for: %1$s</string>
+    <string name="share_qr_code">Share QR Code</string>
+
+    <!-- Video Scan -->
+    <string name="invalid_video_duration">Invalid video duration</string>
+    <string name="scanning_video">Scanning video…</string>
+    <string name="scanning_progress">Scanning: %1$d%% (%2$d codes found, %3$d frames processed)</string>
+    <string name="scan_complete">Scan complete! Found %1$d QR code(s)</string>
+    <string name="error_processing_video">Error processing video: %1$s</string>
+
+    <!-- History -->
+    <string name="history">History</string>
     <string name="all">All</string>
     <string name="scanned">Scanned</string>
     <string name="generated">Generated</string>
     <string name="no_history">No history yet</string>
     <string name="clear_all">Clear All</string>
+    <string name="clear_history">Clear History</string>
+    <string name="clear_history_confirm">Are you sure you want to clear all history?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit">Edit</string>
+    <string name="edit_content">Edit Content</string>
+    <string name="save_action">Save</string>
+    <string name="updated">Updated</string>
+    <string name="delete_item">Delete</string>
+    <string name="delete_item_confirm">Delete this item?</string>
+    <string name="deleted">Deleted</string>
+    <string name="history_cleared">History cleared</string>
+    <string name="copy">Copy</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="delete_selected">Delete Selected</string>
+    <string name="delete_selected_confirm">Delete %1$d item(s)?</string>
+
+    <!-- History Type -->
+    <string name="type_generated">Generated</string>
+    <string name="type_scanned">Scanned</string>
+    <string name="type_qr_code">QR Code</string>
+    <string name="type_barcode">Barcode</string>
+    <string name="type_text">Text</string>
+
+    <!-- About -->
+    <string name="about">About</string>
+    <string name="version_with_prefix">v%1$s</string>
+    <string name="buy_me_a_coffee">Buy me a coffee</string>
+    <string name="sources">Sources</string>
+    <string name="maintainer">Maintainer: XenoAmess</string>
+    <string name="license">Apache License 2.0</string>
+    <string name="edit_qr_code_content">Edit QR Code Content</string>
     <string name="share_qr">Share QR</string>
+
+    <!-- Menu -->
+    <string name="copy_all">Copy All</string>
+    <string name="share_all">Share All</string>
+
+    <!-- Content Descriptions -->
+    <string name="qr_code_image">QR Code</string>
+    <string name="processed_image">Processed Image</string>
 </resources>

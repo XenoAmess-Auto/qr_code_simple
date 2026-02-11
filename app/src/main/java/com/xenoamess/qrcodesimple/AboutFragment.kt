@@ -26,6 +26,14 @@ class AboutFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 设置版本号
+        val versionName = try {
+            requireContext().packageManager.getPackageInfo(requireContext().packageName, 0).versionName
+        } catch (e: Exception) {
+            "0.1.1"
+        }
+        binding.tvVersion.text = getString(R.string.version_with_prefix, versionName)
+
         binding.btnGitHubProject.setOnClickListener {
             openUrl("https://github.com/XenoAmess-Auto/qr_code_simple")
         }
