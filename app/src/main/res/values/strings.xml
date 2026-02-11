@@ -191,4 +191,7 @@
     <string name="shortcut_batch_long">Batch Generate</string>
     <string name="shortcut_batch_disabled">Batch is disabled</string>
 
+    <!-- Continuous Scan -->
+    <string name="continuous_scan">Continuous Scan</string>
+
 </resources>

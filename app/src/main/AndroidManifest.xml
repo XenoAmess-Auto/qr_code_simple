@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -63,6 +64,11 @@
         <activity
             android:name=".BatchResultActivity"
             android:label="@string/batch_result" />
+
+        <!-- 连续扫描模式 -->
+        <activity
+            android:name=".ContinuousScanActivity"
+            android:label="@string/continuous_scan" />
 
         <!-- 桌面小组件 -->
         <receiver
