@@ -9,9 +9,12 @@
     <string name="tab_about">About</string>
 
     <!-- Camera Scan -->
+    <string name="point_camera_at_qr_code">Point camera at QR code</string>
     <string name="scanning">Scanning…</string>
+    <string name="flash">Flash</string>
     <string name="flash_on">Flash ON</string>
     <string name="flash_off">Flash OFF</string>
+    <string name="switch_camera">Switch Camera</string>
     <string name="back_camera">Back Camera</string>
     <string name="front_camera">Front Camera</string>
     <string name="front_camera_not_available">Front camera not available</string>
@@ -41,7 +44,9 @@
     <string name="failed_to_generate">Failed to generate QR code: %1$s</string>
 
     <!-- Results -->
+    <string name="scan_result">Scan Result</string>
     <string name="scan_results">Scan Results</string>
+    <string name="close">Close</string>
     <string name="no_qr_codes_found">No QR codes found in this image</string>
     <string name="checking_security">Checking security…</string>
     <string name="no_qr_codes_found_detail">No QR codes found (tried WeChatQR, ZXing, ML Kit)</string>
