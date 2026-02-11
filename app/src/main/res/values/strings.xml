@@ -221,4 +221,19 @@
     <string name="edit_tags">Edit Tags</string>
     <string name="tag_hint">Enter tags separated by commas</string>
 
+    <!-- Widget -->
+    <string name="widget_quick_scan">Quick Scan</string>
+    <string name="widget_quick_generate">Quick Generate</string>
+    <string name="widget_tap_to_scan">Tap to scan</string>
+    <string name="widget_tap_to_generate">Tap to generate</string>
+
+    <!-- Batch Operations -->
+    <string name="select_csv_file">Select CSV file</string>
+    <string name="share_zip">Share ZIP</string>
+    <string name="stop_scanning">Stop Scanning</string>
+    <string name="success_count">Success: %1$d</string>
+    <string name="total_generated">Total generated: %1$d</string>
+    <string name="zip_saved">ZIP saved: %1$s</string>
+    <string name="zip_save_failed">Failed to save ZIP</string>
+
 </resources>
