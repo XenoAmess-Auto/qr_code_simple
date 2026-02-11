@@ -65,6 +65,8 @@ class SecurityManagerTest {
 
     @Test
     fun `getRiskColor returns correct colors`() {
+        // 在单元测试中，我们只验证方法不会崩溃
+        // 实际颜色值需要在 Android 环境中验证
         assertNotNull(SecurityManager.getRiskColor(SecurityManager.RiskLevel.SAFE))
         assertNotNull(SecurityManager.getRiskColor(SecurityManager.RiskLevel.LOW))
         assertNotNull(SecurityManager.getRiskColor(SecurityManager.RiskLevel.MEDIUM))

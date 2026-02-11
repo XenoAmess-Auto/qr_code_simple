@@ -1,15 +1,9 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
-import android.net.Uri
+import android.graphics.Color
 import android.util.Log
-import com.xenoamess.qrcodesimple.data.HistoryType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.HttpURLConnection
 import java.net.URL
-import java.security.MessageDigest
 
 /**
  * 恶意链接检测管理器
@@ -17,7 +11,6 @@ import java.security.MessageDigest
 object SecurityManager {
 
     private const val TAG = "SecurityManager"
-    private const val VIRUSTOTAL_API_URL = "https://www.virustotal.com/vtapi/v2/url/report"
     
     // 本地黑名单 - 常见恶意域名
     private val BLACKLISTED_DOMAINS = setOf(
@@ -47,19 +40,18 @@ object SecurityManager {
     }
 
     /**
-     * 检查 URL 安全性（公开方法）
+     * 检查 URL 安全性（公开方法）- 同步版本
      */
-    suspend fun checkUrl(url: String): SecurityCheckResult = withContext(Dispatchers.IO) {
-        checkUrlSecurity(url)
+    fun checkUrl(url: String): SecurityCheckResult {
+        return checkUrlSecurity(url)
     }
 
     /**
      * 检查 URL 安全性
      */
-    private suspend fun checkUrlSecurity(url: String): SecurityCheckResult {
+    private fun checkUrlSecurity(url: String): SecurityCheckResult {
         return try {
-            val uri = Uri.parse(url)
-            val domain = uri.host?.lowercase() ?: return SecurityCheckResult(
+            val domain = extractDomain(url) ?: return SecurityCheckResult(
                 false,
                 RiskLevel.UNKNOWN,
                 "无法解析域名"
@@ -70,7 +62,7 @@ object SecurityManager {
                 return SecurityCheckResult(
                     false,
                     RiskLevel.HIGH,
-                    "⚠️ 危险链接",
+                    "危险链接",
                     "该域名在黑名单中，可能存在安全风险"
                 )
             }
@@ -81,7 +73,7 @@ object SecurityManager {
                 return SecurityCheckResult(
                     false,
                     RiskLevel.MEDIUM,
-                    "⚠️ 可疑链接",
+                    "可疑链接",
                     suspiciousFeatures.joinToString("\n")
                 )
             }
@@ -91,7 +83,7 @@ object SecurityManager {
                 return SecurityCheckResult(
                     false,
                     RiskLevel.LOW,
-                    "⚠️ 非安全链接",
+                    "非安全链接",
                     "该链接未使用 HTTPS 加密传输"
                 )
             }
@@ -99,7 +91,7 @@ object SecurityManager {
             SecurityCheckResult(
                 true,
                 RiskLevel.SAFE,
-                "✓ 链接安全",
+                "链接安全",
                 "未发现明显安全风险"
             )
         } catch (e: Exception) {
@@ -110,6 +102,21 @@ object SecurityManager {
                 "检测失败",
                 "无法完成安全检测: ${e.message}"
             )
+        }
+    }
+
+    /**
+     * 提取域名
+     */
+    private fun extractDomain(url: String): String? {
+        return try {
+            val urlObj = URL(url)
+            urlObj.host?.lowercase()
+        } catch (e: Exception) {
+            // 如果 URL 解析失败，尝试简单提取
+            val cleaned = url.replace(Regex("^https?://"), "")
+                .replace(Regex("^www\\."), "")
+            cleaned.split("/").firstOrNull()?.lowercase()
         }
     }
 
@@ -173,7 +180,7 @@ object SecurityManager {
             RiskLevel.SAFE -> "该链接看起来安全，但仍建议谨慎访问"
             RiskLevel.LOW -> "建议确认链接来源后再访问"
             RiskLevel.MEDIUM -> "该链接存在可疑特征，请谨慎访问"
-            RiskLevel.HIGH -> "⚠️ 强烈建议不要访问此链接！"
+            RiskLevel.HIGH -> "强烈建议不要访问此链接！"
             RiskLevel.UNKNOWN -> "无法判断安全性，请谨慎处理"
         }
     }
@@ -182,20 +189,24 @@ object SecurityManager {
      * 获取风险颜色
      */
     fun getRiskColor(riskLevel: RiskLevel): Int {
-        return when (riskLevel) {
-            RiskLevel.SAFE -> android.graphics.Color.parseColor("#4CAF50")
-            RiskLevel.LOW -> android.graphics.Color.parseColor("#FFC107")
-            RiskLevel.MEDIUM -> android.graphics.Color.parseColor("#FF9800")
-            RiskLevel.HIGH -> android.graphics.Color.parseColor("#F44336")
-            RiskLevel.UNKNOWN -> android.graphics.Color.parseColor("#9E9E9E")
+        return try {
+            when (riskLevel) {
+                RiskLevel.SAFE -> Color.parseColor("#4CAF50")
+                RiskLevel.LOW -> Color.parseColor("#FFC107")
+                RiskLevel.MEDIUM -> Color.parseColor("#FF9800")
+                RiskLevel.HIGH -> Color.parseColor("#F44336")
+                RiskLevel.UNKNOWN -> Color.parseColor("#9E9E9E")
+            }
+        } catch (e: Exception) {
+            // 在单元测试环境中 Color.parseColor 可能不可用
+            // 返回默认颜色值
+            when (riskLevel) {
+                RiskLevel.SAFE -> 0xFF4CAF50.toInt()
+                RiskLevel.LOW -> 0xFFFFC107.toInt()
+                RiskLevel.MEDIUM -> 0xFFFF9800.toInt()
+                RiskLevel.HIGH -> 0xFFF44336.toInt()
+                RiskLevel.UNKNOWN -> 0xFF9E9E9E.toInt()
+            }
         }
-    }
-
-    /**
-     * 计算 URL 的 MD5（用于 VirusTotal API）
-     */
-    private fun md5(input: String): String {
-        val md = MessageDigest.getInstance("MD5")
-        return md.digest(input.toByteArray()).joinToString("") { "%02x".format(it) }
     }
 }
