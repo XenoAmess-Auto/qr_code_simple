@@ -105,6 +105,15 @@ dependencies {
     implementation 'net.zetetic:android-database-sqlcipher:4.5.4'
     implementation 'androidx.sqlite:sqlite:2.3.1'
 
+    // TensorFlow Lite - ML 模型
+    implementation 'org.tensorflow:tensorflow-lite:2.14.0'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
+
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.22'
