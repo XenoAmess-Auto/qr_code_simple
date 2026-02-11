@@ -77,21 +77,21 @@ class GenerateActivity : AppCompatActivity() {
     }
 
     private fun setupStyleControls() {
-        // 颜色方案按钮
-        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; generateBarcode() }
-        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; generateBarcode() }
-        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; generateBarcode() }
-        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; generateBarcode() }
-        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; generateBarcode() }
-        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; generateBarcode() }
-        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; generateBarcode() }
-        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; generateBarcode() }
+        // 颜色方案按钮 - 横屏布局可能没有这些控件
+        binding.btnColorClassic?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; generateBarcode() }
+        binding.btnColorBlue?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; generateBarcode() }
+        binding.btnColorGreen?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; generateBarcode() }
+        binding.btnColorRed?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; generateBarcode() }
+        binding.btnColorPurple?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; generateBarcode() }
+        binding.btnColorOrange?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; generateBarcode() }
+        binding.btnColorDark?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; generateBarcode() }
+        binding.btnColorCyan?.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; generateBarcode() }
 
         // 圆角滑块
-        binding.seekBarCornerRadius.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.seekBarCornerRadius?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 cornerRadius = progress / 100f * 20f  // 0-20px
-                binding.tvCornerRadiusValue.text = "${progress}%"
+                binding.tvCornerRadiusValue?.text = "${progress}%"
                 if (fromUser) generateBarcode()
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -99,10 +99,10 @@ class GenerateActivity : AppCompatActivity() {
         })
 
         // 点阵大小滑块
-        binding.seekBarDotScale.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        binding.seekBarDotScale?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 dotScale = 0.3f + (progress / 100f) * 0.7f  // 0.3-1.0
-                binding.tvDotScaleValue.text = "${(dotScale * 100).toInt()}%"
+                binding.tvDotScaleValue?.text = "${(dotScale * 100).toInt()}%"
                 if (fromUser) generateBarcode()
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -110,14 +110,14 @@ class GenerateActivity : AppCompatActivity() {
         })
 
         // Logo 按钮
-        binding.btnAddLogo.setOnClickListener {
+        binding.btnAddLogo?.setOnClickListener {
             pickLogoLauncher.launch("image/*")
         }
 
-        binding.btnRemoveLogo.setOnClickListener {
+        binding.btnRemoveLogo?.setOnClickListener {
             logoBitmap = null
-            binding.ivLogoPreview.setImageBitmap(null)
-            binding.ivLogoPreview.visibility = View.GONE
+            binding.ivLogoPreview?.setImageBitmap(null)
+            binding.ivLogoPreview?.visibility = View.GONE
             generateBarcode()
         }
     }
@@ -125,7 +125,7 @@ class GenerateActivity : AppCompatActivity() {
     private fun updateStyleControlsVisibility() {
         // 只有 QR Code 支持高级样式
         val isQR = selectedFormat == BarcodeFormat.QR_CODE
-        binding.cardStyle.visibility = if (isQR) View.VISIBLE else View.GONE
+        binding.cardStyle?.visibility = if (isQR) View.VISIBLE else View.GONE
     }
 
     private fun loadLogo(uri: Uri) {
@@ -133,8 +133,8 @@ class GenerateActivity : AppCompatActivity() {
             try {
                 contentResolver.openInputStream(uri)?.use { inputStream ->
                     logoBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
-                    binding.ivLogoPreview.setImageBitmap(logoBitmap)
-                    binding.ivLogoPreview.visibility = View.VISIBLE
+                    binding.ivLogoPreview?.setImageBitmap(logoBitmap)
+                    binding.ivLogoPreview?.visibility = View.VISIBLE
                     generateBarcode()
                 }
             } catch (e: Exception) {

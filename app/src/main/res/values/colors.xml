@@ -4,7 +4,13 @@
     <color name="cyan_500">#FF00BCD4</color>
     <color name="cyan_700">#FF0097A7</color>
     <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_500">#FF009688</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Dark mode colors -->
+    <color name="dark_background">#FF121212</color>
+    <color name="dark_surface">#FF1E1E1E</color>
+    <color name="dark_surface_variant">#FF2C2C2C</color>
 </resources>
