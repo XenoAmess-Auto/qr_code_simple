@@ -91,4 +91,11 @@ dependencies {
     // ML Kit
     implementation 'com.google.mlkit:barcode-scanning:17.2.0'
     implementation 'com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1'
+
+    // Flexbox Layout
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.22'
 }

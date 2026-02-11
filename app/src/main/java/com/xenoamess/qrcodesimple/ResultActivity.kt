@@ -13,12 +13,16 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.flexbox.FlexboxLayout
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.ActivityResultBinding
@@ -32,6 +36,7 @@ class ResultActivity : AppCompatActivity() {
     private lateinit var binding: ActivityResultBinding
     private lateinit var adapter: QRResultAdapter
     private lateinit var historyRepository: HistoryRepository
+    private lateinit var contentActionHandler: ContentActionHandler
     private val results = mutableListOf<QRResult>()
     private val scanResults = mutableListOf<QRCodeScanner.ScanResult>()
 
@@ -52,6 +57,7 @@ class ResultActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         historyRepository = HistoryRepository(this)
+        contentActionHandler = ContentActionHandler(this)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -68,10 +74,14 @@ class ResultActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = QRResultAdapter(results) { position, isSelected ->
-            results[position].isSelected = isSelected
-            updateSelectionCount()
-        }
+        adapter = QRResultAdapter(
+            results,
+            contentActionHandler,
+            onItemChecked = { position, isSelected ->
+                results[position].isSelected = isSelected
+                updateSelectionCount()
+            }
+        )
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
     }
@@ -106,7 +116,7 @@ class ResultActivity : AppCompatActivity() {
                 val bitmap = withContext(Dispatchers.IO) {
                     loadBitmapFromUri(uri)
                 }
-                
+
                 if (bitmap == null) {
                     binding.progressBar.visibility = View.GONE
                     Toast.makeText(this@ResultActivity, getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
@@ -129,23 +139,23 @@ class ResultActivity : AppCompatActivity() {
                     binding.recyclerView.visibility = View.VISIBLE
                     binding.layoutButtons.visibility = View.VISIBLE
                     binding.ivProcessedImage.visibility = View.VISIBLE
-                    
+
                     // 显示原图
                     binding.ivProcessedImage.setImageBitmap(bitmap)
 
                     results.clear()
-                    results.addAll(detectedResults.map { 
-                        QRResult(it.text, false, it.library) 
+                    results.addAll(detectedResults.map {
+                        QRResult(it.text, false, it.library)
                     })
                     scanResults.clear()
                     scanResults.addAll(detectedResults)
-                    
+
                     adapter.notifyDataSetChanged()
                     updateSelectionCount()
-                    
+
                     // 保存到历史记录
                     saveToHistory(detectedResults)
-                    
+
                     // 显示使用了哪个库
                     val libsUsed = detectedResults.map { it.library.name }.distinct().joinToString(", ")
                     Toast.makeText(this@ResultActivity, getString(R.string.detected_with, libsUsed), Toast.LENGTH_SHORT).show()
@@ -292,6 +302,7 @@ class ResultActivity : AppCompatActivity() {
 
     inner class QRResultAdapter(
         private val items: List<QRResult>,
+        private val actionHandler: ContentActionHandler,
         private val onItemChecked: (Int, Boolean) -> Unit
     ) : RecyclerView.Adapter<QRResultAdapter.ViewHolder>() {
 
@@ -311,7 +322,19 @@ class ResultActivity : AppCompatActivity() {
                 // 显示内容和使用库的信息
                 val libPrefix = item.library?.let { "[${it.name}] " } ?: ""
                 tvResult.text = "$libPrefix${item.text}"
-                
+
+                // 显示内容类型标签和图标
+                val contentTypeLabel = actionHandler.getContentTypeLabel(item.text)
+                tvTypeLabel.text = contentTypeLabel
+                ivTypeIcon.setImageResource(actionHandler.getContentTypeIcon(item.text))
+
+                // 显示/隐藏类型标签（纯文本不显示）
+                if (contentTypeLabel == getString(R.string.content_type_text)) {
+                    tvTypeLabel.visibility = View.GONE
+                } else {
+                    tvTypeLabel.visibility = View.VISIBLE
+                }
+
                 checkbox.isChecked = item.isSelected
 
                 checkbox.setOnCheckedChangeListener { _, isChecked ->
@@ -339,6 +362,32 @@ class ResultActivity : AppCompatActivity() {
                 btnEdit.setOnClickListener {
                     showEditDialog(position, item.text)
                 }
+
+                // 添加智能操作按钮
+                setupSmartActions(layoutSmartActions, item.text)
+            }
+        }
+
+        private fun setupSmartActions(container: FlexboxLayout, content: String) {
+            container.removeAllViews()
+
+            val actions = actionHandler.getActionButtons(content)
+            if (actions.isEmpty()) {
+                container.visibility = View.GONE
+                return
+            }
+
+            container.visibility = View.VISIBLE
+
+            actions.forEach { action ->
+                val button = Button(container.context, null, android.R.attr.borderlessButtonStyle).apply {
+                    text = action.text
+                    setCompoundDrawablesWithIntrinsicBounds(action.iconResId, 0, 0, 0)
+                    compoundDrawablePadding = 8
+                    setPadding(24, 12, 24, 12)
+                    setOnClickListener { action.onClick() }
+                }
+                container.addView(button)
             }
         }
 

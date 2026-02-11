@@ -120,4 +120,45 @@
     <!-- Content Descriptions -->
     <string name="qr_code_image">QR Code</string>
     <string name="processed_image">Processed Image</string>
+
+    <!-- Content Type Labels -->
+    <string name="content_type_wifi">WiFi</string>
+    <string name="content_type_contact">Contact</string>
+    <string name="content_type_calendar">Calendar</string>
+    <string name="content_type_email">Email</string>
+    <string name="content_type_location">Location</string>
+    <string name="content_type_sms">SMS</string>
+    <string name="content_type_phone">Phone</string>
+    <string name="content_type_url">URL</string>
+    <string name="content_type_text">Text</string>
+
+    <!-- Action Buttons -->
+    <string name="action_connect_wifi">Connect</string>
+    <string name="action_add_contact">Add Contact</string>
+    <string name="action_add_event">Add to Calendar</string>
+    <string name="action_send_email">Send Email</string>
+    <string name="action_open_url">Open</string>
+    <string name="action_open_map">View Map</string>
+    <string name="action_call">Call</string>
+    <string name="action_send_sms">Send SMS</string>
+
+    <!-- WiFi Messages -->
+    <string name="wifi_invalid">Invalid WiFi configuration</string>
+    <string name="wifi_connecting">Connecting to %1$s…</string>
+    <string name="wifi_add_failed">Failed to add WiFi network</string>
+    <string name="wifi_permission_denied">WiFi permission denied</string>
+    <string name="wifi_manual_connect">Please connect to %1$s manually</string>
+
+    <!-- Error Messages -->
+    <string name="no_app_found">No suitable app found</string>
+    <string name="no_calendar_app">No calendar app found</string>
+    <string name="no_email_app">No email app found</string>
+    <string name="no_browser_found">No browser found</string>
+    <string name="no_map_app">No map app found</string>
+    <string name="no_phone_app">No phone app found</string>
+    <string name="no_sms_app">No SMS app found</string>
+
+    <!-- Phone -->
+    <string name="confirm_call">Call this number?</string>
+    <string name="call">Call</string>
 </resources>
