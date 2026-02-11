@@ -47,6 +47,7 @@ class ScanImageActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityScanImageBinding.inflate(layoutInflater)
         setContentView(binding.root)

@@ -45,6 +45,7 @@ class VideoScanActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityVideoScanBinding.inflate(layoutInflater)
         setContentView(binding.root)

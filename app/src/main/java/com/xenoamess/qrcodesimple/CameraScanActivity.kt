@@ -45,6 +45,7 @@ class CameraScanActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityCameraScanBinding.inflate(layoutInflater)
         setContentView(binding.root)

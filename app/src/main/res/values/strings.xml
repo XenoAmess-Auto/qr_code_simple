@@ -101,6 +101,11 @@
     <!-- About -->
     <string name="about">About</string>
     <string name="version_with_prefix">v%1$s</string>
+    <string name="language">Language</string>
+    <string name="select_language">Select Language</string>
+    <string name="language_changed">Language changed. Restart to apply.</string>
+    <string name="restart">Restart</string>
+    <string name="later">Later</string>
     <string name="buy_me_a_coffee">Buy me a coffee</string>
     <string name="sources">Sources</string>
     <string name="maintainer">Maintainer: XenoAmess</string>

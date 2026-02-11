@@ -30,6 +30,7 @@ class GenerateActivity : AppCompatActivity() {
     private var currentQRBitmap: Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityGenerateBinding.inflate(layoutInflater)
         setContentView(binding.root)

@@ -59,6 +59,9 @@ class QRCodeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // 应用保存的语言设置
+        LocaleHelper.applyLanguage(this)
+        
         // 应用启动时预加载 WeChatQRCode 库（可选，失败不影响其他库）
         val success = initWeChatQRCodeDetector(this)
         if (!success) {

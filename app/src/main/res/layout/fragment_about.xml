@@ -35,7 +35,17 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="8dp" />
+
+        <!-- Language Selector -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/language"
+            app:icon="@drawable/ic_language"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
         <!-- Buy me a coffee button -->
         <com.google.android.material.button.MaterialButton
