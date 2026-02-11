@@ -43,6 +43,7 @@
     <!-- Results -->
     <string name="scan_results">Scan Results</string>
     <string name="no_qr_codes_found">No QR codes found in this image</string>
+    <string name="checking_security">Checking security…</string>
     <string name="no_qr_codes_found_detail">No QR codes found (tried WeChatQR, ZXing, ML Kit)</string>
     <string name="no_image_provided">No image provided</string>
     <string name="no_video_provided">No video provided</string>

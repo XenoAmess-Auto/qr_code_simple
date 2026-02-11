@@ -28,6 +28,7 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.ActivityResultBinding
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import kotlinx.coroutines.Dispatchers
+import android.widget.LinearLayout
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -345,6 +346,9 @@ class ResultActivity : AppCompatActivity() {
                     checkbox.isChecked = !checkbox.isChecked
                 }
 
+                // 安全检测（异步）
+                checkSecurityAsync(item.text, this)
+
                 btnCopy.setOnClickListener {
                     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     clipboard.setPrimaryClip(ClipData.newPlainText("QR Code", item.text))
@@ -365,6 +369,42 @@ class ResultActivity : AppCompatActivity() {
 
                 // 添加智能操作按钮
                 setupSmartActions(layoutSmartActions, item.text)
+            }
+        }
+
+        private fun checkSecurityAsync(content: String, binding: ItemQrResultBinding) {
+            // 只有 URL 类型才检测
+            if (!content.startsWith("http://") && !content.startsWith("https://")) {
+                binding.layoutSecurityIndicator.visibility = View.GONE
+                return
+            }
+
+            binding.layoutSecurityIndicator.visibility = View.VISIBLE
+            binding.tvSecurityStatus.text = getString(R.string.checking_security)
+            binding.ivSecurityIcon.setColorFilter(android.graphics.Color.GRAY)
+
+            lifecycleScope.launch {
+                val result = SecurityManager.checkUrl(content)
+
+                binding.tvSecurityStatus.text = result.message
+                binding.tvSecurityStatus.setTextColor(
+                    SecurityManager.getRiskColor(result.riskLevel)
+                )
+                binding.ivSecurityIcon.setColorFilter(
+                    SecurityManager.getRiskColor(result.riskLevel)
+                )
+
+                // 高风险时添加点击提示
+                if (result.riskLevel == SecurityManager.RiskLevel.HIGH ||
+                    result.riskLevel == SecurityManager.RiskLevel.MEDIUM) {
+                    binding.layoutSecurityIndicator.setOnClickListener {
+                        AlertDialog.Builder(this@ResultActivity)
+                            .setTitle(result.message)
+                            .setMessage(result.details + "\n\n" + SecurityManager.getSecurityTip(result))
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+                    }
+                }
             }
         }
 
