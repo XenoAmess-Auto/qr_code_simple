@@ -64,7 +64,6 @@ class HistoryFragment : Fragment() {
         setupRecyclerView()
         setupFilterTabs()
         setupSearchView()
-        setupFilterChips()
         setupClearButton()
         loadHistory()
     }
@@ -115,42 +114,6 @@ class HistoryFragment : Fragment() {
                 return true
             }
         })
-    }
-
-    private fun setupFilterChips() {
-        lifecycleScope.launch {
-            // 加载类型筛选
-            val types = repository.getAllTypes()
-            types.forEach { type ->
-                val btn = Button(requireContext()).apply {
-                    text = getTypeDisplayName(type)
-                    setOnClickListener {
-                        filterByType(type)
-                    }
-                }
-                binding.chipGroupType.addView(btn)
-            }
-        }
-    }
-
-    private fun getTypeDisplayName(type: HistoryType): String {
-        return when (type) {
-            HistoryType.QR_CODE -> getString(R.string.type_qr_code)
-            HistoryType.BARCODE -> getString(R.string.type_barcode)
-            HistoryType.DATA_MATRIX -> getString(R.string.type_data_matrix)
-            HistoryType.AZTEC -> getString(R.string.type_aztec)
-            HistoryType.PDF417 -> getString(R.string.type_pdf417)
-            HistoryType.TEXT -> getString(R.string.type_text)
-        }
-    }
-
-    private fun filterByType(type: HistoryType) {
-        lifecycleScope.launch {
-            repository.getHistoryByType(type).collectLatest { items ->
-                adapter.submitList(items)
-                updateEmptyState(items.isEmpty())
-            }
-        }
     }
 
     private fun setupClearButton() {
@@ -280,9 +243,22 @@ class HistoryFragment : Fragment() {
                     putExtra(Intent.EXTRA_TEXT, getString(R.string.qr_code_for, content))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
+
+                // Grant permission to all potential receivers
+                val resInfoList = requireContext().packageManager.queryIntentActivities(intent, 0)
+                for (resolveInfo in resInfoList) {
+                    val packageName = resolveInfo.activityInfo.packageName
+                    requireContext().grantUriPermission(
+                        packageName,
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+
                 startActivity(Intent.createChooser(intent, getString(R.string.share_qr_code)))
 
             } catch (e: Exception) {
+                android.util.Log.e("HistoryFragment", "Error sharing QR code", e)
                 Toast.makeText(requireContext(), "Failed to generate QR: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
