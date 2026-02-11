@@ -53,4 +53,41 @@ class HistoryRepository(context: Context) {
     suspend fun deleteAll() {
         historyDao.deleteAll()
     }
+
+    // ===== 搜索功能 =====
+
+    fun searchHistory(query: String): Flow<List<HistoryItem>> {
+        return historyDao.searchHistory(query)
+    }
+
+    fun getHistoryByType(type: HistoryType): Flow<List<HistoryItem>> {
+        return historyDao.getHistoryByType(type)
+    }
+
+    fun getHistoryByBarcodeFormat(format: String): Flow<List<HistoryItem>> {
+        return historyDao.getHistoryByBarcodeFormat(format)
+    }
+
+    fun getFavoriteHistory(): Flow<List<HistoryItem>> {
+        return historyDao.getFavoriteHistory()
+    }
+
+    suspend fun toggleFavorite(item: HistoryItem) {
+        historyDao.update(item.copy(isFavorite = !item.isFavorite))
+    }
+
+    suspend fun addNotes(id: Long, notes: String) {
+        val item = historyDao.getById(id)
+        item?.let {
+            historyDao.update(it.copy(notes = notes))
+        }
+    }
+
+    suspend fun getAllTypes(): List<HistoryType> {
+        return historyDao.getAllTypes()
+    }
+
+    suspend fun getAllBarcodeFormats(): List<String> {
+        return historyDao.getAllBarcodeFormats()
+    }
 }

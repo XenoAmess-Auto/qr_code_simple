@@ -41,4 +41,27 @@ interface HistoryDao {
 
     @Query("UPDATE history SET content = :newContent WHERE id = :id")
     suspend fun updateContent(id: Long, newContent: String)
+
+    // ===== 搜索功能 =====
+
+    @Query("SELECT * FROM history WHERE content LIKE '%' || :query || '%' ORDER BY timestamp DESC")
+    fun searchHistory(query: String): Flow<List<HistoryItem>>
+
+    @Query("SELECT * FROM history WHERE type = :type ORDER BY timestamp DESC")
+    fun getHistoryByType(type: HistoryType): Flow<List<HistoryItem>>
+
+    @Query("SELECT * FROM history WHERE barcodeFormat = :format ORDER BY timestamp DESC")
+    fun getHistoryByBarcodeFormat(format: String): Flow<List<HistoryItem>>
+
+    @Query("SELECT * FROM history WHERE timestamp BETWEEN :startTime AND :endTime ORDER BY timestamp DESC")
+    fun getHistoryByTimeRange(startTime: Long, endTime: Long): Flow<List<HistoryItem>>
+
+    @Query("SELECT * FROM history WHERE isFavorite = 1 ORDER BY timestamp DESC")
+    fun getFavoriteHistory(): Flow<List<HistoryItem>>
+
+    @Query("SELECT DISTINCT type FROM history")
+    suspend fun getAllTypes(): List<HistoryType>
+
+    @Query("SELECT DISTINCT barcodeFormat FROM history WHERE barcodeFormat IS NOT NULL")
+    suspend fun getAllBarcodeFormats(): List<String>
 }

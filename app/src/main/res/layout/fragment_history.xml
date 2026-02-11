@@ -5,7 +5,15 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 过滤器 -->
+    <!-- 搜索栏 -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="Search history..."
+        app:iconifiedByDefault="false" />
+
+    <!-- 过滤器 Tab -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/filterTabLayout"
         android:layout_width="match_parent"
@@ -28,7 +36,29 @@
             android:layout_height="wrap_content"
             android:text="@string/generated" />
 
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Favorite" />
+
     </com.google.android.material.tabs.TabLayout>
+
+    <!-- 类型筛选 Chips -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            app:singleSelection="true"
+            app:selectionRequired="false" />
+
+    </HorizontalScrollView>
 
     <!-- 历史记录列表 -->
     <androidx.recyclerview.widget.RecyclerView
