@@ -70,10 +70,6 @@ class GenerateFragment : Fragment() {
             shareQRCode()
         }
 
-        binding.btnBatchGenerate.setOnClickListener {
-            startActivity(Intent(requireContext(), BatchGenerateActivity::class.java))
-        }
-
         binding.btnClear.setOnClickListener {
             binding.etContent.text?.clear()
             currentQRBitmap = null
