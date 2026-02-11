@@ -40,20 +40,20 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnExportJson"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="@string/export_json"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                    style="?android:attr/borderlessButtonStyle" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnExportCsv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/export_csv"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                    style="?android:attr/borderlessButtonStyle" />
 
             </LinearLayout>
 
@@ -80,12 +80,12 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
 
-                <com.google.android.material.button.MaterialButton
+                <Button
                     android:id="@+id/btnImport"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/import_data"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                    style="?android:attr/borderlessButtonStyle" />
 
             </LinearLayout>
 

@@ -14,10 +14,7 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp"
-            app:contentPadding="16dp">
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -51,21 +48,21 @@
         </androidx.cardview.widget.CardView>
 
         <!-- 重置数据库按钮 -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnResetDatabase"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:text="@string/reset_database"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            style="?android:attr/borderlessButtonStyle" />
 
         <!-- 导出备份按钮 -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnExportBackup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/backup_restore"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            style="?android:attr/borderlessButtonStyle" />
 
     </LinearLayout>
 

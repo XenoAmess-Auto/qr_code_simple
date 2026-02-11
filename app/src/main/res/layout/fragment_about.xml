@@ -38,53 +38,48 @@
             android:layout_marginBottom="8dp" />
 
         <!-- Language Selector -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnLanguage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             android:text="@string/language"
-            app:icon="@drawable/ic_language"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            style="?android:attr/borderlessButtonStyle" />
 
         <!-- Privacy Settings -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnPrivacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:text="@string/privacy_settings"
-            app:icon="@drawable/ic_settings"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            style="?android:attr/borderlessButtonStyle" />
 
         <!-- Buy me a coffee button -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnDonate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:text="@string/buy_me_a_coffee"
-            app:icon="@drawable/ic_coffee" />
+            android:text="@string/buy_me_a_coffee" />
 
         <!-- Project - Single line button -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnGitHubProject"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             android:text="@string/sources"
-            app:icon="@drawable/ic_github"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            style="?android:attr/borderlessButtonStyle" />
 
         <!-- Maintainer - Single line button -->
-        <com.google.android.material.button.MaterialButton
+        <Button
             android:id="@+id/btnGitHubMaintainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:text="@string/maintainer"
-            app:icon="@drawable/ic_github"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            style="?android:attr/borderlessButtonStyle" />
 
         <!-- License -->
         <TextView

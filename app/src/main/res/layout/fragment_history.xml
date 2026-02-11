@@ -10,53 +10,61 @@
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:queryHint="Search history..."
-        app:iconifiedByDefault="false" />
+        android:queryHint="Search history..." />
 
     <!-- 过滤器 Tab -->
-    <com.google.android.material.tabs.TabLayout
+    <LinearLayout
         android:id="@+id/filterTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabMode="fixed"
-        app:tabGravity="fill">
+        android:orientation="horizontal">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/btnFilterAll"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/all" />
+            android:layout_weight="1"
+            android:text="@string/all"
+            style="?android:attr/borderlessButtonStyle" />
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/btnFilterScanned"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/scanned" />
+            android:layout_weight="1"
+            android:text="@string/scanned"
+            style="?android:attr/borderlessButtonStyle" />
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/btnFilterGenerated"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/generated" />
+            android:layout_weight="1"
+            android:text="@string/generated"
+            style="?android:attr/borderlessButtonStyle" />
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/btnFilterFavorite"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Favorite" />
+            android:layout_weight="1"
+            android:text="Favorite"
+            style="?android:attr/borderlessButtonStyle" />
 
-    </com.google.android.material.tabs.TabLayout>
+    </LinearLayout>
 
-    <!-- 类型筛选 Chips -->
+    <!-- 类型筛选 -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none">
 
-        <com.google.android.material.chip.ChipGroup
+        <LinearLayout
             android:id="@+id/chipGroupType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            app:singleSelection="true"
-            app:selectionRequired="false" />
+            android:paddingEnd="8dp" />
 
     </HorizontalScrollView>
 
@@ -78,13 +86,12 @@
         android:visibility="gone" />
 
     <!-- 清除全部按钮 -->
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btnClearAll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="@string/clear_all"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        app:icon="@drawable/ic_delete" />
+        style="?android:attr/borderlessButtonStyle" />
 
 </LinearLayout>
