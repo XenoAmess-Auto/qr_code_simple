@@ -64,6 +64,29 @@
             android:name=".BatchResultActivity"
             android:label="@string/batch_result" />
 
+        <!-- 桌面小组件 -->
+        <receiver
+            android:name=".QuickScanWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_scan_info" />
+        </receiver>
+
+        <receiver
+            android:name=".QuickGenerateWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_generate_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
