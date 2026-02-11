@@ -55,6 +55,10 @@ class AboutFragment : Fragment() {
         binding.btnLanguage.setOnClickListener {
             showLanguageDialog()
         }
+
+        binding.btnPrivacy.setOnClickListener {
+            startActivity(Intent(requireContext(), PrivacySettingsActivity::class.java))
+        }
     }
 
     private fun updateLanguageButton() {
