@@ -98,6 +98,9 @@ dependencies {
     // Apache Commons CSV
     implementation 'org.apache.commons:commons-csv:1.10.0'
 
+    // Biometric
+    implementation 'androidx.biometric:biometric:1.1.0'
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.22'
