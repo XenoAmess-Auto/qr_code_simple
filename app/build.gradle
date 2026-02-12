@@ -103,7 +103,7 @@ dependencies {
 
     // SQLCipher - 数据库加密
     implementation 'net.zetetic:android-database-sqlcipher:4.5.4'
-    implementation 'androidx.sqlite:sqlite:2.3.1'
+    implementation 'androidx.sqlite:sqlite:2.6.2'
 
     // TensorFlow Lite - ML 模型
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
