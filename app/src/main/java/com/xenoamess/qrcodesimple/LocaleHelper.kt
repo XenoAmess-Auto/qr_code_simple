@@ -69,7 +69,28 @@ object LocaleHelper {
             Locale(languageCode)
         }
 
-        updateResources(context, locale)
+        Locale.setDefault(locale)
+
+        val resources = context.resources
+        val configuration = resources.configuration
+        configuration.setLocale(locale)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            configuration.setLocales(LocaleList(locale))
+        }
+
+        // 更新资源配置（对所有API级别）
+        resources.updateConfiguration(configuration, resources.displayMetrics)
+
+        // Android 13+ 额外设置 per-app language API（用于系统设置同步）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val localeList = if (languageCode == "system") {
+                LocaleListCompat.getEmptyLocaleList()
+            } else {
+                LocaleListCompat.forLanguageTags(languageCode)
+            }
+            AppCompatDelegate.setApplicationLocales(localeList)
+        }
     }
 
     /**
