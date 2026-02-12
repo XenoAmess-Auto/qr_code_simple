@@ -10,6 +10,7 @@
 
     <!-- Camera Scan -->
     <string name="scanning">正在扫描…</string>
+    <string name="point_camera_at_qr_code">将相机对准二维码</string>
     <string name="flash_on">闪光灯已开启</string>
     <string name="flash_off">闪光灯已关闭</string>
     <string name="back_camera">后置摄像头</string>

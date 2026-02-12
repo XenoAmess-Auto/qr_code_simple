@@ -24,7 +24,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Point camera at QR code"
+            android:text="@string/point_camera_at_qr_code"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textStyle="bold" />

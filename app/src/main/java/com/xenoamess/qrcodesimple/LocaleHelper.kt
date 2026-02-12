@@ -79,7 +79,6 @@ object LocaleHelper {
             configuration.setLocales(LocaleList(locale))
         }
 
-        // 更新资源配置（对所有API级别）
         resources.updateConfiguration(configuration, resources.displayMetrics)
 
         // Android 13+ 额外设置 per-app language API（用于系统设置同步）
@@ -87,7 +86,7 @@ object LocaleHelper {
             val localeList = if (languageCode == "system") {
                 LocaleListCompat.getEmptyLocaleList()
             } else {
-                LocaleListCompat.forLanguageTags(languageCode)
+                LocaleListCompat.create(locale)
             }
             AppCompatDelegate.setApplicationLocales(localeList)
         }
@@ -139,7 +138,7 @@ object LocaleHelper {
             val localeList = if (languageCode == "system") {
                 LocaleListCompat.getEmptyLocaleList()
             } else {
-                LocaleListCompat.forLanguageTags(languageCode)
+                LocaleListCompat.create(Locale(languageCode))
             }
             AppCompatDelegate.setApplicationLocales(localeList)
         }

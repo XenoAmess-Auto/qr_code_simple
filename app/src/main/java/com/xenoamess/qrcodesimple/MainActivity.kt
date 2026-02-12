@@ -1,17 +1,18 @@
 package com.xenoamess.qrcodesimple
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import com.xenoamess.qrcodesimple.databinding.ActivityMainBinding
 
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var tabButtons: List<Button>
@@ -20,10 +21,13 @@ class MainActivity : FragmentActivity() {
         private const val REQUEST_PERMISSIONS = 100
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        // 应用语言设置
-        LocaleHelper.applyLanguage(this)
+    override fun attachBaseContext(newBase: Context) {
+        // 在 Activity 创建之前应用语言设置
+        LocaleHelper.applyLanguage(newBase)
+        super.attachBaseContext(newBase)
+    }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
