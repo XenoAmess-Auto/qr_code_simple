@@ -107,7 +107,7 @@ dependencies {
 
     // TensorFlow Lite - ML 模型
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
-    implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.5.0'
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
