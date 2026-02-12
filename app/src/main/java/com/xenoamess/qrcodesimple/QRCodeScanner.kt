@@ -129,6 +129,7 @@ object QRCodeScanner {
                     com.google.zxing.BarcodeFormat.EAN_8,
                     com.google.zxing.BarcodeFormat.UPC_A,
                     com.google.zxing.BarcodeFormat.UPC_E,
+                    com.google.zxing.BarcodeFormat.UPC_EAN_EXTENSION,
                     com.google.zxing.BarcodeFormat.CODABAR,
                     com.google.zxing.BarcodeFormat.ITF
                 ))
@@ -139,8 +140,14 @@ object QRCodeScanner {
                 put(DecodeHintType.POSSIBLE_FORMATS, listOf(
                     com.google.zxing.BarcodeFormat.CODE_128,
                     com.google.zxing.BarcodeFormat.CODE_39,
+                    com.google.zxing.BarcodeFormat.CODE_93,
                     com.google.zxing.BarcodeFormat.EAN_13,
-                    com.google.zxing.BarcodeFormat.UPC_A
+                    com.google.zxing.BarcodeFormat.EAN_8,
+                    com.google.zxing.BarcodeFormat.UPC_A,
+                    com.google.zxing.BarcodeFormat.UPC_E,
+                    com.google.zxing.BarcodeFormat.UPC_EAN_EXTENSION,
+                    com.google.zxing.BarcodeFormat.CODABAR,
+                    com.google.zxing.BarcodeFormat.ITF
                 ))
             }
         )
