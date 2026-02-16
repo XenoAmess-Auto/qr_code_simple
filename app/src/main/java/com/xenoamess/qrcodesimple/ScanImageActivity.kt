@@ -52,6 +52,9 @@ class ScanImageActivity : AppCompatActivity() {
         binding = ActivityScanImageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 设置沉浸式状态栏并处理安全区域
+        setupEdgeToEdge()
+
         binding.btnGallery.setOnClickListener {
             pickFromGallery()
         }

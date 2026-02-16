@@ -32,6 +32,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 设置沉浸式状态栏并处理安全区域（状态栏、导航栏、灵动岛等）
+        setupEdgeToEdge()
+
         checkPermissions()
         setupViewPager()
         setupTabButtons()

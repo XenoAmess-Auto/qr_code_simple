@@ -49,6 +49,9 @@ class GenerateActivity : AppCompatActivity() {
         binding = ActivityGenerateBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 设置沉浸式状态栏并处理安全区域
+        setupEdgeToEdge()
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         setupFormatSpinner()
