@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.slider.Slider
+import com.xenoamess.qrcodesimple.ContentParser.ParsedContent
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentCameraScanBinding
@@ -44,6 +45,7 @@ class CameraScanFragment : Fragment() {
     private val binding get() = _binding!!
     private var cameraExecutor: ExecutorService? = null
     private lateinit var historyRepository: HistoryRepository
+    private lateinit var contentActionHandler: ContentActionHandler
     private var isProcessing = false
     private var lastScanTime = 0L
     private val scanInterval = 300L
@@ -55,6 +57,7 @@ class CameraScanFragment : Fragment() {
     private var isFlashOn = false
     private var isBackCamera = true
     private var maxZoom = 10f
+    private var currentParsedContent: ParsedContent? = null
 
     companion object {
         private const val TAG = "CameraScanFragment"
@@ -77,6 +80,7 @@ class CameraScanFragment : Fragment() {
         super.onCreate(savedInstanceState)
         cameraExecutor = Executors.newSingleThreadExecutor()
         historyRepository = HistoryRepository(requireContext())
+        contentActionHandler = ContentActionHandler(requireActivity())
     }
 
     override fun onCreateView(
@@ -135,9 +139,55 @@ class CameraScanFragment : Fragment() {
         binding.btnShareResult.setOnClickListener { shareResult() }
         binding.resultCard.setOnClickListener { copyResult() }
         binding.btnCloseResult.setOnClickListener { hideResult() }
+        binding.btnSmartAction.setOnClickListener { onSmartActionClick() }
         
         binding.btnFlash.setOnClickListener { toggleFlash() }
         binding.btnSwitchCamera.setOnClickListener { switchCamera() }
+    }
+    
+    private fun onSmartActionClick() {
+        val parsedContent = currentParsedContent ?: return
+        when (parsedContent) {
+            is ParsedContent.Wifi -> connectToWifi(parsedContent)
+            is ParsedContent.Url -> openUrl(parsedContent.url)
+            is ParsedContent.Phone -> makePhoneCall(parsedContent.number)
+            is ParsedContent.Email -> sendEmail(parsedContent)
+            else -> { }
+        }
+    }
+    
+    private fun connectToWifi(wifi: ParsedContent.Wifi) {
+        contentActionHandler.getActionButtons("WIFI:T:${wifi.encryption};S:${wifi.ssid};P:${wifi.password};;")
+            .firstOrNull()?.onClick?.invoke()
+    }
+    
+    private fun openUrl(url: String) {
+        contentActionHandler.getActionButtons(url)
+            .firstOrNull()?.onClick?.invoke()
+    }
+    
+    private fun makePhoneCall(number: String) {
+        contentActionHandler.getActionButtons("tel:$number")
+            .firstOrNull()?.onClick?.invoke()
+    }
+    
+    private fun sendEmail(email: ParsedContent.Email) {
+        val mailtoUri = buildString {
+            append("mailto:${email.address}")
+            if (email.subject.isNotEmpty() || email.body.isNotEmpty()) {
+                append("?")
+                val params = mutableListOf<String>()
+                if (email.subject.isNotEmpty()) {
+                    params.add("subject=${email.subject}")
+                }
+                if (email.body.isNotEmpty()) {
+                    params.add("body=${email.body}")
+                }
+                append(params.joinToString("&"))
+            }
+        }
+        contentActionHandler.getActionButtons(mailtoUri)
+            .firstOrNull()?.onClick?.invoke()
     }
     
     private fun toggleFlash() {
@@ -278,6 +328,7 @@ class CameraScanFragment : Fragment() {
 
     private fun hideResult() {
         binding.resultCard.visibility = View.GONE
+        currentParsedContent = null
     }
 
     private fun showResult(result: String) {
@@ -285,6 +336,9 @@ class CameraScanFragment : Fragment() {
         activity?.runOnUiThread {
             binding.tvResult.text = result
             binding.resultCard.visibility = View.VISIBLE
+            
+            // 解析内容并更新智能操作按钮
+            updateSmartActionButton(result)
             
             if (result != lastDetectedContent && result.isNotBlank()) {
                 lastDetectedContent = result
@@ -296,6 +350,68 @@ class CameraScanFragment : Fragment() {
                     }
                 }
             }
+        }
+    }
+    
+    private fun updateSmartActionButton(content: String) {
+        currentParsedContent = ContentParser.parse(content)
+        
+        val (iconResId, label, visible) = when (currentParsedContent) {
+            is ParsedContent.Wifi -> Triple(
+                R.drawable.ic_wifi, 
+                getString(R.string.action_connect_wifi), 
+                true
+            )
+            is ParsedContent.Url -> Triple(
+                R.drawable.ic_open_in_browser, 
+                getString(R.string.action_open_url), 
+                true
+            )
+            is ParsedContent.Phone -> Triple(
+                R.drawable.ic_phone, 
+                getString(R.string.action_call), 
+                true
+            )
+            is ParsedContent.Email -> Triple(
+                R.drawable.ic_email, 
+                getString(R.string.action_send_email), 
+                true
+            )
+            is ParsedContent.GeoLocation -> Triple(
+                R.drawable.ic_location, 
+                getString(R.string.action_open_map), 
+                true
+            )
+            is ParsedContent.Contact -> Triple(
+                R.drawable.ic_contact, 
+                getString(R.string.action_add_contact), 
+                true
+            )
+            is ParsedContent.CalendarEvent -> Triple(
+                R.drawable.ic_calendar, 
+                getString(R.string.action_add_event), 
+                true
+            )
+            is ParsedContent.SMS -> Triple(
+                R.drawable.ic_sms,
+                getString(R.string.action_send_sms),
+                true
+            )
+            is ParsedContent.Text -> Triple(0, "", false)
+            null -> Triple(0, "", false)
+        }
+        
+        if (visible) {
+            binding.btnSmartAction.visibility = View.VISIBLE
+            binding.btnSmartAction.text = label
+            binding.btnSmartAction.setIconResource(iconResId)
+            
+            // 显示内容类型标签
+            binding.tvContentType.visibility = View.VISIBLE
+            binding.tvContentType.text = contentActionHandler.getContentTypeLabel(content)
+        } else {
+            binding.btnSmartAction.visibility = View.GONE
+            binding.tvContentType.visibility = View.GONE
         }
     }
 

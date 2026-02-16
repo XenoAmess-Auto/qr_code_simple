@@ -3,18 +3,21 @@ package com.xenoamess.qrcodesimple
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.Uri
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
+import android.net.wifi.WifiNetworkSpecifier
+import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
-import android.os.Bundle
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import com.xenoamess.qrcodesimple.ContentParser.ParsedContent
-import java.util.Calendar
 
 /**
  * 智能内容操作处理器 - 提供一键操作功能
@@ -123,45 +126,207 @@ class ContentActionHandler(private val activity: Activity) {
             return
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10+ 使用 Suggestion API
-            connectWifiModern(wifi)
-        } else {
-            // 旧版本直接配置
-            connectWifiLegacy(wifi)
-        }
+        AlertDialog.Builder(activity)
+            .setTitle(activity.getString(R.string.wifi_connect_title))
+            .setMessage(activity.getString(R.string.wifi_connect_confirm, wifi.ssid))
+            .setPositiveButton(activity.getString(R.string.wifi_connect_button)) { _, _ ->
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                        // Android 10+ 使用 NetworkSpecifier API
+                        connectWifiAndroid10Plus(wifi)
+                    }
+                    else -> {
+                        // Android 9 及以下使用旧 API
+                        connectWifiLegacy(wifi)
+                    }
+                }
+            }
+            .setNegativeButton(activity.getString(R.string.cancel), null)
+            .show()
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun connectWifiModern(wifi: ParsedContent.Wifi) {
-        // Android 10+ 不能直接连接WiFi，引导用户到系统设置
-        val intent = Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
-        activity.startActivity(intent)
-        Toast.makeText(
-            activity,
-            activity.getString(R.string.wifi_manual_connect, wifi.ssid),
-            Toast.LENGTH_LONG
-        ).show()
+    private fun connectWifiAndroid10Plus(wifi: ParsedContent.Wifi) {
+        try {
+            // 创建 WiFi 网络配置
+            val specifierBuilder = WifiNetworkSpecifier.Builder()
+                .setSsid(wifi.ssid)
+
+            // 根据加密类型设置密码
+            when (wifi.encryption.uppercase()) {
+                "WPA", "WPA2" -> {
+                    if (wifi.password.isNotEmpty()) {
+                        specifierBuilder.setWpa2Passphrase(wifi.password)
+                    }
+                }
+                "WPA3" -> {
+                    if (wifi.password.isNotEmpty()) {
+                        specifierBuilder.setWpa3Passphrase(wifi.password)
+                    }
+                }
+                "WEP" -> {
+                    // Android 10+ 不支持 WEP，提示用户
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.wifi_wep_not_supported),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    // 跳转到 WiFi 设置
+                    val intent = Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
+                    activity.startActivity(intent)
+                    return
+                }
+                "NOPASS", "NONE" -> {
+                    // 开放网络，不需要密码
+                }
+            }
+
+            val specifier = specifierBuilder.build()
+
+            // 创建网络请求
+            val request = NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .setNetworkSpecifier(specifier)
+                .build()
+
+            val connectivityManager = activity.getSystemService(ConnectivityManager::class.java)
+
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.wifi_request_sent, wifi.ssid),
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // 请求连接网络
+            connectivityManager.requestNetwork(request, object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: android.net.Network) {
+                    super.onAvailable(network)
+                    activity.runOnUiThread {
+                        Toast.makeText(
+                            activity,
+                            activity.getString(R.string.wifi_connected, wifi.ssid),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    // 绑定当前进程到此网络
+                    connectivityManager.bindProcessToNetwork(network)
+                }
+
+                override fun onUnavailable() {
+                    super.onUnavailable()
+                    activity.runOnUiThread {
+                        Toast.makeText(
+                            activity,
+                            activity.getString(R.string.wifi_connection_failed),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            })
+
+        } catch (e: Exception) {
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.wifi_connection_error, e.message),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    /**
+     * 使用 WiFi Suggestion API (Android 10+)
+     * 这种方法会将网络添加到建议列表，用户可以在系统设置中选择连接
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun suggestWifiNetwork(wifi: ParsedContent.Wifi) {
+        try {
+            val suggestionBuilder = WifiNetworkSuggestion.Builder()
+                .setSsid(wifi.ssid)
+                .setIsAppInteractionRequired(true)
+                .setIsUserInteractionRequired(true)
+
+            when (wifi.encryption.uppercase()) {
+                "WPA", "WPA2" -> {
+                    if (wifi.password.isNotEmpty()) {
+                        suggestionBuilder.setWpa2Passphrase(wifi.password)
+                    }
+                }
+                "WPA3" -> {
+                    if (wifi.password.isNotEmpty()) {
+                        suggestionBuilder.setWpa3Passphrase(wifi.password)
+                    }
+                }
+            }
+
+            val suggestion = suggestionBuilder.build()
+            val wifiManager = activity.applicationContext.getSystemService(WifiManager::class.java)
+
+            val status = wifiManager.addNetworkSuggestions(listOf(suggestion))
+            if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.wifi_suggestion_added, wifi.ssid),
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.wifi_suggestion_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.wifi_connection_error, e.message),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     @Suppress("DEPRECATION")
     private fun connectWifiLegacy(wifi: ParsedContent.Wifi) {
         try {
-            val wifiManager = activity.applicationContext.getSystemService(Activity.WIFI_SERVICE) as WifiManager
+            val wifiManager = activity.applicationContext.getSystemService(WifiManager::class.java)
+            
+            // 确保 WiFi 已启用
+            if (!wifiManager.isWifiEnabled) {
+                wifiManager.isWifiEnabled = true
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.wifi_enabling),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             
             val config = WifiConfiguration().apply {
                 SSID = "\"${wifi.ssid}\""
                 if (wifi.password.isNotEmpty()) {
                     when (wifi.encryption.uppercase()) {
-                        "WEP" -> wepKeys[0] = "\"${wifi.password}\""
-                        "WPA", "WPA2" -> preSharedKey = "\"${wifi.password}\""
+                        "WEP" -> {
+                            wepKeys[0] = "\"${wifi.password}\""
+                            allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
+                            allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40)
+                        }
+                        "WPA", "WPA2" -> {
+                            preSharedKey = "\"${wifi.password}\""
+                        }
+                        else -> {
+                            preSharedKey = "\"${wifi.password}\""
+                        }
                     }
                 } else {
                     allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
                 }
             }
 
-            val networkId = wifiManager.addNetwork(config)
+            // 检查是否已配置过此网络
+            val existingNetworkId = wifiManager.configuredNetworks?.find { 
+                it.SSID == "\"${wifi.ssid}\"" 
+            }?.networkId
+
+            val networkId = existingNetworkId ?: wifiManager.addNetwork(config)
+            
             if (networkId != -1) {
                 wifiManager.enableNetwork(networkId, true)
                 wifiManager.reconnect()
@@ -181,6 +346,12 @@ class ContentActionHandler(private val activity: Activity) {
             Toast.makeText(
                 activity,
                 activity.getString(R.string.wifi_permission_denied),
+                Toast.LENGTH_SHORT
+            ).show()
+        } catch (e: Exception) {
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.wifi_connection_error, e.message),
                 Toast.LENGTH_SHORT
             ).show()
         }

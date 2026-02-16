@@ -154,9 +154,20 @@
     <!-- WiFi Messages -->
     <string name="wifi_invalid">Invalid WiFi configuration</string>
     <string name="wifi_connecting">Connecting to %1$s…</string>
+    <string name="wifi_connected">Connected to %1$s</string>
     <string name="wifi_add_failed">Failed to add WiFi network</string>
     <string name="wifi_permission_denied">WiFi permission denied</string>
     <string name="wifi_manual_connect">Please connect to %1$s manually</string>
+    <string name="wifi_connect_title">Connect to WiFi</string>
+    <string name="wifi_connect_confirm">Connect to network "%1$s"?</string>
+    <string name="wifi_connect_button">Connect</string>
+    <string name="wifi_request_sent">Connection request sent for %1$s</string>
+    <string name="wifi_connection_failed">Failed to connect to WiFi</string>
+    <string name="wifi_connection_error">Connection error: %1$s</string>
+    <string name="wifi_enabling">Enabling WiFi…</string>
+    <string name="wifi_wep_not_supported">WEP encryption is not supported on Android 10+. Please connect manually.</string>
+    <string name="wifi_suggestion_added">WiFi suggestion added for %1$s. Check system WiFi settings to connect.</string>
+    <string name="wifi_suggestion_failed">Failed to add WiFi suggestion</string>
 
     <!-- Error Messages -->
     <string name="no_app_found">No suitable app found</string>

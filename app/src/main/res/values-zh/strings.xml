@@ -121,4 +121,56 @@
     <!-- Content Descriptions -->
     <string name="qr_code_image">二维码</string>
     <string name="processed_image">处理后的图片</string>
+
+    <!-- WiFi Messages -->
+    <string name="wifi_invalid">WiFi 配置无效</string>
+    <string name="wifi_connecting">正在连接 %1$s…</string>
+    <string name="wifi_connected">已连接到 %1$s</string>
+    <string name="wifi_add_failed">添加 WiFi 网络失败</string>
+    <string name="wifi_permission_denied">WiFi 权限被拒绝</string>
+    <string name="wifi_manual_connect">请手动连接到 %1$s</string>
+    <string name="wifi_connect_title">连接到 WiFi</string>
+    <string name="wifi_connect_confirm">连接到网络"%1$s"？</string>
+    <string name="wifi_connect_button">连接</string>
+    <string name="wifi_request_sent">已向 %1$s 发送连接请求</string>
+    <string name="wifi_connection_failed">连接 WiFi 失败</string>
+    <string name="wifi_connection_error">连接错误：%1$s</string>
+    <string name="wifi_enabling">正在启用 WiFi…</string>
+    <string name="wifi_wep_not_supported">Android 10+ 不支持 WEP 加密。请手动连接。</string>
+    <string name="wifi_suggestion_added">已为 %1$s 添加 WiFi 建议。请检查系统 WiFi 设置以连接。</string>
+    <string name="wifi_suggestion_failed">添加 WiFi 建议失败</string>
+
+    <!-- Content Type Labels -->
+    <string name="content_type_wifi">WiFi</string>
+    <string name="content_type_contact">联系人</string>
+    <string name="content_type_calendar">日历</string>
+    <string name="content_type_email">邮件</string>
+    <string name="content_type_location">位置</string>
+    <string name="content_type_sms">短信</string>
+    <string name="content_type_phone">电话</string>
+    <string name="content_type_url">链接</string>
+    <string name="content_type_text">文本</string>
+
+    <!-- Action Buttons -->
+    <string name="action_connect_wifi">连接</string>
+    <string name="action_add_contact">添加联系人</string>
+    <string name="action_add_event">添加到日历</string>
+    <string name="action_send_email">发送邮件</string>
+    <string name="action_open_url">打开</string>
+    <string name="action_open_map">查看地图</string>
+    <string name="action_call">拨打电话</string>
+    <string name="action_send_sms">发送短信</string>
+
+    <!-- Error Messages -->
+    <string name="no_app_found">未找到合适的应用</string>
+    <string name="no_calendar_app">未找到日历应用</string>
+    <string name="no_email_app">未找到邮件应用</string>
+    <string name="no_browser_found">未找到浏览器</string>
+    <string name="no_map_app">未找到地图应用</string>
+    <string name="no_phone_app">未找到电话应用</string>
+    <string name="no_sms_app">未找到短信应用</string>
+
+    <!-- Phone -->
+    <string name="confirm_call">拨打此号码？</string>
+    <string name="call">拨打</string>
 </resources>
