@@ -48,6 +48,16 @@
 - ✅ **崩溃监控** - Firebase Crashlytics 集成
 - ✅ **离线增强** - TensorFlow Lite 模型支持
 
+## 使用效果图
+
+| 实时扫描结果 | 图片扫描识别 |
+|:------------:|:------------:|
+| ![扫描结果](./screenshots/scan_result.jpg) | ![图片扫描](./screenshots/link_history.jpg) |
+
+| 二维码生成 | 历史记录管理 |
+|:----------:|:------------:|
+| ![二维码生成](./screenshots/generate_qr.jpg) | ![历史记录](./screenshots/history_list.jpg) |
+
 ## 技术栈
 
 - **语言**: Kotlin
