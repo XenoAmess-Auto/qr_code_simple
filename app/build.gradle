@@ -79,11 +79,11 @@ dependencies {
     implementation "androidx.camera:camera-view:$camerax_version"
 
     // OpenCV + WeChatQRCode
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv:2.4.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv7a:2.4.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv64:2.4.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode:2.4.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode-scanning:2.4.0'
+    implementation 'com.github.jenly1314.WeChatQRCode:opencv:2.5.0'
+    implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv7a:2.5.0'
+    implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv64:2.5.0'
+    implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode:2.5.0'
+    implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode-scanning:2.5.0'
 
     // ZXing - 支持多种条形码格式
     implementation 'com.google.zxing:core:3.5.3'
