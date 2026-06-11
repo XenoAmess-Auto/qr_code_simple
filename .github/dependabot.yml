@@ -10,7 +10,7 @@ updates:
       interval: "daily"
       time: "08:00"
       timezone: "UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 100
     target-branch: "master"
     commit-message:
       prefix: "deps"
@@ -24,7 +24,7 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "UTC"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 100
     target-branch: "master"
     commit-message:
       prefix: "ci"
