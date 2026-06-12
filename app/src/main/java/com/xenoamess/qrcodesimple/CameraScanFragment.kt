@@ -331,20 +331,21 @@ class CameraScanFragment : Fragment() {
         currentParsedContent = null
     }
 
-    private fun showResult(result: String) {
+    private fun showResult(result: QRCodeScanner.ScanResult) {
         if (!isAdded) return
         activity?.runOnUiThread {
-            binding.tvResult.text = result
+            binding.tvResult.text = result.text
             binding.resultCard.visibility = View.VISIBLE
             
             // 解析内容并更新智能操作按钮
-            updateSmartActionButton(result)
+            updateSmartActionButton(result.text)
             
-            if (result != lastDetectedContent && result.isNotBlank()) {
-                lastDetectedContent = result
+            val detectedText = result.text
+            if (detectedText != lastDetectedContent && detectedText.isNotBlank()) {
+                lastDetectedContent = detectedText
                 lifecycleScope.launch {
                     try {
-                        historyRepository.insertScan(result, HistoryType.QR_CODE)
+                        historyRepository.insertScan(detectedText, result.format.toHistoryType())
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save history", e)
                     }

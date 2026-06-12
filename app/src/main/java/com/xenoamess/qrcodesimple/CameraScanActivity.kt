@@ -115,9 +115,9 @@ class CameraScanActivity : AppCompatActivity() {
         binding.resultCard.visibility = View.GONE
     }
 
-    private fun showResult(result: String) {
+    private fun showResult(result: QRCodeScanner.ScanResult) {
         runOnUiThread {
-            binding.tvResult.text = result
+            binding.tvResult.text = result.text
             binding.resultCard.visibility = View.VISIBLE
         }
     }
@@ -217,7 +217,7 @@ class CameraScanActivity : AppCompatActivity() {
 
             if (results.isNotEmpty()) {
                 val result = results[0]
-                Log.d(TAG, "QR Code detected: $result")
+                Log.d(TAG, "QR Code detected: ${result.text}")
                 showResult(result)
             }
 

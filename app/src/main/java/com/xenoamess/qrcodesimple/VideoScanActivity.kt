@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.databinding.ActivityVideoScanBinding
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import java.util.LinkedHashSet
@@ -26,6 +27,7 @@ class VideoScanActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityVideoScanBinding
     private lateinit var adapter: QRResultAdapter
+    private lateinit var historyRepository: HistoryRepository
     private val results = mutableListOf<QRResult>()
     private val detectedTexts = LinkedHashSet<String>() // 用于去重
     private var isProcessing = false
@@ -41,7 +43,8 @@ class VideoScanActivity : AppCompatActivity() {
     data class QRResult(
         val text: String,
         var isSelected: Boolean = false,
-        val library: QRCodeScanner.Library? = null
+        val library: QRCodeScanner.Library? = null,
+        val format: com.google.zxing.BarcodeFormat = com.google.zxing.BarcodeFormat.QR_CODE
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +55,8 @@ class VideoScanActivity : AppCompatActivity() {
 
         // 设置沉浸式状态栏并处理安全区域
         setupEdgeToEdge()
+
+        historyRepository = HistoryRepository(this)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -171,12 +176,10 @@ class VideoScanActivity : AppCompatActivity() {
 
             if (scanResults.isNotEmpty()) {
                 var hasNewResult = false
-                scanResults.forEach { text ->
-                    if (detectedTexts.add(text)) {
+                scanResults.forEach { scanResult ->
+                    if (detectedTexts.add(scanResult.text)) {
                         hasNewResult = true
-                        // 记录使用了哪个库（只记录第一个检测到的库）
-                        // 由于是同步方法，scanSync 不返回库信息，这里设为 null
-                        addResult(QRResult(text, false, null))
+                        addResult(QRResult(scanResult.text, false, scanResult.library, scanResult.format))
                     }
                 }
                 if (hasNewResult) {

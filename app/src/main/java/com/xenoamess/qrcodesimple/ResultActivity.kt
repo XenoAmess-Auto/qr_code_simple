@@ -291,7 +291,7 @@ class ResultActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 detectedResults.forEach { result ->
-                    historyRepository.insertScan(result.text, HistoryType.QR_CODE)
+                    historyRepository.insertScan(result.text, result.format.toHistoryType())
                 }
             } catch (e: Exception) {
                 // 静默失败，不影响用户体验

@@ -2,7 +2,7 @@
 
 ## 一、当前已支持的条码格式
 
-本项目当前支持 **13 种** 条码格式的扫描与生成，覆盖二维码、堆叠式条码和一维条码三大类。
+本项目当前支持 **16 种** 条码格式的扫描，其中 13 种支持生成，覆盖二维码、堆叠式条码和一维条码三大类。
 
 ### 1.1 二维码 (2D Matrix Codes)
 
@@ -32,6 +32,9 @@
 | 格式 | 说明 | 扫描 | 生成 | 备注 |
 |------|------|:----:|:----:|------|
 | **UPC/EAN Extension** | UPC/EAN 的2位或5位扩展码 | ✅ | ❌ | 作为主码的附加信息 |
+| **RSS-14 / GS1 DataBar** | GS1 标准条码，用于替代传统 UPC/EAN | ✅ | ❌ | 零售、生鲜、医疗 |
+| **RSS Expanded** | RSS-14 的扩展版，可变长度字母数字 | ✅ | ❌ | 生产日期、批次号、重量 |
+| **MaxiCode** | UPS 开发的固定大小二维条码 | ✅ | ❌ | 国际物流、航空货运 |
 
 ### 1.4 内容解析支持
 
@@ -69,47 +72,15 @@
 | UPC/EAN Extension | ❌ | ✅ | ❌ |
 | Codabar | ❌ | ✅ | ✅ |
 | ITF | ❌ | ✅ | ✅ |
-| RSS-14 / GS1 DataBar | ❌ | ⚠️ 仅扫描 | ❌ |
-| RSS Expanded | ❌ | ⚠️ 仅扫描 | ❌ |
-| MaxiCode | ❌ | ⚠️ 仅扫描 | ❌ |
+| RSS-14 / GS1 DataBar | ❌ | ✅ | ❌ |
+| RSS Expanded | ❌ | ✅ | ❌ |
+| MaxiCode | ❌ | ✅ | ❌ |
 
 > **说明**：WeChatQRCode 仅针对 QR Code 进行了深度优化，对低质量/扭曲二维码识别率最高；ZXing 覆盖最广；ML Kit 在设备端推理速度最快。
 
 ---
 
-## 三、可扩展支持的常见条码格式
-
-以下格式在底层依赖库（ZXing 3.5.3）中已有扫描支持，但尚未在项目中启用或整合：
-
-### 3.1 建议优先添加（零售/物流常用）
-
-#### RSS-14 / GS1 DataBar (RSS-14)
-- **描述**：GS1 标准条码，用于替代传统 UPC/EAN，可容纳更多数据
-- **ZXing 支持**：✅ 扫描
-- **生成支持**：❌ ZXing 不支持生成
-- **应用场景**：超市零售、生鲜称重、医疗药品标识
-- **实现成本**：低（仅需在扫描配置中启用格式）
-- **代码位置**：`QRCodeScanner.kt` 第 120-135 行，在 `POSSIBLE_FORMATS` 列表中添加 `BarcodeFormat.RSS_14`
-
-#### RSS Expanded / GS1 DataBar Expanded
-- **描述**：RSS-14 的扩展版，支持可变长度字母数字数据
-- **ZXing 支持**：✅ 扫描
-- **生成支持**：❌ ZXing 不支持生成
-- **应用场景**：零售商品附加信息（生产日期、批次号、重量）
-- **实现成本**：低
-- **代码位置**：同上，添加 `BarcodeFormat.RSS_EXPANDED`
-
-### 3.2 建议次优先级（特定行业）
-
-#### MaxiCode
-- **描述**：由 UPS 开发的固定大小二维条码，用于包裹分拣
-- **ZXing 支持**：✅ 扫描（支持模式 2/3/4/5/6）
-- **生成支持**：❌ ZXing 不支持生成
-- **应用场景**：国际物流、航空货运、包裹追踪
-- **实现成本**：低（扫描端）
-- **代码位置**：同上，添加 `BarcodeFormat.MAXICODE`
-
-### 3.3 当前依赖库不支持的其他常见格式
+## 三、当前依赖库不支持的其他常见条码格式
 
 以下格式在当前技术栈中**暂不支持**，如需支持需要引入额外的第三方库：
 
@@ -162,6 +133,12 @@ enum class HistoryType {
 - RSS Expanded 也有 Stacked 变体
 - 这些格式在零售行业正在逐步替代传统 UPC/EAN，尤其在生鲜和医疗领域
 
+### 4.3 关于 RSS/GS1 DataBar 的注意事项
+
+- RSS-14 有四种变体：RSS-14、RSS-14 Truncated、RSS-14 Stacked、RSS-14 Stacked Omnidirectional，ZXing 均可识别
+- RSS Expanded 也有 Stacked 变体
+- 这些格式在零售行业正在逐步替代传统 UPC/EAN，尤其在生鲜和医疗领域
+
 ---
 
 ## 五、格式选择建议
@@ -181,9 +158,9 @@ enum class HistoryType {
 
 ### 5.2 扫描场景建议
 
-- **默认模式**：启用全部 13 种格式，三引擎自动切换
-- **零售专用**：可关闭二维码，仅启用 EAN/UPC/Code 128 以提升速度
-- **物流专用**：启用 Code 128、Code 39、PDF417、Data Matrix
+- **默认模式**：启用全部 16 种扫描格式，三引擎自动切换
+- **零售专用**：可关闭二维码，仅启用 EAN/UPC/Code 128/RSS-14/RSS Expanded 以提升速度
+- **物流专用**：启用 Code 128、Code 39、PDF417、Data Matrix、MaxiCode
 - **图书/档案**：启用 Codabar、Code 39
 
 ---
@@ -192,14 +169,14 @@ enum class HistoryType {
 
 | 文件路径 | 说明 |
 |----------|------|
-| `app/src/main/java/com/xenoamess/qrcodesimple/data/HistoryItem.kt` | 条码格式枚举定义（第 35-49 行） |
+| `app/src/main/java/com/xenoamess/qrcodesimple/data/HistoryItem.kt` | 条码格式枚举定义（第 38 行起） |
 | `app/src/main/java/com/xenoamess/qrcodesimple/BarcodeGenerator.kt` | 条码生成器，支持 13 种格式生成 |
-| `app/src/main/java/com/xenoamess/qrcodesimple/QRCodeScanner.kt` | 多引擎扫描器，第 120-150 行为格式配置 |
+| `app/src/main/java/com/xenoamess/qrcodesimple/QRCodeScanner.kt` | 多引擎扫描器，第 139、162 行为格式配置 |
 | `app/src/main/java/com/xenoamess/qrcodesimple/ContentParser.kt` | 智能内容解析器 |
 | `app/build.gradle` | 依赖配置，ZXing 3.5.3 / ML Kit 17.2.0 |
 
 ---
 
-*文档版本：v1.0*  
-*生成日期：2026-06-11*  
-*基于代码版本：0.1.4*
+*文档版本：v1.1*  
+*生成日期：2026-06-12*  
+*基于代码版本：0.1.5*

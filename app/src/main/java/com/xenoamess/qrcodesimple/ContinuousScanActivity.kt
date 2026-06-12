@@ -39,6 +39,7 @@ class ContinuousScanActivity : AppCompatActivity() {
     
     data class ScanResult(
         val content: String,
+        val type: HistoryType = HistoryType.QR_CODE,
         val timestamp: Long = System.currentTimeMillis(),
         var isSaved: Boolean = false
     )
@@ -178,7 +179,7 @@ class ContinuousScanActivity : AppCompatActivity() {
     private fun saveResult(result: ScanResult) {
         lifecycleScope.launch {
             try {
-                historyRepository.insertScan(result.content, HistoryType.QR_CODE)
+                historyRepository.insertScan(result.content, result.type)
                 result.isSaved = true
                 val position = results.indexOf(result)
                 if (position >= 0) {
@@ -195,7 +196,7 @@ class ContinuousScanActivity : AppCompatActivity() {
             var savedCount = 0
             results.filter { !it.isSaved }.forEach { result ->
                 try {
-                    historyRepository.insertScan(result.content, HistoryType.QR_CODE)
+                    historyRepository.insertScan(result.content, result.type)
                     result.isSaved = true
                     savedCount++
                 } catch (e: Exception) {

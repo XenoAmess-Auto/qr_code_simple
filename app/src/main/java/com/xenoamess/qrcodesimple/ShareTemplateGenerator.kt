@@ -185,6 +185,9 @@ object ShareTemplateGenerator {
             HistoryType.DATA_MATRIX -> "Data Matrix"
             HistoryType.AZTEC -> "Aztec Code"
             HistoryType.PDF417 -> "PDF417"
+            HistoryType.RSS_14 -> "RSS-14"
+            HistoryType.RSS_EXPANDED -> "RSS Expanded"
+            HistoryType.MAXICODE -> "MaxiCode"
             HistoryType.TEXT -> "文本分享"
         }
     }

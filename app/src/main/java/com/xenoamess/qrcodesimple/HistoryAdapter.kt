@@ -52,6 +52,9 @@ class HistoryAdapter(
                     HistoryType.DATA_MATRIX -> "Data Matrix"
                     HistoryType.AZTEC -> "Aztec"
                     HistoryType.PDF417 -> "PDF417"
+                    HistoryType.RSS_14 -> "RSS-14"
+                    HistoryType.RSS_EXPANDED -> "RSS Expanded"
+                    HistoryType.MAXICODE -> "MaxiCode"
                     HistoryType.TEXT -> context.getString(R.string.type_text)
                 })
                 item.barcodeFormat?.let {

@@ -26,6 +26,9 @@ enum class HistoryType {
     DATA_MATRIX,  // Data Matrix
     AZTEC,        // Aztec Code
     PDF417,       // PDF417
+    RSS_14,       // RSS-14 / GS1 DataBar
+    RSS_EXPANDED, // RSS Expanded / GS1 DataBar Expanded
+    MAXICODE,     // MaxiCode
     TEXT          // 纯文本
 }
 
