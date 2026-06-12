@@ -126,7 +126,7 @@
     <string name="privacy_mode_disabled">Privatsphäre-Modus deaktiviert</string>
 
     <!-- About -->
-    <string name="version_with_prefix">Version: %1$s</string>
+    <string name="version_with_prefix">Version: %1$s (%2$s)</string>
     <string name="sources">Quellcode</string>
     <string name="maintainer">Betreuer</string>
     <string name="license">Lizenziert unter MIT</string>

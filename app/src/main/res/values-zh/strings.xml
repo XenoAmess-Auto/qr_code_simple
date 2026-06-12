@@ -101,7 +101,7 @@
 
     <!-- About -->
     <string name="about">关于</string>
-    <string name="version_with_prefix">%1$s 版</string>
+    <string name="version_with_prefix">%1$s 版 %2$s</string>
     <string name="language">语言</string>
     <string name="select_language">选择语言</string>
     <string name="language_changed">语言已更改。重启应用生效。</string>

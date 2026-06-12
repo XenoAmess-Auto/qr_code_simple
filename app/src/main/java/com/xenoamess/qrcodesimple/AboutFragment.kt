@@ -35,7 +35,8 @@ class AboutFragment : Fragment() {
         } catch (e: Exception) {
             "0.1.1"
         }
-        binding.tvVersion.text = getString(R.string.version_with_prefix, versionName)
+        val gitHash = BuildConfig.GIT_HASH
+        binding.tvVersion.text = getString(R.string.version_with_prefix, versionName, gitHash)
 
         // 更新语言按钮显示当前语言
         updateLanguageButton()

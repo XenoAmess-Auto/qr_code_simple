@@ -197,7 +197,7 @@
     <string name="privacy_mode_disabled">개인정보 모드가 비활성화되었습니다</string>
 
     <!-- 정보 -->
-    <string name="version_with_prefix">버전: %1$s</string>
+    <string name="version_with_prefix">버전: %1$s (%2$s)</string>
     <string name="sources">소스 코드</string>
     <string name="maintainer">유지보수자</string>
     <string name="license">MIT 라이선스에 따라 배포됨</string>

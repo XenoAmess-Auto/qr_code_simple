@@ -4,6 +4,16 @@ plugins {
     id 'kotlin-kapt'
 }
 
+static def getGitHash() {
+    try {
+        def process = "git rev-parse --short=8 HEAD".execute()
+        process.waitFor()
+        return process.exitValue() == 0 ? process.text.trim() : "unknown"
+    } catch (Exception e) {
+        return "unknown"
+    }
+}
+
 android {
     namespace 'com.xenoamess.qrcodesimple'
     compileSdk 35
@@ -14,6 +24,7 @@ android {
         targetSdk 35
         versionCode 9
         versionName "0.1.6"
+        buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
 
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'
@@ -48,6 +59,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     packagingOptions {
         jniLibs {
