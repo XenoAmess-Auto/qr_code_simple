@@ -188,6 +188,7 @@ object ShareTemplateGenerator {
             HistoryType.RSS_14 -> "RSS-14"
             HistoryType.RSS_EXPANDED -> "RSS Expanded"
             HistoryType.MAXICODE -> "MaxiCode"
+            HistoryType.MICRO_QR -> "Micro QR"
             HistoryType.TEXT -> "文本分享"
         }
     }

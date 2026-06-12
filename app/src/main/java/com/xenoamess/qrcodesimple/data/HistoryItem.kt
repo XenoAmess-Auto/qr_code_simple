@@ -29,6 +29,7 @@ enum class HistoryType {
     RSS_14,       // RSS-14 / GS1 DataBar
     RSS_EXPANDED, // RSS Expanded / GS1 DataBar Expanded
     MAXICODE,     // MaxiCode
+    MICRO_QR,     // Micro QR Code
     TEXT          // 纯文本
 }
 

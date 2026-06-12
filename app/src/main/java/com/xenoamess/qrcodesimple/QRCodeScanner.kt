@@ -15,6 +15,8 @@ import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.king.wechat.qrcode.WeChatQRCodeDetector
 import com.xenoamess.qrcodesimple.data.HistoryType
+import com.xenoamess.qrcodesimple.decoder.CustomLinearBarcodeScanner
+import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -58,7 +60,9 @@ object QRCodeScanner {
     enum class Library {
         WECHAT_QR,
         ZXING,
-        ML_KIT
+        ML_KIT,
+        BOOFCV,
+        CUSTOM_LINEAR
     }
 
     /**
@@ -104,6 +108,34 @@ object QRCodeScanner {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "ML Kit scan failed", e)
+            }
+        }
+
+        // 4. 尝试 Micro QR Code (BoofCV)
+        if (results.isEmpty()) {
+            try {
+                val microQrResults = MicroQrCodeScanner.scan(bitmap)
+                if (microQrResults.isNotEmpty()) {
+                    results.addAll(microQrResults.map { ScanResult(it.text, Library.BOOFCV, BarcodeFormat.QR_CODE) })
+                    Log.d(TAG, "BoofCV Micro QR detected ${microQrResults.size} codes")
+                    return@withContext results
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "BoofCV Micro QR scan failed", e)
+            }
+        }
+
+        // 5. 尝试自定义一维码解码器（Pharmacode / Plessey / Telepen）
+        if (results.isEmpty()) {
+            try {
+                val customResults = CustomLinearBarcodeScanner.scan(bitmap)
+                if (customResults.isNotEmpty()) {
+                    results.addAll(customResults.map { ScanResult(it.text, Library.CUSTOM_LINEAR, BarcodeFormat.CODE_128) })
+                    Log.d(TAG, "Custom linear decoder detected ${customResults.size} codes")
+                    return@withContext results
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Custom linear decoder scan failed", e)
             }
         }
 

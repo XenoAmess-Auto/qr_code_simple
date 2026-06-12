@@ -35,6 +35,10 @@
 | **RSS-14 / GS1 DataBar** | GS1 标准条码，用于替代传统 UPC/EAN | ✅ | ❌ | 零售、生鲜、医疗 |
 | **RSS Expanded** | RSS-14 的扩展版，可变长度字母数字 | ✅ | ❌ | 生产日期、批次号、重量 |
 | **MaxiCode** | UPS 开发的固定大小二维条码 | ✅ | ❌ | 国际物流、航空货运 |
+| **Micro QR Code** | 微型 QR 码，极小空间标识 | ✅ | ❌ | 极小空间标识 |
+| **Pharmacode** | 药品包装专用一维码 | ✅ | ❌ | 药品包装 |
+| **Plessey Code / MSI Plessey** | 图书馆、库存管理常用 | ✅ | ❌ | 图书馆、库存 |
+| **Telepen** | 图书馆、学术机构常用 | ✅ | ❌ | 图书馆、学术 |
 
 ### 1.4 内容解析支持
 
@@ -76,28 +80,34 @@
 | RSS Expanded | ❌ | ✅ | ❌ |
 | MaxiCode | ❌ | ✅ | ❌ |
 
-> **说明**：WeChatQRCode 仅针对 QR Code 进行了深度优化，对低质量/扭曲二维码识别率最高；ZXing 覆盖最广；ML Kit 在设备端推理速度最快。
+> **说明**：WeChatQRCode 仅针对 QR Code 进行了深度优化，对低质量/扭曲二维码识别率最高；ZXing 覆盖最广；ML Kit 在设备端推理速度最快。此外，项目通过 BoofCV 支持 Micro QR Code 扫描，并通过自定义解码器支持 Pharmacode、Plessey、MSI Plessey 和 Telepen。
 
 ---
 
-## 三、当前依赖库不支持的其他常见条码格式
+## 三、当前依赖库原生不支持但已补充实现的条码格式
 
-以下格式在当前技术栈中**暂不支持**，如需支持需要引入额外的第三方库：
+以下格式无法通过现有三引擎（WeChatQRCode / ZXing / ML Kit）直接解码，但项目已引入额外库或自定义解码器进行支持：
+
+| 格式 | 实现方式 | 扫描 | 生成 | 备注 |
+|------|----------|:----:|:----:|:----:|
+| **Micro QR Code** | BoofCV 1.4.0 | ✅ | ❌ | 极小空间二维码 |
+| **Pharmacode** | 自定义一维解码器 | ✅ | ❌ | 药品包装 |
+| **Plessey Code** | 自定义一维解码器 | ✅ | ❌ | 图书馆、零售 |
+| **MSI Plessey** | 自定义一维解码器 | ✅ | ❌ | 库存管理 |
+| **Telepen** | 自定义一维解码器 | ✅ | ❌ | 图书馆、学术 |
+
+## 四、当前技术栈暂不支持且未集成的条码格式
+
+以下格式在当前技术栈中**暂不支持**，如需支持需要引入额外的第三方库或自研核心解码算法：
 
 | 格式 | 类型 | 应用场景 | 推荐库/方案 |
 |------|------|----------|-------------|
-| **Han Xin Code (汉信码)** | 二维码 | 中国国家标准，政务、军用 | 专用解码库或自研 |
-| **GM Code (GM码)** | 二维码 | 中国国家标准 | 专用解码库 |
-| **Micro QR Code** | 二维码 | 极小空间标识 | ZXing 不支持，需找替代库 |
-| **Semacode** | 二维码 | 早期数据矩阵变体 | Data Matrix 兼容 |
-| **Pharmacode** | 一维码 | 药品包装 | 需专用库 |
-| **Plessey Code** | 一维码 | 图书馆、零售 | 需专用库 |
-| **MSI Plessey** | 一维码 | 库存管理 | 需专用库 |
-| **Telepen** | 一维码 | 图书馆、学术 | 需专用库 |
+| **Han Xin Code (汉信码)** | 二维码 | 中国国家标准，政务、军用 | 专用解码库或自研（无成熟开源库） |
+| **GM Code (GM码)** | 二维码 | 中国国家标准 | 专用解码库（无成熟开源库） |
 
 ---
 
-## 四、扩展实现指南
+## 五、扩展实现指南
 
 ### 4.1 启用 ZXing 已支持但未启用的扫描格式
 
@@ -133,11 +143,11 @@ enum class HistoryType {
 - RSS Expanded 也有 Stacked 变体
 - 这些格式在零售行业正在逐步替代传统 UPC/EAN，尤其在生鲜和医疗领域
 
-### 4.3 关于 RSS/GS1 DataBar 的注意事项
+### 4.4 关于自定义一维解码器的注意事项
 
-- RSS-14 有四种变体：RSS-14、RSS-14 Truncated、RSS-14 Stacked、RSS-14 Stacked Omnidirectional，ZXing 均可识别
-- RSS Expanded 也有 Stacked 变体
-- 这些格式在零售行业正在逐步替代传统 UPC/EAN，尤其在生鲜和医疗领域
+- Pharmacode、Plessey、MSI Plessey、Telepen 基于项目内自定义的轻量解码器实现
+- 这些解码器对条码质量和打印质量要求较高，建议在清晰、对比度高的图像上使用
+- 目前仅支持扫描，不支持生成
 
 ---
 
@@ -172,11 +182,12 @@ enum class HistoryType {
 | `app/src/main/java/com/xenoamess/qrcodesimple/data/HistoryItem.kt` | 条码格式枚举定义（第 38 行起） |
 | `app/src/main/java/com/xenoamess/qrcodesimple/BarcodeGenerator.kt` | 条码生成器，支持 13 种格式生成 |
 | `app/src/main/java/com/xenoamess/qrcodesimple/QRCodeScanner.kt` | 多引擎扫描器，第 139、162 行为格式配置 |
-| `app/src/main/java/com/xenoamess/qrcodesimple/ContentParser.kt` | 智能内容解析器 |
-| `app/build.gradle` | 依赖配置，ZXing 3.5.3 / ML Kit 17.2.0 |
+| `app/src/main/java/com/xenoamess/qrcodesimple/decoder/MicroQrCodeScanner.kt` | BoofCV Micro QR Code 扫描器 |
+| `app/src/main/java/com/xenoamess/qrcodesimple/decoder/CustomLinearBarcodeScanner.kt` | 自定义一维码扫描器入口 |
+| `app/build.gradle` | 依赖配置，ZXing 3.5.3 / ML Kit 17.2.0 / BoofCV 1.4.0 |
 
 ---
 
-*文档版本：v1.1*  
+*文档版本：v1.2*  
 *生成日期：2026-06-12*  
 *基于代码版本：0.1.5*

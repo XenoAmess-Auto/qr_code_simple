@@ -57,6 +57,7 @@ object AppShortcutManager {
             HistoryType.RSS_14 -> R.drawable.ic_barcode
             HistoryType.RSS_EXPANDED -> R.drawable.ic_barcode
             HistoryType.MAXICODE -> R.drawable.ic_qr_code
+            HistoryType.MICRO_QR -> R.drawable.ic_qr_code
             HistoryType.TEXT -> R.drawable.ic_text
         }
 

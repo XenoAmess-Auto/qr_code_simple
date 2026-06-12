@@ -55,6 +55,7 @@ class HistoryAdapter(
                     HistoryType.RSS_14 -> "RSS-14"
                     HistoryType.RSS_EXPANDED -> "RSS Expanded"
                     HistoryType.MAXICODE -> "MaxiCode"
+                    HistoryType.MICRO_QR -> "Micro QR"
                     HistoryType.TEXT -> context.getString(R.string.type_text)
                 })
                 item.barcodeFormat?.let {
