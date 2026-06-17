@@ -29,13 +29,16 @@
 
     <!-- Generate QR -->
     <string name="generate_qr">生成二维码</string>
+    <string name="select_barcode_format">选择条码格式</string>
     <string name="enter_content">输入要编码的文本</string>
     <string name="generate">生成</string>
     <string name="clear">清空</string>
     <string name="save">保存</string>
     <string name="share">分享</string>
+    <string name="share_barcode">分享条码</string>
     <string name="please_enter_content">请输入内容</string>
     <string name="please_generate_qr_first">请先生成二维码</string>
+    <string name="invalid_content_for_format">内容与所选条码格式不匹配</string>
     <string name="saved_to_gallery">已保存到相册：%1$s</string>
     <string name="saved_to">已保存到：%1$s</string>
     <string name="failed_to_save">保存失败：%1$s</string>

@@ -31,13 +31,16 @@
 
     <!-- Generate QR -->
     <string name="generate_qr">Generate QR Code</string>
+    <string name="select_barcode_format">Select barcode format</string>
     <string name="enter_content">Enter text to encode</string>
     <string name="generate">Generate</string>
     <string name="clear">Clear</string>
     <string name="save">Save</string>
     <string name="share">Share</string>
+    <string name="share_barcode">Share Barcode</string>
     <string name="please_enter_content">Please enter content</string>
     <string name="please_generate_qr_first">Please generate QR code first</string>
+    <string name="invalid_content_for_format">Content does not match the selected barcode format</string>
     <string name="saved_to_gallery">Saved to gallery: %1$s</string>
     <string name="saved_to">Saved to: %1$s</string>
     <string name="failed_to_save">Failed to save: %1$s</string>

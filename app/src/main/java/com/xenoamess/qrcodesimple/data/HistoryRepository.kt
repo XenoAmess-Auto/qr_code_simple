@@ -40,14 +40,14 @@ class HistoryRepository(private val context: Context) {
         }
     }
     
-    suspend fun insertGenerate(content: String, type: HistoryType = HistoryType.QR_CODE) {
+    suspend fun insertGenerate(content: String, type: HistoryType = HistoryType.QR_CODE, barcodeFormat: String? = null) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
         
         // 检查是否已存在
         val existing = historyDao.findByContent(content)
         if (existing == null) {
-            historyDao.insert(HistoryItem(content = content, type = type, isGenerated = true))
+            historyDao.insert(HistoryItem(content = content, type = type, isGenerated = true, barcodeFormat = barcodeFormat))
         }
     }
     
