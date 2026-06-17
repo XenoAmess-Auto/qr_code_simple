@@ -57,7 +57,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 ### Supported Barcode Formats
 
-The app supports **21 barcode formats** for scanning, including 13 formats for generation.
+The app supports **21 barcode formats** for scanning, including **21 formats for generation**.
 
 #### 2D Matrix Codes
 
@@ -67,6 +67,8 @@ The app supports **21 barcode formats** for scanning, including 13 formats for g
 | **Data Matrix** | ✅ | ✅ | Compact 2D code that can store data in very small spaces, common for electronic components and medical devices. |
 | **Aztec Code** | ✅ | ✅ | 2D code that does not require a quiet zone, often used for train tickets and boarding passes. |
 | **PDF417** | ✅ | ✅ | Stacked linear barcode capable of storing large amounts of text and binary data, used on IDs and shipping labels. |
+| **MaxiCode** | ✅ | ✅ | Fixed-size 2D code developed by UPS, used in international logistics and air freight. |
+| **Micro QR Code** | ✅ | ✅ | Miniaturized QR code for extremely small marking spaces. |
 
 #### 1D/Linear Barcodes
 
@@ -81,19 +83,18 @@ The app supports **21 barcode formats** for scanning, including 13 formats for g
 | **UPC-E** | ✅ | ✅ | Compressed version of UPC-A for small packages. |
 | **Codabar** | ✅ | ✅ | Encodes digits and a few symbols, historically used in libraries and blood banks. |
 | **ITF** | ✅ | ✅ | Interleaved 2 of 5, a numeric-only barcode often used on carton packaging. |
+| **Pharmacode** | ✅ | ✅ | One-dimensional code specifically designed for pharmaceutical packaging. |
+| **Plessey Code** | ✅ | ✅ | Barcode commonly used in libraries and inventory management. |
+| **MSI Plessey** | ✅ | ✅ | Variant of Plessey commonly used in libraries and inventory management. |
+| **Telepen** | ✅ | ✅ | Barcode often used in libraries and academic institutions. |
 
-#### Scan-Only Formats
+#### UPC/EAN Extensions and GS1 DataBar
 
-| Format | Scan | Description |
-|--------|:----:|-------------|
-| **UPC/EAN Extension** | ✅ | 2 or 5-digit add-on supplementing UPC/EAN barcodes. |
-| **RSS-14 / GS1 DataBar** | ✅ | GS1 standard barcode designed to replace traditional UPC/EAN in retail. |
-| **RSS Expanded** | ✅ | Variable-length alphanumeric GS1 barcode for product attributes such as batch or weight. |
-| **MaxiCode** | ✅ | Fixed-size 2D code developed by UPS, used in international logistics and air freight. |
-| **Micro QR Code** | ✅ | Miniaturized QR code for extremely small marking spaces. |
-| **Pharmacode** | ✅ | One-dimensional code specifically designed for pharmaceutical packaging. |
-| **Plessey Code / MSI Plessey** | ✅ | Barcode commonly used in libraries and inventory management. |
-| **Telepen** | ✅ | Barcode often used in libraries and academic institutions. |
+| Format | Scan | Generate | Description |
+|--------|:----:|:--------:|-------------|
+| **UPC/EAN Extension** | ✅ | ✅ | 2 or 5-digit add-on supplementing UPC/EAN barcodes. |
+| **RSS-14 / GS1 DataBar** | ✅ | ✅ | GS1 standard barcode designed to replace traditional UPC/EAN in retail. |
+| **RSS Expanded** | ✅ | ✅ | Variable-length alphanumeric GS1 barcode for product attributes such as batch or weight. |
 
 ### Screenshots
 
@@ -227,7 +228,7 @@ Issues and Pull Requests welcome!
 
 ### 支持的条码格式
 
-应用当前支持 **21 种条码格式** 扫描，其中 13 种支持生成。
+应用当前支持 **21 种条码格式** 扫描，其中 **21 种支持生成**。
 
 #### 二维码
 
@@ -237,6 +238,8 @@ Issues and Pull Requests welcome!
 | **Data Matrix** | ✅ | ✅ | 可在极小空间存储数据，常用于电子元器件和医疗器械标识。 |
 | **Aztec Code** | ✅ | ✅ | 无需静音区即可识别，常用于火车票、登机牌等场景。 |
 | **PDF417** | ✅ | ✅ | 堆叠式线性条码，可存储大量文本与二进制数据，用于身份证、驾照和快递面单。 |
+| **MaxiCode** | ✅ | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
+| **Micro QR Code** | ✅ | ✅ | 微型 QR 码，用于极小空间的标识。 |
 
 #### 一维条码
 
@@ -251,19 +254,18 @@ Issues and Pull Requests welcome!
 | **UPC-E** | ✅ | ✅ | UPC-A 的压缩版，用于小包装商品。 |
 | **Codabar** | ✅ | ✅ | 编码数字和少量符号，常用于图书馆和血库。 |
 | **ITF** | ✅ | ✅ | 交叉 25 码，纯数字条码，常用于纸箱包装和物流外箱。 |
+| **Pharmacode** | ✅ | ✅ | 药品包装专用的一维码。 |
+| **Plessey Code** | ✅ | ✅ | 图书馆和库存管理中常用的条码。 |
+| **MSI Plessey** | ✅ | ✅ | Plessey 的变体，常用于图书馆和库存管理。 |
+| **Telepen** | ✅ | ✅ | 图书馆和学术机构常用的条码。 |
 
-#### 仅扫描支持
+#### UPC/EAN 扩展码与 GS1 DataBar
 
-| 格式 | 扫描 | 简介 |
-|------|:----:|------|
-| **UPC/EAN Extension** | ✅ | UPC/EAN 的 2 位或 5 位扩展码，作为主码的附加信息。 |
-| **RSS-14 / GS1 DataBar** | ✅ | GS1 标准条码，用于替代传统 UPC/EAN，常见于零售生鲜和医疗。 |
-| **RSS Expanded** | ✅ | RSS-14 的扩展版，可变长度字母数字，用于生产日期、批次号、重量等。 |
-| **MaxiCode** | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
-| **Micro QR Code** | ✅ | 微型 QR 码，用于极小空间的标识。 |
-| **Pharmacode** | ✅ | 药品包装专用的一维码。 |
-| **Plessey Code / MSI Plessey** | ✅ | 图书馆和库存管理中常用的条码。 |
-| **Telepen** | ✅ | 图书馆和学术机构常用的条码。 |
+| 格式 | 扫描 | 生成 | 简介 |
+|------|:----:|:----:|------|
+| **UPC/EAN Extension** | ✅ | ✅ | UPC/EAN 的 2 位或 5 位扩展码，作为主码的附加信息。 |
+| **RSS-14 / GS1 DataBar** | ✅ | ✅ | GS1 标准条码，用于替代传统 UPC/EAN，常见于零售生鲜和医疗。 |
+| **RSS Expanded** | ✅ | ✅ | RSS-14 的扩展版，可变长度字母数字，用于生产日期、批次号、重量等。 |
 
 ### 使用效果图
 

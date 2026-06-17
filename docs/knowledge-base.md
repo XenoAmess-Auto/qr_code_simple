@@ -22,7 +22,19 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | 复杂格式生成 | OkapiBarcode | 0.5.6 |
 | 测试 | JUnit + Robolectric | 4.13.2 / 4.16.1 |
 
-## 3. 核心约定
+## 3. 支持格式总览
+
+项目当前支持 **21 种条码格式** 的扫描与生成。详见 `README.md` 和 `README_CN.md` 中的格式表格。
+
+| 类别 | 扫描支持 | 生成支持 |
+|------|:------:|:------:|
+| QR Code / Data Matrix / Aztec / PDF417 | ✅ | ✅ |
+| Code 128 / Code 39 / Code 93 / EAN-13 / EAN-8 / UPC-A / UPC-E / Codabar / ITF | ✅ | ✅ |
+| UPC/EAN Extension / RSS-14 / RSS Expanded / MaxiCode / Micro QR / Pharmacode / Plessey / MSI Plessey / Telepen | ✅ | ✅ |
+
+> 说明： historically doc/barcode-formats.md claimed the last group was scan-only. That is now outdated; generation support was added and verified via roundtrip tests.
+
+## 4. 核心约定
 
 ### 命名
 - 应用内条码格式枚举：`com.xenoamess.qrcodesimple.data.BarcodeFormat`
@@ -39,7 +51,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - `HistoryRepository.insertGenerate(content, type, barcodeFormat)` 保存生成记录。
 - `HistoryItem.barcodeFormat` 字段保存格式名称字符串。
 
-## 4. 扫描引擎优先级
+## 5. 扫描引擎优先级
 
 1. WeChatQRCode（仅 QR Code）
 2. ZXing MultiFormatReader（17 种格式）
@@ -47,7 +59,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 4. BoofCV MicroQrCodeDetector（Micro QR）
 5. CustomLinearBarcodeScanner（Pharmacode / Plessey / MSI Plessey / Telepen）
 
-## 5. 文件索引
+## 6. 文件索引
 
 | 文件 | 说明 |
 |------|------|
@@ -65,7 +77,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `GenerateFragment.kt` | 生成界面 Fragment |
 | `BatchGenerateActivity.kt` | 批量生成 Activity |
 
-## 6. 开发原则
+## 7. 开发原则
 
 - 能扫描的格式必须能生成。
 - 能生成的格式必须能被本应用自身扫描器识别。
