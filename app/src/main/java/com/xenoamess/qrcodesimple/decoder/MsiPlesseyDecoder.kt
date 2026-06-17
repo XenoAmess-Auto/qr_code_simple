@@ -35,21 +35,23 @@ object MsiPlesseyDecoder {
 
         if (normalized.size < 14) return null
 
-        val pattern = normalized.joinToString("") {
+        val pattern = StringBuilder()
+        for (item in normalized) {
             val c = when {
-                it.first && it.second == 1 -> '1'
-                it.first && it.second == 2 -> '2'
-                !it.first && it.second == 1 -> '1'
-                !it.first && it.second == 2 -> '2'
+                item.first && item.second == 1 -> '1'
+                item.first && item.second == 2 -> '2'
+                !item.first && item.second == 1 -> '1'
+                !item.first && item.second == 2 -> '2'
                 else -> return null
             }
-            c.toString()
+            pattern.append(c)
         }
+        val patternStr = pattern.toString()
 
-        if (!pattern.startsWith("21")) return null
-        if (!pattern.endsWith("121")) return null
+        if (!patternStr.startsWith("21")) return null
+        if (!patternStr.endsWith("121")) return null
 
-        val dataPattern = pattern.substring(2, pattern.length - 3)
+        val dataPattern = patternStr.substring(2, patternStr.length - 3)
         if (dataPattern.length % 8 != 0) return null
 
         val builder = StringBuilder()

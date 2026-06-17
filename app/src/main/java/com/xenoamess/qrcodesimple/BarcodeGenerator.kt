@@ -177,12 +177,38 @@ object BarcodeGenerator {
         val width = symbol.width
         val height = symbol.height
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val color = if (symbol.getModule(x, y) == 1) config.foregroundColor else config.backgroundColor
-                bitmap.setPixel(x, y, color)
-            }
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(config.backgroundColor)
+        val paint = Paint().apply { color = config.foregroundColor }
+
+        for (rect in symbol.rectangles) {
+            canvas.drawRect(
+                rect.x.toFloat(),
+                rect.y.toFloat(),
+                (rect.x + rect.width).toFloat(),
+                (rect.y + rect.height).toFloat(),
+                paint
+            )
         }
+        for (hex in symbol.hexagons) {
+            val path = android.graphics.Path()
+            for (i in 0 until 6) {
+                val hx = hex.getX(i).toFloat()
+                val hy = hex.getY(i).toFloat()
+                if (i == 0) path.moveTo(hx, hy) else path.lineTo(hx, hy)
+            }
+            path.close()
+            canvas.drawPath(path, paint)
+        }
+        for (circle in symbol.target) {
+            canvas.drawCircle(
+                circle.centreX.toFloat(),
+                circle.centreY.toFloat(),
+                circle.radius.toFloat(),
+                paint
+            )
+        }
+
         return scaleAndPad(bitmap, config)
     }
 
@@ -213,11 +239,16 @@ object BarcodeGenerator {
     private fun generateMicroQr(content: String, config: BarcodeConfig): Bitmap {
         val encoder = MicroQrCodeEncoder()
         encoder.addAutomatic(content)
-        encoder.fixate()
-        val qr = encoder.message
+        val qr = encoder.fixate()
         val gray: GrayU8 = MicroQrCodeGenerator.renderImage(8, 2, qr)
-        val bitmap = ConvertBitmap.grayToBitmap(gray, Bitmap.Config.ARGB_8888, null)
-            ?: throw IllegalStateException("Failed to convert Micro QR to bitmap")
+        val bitmap = Bitmap.createBitmap(gray.width, gray.height, Bitmap.Config.ARGB_8888)
+        for (y in 0 until gray.height) {
+            for (x in 0 until gray.width) {
+                val value = gray.get(x, y)
+                val color = if (value == 0) config.backgroundColor else config.foregroundColor
+                bitmap.setPixel(x, y, color)
+            }
+        }
         return scaleAndPad(bitmap, config)
     }
 

@@ -219,6 +219,15 @@ class GenerateFragment : Fragment() {
             BarcodeFormat.DATA_MATRIX -> HistoryType.DATA_MATRIX
             BarcodeFormat.AZTEC -> HistoryType.AZTEC
             BarcodeFormat.PDF417 -> HistoryType.PDF417
+            BarcodeFormat.RSS_14 -> HistoryType.RSS_14
+            BarcodeFormat.RSS_EXPANDED -> HistoryType.RSS_EXPANDED
+            BarcodeFormat.MAXICODE -> HistoryType.MAXICODE
+            BarcodeFormat.MICRO_QR -> HistoryType.MICRO_QR
+            BarcodeFormat.UPC_EAN_EXTENSION -> HistoryType.UPC_EAN_EXTENSION
+            BarcodeFormat.PHARMACODE -> HistoryType.PHARMACODE
+            BarcodeFormat.PLESSEY -> HistoryType.PLESSEY
+            BarcodeFormat.MSI_PLESSEY -> HistoryType.MSI_PLESSEY
+            BarcodeFormat.TELEPEN -> HistoryType.TELEPEN
             else -> HistoryType.BARCODE
         }
     }

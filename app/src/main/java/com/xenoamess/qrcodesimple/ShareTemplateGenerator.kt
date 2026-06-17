@@ -189,6 +189,11 @@ object ShareTemplateGenerator {
             HistoryType.RSS_EXPANDED -> "RSS Expanded"
             HistoryType.MAXICODE -> "MaxiCode"
             HistoryType.MICRO_QR -> "Micro QR"
+            HistoryType.UPC_EAN_EXTENSION -> "UPC/EAN Extension"
+            HistoryType.PHARMACODE -> "Pharmacode"
+            HistoryType.PLESSEY -> "Plessey"
+            HistoryType.MSI_PLESSEY -> "MSI Plessey"
+            HistoryType.TELEPEN -> "Telepen"
             HistoryType.TEXT -> "文本分享"
         }
     }
