@@ -14,6 +14,7 @@ import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.king.wechat.qrcode.WeChatQRCodeDetector
+import com.xenoamess.qrcodesimple.data.BarcodeFormat as AppBarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.decoder.CustomLinearBarcodeScanner
 import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
@@ -40,6 +41,40 @@ fun BarcodeFormat.toHistoryType(): HistoryType {
         BarcodeFormat.RSS_EXPANDED -> HistoryType.RSS_EXPANDED
         BarcodeFormat.MAXICODE -> HistoryType.MAXICODE
         else -> HistoryType.BARCODE
+    }
+}
+
+/**
+ * 将应用条码格式映射到历史记录类型
+ */
+fun AppBarcodeFormat.toHistoryType(): HistoryType {
+    return when (this) {
+        AppBarcodeFormat.QR_CODE -> HistoryType.QR_CODE
+        AppBarcodeFormat.DATA_MATRIX -> HistoryType.DATA_MATRIX
+        AppBarcodeFormat.AZTEC -> HistoryType.AZTEC
+        AppBarcodeFormat.PDF417 -> HistoryType.PDF417
+        AppBarcodeFormat.RSS_14 -> HistoryType.RSS_14
+        AppBarcodeFormat.RSS_EXPANDED -> HistoryType.RSS_EXPANDED
+        AppBarcodeFormat.MAXICODE -> HistoryType.MAXICODE
+        AppBarcodeFormat.MICRO_QR -> HistoryType.MICRO_QR
+        AppBarcodeFormat.UPC_EAN_EXTENSION -> HistoryType.UPC_EAN_EXTENSION
+        AppBarcodeFormat.PHARMACODE -> HistoryType.PHARMACODE
+        AppBarcodeFormat.PLESSEY -> HistoryType.PLESSEY
+        AppBarcodeFormat.MSI_PLESSEY -> HistoryType.MSI_PLESSEY
+        AppBarcodeFormat.TELEPEN -> HistoryType.TELEPEN
+        else -> HistoryType.BARCODE
+    }
+}
+
+/**
+ * 将自定义一维码格式映射到 ZXing 条码格式（用于扫描结果展示）
+ */
+private fun CustomLinearBarcodeScanner.Format.toZXingFormat(): BarcodeFormat {
+    return when (this) {
+        CustomLinearBarcodeScanner.Format.PHARMACODE -> BarcodeFormat.CODE_128
+        CustomLinearBarcodeScanner.Format.PLESSEY -> BarcodeFormat.CODE_128
+        CustomLinearBarcodeScanner.Format.MSI_PLESSEY -> BarcodeFormat.CODE_128
+        CustomLinearBarcodeScanner.Format.TELEPEN -> BarcodeFormat.CODE_128
     }
 }
 
@@ -125,12 +160,12 @@ object QRCodeScanner {
             }
         }
 
-        // 5. 尝试自定义一维码解码器（Pharmacode / Plessey / Telepen）
+        // 5. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
         if (results.isEmpty()) {
             try {
                 val customResults = CustomLinearBarcodeScanner.scan(bitmap)
                 if (customResults.isNotEmpty()) {
-                    results.addAll(customResults.map { ScanResult(it.text, Library.CUSTOM_LINEAR, BarcodeFormat.CODE_128) })
+                    results.addAll(customResults.map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) })
                     Log.d(TAG, "Custom linear decoder detected ${customResults.size} codes")
                     return@withContext results
                 }

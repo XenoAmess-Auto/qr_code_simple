@@ -5,13 +5,14 @@ import android.graphics.Bitmap
 /**
  * 自定义一维条码扫描入口。
  *
- * 依次尝试 Pharmacode、Plessey/MSI Plessey、Telepen。
+ * 依次尝试 Pharmacode、Plessey、MSI Plessey、Telepen。
  */
 object CustomLinearBarcodeScanner {
 
     enum class Format {
         PHARMACODE,
         PLESSEY,
+        MSI_PLESSEY,
         TELEPEN
     }
 
@@ -26,6 +27,9 @@ object CustomLinearBarcodeScanner {
         }
         PlesseyDecoder.decode(bitmap)?.let {
             return listOf(Result(it, Format.PLESSEY))
+        }
+        MsiPlesseyDecoder.decode(bitmap)?.let {
+            return listOf(Result(it, Format.MSI_PLESSEY))
         }
         TelepenDecoder.decode(bitmap)?.let {
             return listOf(Result(it, Format.TELEPEN))
