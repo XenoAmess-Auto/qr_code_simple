@@ -12,7 +12,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 ### Features
 
 #### Core Features
-- ✅ **Full Barcode Support** - QR Code, Data Matrix, Aztec, PDF417, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF (13 formats)
+- ✅ **Full Barcode Support** - Supports 21 barcode formats for scanning, including 13 formats for generation (QR Code, Data Matrix, Aztec, PDF417, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, and more)
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URL, geo-location with one-click actions
 - ✅ **Batch Generation** - Import CSV/Excel data to generate QR codes in bulk, support ZIP export
 - ✅ **Style Customization** - Foreground/background colors, center logo, rounded/dot styles
@@ -54,6 +54,46 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Performance** - Large image loading memory optimization
 - ✅ **Crash Monitoring** - Firebase Crashlytics integration
 - ✅ **Offline Enhancement** - TensorFlow Lite model support
+
+### Supported Barcode Formats
+
+The app supports **21 barcode formats** for scanning, including 13 formats for generation.
+
+#### 2D Matrix Codes
+
+| Format | Scan | Generate | Description |
+|--------|:----:|:--------:|-------------|
+| **QR Code** | ✅ | ✅ | Most common 2D code, widely used for payments, URLs, and contact sharing. |
+| **Data Matrix** | ✅ | ✅ | Compact 2D code that can store data in very small spaces, common for electronic components and medical devices. |
+| **Aztec Code** | ✅ | ✅ | 2D code that does not require a quiet zone, often used for train tickets and boarding passes. |
+| **PDF417** | ✅ | ✅ | Stacked linear barcode capable of storing large amounts of text and binary data, used on IDs and shipping labels. |
+
+#### 1D/Linear Barcodes
+
+| Format | Scan | Generate | Description |
+|--------|:----:|:--------:|-------------|
+| **Code 128** | ✅ | ✅ | High-density alphanumeric encoding widely used in logistics and supply chain. |
+| **Code 39** | ✅ | ✅ | Supports digits, uppercase letters, and several symbols, used in industrial and military applications. |
+| **Code 93** | ✅ | ✅ | Compact improvement over Code 39, commonly used in logistics and industry. |
+| **EAN-13** | ✅ | ✅ | 13-digit European Article Number, the standard retail barcode in most countries. |
+| **EAN-8** | ✅ | ✅ | Short version of EAN-13 for small packaging. |
+| **UPC-A** | ✅ | ✅ | 12-digit Universal Product Code standard in North American retail. |
+| **UPC-E** | ✅ | ✅ | Compressed version of UPC-A for small packages. |
+| **Codabar** | ✅ | ✅ | Encodes digits and a few symbols, historically used in libraries and blood banks. |
+| **ITF** | ✅ | ✅ | Interleaved 2 of 5, a numeric-only barcode often used on carton packaging. |
+
+#### Scan-Only Formats
+
+| Format | Scan | Description |
+|--------|:----:|-------------|
+| **UPC/EAN Extension** | ✅ | 2 or 5-digit add-on supplementing UPC/EAN barcodes. |
+| **RSS-14 / GS1 DataBar** | ✅ | GS1 standard barcode designed to replace traditional UPC/EAN in retail. |
+| **RSS Expanded** | ✅ | Variable-length alphanumeric GS1 barcode for product attributes such as batch or weight. |
+| **MaxiCode** | ✅ | Fixed-size 2D code developed by UPS, used in international logistics and air freight. |
+| **Micro QR Code** | ✅ | Miniaturized QR code for extremely small marking spaces. |
+| **Pharmacode** | ✅ | One-dimensional code specifically designed for pharmaceutical packaging. |
+| **Plessey Code / MSI Plessey** | ✅ | Barcode commonly used in libraries and inventory management. |
+| **Telepen** | ✅ | Barcode often used in libraries and academic institutions. |
 
 ### Screenshots
 
@@ -142,7 +182,7 @@ Issues and Pull Requests welcome!
 ### 功能特性
 
 #### 核心功能
-- ✅ **全条码支持** - 支持 QR Code、Data Matrix、Aztec、PDF417、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF 等 13 种格式
+- ✅ **全条码支持** - 支持 21 种条码格式扫描，其中 13 种支持生成（QR Code、Data Matrix、Aztec、PDF417、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF 等）
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等格式，提供一键操作
 - ✅ **批量生成** - 从 CSV/Excel 导入数据批量生成二维码，支持 ZIP 导出
 - ✅ **样式定制** - 前景色/背景色自定义、中心 Logo、圆角/点阵样式
@@ -184,6 +224,46 @@ Issues and Pull Requests welcome!
 - ✅ **性能优化** - 大图加载内存优化
 - ✅ **崩溃监控** - Firebase Crashlytics 集成
 - ✅ **离线增强** - TensorFlow Lite 模型支持
+
+### 支持的条码格式
+
+应用当前支持 **21 种条码格式** 扫描，其中 13 种支持生成。
+
+#### 二维码
+
+| 格式 | 扫描 | 生成 | 简介 |
+|------|:----:|:----:|------|
+| **QR Code** | ✅ | ✅ | 最常见的二维码，广泛用于支付、网址、名片和 WiFi 共享。 |
+| **Data Matrix** | ✅ | ✅ | 可在极小空间存储数据，常用于电子元器件和医疗器械标识。 |
+| **Aztec Code** | ✅ | ✅ | 无需静音区即可识别，常用于火车票、登机牌等场景。 |
+| **PDF417** | ✅ | ✅ | 堆叠式线性条码，可存储大量文本与二进制数据，用于身份证、驾照和快递面单。 |
+
+#### 一维条码
+
+| 格式 | 扫描 | 生成 | 简介 |
+|------|:----:|:----:|------|
+| **Code 128** | ✅ | ✅ | 高密度字母数字编码，广泛用于物流与供应链。 |
+| **Code 39** | ✅ | ✅ | 支持数字、大写字母及部分符号，常用于工业和军事领域。 |
+| **Code 93** | ✅ | ✅ | Code 39 的高密度改进版，常用于物流和工业场景。 |
+| **EAN-13** | ✅ | ✅ | 13 位欧洲商品编码，是大多数国家零售商品的标准条码。 |
+| **EAN-8** | ✅ | ✅ | EAN-13 的短版，用于小包装商品。 |
+| **UPC-A** | ✅ | ✅ | 12 位通用产品代码，北美零售商品的标准条码。 |
+| **UPC-E** | ✅ | ✅ | UPC-A 的压缩版，用于小包装商品。 |
+| **Codabar** | ✅ | ✅ | 编码数字和少量符号，常用于图书馆和血库。 |
+| **ITF** | ✅ | ✅ | 交叉 25 码，纯数字条码，常用于纸箱包装和物流外箱。 |
+
+#### 仅扫描支持
+
+| 格式 | 扫描 | 简介 |
+|------|:----:|------|
+| **UPC/EAN Extension** | ✅ | UPC/EAN 的 2 位或 5 位扩展码，作为主码的附加信息。 |
+| **RSS-14 / GS1 DataBar** | ✅ | GS1 标准条码，用于替代传统 UPC/EAN，常见于零售生鲜和医疗。 |
+| **RSS Expanded** | ✅ | RSS-14 的扩展版，可变长度字母数字，用于生产日期、批次号、重量等。 |
+| **MaxiCode** | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
+| **Micro QR Code** | ✅ | 微型 QR 码，用于极小空间的标识。 |
+| **Pharmacode** | ✅ | 药品包装专用的一维码。 |
+| **Plessey Code / MSI Plessey** | ✅ | 图书馆和库存管理中常用的条码。 |
+| **Telepen** | ✅ | 图书馆和学术机构常用的条码。 |
 
 ### 使用效果图
 
