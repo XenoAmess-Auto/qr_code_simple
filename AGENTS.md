@@ -28,6 +28,11 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 ./gradlew :app:lintDebug
 ```
 
+## Agent workflow
+
+- After finishing work, stage and commit changes yourself: `git add .` then `git commit -m "..."`. Write concise, repo-style commit messages.
+- After finishing work, sync documentation and the knowledge base (`docs/`, `README.md`, `README_CN.md`) so they stay consistent with the code.
+
 ## High-signal gotchas
 
 ### Bitmap rendering in unit tests
