@@ -37,23 +37,41 @@ object PlesseyDecoder {
         val groups = BarcodeScanUtils.groupBars(bars)
         val normalized = BarcodeScanUtils.normalizeWidths(groups)
 
-        // Plessey 条码结构：起始符（1101）+ 数据 + 终止符（1101）
         if (normalized.size < 20) return null
 
-        val bits = normalized.map { it.first }
-        val builder = StringBuilder()
-
-        // 简单按位解析：每个 1 视为 bit 1，0 视为 bit 0，忽略分隔符
+        // Plessey 条码：bit 0 = 窄条 (1)，bit 1 = 宽条 (2)；空统一为 1 个模块
+        val bits = StringBuilder()
         var i = 0
-        while (i < bits.size) {
-            // 跳过前导和尾随条
-            if (i + 4 > bits.size) break
-            val chunk = bits.subList(i, i + 4).joinToString("") { if (it) "1" else "0" }
-            PLESSEY_PATTERNS[chunk]?.let { builder.append(it) }
-            i += 5 // 4 数据位 + 1 分隔条
+        while (i < normalized.size) {
+            val (isBar, width) = normalized[i]
+            if (isBar) {
+                when (width) {
+                    1 -> bits.append('0')
+                    2 -> bits.append('1')
+                    else -> return null
+                }
+            }
+            i++
         }
 
-        val result = builder.toString()
-        return if (result.length >= 4) result else null
+        val bitStr = bits.toString()
+        val startIndex = bitStr.indexOf("1101")
+        val stopIndex = bitStr.lastIndexOf("1101")
+        if (startIndex < 0 || stopIndex < 0 || stopIndex <= startIndex) return null
+
+        val dataBits = bitStr.substring(startIndex + 4, stopIndex)
+        if (dataBits.length < 8 || (dataBits.length - 8) % 4 != 0) return null
+
+        val contentBits = dataBits.substring(0, dataBits.length - 8)
+        val crcBits = dataBits.substring(dataBits.length - 8)
+
+        val builder = StringBuilder()
+        for (j in contentBits.indices step 4) {
+            val chunk = contentBits.substring(j, j + 4)
+            builder.append(PLESSEY_PATTERNS[chunk] ?: return null)
+        }
+
+        // 可选：校验 CRC（这里仅返回识别内容）
+        return builder.toString()
     }
 }

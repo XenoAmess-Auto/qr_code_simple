@@ -4,10 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.RectF
 import boofcv.alg.fiducial.microqr.MicroQrCodeEncoder
 import boofcv.alg.fiducial.microqr.MicroQrCodeGenerator
-import boofcv.android.ConvertBitmap
 import boofcv.struct.image.GrayU8
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -90,7 +88,7 @@ object BarcodeGenerator {
             hints
         )
 
-        return createBitmap(bitMatrix, config)
+        return createPaddedBitmap(bitMatrix, config)
     }
 
     private fun generateDataMatrix(content: String, config: BarcodeConfig): Bitmap {
@@ -102,7 +100,7 @@ object BarcodeGenerator {
             size,
             size
         )
-        return createBitmap(bitMatrix, config)
+        return createPaddedBitmap(bitMatrix, config)
     }
 
     private fun generateAztec(content: String, config: BarcodeConfig): Bitmap {
@@ -113,7 +111,7 @@ object BarcodeGenerator {
             config.width,
             config.height
         )
-        return createBitmap(bitMatrix, config)
+        return createPaddedBitmap(bitMatrix, config)
     }
 
     private fun generatePDF417(content: String, config: BarcodeConfig): Bitmap {
@@ -129,27 +127,76 @@ object BarcodeGenerator {
             config.height / 2,
             hints
         )
-        return createBitmap(bitMatrix, config.copy(height = config.height / 2))
+        return createPaddedBitmap(bitMatrix, config.copy(height = config.height / 2))
     }
 
     private fun generateLinearBarcode(content: String, config: BarcodeConfig): Bitmap {
-        val zxingFormat = getZXingFormat(config.format)
-        val barcodeWidth = config.width
-        val barcodeHeight = config.height / 3
+        return when (config.format) {
+            AppBarcodeFormat.CODE_128 -> generateCode128(content, config)
+            AppBarcodeFormat.CODE_39 -> generateCode39(content, config)
+            AppBarcodeFormat.CODE_93 -> generateCode93(content, config)
+            AppBarcodeFormat.EAN_13 -> generateEAN13(content, config)
+            AppBarcodeFormat.EAN_8 -> generateEAN8(content, config)
+            AppBarcodeFormat.UPC_A -> generateUPCA(content, config)
+            AppBarcodeFormat.UPC_E -> generateUPCE(content, config)
+            AppBarcodeFormat.CODABAR -> generateCodabar(content, config)
+            AppBarcodeFormat.ITF -> generateITF(content, config)
+            else -> generateCode128(content, config)
+        }
+    }
 
+    private fun generateCode128(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.CODE_128, config)
+    }
+
+    private fun generateCode39(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.CODE_39, config)
+    }
+
+    private fun generateCode93(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.CODE_93, config)
+    }
+
+    private fun generateEAN13(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.EAN_13, config)
+    }
+
+    private fun generateEAN8(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.EAN_8, config)
+    }
+
+    private fun generateUPCA(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.UPC_A, config)
+    }
+
+    private fun generateUPCE(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.UPC_E, config)
+    }
+
+    private fun generateCodabar(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.CODABAR, config)
+    }
+
+    private fun generateITF(content: String, config: BarcodeConfig): Bitmap {
+        return createZXingLinear(content, BarcodeFormat.ITF, config)
+    }
+
+    private fun createZXingLinear(
+        content: String,
+        zxingFormat: BarcodeFormat,
+        config: BarcodeConfig
+    ): Bitmap {
         val hints = hashMapOf(
             EncodeHintType.CHARACTER_SET to "UTF-8"
         )
-
         val writer = MultiFormatWriter()
         val bitMatrix = writer.encode(
             content,
             zxingFormat,
-            barcodeWidth,
-            barcodeHeight,
+            config.width,
+            config.height / 3,
             hints
         )
-
         return createLinearBarcodeBitmap(bitMatrix, config, content)
     }
 
@@ -163,7 +210,9 @@ object BarcodeGenerator {
 
     private fun generateRssExpanded(content: String, config: BarcodeConfig): Bitmap {
         val symbol = DataBarExpanded()
-        symbol.content = content
+        symbol.dataType = Symbol.DataType.GS1
+        // Okapi expects GS1 AI delimiters in square brackets, but ZXing returns them in parentheses.
+        symbol.content = content.replace("(", "[").replace(")", "]")
         return symbolToBitmap(symbol, config)
     }
 
@@ -174,39 +223,58 @@ object BarcodeGenerator {
     }
 
     private fun symbolToBitmap(symbol: Symbol, config: BarcodeConfig): Bitmap {
-        val width = symbol.width
-        val height = symbol.height
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(config.backgroundColor)
-        val paint = Paint().apply { color = config.foregroundColor }
+        val scale = 8
+        val width = symbol.width * scale
+        val height = symbol.height * scale
+        val padding = 40
+        val totalWidth = width + padding * 2
+        val totalHeight = height + padding * 2
+        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
+        fillBitmap(bitmap, config.backgroundColor)
 
         for (rect in symbol.rectangles) {
-            canvas.drawRect(
-                rect.x.toFloat(),
-                rect.y.toFloat(),
-                (rect.x + rect.width).toFloat(),
-                (rect.y + rect.height).toFloat(),
-                paint
-            )
+            val x0 = (rect.x * scale).toInt() + padding
+            val y0 = (rect.y * scale).toInt() + padding
+            val x1 = ((rect.x + rect.width) * scale).toInt() + padding
+            val y1 = ((rect.y + rect.height) * scale).toInt() + padding
+            drawRectPixels(bitmap, x0, y0, x1, y1, config.foregroundColor)
         }
         for (hex in symbol.hexagons) {
-            val path = android.graphics.Path()
-            for (i in 0 until 6) {
-                val hx = hex.getX(i).toFloat()
-                val hy = hex.getY(i).toFloat()
-                if (i == 0) path.moveTo(hx, hy) else path.lineTo(hx, hy)
+            val vertices = List(6) { i ->
+                val hx = hex.getX(i).toFloat() * scale + padding
+                val hy = hex.getY(i).toFloat() * scale + padding
+                hx to hy
             }
-            path.close()
-            canvas.drawPath(path, paint)
+            val minX = vertices.minOf { it.first }.toInt().coerceAtLeast(0)
+            val maxX = vertices.maxOf { it.first }.toInt().coerceAtMost(bitmap.width - 1)
+            val minY = vertices.minOf { it.second }.toInt().coerceAtLeast(0)
+            val maxY = vertices.maxOf { it.second }.toInt().coerceAtMost(bitmap.height - 1)
+            for (y in minY..maxY) {
+                for (x in minX..maxX) {
+                    if (pointInPolygon(x + 0.5f, y + 0.5f, vertices)) {
+                        bitmap.setPixel(x, y, config.foregroundColor)
+                    }
+                }
+            }
         }
         for (circle in symbol.target) {
-            canvas.drawCircle(
-                circle.centreX.toFloat(),
-                circle.centreY.toFloat(),
-                circle.radius.toFloat(),
-                paint
-            )
+            val cx = circle.centreX.toFloat() * scale + padding
+            val cy = circle.centreY.toFloat() * scale + padding
+            val radius = circle.radius.toFloat() * scale
+            val minX = (cx - radius).toInt().coerceAtLeast(0)
+            val maxX = (cx + radius).toInt().coerceAtMost(bitmap.width - 1)
+            val minY = (cy - radius).toInt().coerceAtLeast(0)
+            val maxY = (cy + radius).toInt().coerceAtMost(bitmap.height - 1)
+            val r2 = radius * radius
+            for (y in minY..maxY) {
+                for (x in minX..maxX) {
+                    val dx = x + 0.5f - cx
+                    val dy = y + 0.5f - cy
+                    if (dx * dx + dy * dy <= r2) {
+                        bitmap.setPixel(x, y, config.foregroundColor)
+                    }
+                }
+            }
         }
 
         return scaleAndPad(bitmap, config)
@@ -220,15 +288,14 @@ object BarcodeGenerator {
         )
         val newWidth = (source.width * scale).toInt()
         val newHeight = (source.height * scale).toInt()
-        val scaled = Bitmap.createScaledBitmap(source, newWidth, newHeight, true)
+        val scaled = Bitmap.createScaledBitmap(source, newWidth, newHeight, false)
         if (newWidth == config.width && newHeight == config.height) return scaled
 
         val bitmap = Bitmap.createBitmap(config.width, config.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(config.backgroundColor)
-        val left = (config.width - newWidth) / 2f
-        val top = (config.height - newHeight) / 2f
-        canvas.drawBitmap(scaled, left, top, null)
+        fillBitmap(bitmap, config.backgroundColor)
+        val left = (config.width - newWidth) / 2
+        val top = (config.height - newHeight) / 2
+        drawBitmapOnto(bitmap, scaled, left, top)
         scaled.recycle()
         source.recycle()
         return bitmap
@@ -240,13 +307,17 @@ object BarcodeGenerator {
         val encoder = MicroQrCodeEncoder()
         encoder.addAutomatic(content)
         val qr = encoder.fixate()
-        val gray: GrayU8 = MicroQrCodeGenerator.renderImage(8, 2, qr)
-        val bitmap = Bitmap.createBitmap(gray.width, gray.height, Bitmap.Config.ARGB_8888)
+        val gray: GrayU8 = MicroQrCodeGenerator.renderImage(4, 0, qr)
+        val quietZone = 40
+        val paddedWidth = gray.width + quietZone * 2
+        val paddedHeight = gray.height + quietZone * 2
+        val bitmap = Bitmap.createBitmap(paddedWidth, paddedHeight, Bitmap.Config.ARGB_8888)
+        fillBitmap(bitmap, config.backgroundColor)
         for (y in 0 until gray.height) {
             for (x in 0 until gray.width) {
                 val value = gray.get(x, y)
-                val color = if (value == 0) config.backgroundColor else config.foregroundColor
-                bitmap.setPixel(x, y, color)
+                val color = if (value == 0) config.foregroundColor else config.backgroundColor
+                bitmap.setPixel(x + quietZone, y + quietZone, color)
             }
         }
         return scaleAndPad(bitmap, config)
@@ -256,32 +327,31 @@ object BarcodeGenerator {
 
     private fun generatePharmacode(content: String, config: BarcodeConfig): Bitmap {
         val value = content.toInt()
-        val elements = mutableListOf<Char>()
-        var v = value
-        while (v != 0) {
-            if (v % 2 == 0) {
-                elements.add('W')
-                v = (v - 2) / 2
-            } else {
-                elements.add('N')
-                v = (v - 1) / 2
-            }
-        }
-        elements.reverse()
+
+        // Pharmacode digits 0-3 map to bar/space widths:
+        // 0 -> narrow bar (1) + wide space (2) = "12"
+        // 1 -> wide bar (2) + wide space (2) = "22"
+        // 2 -> narrow bar (1) + narrow space (1) = "11"
+        // 3 -> wide bar (2) + narrow space (1) = "21"
+        // Least significant digit is placed leftmost; decoder reads from right to left.
+        val digitToSymbol = mapOf(
+            0 to listOf(1, 2),
+            1 to listOf(2, 2),
+            2 to listOf(1, 1),
+            3 to listOf(2, 1)
+        )
 
         val bars = mutableListOf<Int>()
-        for (e in elements) {
-            when (e) {
-                'N' -> {
-                    bars.add(1)
-                    bars.add(2)
-                }
-                'W' -> {
-                    bars.add(3)
-                    bars.add(2)
-                }
-            }
+        var v = value
+        while (v > 0) {
+            val digit = v % 4
+            v /= 4
+            bars.addAll(digitToSymbol[digit]!!)
         }
+        // Pharmacode symbols end with a bar so the last digit's trailing space
+        // is not swallowed by the quiet zone.
+        bars.add(1)
+
         return createGenericLinearBitmap(bars, config, content)
     }
 
@@ -289,31 +359,107 @@ object BarcodeGenerator {
         val digits = content.filter { it.isDigit() }
         require(digits.length == 2 || digits.length == 5) { "UPC/EAN Extension must be 2 or 5 digits" }
 
-        val patterns = mutableListOf<Int>()
-        patterns.addAll(listOf(1, 1, 1, 0, 1)) // guard 1011
+        // UPC/EAN extension cannot be scanned standalone; generate it attached to a dummy EAN-13.
+        val mainContent = "1234567890128"
+        val mainBitmapFull = generateEAN13(mainContent, config)
+            ?: return generateGenericLinearUpcEanExtension(digits, config)
 
-        val digitPatterns = mapOf(
-            '0' to listOf(0, 0, 0, 1, 1, 0, 1),
-            '1' to listOf(0, 0, 1, 1, 0, 0, 1),
-            '2' to listOf(0, 0, 1, 0, 0, 1, 1),
-            '3' to listOf(0, 1, 1, 1, 1, 0, 1),
-            '4' to listOf(0, 1, 0, 0, 0, 1, 1),
-            '5' to listOf(0, 1, 1, 0, 0, 0, 1),
-            '6' to listOf(0, 1, 0, 1, 1, 1, 1),
-            '7' to listOf(0, 1, 1, 1, 0, 1, 1),
-            '8' to listOf(0, 1, 1, 0, 1, 1, 1),
-            '9' to listOf(0, 0, 0, 1, 0, 1, 1)
+        // Remove the 40px padding that createLinearBarcodeBitmap added on each side,
+        // keeping the quiet zone already rendered by ZXing inside the EAN-13 symbol.
+        val padding = 40
+        val mainWidth = (mainBitmapFull.width - padding * 2).coerceAtLeast(1)
+        val mainBitmap = Bitmap.createBitmap(mainBitmapFull, padding, 0, mainWidth, mainBitmapFull.height)
+        mainBitmapFull.recycle()
+
+        val extBitmap = generateGenericLinearUpcEanExtension(digits, config)
+        val totalWidth = mainBitmap.width + extBitmap.width
+        val height = maxOf(mainBitmap.height, extBitmap.height)
+        val bitmap = Bitmap.createBitmap(totalWidth, height, Bitmap.Config.ARGB_8888)
+        fillBitmap(bitmap, config.backgroundColor)
+        drawBitmapOnto(bitmap, mainBitmap, 0, 0)
+        drawBitmapOnto(bitmap, extBitmap, mainBitmap.width, 0)
+        mainBitmap.recycle()
+        extBitmap.recycle()
+        return bitmap
+    }
+
+    private fun generateGenericLinearUpcEanExtension(content: String, config: BarcodeConfig): Bitmap {
+        val digits = content.filter { it.isDigit() }
+        require(digits.length == 2 || digits.length == 5) { "UPC/EAN Extension must be 2 or 5 digits" }
+
+        val lPatterns = arrayOf(
+            "0001101", "0011001", "0010011", "0111101", "0100011",
+            "0110001", "0101111", "0111011", "0110111", "0001011"
         )
+        val gPatterns = arrayOf(
+            "0100111", "0110011", "0011011", "0100001", "0011101",
+            "0111001", "0000101", "0010001", "0001001", "0010111"
+        )
+        val ean5Parity = intArrayOf(24, 20, 18, 17, 12, 6, 3, 10, 9, 5)
 
-        for ((i, ch) in digits.withIndex()) {
-            if (i > 0) patterns.addAll(listOf(1, 1)) // separator
-            val pattern = digitPatterns[ch] ?: error("Invalid digit")
-            for (bit in pattern) {
-                patterns.add(if (bit == 1) 1 else 2)
+        val bits = StringBuilder()
+        bits.append("1011") // guard
+
+        if (digits.length == 5) {
+            val d = digits.map { it.digitToInt() }
+            var check = 0
+            for (i in 0 until 5) {
+                check += (if (i % 2 == 0) 3 else 9) * d[i]
+            }
+            check %= 10
+            val parity = ean5Parity[check]
+            for (i in 0 until 5) {
+                val useG = ((parity shr (4 - i)) and 1) == 1
+                val pattern = if (useG) gPatterns[d[i]] else lPatterns[d[i]]
+                bits.append(pattern)
+                if (i < 4) bits.append("01") // separator
+            }
+        } else {
+            val d = digits.map { it.digitToInt() }
+            val check = d[0] * 10 + d[1]
+            val parity = when (check % 4) {
+                0 -> "LL"
+                1 -> "LG"
+                2 -> "GL"
+                else -> "GG"
+            }
+            for (i in 0 until 2) {
+                val pattern = if (parity[i] == 'L') lPatterns[d[i]] else gPatterns[d[i]]
+                bits.append(pattern)
+                if (i < 1) bits.append("01")
             }
         }
 
-        return createGenericLinearBitmap(patterns, config, content)
+        val pattern = bits.toString()
+        val moduleWidth = 4
+        val rightQuietZone = moduleWidth * 10
+        val barcodeWidth = pattern.length * moduleWidth
+        val height = config.height / 3
+        val bitmap = Bitmap.createBitmap(barcodeWidth + rightQuietZone, height, Bitmap.Config.ARGB_8888)
+        fillBitmap(bitmap, config.backgroundColor)
+
+        var x = 0
+        for (bit in pattern) {
+            if (bit == '1') {
+                drawRectPixels(bitmap, x, 0, x + moduleWidth, height, config.foregroundColor)
+            }
+            x += moduleWidth
+        }
+
+        return bitmap
+    }
+
+    private fun combineBarcodesHorizontal(first: Bitmap, second: Bitmap, config: BarcodeConfig): Bitmap {
+        val spacing = 80
+        val totalWidth = first.width + second.width + spacing
+        val height = maxOf(first.height, second.height)
+        val bitmap = Bitmap.createBitmap(totalWidth, height, Bitmap.Config.ARGB_8888)
+        fillBitmap(bitmap, config.backgroundColor)
+        drawBitmapOnto(bitmap, first, 0, 0)
+        drawBitmapOnto(bitmap, second, first.width + spacing, 0)
+        first.recycle()
+        second.recycle()
+        return bitmap
     }
 
     private fun generateTelepen(content: String, config: BarcodeConfig): Bitmap {
@@ -366,20 +512,19 @@ object BarcodeGenerator {
         val check = if (sum % 127 == 0) 0 else 127 - (sum % 127)
         bars.addAll(telepenTable[check].map { it - '0' })
         bars.addAll(telepenTable['z'.code].map { it - '0' })
+        // Telepen symbols end with a space; append a narrow termination bar
+        // so the last space is not swallowed by the quiet zone.
+        bars.add(1)
 
         return createGenericLinearBitmap(bars, config, content)
     }
 
     private fun generatePlessey(content: String, config: BarcodeConfig): Bitmap {
-        require(content.all { it in '0'..'9' || it in 'A'..'F' }) { "Plessey supports hex digits" }
+        require(content.all { it in '0'..'9' || it in 'A'..'F' || it in 'a'..'f' }) { "Plessey supports hex digits" }
         val upper = content.uppercase()
 
-        val start = "21211221"
-        val stop = "20121211212"
-        val bitToPattern = mapOf(
-            '0' to "12",
-            '1' to "21"
-        )
+        val start = "1101"
+        val stop = "1101"
         val digitToBits = mapOf(
             '0' to "0000", '1' to "0001", '2' to "0010", '3' to "0011",
             '4' to "0100", '5' to "0101", '6' to "0110", '7' to "0111",
@@ -400,11 +545,16 @@ object BarcodeGenerator {
         bits.append(digitToBits[crcHigh])
         bits.append(stop)
 
+        // Plessey: bit 0 = narrow bar (1) + narrow space (1); bit 1 = wide bar (2) + narrow space (1)
         val bars = mutableListOf<Int>()
         for (bit in bits.toString()) {
-            val pattern = bitToPattern[bit] ?: continue
-            bars.add(pattern[0] - '0')
-            bars.add(pattern[1] - '0')
+            if (bit == '0') {
+                bars.add(1)
+                bars.add(1)
+            } else {
+                bars.add(2)
+                bars.add(1)
+            }
         }
 
         return createGenericLinearBitmap(bars, config, content)
@@ -476,17 +626,77 @@ object BarcodeGenerator {
 
     // ==================== 通用渲染工具 ====================
 
-    private fun createBitmap(bitMatrix: BitMatrix, config: BarcodeConfig): Bitmap {
+    private fun fillBitmap(bitmap: Bitmap, color: Int) {
+        val width = bitmap.width
+        val height = bitmap.height
+        val pixels = IntArray(width * height) { color }
+        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+    }
+
+    private fun drawRectPixels(
+        bitmap: Bitmap,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        color: Int
+    ) {
+        val drawLeft = left.coerceIn(0, bitmap.width)
+        val drawTop = top.coerceIn(0, bitmap.height)
+        val drawRight = right.coerceIn(0, bitmap.width)
+        val drawBottom = bottom.coerceIn(0, bitmap.height)
+        val rowWidth = drawRight - drawLeft
+        if (rowWidth <= 0 || drawBottom <= drawTop) return
+        val row = IntArray(rowWidth) { color }
+        for (y in drawTop until drawBottom) {
+            bitmap.setPixels(row, 0, rowWidth, drawLeft, y, rowWidth, 1)
+        }
+    }
+
+    private fun drawBitmapOnto(target: Bitmap, source: Bitmap, left: Int, top: Int) {
+        val copyWidth = minOf(source.width, target.width - left)
+        val copyHeight = minOf(source.height, target.height - top)
+        if (copyWidth <= 0 || copyHeight <= 0 || left < 0 || top < 0) return
+        val pixels = IntArray(copyWidth * copyHeight)
+        source.getPixels(pixels, 0, copyWidth, 0, 0, copyWidth, copyHeight)
+        target.setPixels(pixels, 0, copyWidth, left, top, copyWidth, copyHeight)
+    }
+
+    private fun pointInPolygon(x: Float, y: Float, vertices: List<Pair<Float, Float>>): Boolean {
+        var inside = false
+        var j = vertices.size - 1
+        for (i in vertices.indices) {
+            val xi = vertices[i].first
+            val yi = vertices[i].second
+            val xj = vertices[j].first
+            val yj = vertices[j].second
+            val intersect = ((yi > y) != (yj > y)) &&
+                    (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+            if (intersect) inside = !inside
+            j = i
+        }
+        return inside
+    }
+
+    private fun createPaddedBitmap(bitMatrix: BitMatrix, config: BarcodeConfig): Bitmap {
         val width = bitMatrix.width
         val height = bitMatrix.height
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val padding = 40
+        val totalWidth = width + padding * 2
+        val totalHeight = height + padding * 2
+        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
+
+        for (x in 0 until totalWidth) {
+            for (y in 0 until totalHeight) {
+                bitmap.setPixel(x, y, config.backgroundColor)
+            }
+        }
 
         for (x in 0 until width) {
             for (y in 0 until height) {
-                bitmap.setPixel(
-                    x, y,
-                    if (bitMatrix.get(x, y)) config.foregroundColor else config.backgroundColor
-                )
+                if (bitMatrix.get(x, y)) {
+                    bitmap.setPixel(x + padding, y + padding, config.foregroundColor)
+                }
             }
         }
 
@@ -499,20 +709,20 @@ object BarcodeGenerator {
         content: String
     ): Bitmap {
         val barcodeWidth = bitMatrix.width
-        val barcodeHeight = bitMatrix.height
+        val barcodeHeight = config.height / 3
         val textHeight = 40
-        val padding = 10
+        val padding = 40
 
+        val totalWidth = barcodeWidth + padding * 2
         val totalHeight = barcodeHeight + textHeight + padding * 2
-        val bitmap = Bitmap.createBitmap(barcodeWidth, totalHeight, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
+        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
 
-        canvas.drawColor(config.backgroundColor)
+        fillBitmap(bitmap, config.backgroundColor)
 
         for (x in 0 until barcodeWidth) {
             for (y in 0 until barcodeHeight) {
                 if (bitMatrix.get(x, y)) {
-                    bitmap.setPixel(x, y, config.foregroundColor)
+                    bitmap.setPixel(x + padding, y + padding, config.foregroundColor)
                 }
             }
         }
@@ -523,11 +733,11 @@ object BarcodeGenerator {
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-
+        val canvas = Canvas(bitmap)
         canvas.drawText(
             content,
-            barcodeWidth / 2f,
-            barcodeHeight + textHeight.toFloat(),
+            totalWidth / 2f,
+            barcodeHeight + padding + textHeight.toFloat(),
             paint
         )
 
@@ -544,37 +754,34 @@ object BarcodeGenerator {
         val barcodeWidth = bars.sum() * moduleWidth + quietZone * 2
         val barcodeHeight = config.height / 3
         val textHeight = 40
-        val padding = 10
-        val totalHeight = barcodeHeight + textHeight + padding * 2
+        val totalHeight = barcodeHeight + textHeight + 40 * 2
 
         val bitmap = Bitmap.createBitmap(barcodeWidth, totalHeight, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.drawColor(config.backgroundColor)
+        fillBitmap(bitmap, config.backgroundColor)
 
         var x = quietZone
         var isBar = true
-        val rect = RectF()
         for (width in bars) {
             val w = width * moduleWidth
             if (isBar) {
-                rect.set(x.toFloat(), 0f, (x + w).toFloat(), barcodeHeight.toFloat())
-                canvas.drawRect(rect, Paint().apply { color = config.foregroundColor })
+                drawRectPixels(bitmap, x, 0, x + w, barcodeHeight, config.foregroundColor)
             }
             x += w
             isBar = !isBar
         }
 
-        val paint = Paint().apply {
+        val textPaint = Paint().apply {
             color = config.foregroundColor
             textSize = 24f
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
+        val canvas = Canvas(bitmap)
         canvas.drawText(
             content,
             barcodeWidth / 2f,
             barcodeHeight + textHeight.toFloat(),
-            paint
+            textPaint
         )
 
         return bitmap
@@ -673,10 +880,10 @@ object BarcodeGenerator {
 
     private fun validateRss14(content: String): ValidationResult {
         val digitsOnly = content.filter { it.isDigit() }
-        return if (digitsOnly.length in 1..13) {
+        return if (digitsOnly.length in 1..14) {
             ValidationResult(true)
         } else {
-            ValidationResult(false, "RSS-14 requires 1 to 13 digits")
+            ValidationResult(false, "RSS-14 requires 1 to 14 digits")
         }
     }
 

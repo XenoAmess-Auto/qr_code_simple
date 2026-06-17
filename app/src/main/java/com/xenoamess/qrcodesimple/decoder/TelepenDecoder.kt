@@ -11,37 +11,80 @@ import android.graphics.Bitmap
  */
 object TelepenDecoder {
 
+    private val TELEPEN_TABLE = arrayOf(
+        "313111113111", "311311113111", "313111111311", "311311111311",
+        "313131113111", "311331113111", "313131111311", "311331111311",
+        "313111131111", "311311131111", "313111133111", "311311133111",
+        "313131131111", "311331131111", "313131133111", "311331133111",
+        "313113113111", "311313113111", "313113111311", "311313111311",
+        "313133113111", "311333113111", "313133111311", "311333111311",
+        "313113131111", "311313131111", "313113133111", "311313133111",
+        "313133131111", "311333131111", "313133133111", "311333133111",
+        "313111113131", "311311113131", "313111111331", "311311111331",
+        "313131113131", "311331113131", "313131111331", "311331111331",
+        "313111131131", "311311131131", "313111133131", "311311133131",
+        "313131131131", "311331131131", "313131133131", "311331133131",
+        "313113113131", "311313113131", "313113111331", "311313111331",
+        "313133113131", "311333113131", "313133111331", "311333111331",
+        "313113131131", "311313131131", "313113133131", "311313133131",
+        "313133131131", "311333131131", "313133133131", "311333133131",
+        "313111113113", "311311113113", "313111111313", "311311111313",
+        "313131113113", "311331113113", "313131111313", "311331111313",
+        "313111131113", "311311131113", "313111133113", "311311133113",
+        "313131131113", "311331131113", "313131133113", "311331133113",
+        "313113113113", "311313113113", "313113111313", "311313111313",
+        "313133113113", "311333113113", "313133111313", "311333111313",
+        "313113131113", "311313131113", "313113133113", "311313133113",
+        "313133131113", "311333131113", "313133133113", "311333133113",
+        "313131313111", "311331313111", "313131311311", "311331311311",
+        "313131331111", "311331331111", "313131333111", "311331333111",
+        "313131313131", "311331313131", "313131311331", "311331311331",
+        "313131331131", "311331331131", "313131333131", "311331333131",
+        "313131313113", "311331313113", "313131311313", "311331311313",
+        "313131331113", "311331331113", "313131333113", "311331333113",
+        "313131313311", "311331313311", "313131313331", "311331313331"
+    )
+
     fun decode(bitmap: Bitmap): String? {
         val bars = BarcodeScanUtils.extractBars(bitmap)
         val groups = BarcodeScanUtils.groupBars(bars)
         val normalized = BarcodeScanUtils.normalizeWidths(groups)
 
-        // Telepen 以条开始、以条结束，每组 8 个条空组表示一个字符
-        if (normalized.size < 16 || normalized.size % 2 != 0) return null
+        if (normalized.size < 16) return null
 
-        val trimmed = normalized.dropWhile { !it.first }.dropLastWhile { !it.first }
-        if (trimmed.size % 2 != 0) return null
+        // Telepen 每个字符由 12 个模块组成（6 条 + 6 空），每个字符对应 12 位宽度字符串
+        // 去掉前导空和尾随空
+        var trimmed = normalized.dropWhile { !it.first }.dropLastWhile { !it.first }
+        // 某些生成器会在停止符后追加终止条；如果末尾多出一条且去掉后长度可被 12 整除，则忽略它
+        if (trimmed.size % 12 != 0 && trimmed.isNotEmpty() && trimmed.last().first && (trimmed.size - 1) % 12 == 0) {
+            trimmed = trimmed.dropLast(1)
+        }
+        if (trimmed.size % 12 != 0) return null
 
-        val builder = StringBuilder()
+        val values = mutableListOf<Int>()
         var i = 0
-        while (i + 7 < trimmed.size) {
-            var value = 0
-            var moduleSum = 0
-            for (j in 0 until 8) {
-                val width = trimmed[i + j].second
-                if (width !in 1..2) return null
-                moduleSum += width
-                value = value shl 1
-                if (trimmed[i + j].first) {
-                    value = value or 1
-                }
+        while (i < trimmed.size) {
+            val chunk = StringBuilder()
+            for (j in 0 until 12) {
+                chunk.append(trimmed[i + j].second)
             }
-            if (moduleSum != 8) return null
-            builder.append(value.toChar())
-            i += 8
+            val value = TELEPEN_TABLE.indexOf(chunk.toString())
+            if (value < 0) return null
+            values.add(value)
+            i += 12
         }
 
-        val result = builder.toString()
-        return if (result.isNotEmpty()) result else null
+        // 条码结构：起始符 '_' (95) + 数据 + 校验字符 + 停止符 'z' (122)
+        if (values.firstOrNull() != '_'.code || values.lastOrNull() != 'z'.code) return null
+
+        if (values.size < 4) return null
+        val dataValues = values.subList(1, values.size - 2)
+        val checkValue = values[values.size - 2]
+
+        val sum = '_'.code + dataValues.sum()
+        val expectedCheck = if (sum % 127 == 0) 0 else 127 - (sum % 127)
+        if (checkValue != expectedCheck) return null
+
+        return dataValues.map { it.toChar() }.joinToString("")
     }
 }

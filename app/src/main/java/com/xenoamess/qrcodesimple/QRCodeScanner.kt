@@ -89,7 +89,8 @@ object QRCodeScanner {
     data class ScanResult(
         val text: String,
         val library: Library,
-        val format: BarcodeFormat = BarcodeFormat.QR_CODE
+        val format: BarcodeFormat = BarcodeFormat.QR_CODE,
+        val resultMetadata: Map<com.google.zxing.ResultMetadataType, Any>? = null
     )
 
     enum class Library {
@@ -198,49 +199,49 @@ object QRCodeScanner {
      */
     private fun scanWithZXing(bitmap: Bitmap): List<ScanResult> {
         // 尝试多种配置
+        val allFormats = listOf(
+            BarcodeFormat.QR_CODE,
+            BarcodeFormat.DATA_MATRIX,
+            BarcodeFormat.AZTEC,
+            BarcodeFormat.PDF_417,
+            BarcodeFormat.CODE_128,
+            BarcodeFormat.CODE_39,
+            BarcodeFormat.CODE_93,
+            BarcodeFormat.EAN_13,
+            BarcodeFormat.EAN_8,
+            BarcodeFormat.UPC_A,
+            BarcodeFormat.UPC_E,
+            BarcodeFormat.UPC_EAN_EXTENSION,
+            BarcodeFormat.CODABAR,
+            BarcodeFormat.ITF,
+            BarcodeFormat.RSS_14,
+            BarcodeFormat.RSS_EXPANDED,
+            BarcodeFormat.MAXICODE
+        )
+        val linearFormats = listOf(
+            BarcodeFormat.CODE_128,
+            BarcodeFormat.CODE_39,
+            BarcodeFormat.CODE_93,
+            BarcodeFormat.EAN_13,
+            BarcodeFormat.EAN_8,
+            BarcodeFormat.UPC_A,
+            BarcodeFormat.UPC_E,
+            BarcodeFormat.UPC_EAN_EXTENSION,
+            BarcodeFormat.CODABAR,
+            BarcodeFormat.ITF,
+            BarcodeFormat.RSS_14,
+            BarcodeFormat.RSS_EXPANDED,
+            BarcodeFormat.MAXICODE
+        )
         val configs = listOf(
-            // 配置1: 所有格式
             EnumMap<DecodeHintType, Any>(DecodeHintType::class.java).apply {
                 put(DecodeHintType.CHARACTER_SET, "UTF-8")
                 put(DecodeHintType.TRY_HARDER, true)
-                put(DecodeHintType.POSSIBLE_FORMATS, listOf(
-                    BarcodeFormat.QR_CODE,
-                    BarcodeFormat.DATA_MATRIX,
-                    BarcodeFormat.AZTEC,
-                    BarcodeFormat.PDF_417,
-                    BarcodeFormat.CODE_128,
-                    BarcodeFormat.CODE_39,
-                    BarcodeFormat.CODE_93,
-                    BarcodeFormat.EAN_13,
-                    BarcodeFormat.EAN_8,
-                    BarcodeFormat.UPC_A,
-                    BarcodeFormat.UPC_E,
-                    BarcodeFormat.UPC_EAN_EXTENSION,
-                    BarcodeFormat.CODABAR,
-                    BarcodeFormat.ITF,
-                    BarcodeFormat.RSS_14,
-                    BarcodeFormat.RSS_EXPANDED,
-                    BarcodeFormat.MAXICODE
-                ))
+                put(DecodeHintType.POSSIBLE_FORMATS, allFormats)
             },
-            // 配置2: 仅一维条码（更宽松）
             EnumMap<DecodeHintType, Any>(DecodeHintType::class.java).apply {
                 put(DecodeHintType.TRY_HARDER, true)
-                put(DecodeHintType.POSSIBLE_FORMATS, listOf(
-                    BarcodeFormat.CODE_128,
-                    BarcodeFormat.CODE_39,
-                    BarcodeFormat.CODE_93,
-                    BarcodeFormat.EAN_13,
-                    BarcodeFormat.EAN_8,
-                    BarcodeFormat.UPC_A,
-                    BarcodeFormat.UPC_E,
-                    BarcodeFormat.UPC_EAN_EXTENSION,
-                    BarcodeFormat.CODABAR,
-                    BarcodeFormat.ITF,
-                    BarcodeFormat.RSS_14,
-                    BarcodeFormat.RSS_EXPANDED,
-                    BarcodeFormat.MAXICODE
-                ))
+                put(DecodeHintType.POSSIBLE_FORMATS, linearFormats)
             }
         )
 
@@ -278,7 +279,7 @@ object QRCodeScanner {
 
         return try {
             val result = reader.decode(binaryBitmap)
-            ScanResult(result.text, Library.ZXING, result.barcodeFormat)
+            ScanResult(result.text, Library.ZXING, result.barcodeFormat, result.resultMetadata)
         } catch (e: Exception) {
             // 尝试全局直方图二值化（对某些图像效果更好）
             try {
@@ -402,7 +403,6 @@ object QRCodeScanner {
         }
 
         // 3. 尝试 ML Kit（支持二维码和条形码）
-        // 使用 runBlocking 在同步环境中调用异步 API
         try {
             val results = runBlocking(Dispatchers.Default) {
                 withTimeoutOrNull(5000) {
@@ -415,6 +415,28 @@ object QRCodeScanner {
             }
         } catch (e: Exception) {
             Log.e(TAG, "ML Kit scan failed", e)
+        }
+
+        // 4. 尝试 Micro QR Code (BoofCV)
+        try {
+            val microQrResults = MicroQrCodeScanner.scan(bitmap)
+            if (microQrResults.isNotEmpty()) {
+                Log.d(TAG, "BoofCV Micro QR detected ${microQrResults.size} codes")
+                return microQrResults.map { ScanResult(it.text, Library.BOOFCV, BarcodeFormat.QR_CODE) }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "BoofCV Micro QR scan failed", e)
+        }
+
+        // 5. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
+        try {
+            val customResults = CustomLinearBarcodeScanner.scan(bitmap)
+            if (customResults.isNotEmpty()) {
+                Log.d(TAG, "Custom linear decoder detected ${customResults.size} codes")
+                return customResults.map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Custom linear decoder scan failed", e)
         }
 
         Log.d(TAG, "No codes detected by any library")

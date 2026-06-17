@@ -35,13 +35,15 @@ object MsiPlesseyDecoder {
 
         if (normalized.size < 14) return null
 
+        // 去掉前导空和尾随空（安静区）
+        val trimmed = normalized.dropWhile { !it.first }.dropLastWhile { !it.first }
+        if (trimmed.size < 14) return null
+
         val pattern = StringBuilder()
-        for (item in normalized) {
-            val c = when {
-                item.first && item.second == 1 -> '1'
-                item.first && item.second == 2 -> '2'
-                !item.first && item.second == 1 -> '1'
-                !item.first && item.second == 2 -> '2'
+        for (item in trimmed) {
+            val c = when (item.second) {
+                1 -> '1'
+                2 -> '2'
                 else -> return null
             }
             pattern.append(c)
@@ -62,6 +64,30 @@ object MsiPlesseyDecoder {
         }
 
         val result = builder.toString()
-        return if (result.length >= 1) result else null
+        if (result.length < 2) return null
+
+        // 验证并剥离 Mod-10 校验位
+        val content = result.dropLast(1)
+        val checkDigit = result.last().digitToInt()
+        val expectedCheck = calculateMod10(content)
+        if (checkDigit != expectedCheck) return null
+
+        return content
+    }
+
+    private fun calculateMod10(content: String): Int {
+        var sum = 0
+        var double = false
+        for (i in content.length - 1 downTo 0) {
+            var digit = content[i].digitToInt()
+            if (double) {
+                digit *= 2
+                sum += digit / 10 + digit % 10
+            } else {
+                sum += digit
+            }
+            double = !double
+        }
+        return (10 - (sum % 10)) % 10
     }
 }

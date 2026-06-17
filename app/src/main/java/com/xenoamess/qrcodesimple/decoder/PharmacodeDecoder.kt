@@ -24,18 +24,19 @@ object PharmacodeDecoder {
         val trimmed = normalized.dropWhile { !it.first }.dropLastWhile { !it.first }
         if (trimmed.size < 5 || trimmed.size % 2 == 0) return null
 
-        // 每两个条空组构成一个字符（条 + 空）
+        // Pharmacode 符号映射：
+        // 0 = (1,2), 1 = (2,2), 2 = (1,1), 3 = (2,1)
+        // 解码器从右向左读取，最低位在最右边
         val value = mutableListOf<Int>()
         var i = 0
         while (i < trimmed.size - 1) {
             val barWidth = trimmed[i].second
             val spaceWidth = trimmed[i + 1].second
-            if (barWidth !in 1..2 || spaceWidth !in 1..2) return null
             val bit = when {
-                barWidth == 1 && spaceWidth == 1 -> 0
-                barWidth == 1 && spaceWidth == 2 -> 1
-                barWidth == 2 && spaceWidth == 1 -> 2
-                barWidth == 2 && spaceWidth == 2 -> 3
+                barWidth == 1 && spaceWidth == 2 -> 0
+                barWidth == 2 && spaceWidth == 2 -> 1
+                barWidth == 1 && spaceWidth == 1 -> 2
+                barWidth == 2 && spaceWidth == 1 -> 3
                 else -> return null
             }
             value.add(bit)
