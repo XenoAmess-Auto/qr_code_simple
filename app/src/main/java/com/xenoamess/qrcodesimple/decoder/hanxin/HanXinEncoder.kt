@@ -39,7 +39,7 @@ object HanXinEncoder {
     private val MODE_CHARS = charArrayOf('n', 't', 'b', '1', '2', 'd', 'f')
 
     // Table B.1 - total codewords per version
-    private val TOTAL_CODEWORDS = intArrayOf(
+    internal val TOTAL_CODEWORDS = intArrayOf(
         25, 37, 50, 54, 69, 84, 100, 117, 136, 155,
         161, 181, 203, 225, 249, 273, 299, 325, 353, 381,
         411, 422, 453, 485, 518, 552, 587, 623, 660, 698,
@@ -52,7 +52,7 @@ object HanXinEncoder {
     )
 
     // Table B.1 - data codewords per ECC level [ecc-1][version-1]
-    private val DATA_CODEWORDS = arrayOf(
+    internal val DATA_CODEWORDS = arrayOf(
         intArrayOf(
             21, 31, 42, 46, 57, 70, 84, 99, 114, 131,
             135, 153, 171, 189, 209, 229, 251, 273, 297, 321,
@@ -100,7 +100,7 @@ object HanXinEncoder {
     )
 
     // Annex A - module parameters k, r, m
-    private val MODULE_K = intArrayOf(
+    internal val MODULE_K = intArrayOf(
         0, 0, 0, 14, 16, 16, 17, 18, 19, 20,
         14, 15, 16, 16, 17, 17, 18, 19, 20, 20,
         21, 16, 17, 17, 18, 18, 19, 19, 20, 20,
@@ -112,7 +112,7 @@ object HanXinEncoder {
         18, 18, 17, 17
     )
 
-    private val MODULE_R = intArrayOf(
+    internal val MODULE_R = intArrayOf(
         0, 0, 0, 15, 15, 17, 18, 19, 20, 21,
         15, 15, 15, 17, 17, 19, 19, 19, 19, 21,
         21, 17, 16, 18, 17, 19, 18, 20, 19, 21,
@@ -124,7 +124,7 @@ object HanXinEncoder {
         21, 23, 17, 19
     )
 
-    private val MODULE_M = intArrayOf(
+    internal val MODULE_M = intArrayOf(
         0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         2, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -138,7 +138,7 @@ object HanXinEncoder {
 
     // Table D.1 - RS block definitions flattened as (batchSize, dataLength, eccLength) triples
     // for each version and ECC level: index = (version - 1) * 36 + (eccLevel - 1) * 9 + group * 3
-    private val RS_TABLE_D1 = intArrayOf(
+    internal val RS_TABLE_D1 = intArrayOf(
         1, 21, 4, 0, 0, 0, 0, 0, 0,
         1, 17, 8, 0, 0, 0, 0, 0, 0,
         1, 13, 12, 0, 0, 0, 0, 0, 0,
@@ -1670,7 +1670,7 @@ object HanXinEncoder {
     // Reed-Solomon helper
     // -------------------------------------------------------------------------
 
-    private class ReedSolomon(private val primitive: Int, private val symbolSize: Int) {
+    internal class ReedSolomon(private val primitive: Int, private val symbolSize: Int) {
         private val fieldSize = 1 shl symbolSize
         private val alphaTo = IntArray(fieldSize)
         private val indexOf = IntArray(fieldSize)
@@ -1747,6 +1747,29 @@ object HanXinEncoder {
                 }
             }
             feedback.copyInto(ecc)
+        }
+
+        /**
+         * Verify that the Reed-Solomon syndromes of [data] are all zero.
+         *
+         * @param data array of data + ecc codewords
+         * @param dataLength number of data codewords
+         * @param numEcc number of ecc codewords
+         * @return true if no errors are detected
+         */
+        fun checkSyndromes(data: IntArray, dataLength: Int, numEcc: Int): Boolean {
+            val totalLength = dataLength + numEcc
+            for (i in 0 until numEcc) {
+                val rootExp = i + 1 // roots are alpha^1 .. alpha^numEcc
+                var sum = 0
+                for (j in 0 until totalLength) {
+                    if (data[j] == 0) continue
+                    val exp = (indexOf[data[j]] + rootExp * j) % (fieldSize - 1)
+                    sum = sum xor alphaTo[exp]
+                }
+                if (sum != 0) return false
+            }
+            return true
         }
     }
 }

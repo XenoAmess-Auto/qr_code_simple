@@ -122,4 +122,13 @@ class BarcodeGenerationRoundtripTest {
 
     @Test
     fun `roundtrip MaxiCode mode 4`() = roundtrip(BarcodeFormat.MAXICODE, "[)>>\u001E01\u001D961Z00004952\u001DUPSN\u001D410 E MAIN ST\u001DSTE\u001DROCHESTER\u001DNY\u001D")
+
+    @Test
+    fun `roundtrip Han Xin Code ASCII`() = roundtrip(BarcodeFormat.HAN_XIN, "Hello Han Xin")
+
+    @Test
+    fun `roundtrip Han Xin Code numeric`() = roundtrip(BarcodeFormat.HAN_XIN, "12345678901234567890")
+
+    @Test
+    fun `roundtrip Han Xin Code Chinese`() = roundtrip(BarcodeFormat.HAN_XIN, "汉信码")
 }

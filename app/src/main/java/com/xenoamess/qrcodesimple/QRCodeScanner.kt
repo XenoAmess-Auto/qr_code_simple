@@ -18,6 +18,7 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat as AppBarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.decoder.CustomLinearBarcodeScanner
 import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
+import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinDecoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -99,6 +100,7 @@ object QRCodeScanner {
         ZXING,
         ML_KIT,
         BOOFCV,
+        HAN_XIN,
         CUSTOM_LINEAR
     }
 
@@ -162,7 +164,21 @@ object QRCodeScanner {
             }
         }
 
-        // 5. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
+        // 5. 尝试 Han Xin Code
+        if (results.isEmpty()) {
+            try {
+                val hanXinResult = HanXinDecoder.decode(bitmap)
+                if (hanXinResult != null) {
+                    results.add(ScanResult(hanXinResult.text, Library.HAN_XIN, BarcodeFormat.QR_CODE))
+                    Log.d(TAG, "Han Xin decoder detected 1 code")
+                    return@withContext results
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Han Xin decoder scan failed", e)
+            }
+        }
+
+        // 6. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
         if (results.isEmpty()) {
             try {
                 val customResults = CustomLinearBarcodeScanner.scan(bitmap)
@@ -429,7 +445,18 @@ object QRCodeScanner {
             Log.e(TAG, "BoofCV Micro QR scan failed", e)
         }
 
-        // 5. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
+        // 5. 尝试 Han Xin Code
+        try {
+            val hanXinResult = HanXinDecoder.decode(bitmap)
+            if (hanXinResult != null) {
+                Log.d(TAG, "Han Xin decoder detected 1 code")
+                return listOf(ScanResult(hanXinResult.text, Library.HAN_XIN, BarcodeFormat.QR_CODE))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Han Xin decoder scan failed", e)
+        }
+
+        // 6. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
         try {
             val customResults = CustomLinearBarcodeScanner.scan(bitmap)
             if (customResults.isNotEmpty()) {
