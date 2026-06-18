@@ -180,6 +180,20 @@ class HanXinDecoderRobustnessTest {
         assertDecodes(perspective, content)
     }
 
+    @Test
+    fun `decode with salt and pepper noise`() {
+        val content = "1234567890"
+        val bitmap = generate(content, 600, 600)
+        assertDecodes(addSaltAndPepper(bitmap, fraction = 0.005), content)
+    }
+
+    @Test
+    fun `decode with small bit flips on axis aligned symbol`() {
+        val content = "Hello Han Xin"
+        val bitmap = generate(content, 600, 600)
+        assertDecodes(addSaltAndPepper(bitmap, fraction = 0.001), content)
+    }
+
     // -------------------------------------------------------------------------
     // Bitmap transforms
     // -------------------------------------------------------------------------
@@ -338,22 +352,21 @@ class HanXinDecoderRobustnessTest {
         return x
     }
 
-    private fun inverse3x3(m: DoubleArray): DoubleArray {
-        val det = m[0] * (m[4] * m[8] - m[5] * m[7]) -
-                m[1] * (m[3] * m[8] - m[5] * m[6]) +
-                m[2] * (m[3] * m[7] - m[4] * m[6])
-        if (kotlin.math.abs(det) < 1e-10) return m.copyOf()
-        val inv = 1.0 / det
-        return doubleArrayOf(
-            (m[4] * m[8] - m[5] * m[7]) * inv,
-            (m[2] * m[7] - m[1] * m[8]) * inv,
-            (m[1] * m[5] - m[2] * m[4]) * inv,
-            (m[5] * m[6] - m[3] * m[8]) * inv,
-            (m[0] * m[8] - m[2] * m[6]) * inv,
-            (m[2] * m[3] - m[0] * m[5]) * inv,
-            (m[3] * m[7] - m[4] * m[6]) * inv,
-            (m[1] * m[6] - m[0] * m[7]) * inv,
-            (m[0] * m[4] - m[1] * m[3]) * inv
-        )
+    private fun addSaltAndPepper(bitmap: Bitmap, fraction: Double): Bitmap {
+        val result = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        for (y in 0 until bitmap.height) {
+            for (x in 0 until bitmap.width) {
+                result.setPixel(x, y, bitmap.getPixel(x, y))
+            }
+        }
+        val random = java.util.Random(42)
+        val count = (bitmap.width * bitmap.height * fraction).toInt()
+        repeat(count) {
+            val x = random.nextInt(bitmap.width)
+            val y = random.nextInt(bitmap.height)
+            val color = if (random.nextBoolean()) 0xFF000000.toInt() else 0xFFFFFFFF.toInt()
+            result.setPixel(x, y, color)
+        }
+        return result
     }
 }

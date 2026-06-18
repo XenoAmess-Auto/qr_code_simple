@@ -1750,6 +1750,130 @@ object HanXinEncoder {
         }
 
         /**
+         * Calculate the syndromes of [data] using roots alpha^1 .. alpha^numEcc.
+         */
+        fun calculateSyndromes(data: IntArray, totalLength: Int, numEcc: Int): IntArray {
+            val syndromes = IntArray(numEcc)
+            for (i in 0 until numEcc) {
+                val rootExp = i + 1
+                var sum = 0
+                for (j in 0 until totalLength) {
+                    if (data[j] == 0) continue
+                    val exp = (indexOf[data[j]] + rootExp * j) % (fieldSize - 1)
+                    sum = sum xor alphaTo[exp]
+                }
+                syndromes[i] = sum
+            }
+            return syndromes
+        }
+
+        /**
+         * Berlekamp-Massey algorithm. Returns the error-locator polynomial sigma
+         * and error-evaluator polynomial omega.
+         */
+        fun berlekampMassey(syndromes: IntArray, numEcc: Int): Pair<IntArray, IntArray> {
+            val sigma = IntArray(numEcc + 1) { 0 }
+            var b = IntArray(numEcc + 1) { 0 }
+            sigma[0] = 1
+            b[0] = 1
+            var l = 0
+            var m = 1
+            var bLog = 0
+
+            for (n in 0 until numEcc) {
+                var discrepancy = syndromes[n]
+                for (i in 1..l) {
+                    if (sigma[i] == 0) continue
+                    val exp = (indexOf[sigma[i]] + indexOf[syndromes[n - i]]) % (fieldSize - 1)
+                    discrepancy = discrepancy xor alphaTo[exp]
+                }
+                if (discrepancy == 0) {
+                    m++
+                } else if (2 * l <= n) {
+                    val t = sigma.copyOf()
+                    val discLog = indexOf[discrepancy]
+                    for (i in 0 until numEcc + 1) {
+                        if (b[i] == 0) continue
+                        val exp = (discLog + (fieldSize - 1) - bLog + indexOf[b[i]]) % (fieldSize - 1)
+                        sigma[i + m] = sigma[i + m] xor alphaTo[exp]
+                    }
+                    l = n + 1 - l
+                    b = t
+                    bLog = discLog
+                    m = 1
+                } else {
+                    val discLog = indexOf[discrepancy]
+                    for (i in 0 until numEcc + 1) {
+                        if (b[i] == 0) continue
+                        val exp = (discLog + (fieldSize - 1) - bLog + indexOf[b[i]]) % (fieldSize - 1)
+                        sigma[i + m] = sigma[i + m] xor alphaTo[exp]
+                    }
+                    m++
+                }
+            }
+
+            // Compute omega = sigma * syndromes mod x^numEcc
+            val omega = IntArray(numEcc)
+            for (i in 0 until numEcc) {
+                var sum = 0
+                for (j in 0..i) {
+                    if (sigma[j] == 0 || syndromes[i - j] == 0) continue
+                    val exp = (indexOf[sigma[j]] + indexOf[syndromes[i - j]]) % (fieldSize - 1)
+                    sum = sum xor alphaTo[exp]
+                }
+                omega[i] = sum
+            }
+            return sigma to omega
+        }
+
+        /**
+         * Find the roots of the error-locator polynomial [sigma] by evaluating it
+         * at alpha^0 .. alpha^(totalLength-1). Returns the logarithmic error
+         * locations (powers of alpha) or an empty list if the polynomial degree
+         * does not match the number of roots found.
+         */
+        fun chienSearch(sigma: IntArray, totalLength: Int): List<Int> {
+            val roots = mutableListOf<Int>()
+            val degree = sigma.indexOfLast { it != 0 }
+            for (i in 0 until totalLength) {
+                var sum = sigma[0]
+                for (j in 1 until sigma.size) {
+                    if (sigma[j] == 0) continue
+                    val exp = (indexOf[sigma[j]] + j * i) % (fieldSize - 1)
+                    sum = sum xor alphaTo[exp]
+                }
+                if (sum == 0) {
+                    roots.add(i)
+                }
+            }
+            if (roots.size != degree) return emptyList()
+            return roots
+        }
+
+        /**
+         * Compute the error magnitude at logarithmic location [loc] using
+         * Forney's formula.
+         */
+        fun forney(sigma: IntArray, omega: IntArray, loc: Int): Int {
+            val xiInv = alphaTo[(fieldSize - 1 - loc) % (fieldSize - 1)]
+            var omegaVal = 0
+            for (i in 0 until omega.size) {
+                if (omega[i] == 0) continue
+                val exp = (indexOf[omega[i]] + i * loc) % (fieldSize - 1)
+                omegaVal = omegaVal xor alphaTo[exp]
+            }
+            var sigmaDerivative = 0
+            for (i in 1 until sigma.size step 2) {
+                if (sigma[i] == 0) continue
+                val exp = (indexOf[sigma[i]] + (i - 1) * loc) % (fieldSize - 1)
+                sigmaDerivative = sigmaDerivative xor alphaTo[exp]
+            }
+            if (sigmaDerivative == 0) return 0
+            val errLog = (indexOf[omegaVal] + indexOf[xiInv] + (fieldSize - 1) - indexOf[sigmaDerivative]) % (fieldSize - 1)
+            return alphaTo[errLog]
+        }
+
+        /**
          * Verify that the Reed-Solomon syndromes of [data] are all zero.
          *
          * @param data array of data + ecc codewords
@@ -1759,17 +1883,7 @@ object HanXinEncoder {
          */
         fun checkSyndromes(data: IntArray, dataLength: Int, numEcc: Int): Boolean {
             val totalLength = dataLength + numEcc
-            for (i in 0 until numEcc) {
-                val rootExp = i + 1 // roots are alpha^1 .. alpha^numEcc
-                var sum = 0
-                for (j in 0 until totalLength) {
-                    if (data[j] == 0) continue
-                    val exp = (indexOf[data[j]] + rootExp * j) % (fieldSize - 1)
-                    sum = sum xor alphaTo[exp]
-                }
-                if (sum != 0) return false
-            }
-            return true
+            return calculateSyndromes(data, totalLength, numEcc).all { it == 0 }
         }
     }
 }

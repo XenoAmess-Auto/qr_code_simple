@@ -453,10 +453,85 @@ object HanXinDecoder {
 
         val dataCodewords = HanXinEncoder.DATA_CODEWORDS[eccLevel - 1][version - 1]
 
-        // For clean generated images syndromes are zero; extract data directly.
-        val dataStream = fullStream.copyOf(dataCodewords)
-        val text = parseDataStream(dataStream, dataCodewords) ?: return null
+        // Fast path for clean generated symbols: no errors to correct.
+        val direct = fullStream.copyOf(dataCodewords)
+        val directText = parseDataStream(direct, dataCodewords)
+        if (directText != null) return DecodeResult(directText, version, eccLevel, mask)
+
+        // Attempt Reed-Solomon error correction.
+        val corrected = correctErrors(fullStream, dataCodewords, version, eccLevel)
+            ?: return null
+        val text = parseDataStream(corrected, dataCodewords) ?: return null
         return DecodeResult(text, version, eccLevel, mask)
+    }
+
+    /**
+     * Apply Reed-Solomon error correction to the deinterleaved [fullStream].
+     * Returns the corrected data codewords, or null if correction fails.
+     */
+    private fun correctErrors(
+        fullStream: IntArray,
+        dataCodewords: Int,
+        version: Int,
+        eccLevel: Int
+    ): IntArray? {
+        val tablePos = (version - 1) * 36 + (eccLevel - 1) * 9
+        val output = IntArray(dataCodewords) { 0 }
+        var inputPos = 0
+        var outputPos = 0
+        val rs8 = HanXinEncoder.ReedSolomon(0x163, 8)
+
+        for (group in 0 until 3) {
+            val batchSize = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3]
+            val dataLength = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3 + 1]
+            val eccLength = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3 + 2]
+            if (batchSize == 0) continue
+
+            rs8.initCode(eccLength, 1)
+            repeat(batchSize) {
+                val block = IntArray(dataLength + eccLength) { i ->
+                    fullStream[inputPos + i]
+                }
+                inputPos += dataLength + eccLength
+
+                if (!rsDecode(rs8, block, dataLength, eccLength)) return null
+
+                for (i in 0 until dataLength) {
+                    if (outputPos >= dataCodewords) return null
+                    output[outputPos++] = block[i]
+                }
+            }
+        }
+        return output
+    }
+
+    /**
+     * Decode a Reed-Solomon block in place. Returns true on success.
+     * Uses the Berlekamp-Massey algorithm and Chien search.
+     */
+    private fun rsDecode(
+        rs: HanXinEncoder.ReedSolomon,
+        block: IntArray,
+        dataLength: Int,
+        eccLength: Int
+    ): Boolean {
+        val totalLength = dataLength + eccLength
+        val syndromes = rs.calculateSyndromes(block, totalLength, eccLength)
+        if (syndromes.all { it == 0 }) return true
+
+        val (sigma, omega) = rs.berlekampMassey(syndromes, eccLength)
+        val errorLocations = rs.chienSearch(sigma, totalLength)
+        if (errorLocations.isEmpty()) return false
+
+        for (loc in errorLocations) {
+            val pos = totalLength - 1 - loc
+            if (pos < 0 || pos >= totalLength) return false
+            val err = rs.forney(sigma, omega, loc)
+            block[pos] = block[pos] xor err
+        }
+
+        val recalculated = rs.calculateSyndromes(block, totalLength, eccLength)
+        return recalculated.all { it == 0 }
     }
 
     // -------------------------------------------------------------------------
