@@ -5,7 +5,7 @@
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
 - 当前版本：`0.1.6`
-- 目标：支持 21 种条码格式的扫描与生成。
+- 目标：支持 22 种条码格式的扫描与生成。
 
 ## 2. 技术栈
 
@@ -24,11 +24,11 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 ## 3. 支持格式总览
 
-项目当前支持 **21 种条码格式** 的扫描与生成。详见 `README.md` 和 `README_CN.md` 中的格式表格。
+项目当前支持 **22 种条码格式** 的扫描与生成。详见 `README.md` 和 `README_CN.md` 中的格式表格。
 
 | 类别 | 扫描支持 | 生成支持 |
 |------|:------:|:------:|
-| QR Code / Data Matrix / Aztec / PDF417 | ✅ | ✅ |
+| QR Code / Data Matrix / Aztec / PDF417 / Han Xin Code | ✅ | ✅ |
 | Code 128 / Code 39 / Code 93 / EAN-13 / EAN-8 / UPC-A / UPC-E / Codabar / ITF | ✅ | ✅ |
 | UPC/EAN Extension / RSS-14 / RSS Expanded / MaxiCode / Micro QR / Pharmacode / Plessey / MSI Plessey / Telepen | ✅ | ✅ |
 
@@ -57,7 +57,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 2. ZXing MultiFormatReader（17 种格式）
 3. ML Kit（13 种格式）
 4. BoofCV MicroQrCodeDetector（Micro QR）
-5. CustomLinearBarcodeScanner（Pharmacode / Plessey / MSI Plessey / Telepen）
+5. HanXinDecoder（Han Xin Code / 汉信码）
+6. CustomLinearBarcodeScanner（Pharmacode / Plessey / MSI Plessey / Telepen）
 
 ## 6. 文件索引
 
@@ -72,6 +73,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `decoder/PlesseyDecoder.kt` | Plessey 解码器 |
 | `decoder/TelepenDecoder.kt` | Telepen 解码器 |
 | `decoder/MicroQrCodeScanner.kt` | Micro QR 扫描器 |
+| `decoder/hanxin/HanXinDecoder.kt` | Han Xin Code 扫描器 |
 | `data/HistoryItem.kt` | 历史记录实体与枚举 |
 | `data/HistoryRepository.kt` | 历史记录仓库 |
 | `GenerateFragment.kt` | 生成界面 Fragment |

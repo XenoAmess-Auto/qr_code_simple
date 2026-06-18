@@ -519,9 +519,4 @@ object HanXinDecoder {
             null
         }
     }
-
-    // Small helper so output() can be called as a statement
-    private fun MutableList<Int>.output(value: Int) {
-        add(value)
-    }
 }

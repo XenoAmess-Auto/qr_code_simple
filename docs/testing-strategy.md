@@ -2,7 +2,7 @@
 
 ## 1. 测试目标
 
-- 所有 21 种条码格式都能成功生成。
+- 所有 22 种条码格式都能成功生成。
 - 生成的条码能被本项目自身扫描器准确识别。
 - 非法输入能被正确校验拒绝。
 
@@ -39,7 +39,7 @@ fun testGenerateAndScanQRCode() {
 ```
 app/src/test/java/com/xenoamess/qrcodesimple/
 ├── generator/
-│   ├── BarcodeGenerationRoundtripTest.kt   # 全部 21 种格式 roundtrip
+│   ├── BarcodeGenerationRoundtripTest.kt   # 全部 22 种格式 roundtrip
 │   ├── MicroQrGenerationTest.kt            # Micro QR 容量边界
 │   ├── CustomLinearGenerationTest.kt       # 自定义一维码
 │   ├── Gs1DatabarGenerationTest.kt         # RSS-14 / RSS Expanded

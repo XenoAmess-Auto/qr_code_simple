@@ -1,6 +1,6 @@
 # QR Code Simple - 自定义一维码解码器契约
 
-本文档记录 Pharmacode、Plessey、MSI Plessey、Telepen 四种自定义一维码的解码规则，用于指导生成器实现。
+本文档记录 Pharmacode、Plessey、MSI Plessey、Telepen 四种自定义一维码以及 Han Xin Code（汉信码）的解码规则，用于指导生成器实现。
 
 ---
 
@@ -94,3 +94,24 @@
 - 模块宽度至少 2px，避免舍入失真。
 - 一维码高度通常为 80-150px。
 - 使用 `BarcodeScanUtils.extractBars(bitmap)` 读取中间行进行解码验证。
+
+---
+
+## 6. Han Xin Code（汉信码）
+
+### 编码规则
+- 基于 ISO/IEC 20830:2021，支持 Numeric、Text、Byte、Common Chinese Region 1/2、GB18030 双字节/四字节及 ECI 模式。
+- 符号尺寸：`version × 2 + 21` 个模块，版本范围 1..84。
+- 四个 7×7 寻像图位于四角；版本 1..3 无对齐图案，版本 ≥4 引入 assistant/main 对齐图案。
+- 数据按行优先顺序填充到非功能区模块，再经 picket-fence（周期 13）交织和 Reed-Solomon 纠错编码。
+- 使用 4 种掩码图案之一对数据区进行 XOR 掩码，掩码信息以 GF(2⁴) Reed-Solomon 保护。
+
+### 解码规则（新增）
+- 对生成/轴对齐图像：二值化、定位寻像图并采样到模块网格。
+- 读取四角功能信息，解析版本、纠错等级和掩码。
+- 逆掩码后按行优先顺序提取数据码字，反交织得到数据流。
+- 解析 ECI 头部和模式段，转换为 GB18030/UTF-8 字符串。
+
+### 参考实现
+- `decoder/hanxin/HanXinEncoder.kt`
+- `decoder/hanxin/HanXinDecoder.kt`

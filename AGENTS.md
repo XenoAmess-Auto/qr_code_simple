@@ -45,7 +45,8 @@ Robolectric's `Canvas.drawColor`/`drawRect`/`drawBitmap` produces bitmaps that Z
 2. ZXing MultiFormatReader
 3. ML Kit
 4. BoofCV Micro QR detector
-5. Custom linear decoders (Pharmacode, Plessey, MSI Plessey, Telepen)
+5. HanXinDecoder (Han Xin Code / 汉信码)
+6. Custom linear decoders (Pharmacode, Plessey, MSI Plessey, Telepen)
 
 If you add a format that ZXing/ML Kit cannot read, add it here.
 
@@ -56,6 +57,7 @@ At minimum update:
 - `data/HistoryType.kt` enum
 - `BarcodeGenerator.generate()` + `validateContent()`
 - `QRCodeScanner.toHistoryType()` (app format → history type)
+- `decoder/hanxin/HanXinDecoder.kt` for Han Xin Code
 - `GenerateFragment.kt` format selector mapping
 - `HistoryAdapter.kt` / `ShareTemplateGenerator.kt` if it needs display icons
 - Roundtrip test in `app/src/test/java/.../generator/BarcodeGenerationRoundtripTest.kt`

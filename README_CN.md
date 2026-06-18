@@ -45,7 +45,7 @@
 
 ## 支持的条码格式
 
-应用当前支持 **21 种条码格式** 扫描，其中 13 种支持生成。
+应用当前支持 **22 种条码格式** 扫描与生成。
 
 ### 二维码
 
@@ -55,6 +55,7 @@
 | **Data Matrix** | ✅ | ✅ | 可在极小空间存储数据，常用于电子元器件和医疗器械标识。 |
 | **Aztec Code** | ✅ | ✅ | 无需静音区即可识别，常用于火车票、登机牌等场景。 |
 | **PDF417** | ✅ | ✅ | 堆叠式线性条码，可存储大量文本与二进制数据，用于身份证、驾照和快递面单。 |
+| **Han Xin Code** | ✅ | ✅ | 汉信码，支持中文与 ECI 的国产二维矩阵码。 |
 
 ### 一维条码
 
@@ -70,18 +71,20 @@
 | **Codabar** | ✅ | ✅ | 编码数字和少量符号，常用于图书馆和血库。 |
 | **ITF** | ✅ | ✅ | 交叉 25 码，纯数字条码，常用于纸箱包装和物流外箱。 |
 
-### 仅扫描支持
+### 其他支持格式
 
-| 格式 | 扫描 | 简介 |
-|------|:----:|------|
-| **UPC/EAN Extension** | ✅ | UPC/EAN 的 2 位或 5 位扩展码，作为主码的附加信息。 |
-| **RSS-14 / GS1 DataBar** | ✅ | GS1 标准条码，用于替代传统 UPC/EAN，常见于零售生鲜和医疗。 |
-| **RSS Expanded** | ✅ | RSS-14 的扩展版，可变长度字母数字，用于生产日期、批次号、重量等。 |
-| **MaxiCode** | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
-| **Micro QR Code** | ✅ | 微型 QR 码，用于极小空间的标识。 |
-| **Pharmacode** | ✅ | 药品包装专用的一维码。 |
-| **Plessey Code / MSI Plessey** | ✅ | 图书馆和库存管理中常用的条码。 |
-| **Telepen** | ✅ | 图书馆和学术机构常用的条码。 |
+以下格式同样支持扫描与生成：
+
+| 格式 | 扫描 | 生成 | 简介 |
+|------|:----:|:----:|------|
+| **UPC/EAN Extension** | ✅ | ✅ | UPC/EAN 的 2 位或 5 位扩展码，作为主码的附加信息。 |
+| **RSS-14 / GS1 DataBar** | ✅ | ✅ | GS1 标准条码，用于替代传统 UPC/EAN，常见于零售生鲜和医疗。 |
+| **RSS Expanded** | ✅ | ✅ | RSS-14 的扩展版，可变长度字母数字，用于生产日期、批次号、重量等。 |
+| **MaxiCode** | ✅ | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
+| **Micro QR Code** | ✅ | ✅ | 微型 QR 码，用于极小空间的标识。 |
+| **Pharmacode** | ✅ | ✅ | 药品包装专用的一维码。 |
+| **Plessey Code / MSI Plessey** | ✅ | ✅ | 图书馆和库存管理中常用的条码。 |
+| **Telepen** | ✅ | ✅ | 图书馆和学术机构常用的条码。 |
 
 ## 技术栈
 
@@ -103,16 +106,16 @@
 ## 构建
 
 ### 环境要求
-- Java 17
-- Android SDK (compileSdk 34)
-- Gradle 8.2
+- Java 21
+- Android SDK (compileSdk 35)
+- Gradle 9.5.1
 
 ### 本地构建
 
 ```bash
-export JAVA_HOME=$HOME/opt/jdk-17.0.12
+export JAVA_HOME=$HOME/opt/jdk-21.0.7+6
 export ANDROID_HOME=$HOME/opt/android-sdk
-./gradlew assembleDebug --no-daemon
+./gradlew :app:assembleDebug --no-daemon
 ```
 
 ### 持续集成
@@ -124,7 +127,13 @@ GitHub Actions 在每次推送时自动构建 APK。
 app/src/main/java/com/xenoamess/qrcodesimple/
 ├── MainActivity.kt              # 主活动，含 TabLayout + ViewPager2
 ├── QRCodeApp.kt                 # 应用类
-├── QRCodeScanner.kt             # 统一扫描器（WeChatQRCode + ZXing + ML Kit）
+├── QRCodeScanner.kt             # 统一扫描器（WeChatQRCode + ZXing + ML Kit + Han Xin）
+├── decoder/                     # 自定义解码器
+│   ├── CustomLinearBarcodeScanner.kt
+│   ├── MicroQrCodeScanner.kt
+│   └── hanxin/
+│       ├── HanXinEncoder.kt
+│       └── HanXinDecoder.kt
 ├── adapter/
 │   └── HistoryAdapter.kt        # 历史列表适配器
 ├── data/

@@ -12,7 +12,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 ### Features
 
 #### Core Features
-- ✅ **Full Barcode Support** - Supports 21 barcode formats for scanning, including 13 formats for generation (QR Code, Data Matrix, Aztec, PDF417, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, and more)
+- ✅ **Full Barcode Support** - Supports 22 barcode formats for scanning and generation (QR Code, Data Matrix, Aztec, PDF417, Han Xin Code, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, and more)
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URL, geo-location with one-click actions
 - ✅ **Batch Generation** - Import CSV/Excel data to generate QR codes in bulk, support ZIP export
 - ✅ **Style Customization** - Foreground/background colors, center logo, rounded/dot styles
@@ -57,7 +57,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 ### Supported Barcode Formats
 
-The app supports **21 barcode formats** for scanning, including **21 formats for generation**.
+The app supports **22 barcode formats** for scanning, including **22 formats for generation**.
 
 #### 2D Matrix Codes
 
@@ -69,6 +69,7 @@ The app supports **21 barcode formats** for scanning, including **21 formats for
 | **PDF417** | ✅ | ✅ | Stacked linear barcode capable of storing large amounts of text and binary data, used on IDs and shipping labels. |
 | **MaxiCode** | ✅ | ✅ | Fixed-size 2D code developed by UPS, used in international logistics and air freight. |
 | **Micro QR Code** | ✅ | ✅ | Miniaturized QR code for extremely small marking spaces. |
+| **Han Xin Code** | ✅ | ✅ | Chinese 2D matrix code (GB18030) supporting Chinese characters and ECI. |
 
 #### 1D/Linear Barcodes
 
@@ -121,9 +122,9 @@ The app supports **21 barcode formats** for scanning, including **21 formats for
 ### Build Requirements
 
 - Android Studio Hedgehog (2023.1.1) or higher
-- JDK 17
-- Android SDK 34
-- Gradle 8.2
+- JDK 21
+- Android SDK 35
+- Gradle 9.5.1
 
 ### Build Instructions
 
@@ -136,7 +137,7 @@ cd qr_code_simple
 ./gradlew assembleDebug
 
 # Run tests
-./gradlew test
+./gradlew :app:testDebugUnitTest
 
 # Install to device
 ./gradlew installDebug
@@ -158,6 +159,12 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 │   ├── ScanImageActivity.kt     # Image scan
 │   ├── GenerateActivity.kt      # QR generation
 │   └── HistoryFragment.kt       # History
+├── decoder/                     # Custom decoders
+│   ├── CustomLinearBarcodeScanner.kt
+│   ├── MicroQrCodeScanner.kt
+│   └── hanxin/
+│       ├── HanXinEncoder.kt
+│       └── HanXinDecoder.kt
 └── util/                        # Utils
     ├── BarcodeGenerator.kt      # Barcode generator
     ├── ContentParser.kt         # Content parser
@@ -183,7 +190,7 @@ Issues and Pull Requests welcome!
 ### 功能特性
 
 #### 核心功能
-- ✅ **全条码支持** - 支持 21 种条码格式扫描，其中 13 种支持生成（QR Code、Data Matrix、Aztec、PDF417、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF 等）
+- ✅ **全条码支持** - 支持 22 种条码格式扫描与生成（QR Code、Data Matrix、Aztec、PDF417、汉信码、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF 等）
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等格式，提供一键操作
 - ✅ **批量生成** - 从 CSV/Excel 导入数据批量生成二维码，支持 ZIP 导出
 - ✅ **样式定制** - 前景色/背景色自定义、中心 Logo、圆角/点阵样式
@@ -228,7 +235,7 @@ Issues and Pull Requests welcome!
 
 ### 支持的条码格式
 
-应用当前支持 **21 种条码格式** 扫描，其中 **21 种支持生成**。
+应用当前支持 **22 种条码格式** 扫描，其中 **22 种支持生成**。
 
 #### 二维码
 
@@ -240,6 +247,7 @@ Issues and Pull Requests welcome!
 | **PDF417** | ✅ | ✅ | 堆叠式线性条码，可存储大量文本与二进制数据，用于身份证、驾照和快递面单。 |
 | **MaxiCode** | ✅ | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
 | **Micro QR Code** | ✅ | ✅ | 微型 QR 码，用于极小空间的标识。 |
+| **Han Xin Code** | ✅ | ✅ | 汉信码，支持中文与 ECI 的国产二维矩阵码。 |
 
 #### 一维条码
 
@@ -292,9 +300,9 @@ Issues and Pull Requests welcome!
 ### 构建要求
 
 - Android Studio Hedgehog (2023.1.1) 或更高版本
-- JDK 17
-- Android SDK 34
-- Gradle 8.2
+- JDK 21
+- Android SDK 35
+- Gradle 9.5.1
 
 ### 构建说明
 

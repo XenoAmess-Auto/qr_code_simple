@@ -19,7 +19,8 @@ object QRCodeScanner {
 2. **ZXing MultiFormatReader**：覆盖最广，支持 17 种格式。
 3. **ML Kit**：设备端推理速度最快，支持 13 种格式。
 4. **BoofCV MicroQrCodeDetector**：Micro QR Code。
-5. **CustomLinearBarcodeScanner**：Pharmacode、Plessey、MSI Plessey、Telepen。
+5. **HanXinDecoder**：Han Xin Code / 汉信码。
+6. **CustomLinearBarcodeScanner**：Pharmacode、Plessey、MSI Plessey、Telepen。
 
 ## 3. 各引擎输入
 
@@ -29,6 +30,7 @@ object QRCodeScanner {
 | ZXing | `Bitmap.getPixels()` → `RGBLuminanceSource` → `HybridBinarizer` / `GlobalHistogramBinarizer` | 灰度化、二值化 |
 | ML Kit | `InputImage.fromBitmap(bitmap, 0)` | 内部处理 |
 | BoofCV | `ConvertBitmap.bitmapToGray()` → `GrayU8` | 灰度化 |
+| HanXinDecoder | `Bitmap.getPixel()` → 灰度 → 二值化 | 内部二值化与网格采样 |
 | Custom Linear | `BarcodeScanUtils.extractBars(bitmap)` | 中间行灰度阈值 |
 
 ## 4. 自定义一维码预处理
@@ -82,6 +84,7 @@ fun normalizeWidths(groups: List<Pair<Boolean, Int>>): List<Pair<Boolean, Int>> 
 - MAXICODE → MAXICODE
 - MICRO_QR → MICRO_QR
 - UPC_EAN_EXTENSION → UPC_EAN_EXTENSION
+- HAN_XIN → HAN_XIN
 - PHARMACODE → PHARMACODE
 - PLESSEY → PLESSEY
 - MSI_PLESSEY → MSI_PLESSEY
