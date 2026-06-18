@@ -101,14 +101,67 @@ class HanXinEncoderTest {
     }
 
     @Test
-    fun `Reed-Solomon GF 2^8 roundtrip`() {
+    fun `Reed-Solomon GF 2^8 corrects errors`() {
         val rs8 = HanXinEncoder.ReedSolomon(0x163, 8)
-        rs8.initCode(4, 1)
-        val data = intArrayOf(1, 5, 13, 20)
-        val ecc = IntArray(4)
-        rs8.encode(data, 4, ecc)
+        rs8.initCode(8, 1)
+        val data = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
+        val ecc = IntArray(8)
+        rs8.encode(data, data.size, ecc)
         val codeword = data + ecc
-        assertTrue(rs8.checkSyndromes(codeword, 4, 4), "Syndromes should be zero after encode")
+
+        // Corrupt three data bytes.
+        codeword[0] = codeword[0] xor 0xFF
+        codeword[3] = codeword[3] xor 0xAA
+        codeword[7] = codeword[7] xor 0x55
+
+        // Verify syndromes are non-zero.
+        val syndromes = rs8.calculateSyndromes(codeword, codeword.size, 8)
+        assertTrue(syndromes.any { it != 0 }, "Corrupted codeword should have non-zero syndromes")
+
+        // Decode in place and verify correction.
+        val corrected = codeword.copyOf()
+        val (sigma, omega) = rs8.berlekampMassey(syndromes, 8)
+        val locations = rs8.chienSearch(sigma, corrected.size)
+        assertEquals(3, locations.size, "Should find three error locations")
+        for (loc in locations) {
+            val pos = loc
+            val err = rs8.forney(sigma, omega, loc)
+            corrected[pos] = corrected[pos] xor err
+        }
+        assertTrue(rs8.checkSyndromes(corrected, data.size, 8), "Corrected codeword should have zero syndromes")
+        for (i in data.indices) {
+            assertEquals(data[i], corrected[i], "Data byte $i should be restored")
+        }
+    }
+
+    @Test
+    fun `Reed-Solomon GF 2^8 corrects many errors`() {
+        val rs8 = HanXinEncoder.ReedSolomon(0x163, 8)
+        rs8.initCode(22, 1)
+        val data = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)
+        val ecc = IntArray(22)
+        rs8.encode(data, data.size, ecc)
+        val codeword = data + ecc
+
+        // Corrupt eight data bytes.
+        val errors = intArrayOf(0, 2, 5, 7, 10, 12, 15, 19)
+        for (pos in errors) {
+            codeword[pos] = codeword[pos] xor ((pos * 17 + 31) and 0xFF)
+        }
+
+        val corrected = codeword.copyOf()
+        val (sigma, omega) = rs8.berlekampMassey(rs8.calculateSyndromes(codeword, codeword.size, 22), 22)
+        val locations = rs8.chienSearch(sigma, corrected.size)
+        assertEquals(errors.size, locations.size, "Should find all error locations")
+        for (loc in locations) {
+            val pos = loc
+            val err = rs8.forney(sigma, omega, loc)
+            corrected[pos] = corrected[pos] xor err
+        }
+        assertTrue(rs8.checkSyndromes(corrected, data.size, 22), "Corrected codeword should have zero syndromes")
+        for (i in data.indices) {
+            assertEquals(data[i], corrected[i], "Data byte $i should be restored")
+        }
     }
 
     @Test

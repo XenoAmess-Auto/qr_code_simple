@@ -1794,7 +1794,6 @@ object HanXinEncoder {
             b[0] = 1
             var l = 0
             var m = 1
-            var bLog = 0
 
             for (n in 0 until numEcc) {
                 var discrepancy = syndromes[n]
@@ -1805,26 +1804,25 @@ object HanXinEncoder {
                 }
                 if (discrepancy == 0) {
                     m++
-                } else if (2 * l <= n) {
+                } else {
                     val t = sigma.copyOf()
                     val discLog = indexOf[discrepancy]
-                    for (i in 0 until numEcc + 1) {
+                    for (i in 0 until numEcc + 1 - m) {
                         if (b[i] == 0) continue
-                        val exp = (discLog + (fieldSize - 1) - bLog + indexOf[b[i]]) % (fieldSize - 1)
+                        val exp = (discLog + indexOf[b[i]]) % (fieldSize - 1)
                         sigma[i + m] = sigma[i + m] xor alphaTo[exp]
                     }
-                    l = n + 1 - l
-                    b = t
-                    bLog = discLog
-                    m = 1
-                } else {
-                    val discLog = indexOf[discrepancy]
-                    for (i in 0 until numEcc + 1) {
-                        if (b[i] == 0) continue
-                        val exp = (discLog + (fieldSize - 1) - bLog + indexOf[b[i]]) % (fieldSize - 1)
-                        sigma[i + m] = sigma[i + m] xor alphaTo[exp]
+                    if (2 * l <= n) {
+                        l = n + 1 - l
+                        // b = t / discrepancy so that b[0] stays 1
+                        val invLog = (fieldSize - 1 - discLog) % (fieldSize - 1)
+                        b = IntArray(numEcc + 1) { j ->
+                            if (t[j] == 0) 0 else alphaTo[(indexOf[t[j]] + invLog) % (fieldSize - 1)]
+                        }
+                        m = 1
+                    } else {
+                        m++
                     }
-                    m++
                 }
             }
 
@@ -1832,7 +1830,7 @@ object HanXinEncoder {
             val omega = IntArray(numEcc)
             for (i in 0 until numEcc) {
                 var sum = 0
-                for (j in 0..i) {
+                for (j in 0..minOf(i, sigma.indexOfLast { it != 0 })) {
                     if (sigma[j] == 0 || syndromes[i - j] == 0) continue
                     val exp = (indexOf[sigma[j]] + indexOf[syndromes[i - j]]) % (fieldSize - 1)
                     sum = sum xor alphaTo[exp]
@@ -1844,18 +1842,18 @@ object HanXinEncoder {
 
         /**
          * Find the roots of the error-locator polynomial [sigma] by evaluating it
-         * at alpha^0 .. alpha^(totalLength-1). Returns the logarithmic error
-         * locations (powers of alpha) or an empty list if the polynomial degree
-         * does not match the number of roots found.
+         * at alpha^0, alpha^{-1}, ..., alpha^{-(totalLength-1)}. Returns the
+         * codeword indices where errors occurred.
          */
         fun chienSearch(sigma: IntArray, totalLength: Int): List<Int> {
             val roots = mutableListOf<Int>()
             val degree = sigma.indexOfLast { it != 0 }
             for (i in 0 until totalLength) {
                 var sum = sigma[0]
+                val xLog = (fieldSize - 1 - i) % (fieldSize - 1)
                 for (j in 1 until sigma.size) {
                     if (sigma[j] == 0) continue
-                    val exp = (indexOf[sigma[j]] + j * i) % (fieldSize - 1)
+                    val exp = (indexOf[sigma[j]] + j * xLog) % (fieldSize - 1)
                     sum = sum xor alphaTo[exp]
                 }
                 if (sum == 0) {
@@ -1871,21 +1869,21 @@ object HanXinEncoder {
          * Forney's formula.
          */
         fun forney(sigma: IntArray, omega: IntArray, loc: Int): Int {
-            val xiInv = alphaTo[(fieldSize - 1 - loc) % (fieldSize - 1)]
             var omegaVal = 0
+            val xiInvLog = (fieldSize - 1 - loc) % (fieldSize - 1)
             for (i in 0 until omega.size) {
                 if (omega[i] == 0) continue
-                val exp = (indexOf[omega[i]] + i * loc) % (fieldSize - 1)
+                val exp = (indexOf[omega[i]] + i * xiInvLog) % (fieldSize - 1)
                 omegaVal = omegaVal xor alphaTo[exp]
             }
             var sigmaDerivative = 0
             for (i in 1 until sigma.size step 2) {
                 if (sigma[i] == 0) continue
-                val exp = (indexOf[sigma[i]] + (i - 1) * loc) % (fieldSize - 1)
+                val exp = (indexOf[sigma[i]] + (i - 1) * xiInvLog) % (fieldSize - 1)
                 sigmaDerivative = sigmaDerivative xor alphaTo[exp]
             }
             if (sigmaDerivative == 0) return 0
-            val errLog = (indexOf[omegaVal] + indexOf[xiInv] + (fieldSize - 1) - indexOf[sigmaDerivative]) % (fieldSize - 1)
+            val errLog = (indexOf[omegaVal] + (fieldSize - 1) - indexOf[sigmaDerivative]) % (fieldSize - 1)
             return alphaTo[errLog]
         }
 

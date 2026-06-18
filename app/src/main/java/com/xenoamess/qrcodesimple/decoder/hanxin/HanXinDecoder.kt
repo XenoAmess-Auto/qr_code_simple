@@ -524,7 +524,7 @@ object HanXinDecoder {
         if (errorLocations.isEmpty()) return false
 
         for (loc in errorLocations) {
-            val pos = totalLength - 1 - loc
+            val pos = loc
             if (pos < 0 || pos >= totalLength) return false
             val err = rs.forney(sigma, omega, loc)
             block[pos] = block[pos] xor err
