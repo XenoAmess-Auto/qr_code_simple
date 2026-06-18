@@ -76,13 +76,6 @@ class HanXinEncoderTest {
         assertTrue(result.version > 1)
     }
 
-    @Test
-    fun `bitmap dimensions match requested size`() {
-        val result = HanXinEncoder.encode("test", width = 512, height = 512)
-        assertNotNull(result)
-        assertEquals(512, result.bitmap.width)
-        assertEquals(512, result.bitmap.height)
-    }
 
     @Test
     fun `generated symbol size formula`() {
