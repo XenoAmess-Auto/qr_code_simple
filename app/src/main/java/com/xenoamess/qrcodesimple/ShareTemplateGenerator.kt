@@ -194,6 +194,7 @@ object ShareTemplateGenerator {
             HistoryType.PLESSEY -> "Plessey"
             HistoryType.MSI_PLESSEY -> "MSI Plessey"
             HistoryType.TELEPEN -> "Telepen"
+            HistoryType.HAN_XIN -> "Han Xin Code"
             HistoryType.TEXT -> "文本分享"
         }
     }

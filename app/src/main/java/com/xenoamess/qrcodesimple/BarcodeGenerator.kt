@@ -13,13 +13,14 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat as AppBarcodeFormat
+import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinEncoder
 import uk.org.okapibarcode.backend.DataBar14
 import uk.org.okapibarcode.backend.DataBarExpanded
 import uk.org.okapibarcode.backend.MaxiCode
 import uk.org.okapibarcode.backend.Symbol
 
 /**
- * 条码生成器 - 支持全部 21 种条码格式
+ * 条码生成器 - 支持全部 22 种条码格式
  */
 object BarcodeGenerator {
 
@@ -62,6 +63,7 @@ object BarcodeGenerator {
                 AppBarcodeFormat.PLESSEY -> generatePlessey(content, config)
                 AppBarcodeFormat.MSI_PLESSEY -> generateMsiPlessey(content, config)
                 AppBarcodeFormat.TELEPEN -> generateTelepen(content, config)
+                AppBarcodeFormat.HAN_XIN -> generateHanXin(content, config)
                 AppBarcodeFormat.UNKNOWN -> generateQRCode(content, config)
             }
         } catch (e: Exception) {
@@ -462,6 +464,17 @@ object BarcodeGenerator {
         return bitmap
     }
 
+    private fun generateHanXin(content: String, config: BarcodeConfig): Bitmap {
+        val result = HanXinEncoder.encode(
+            content = content,
+            width = config.width,
+            height = config.height,
+            foreground = config.foregroundColor,
+            background = config.backgroundColor
+        )
+        return result?.bitmap ?: throw IllegalArgumentException("Failed to generate Han Xin Code")
+    }
+
     private fun generateTelepen(content: String, config: BarcodeConfig): Bitmap {
         val telepenTable = arrayOf(
             "313111113111", "311311113111", "313111111311", "311311111311",
@@ -823,6 +836,7 @@ object BarcodeGenerator {
             AppBarcodeFormat.TELEPEN -> validateTelepen(content)
             AppBarcodeFormat.UPC_EAN_EXTENSION -> validateUpcEanExtension(content)
             AppBarcodeFormat.MAXICODE -> validateMaxiCode(content)
+            AppBarcodeFormat.HAN_XIN -> validateHanXin(content)
             else -> ValidationResult(true)
         }
     }
@@ -945,6 +959,14 @@ object BarcodeGenerator {
             ValidationResult(true)
         } else {
             ValidationResult(false, "MaxiCode requires non-empty content")
+        }
+    }
+
+    private fun validateHanXin(content: String): ValidationResult {
+        return if (content.isNotEmpty()) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Han Xin Code requires non-empty content")
         }
     }
 }

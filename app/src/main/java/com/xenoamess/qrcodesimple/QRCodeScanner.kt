@@ -62,6 +62,7 @@ fun AppBarcodeFormat.toHistoryType(): HistoryType {
         AppBarcodeFormat.PLESSEY -> HistoryType.PLESSEY
         AppBarcodeFormat.MSI_PLESSEY -> HistoryType.MSI_PLESSEY
         AppBarcodeFormat.TELEPEN -> HistoryType.TELEPEN
+        AppBarcodeFormat.HAN_XIN -> HistoryType.HAN_XIN
         else -> HistoryType.BARCODE
     }
 }

@@ -61,6 +61,7 @@ class HistoryAdapter(
                     HistoryType.PLESSEY -> "Plessey"
                     HistoryType.MSI_PLESSEY -> "MSI Plessey"
                     HistoryType.TELEPEN -> "Telepen"
+                    HistoryType.HAN_XIN -> "Han Xin"
                     HistoryType.TEXT -> context.getString(R.string.type_text)
                 })
                 item.barcodeFormat?.let {

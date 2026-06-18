@@ -35,6 +35,7 @@ enum class HistoryType {
     PLESSEY,            // Plessey Code
     MSI_PLESSEY,        // MSI Plessey
     TELEPEN,            // Telepen
+    HAN_XIN,            // Han Xin Code
     TEXT                // 纯文本
 }
 
@@ -64,6 +65,7 @@ enum class BarcodeFormat(val displayName: String) {
     PLESSEY("Plessey"),
     MSI_PLESSEY("MSI Plessey"),
     TELEPEN("Telepen"),
+    HAN_XIN("Han Xin"),
     UNKNOWN("Unknown");
 
     companion object {
