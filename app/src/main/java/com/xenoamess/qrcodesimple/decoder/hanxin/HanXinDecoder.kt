@@ -60,10 +60,15 @@ object HanXinDecoder {
                 sum += value
             }
         }
-        val threshold = (sum / (width * height)).toInt()
+        val mean = (sum / (width * height)).toInt()
+        // Heuristic: if the image is mostly dark with a light symbol, invert the
+        // threshold decision so that the light modules become the foreground.
+        val darkCount = gray.count { it <= mean }
+        val invert = darkCount > gray.size / 2
         return Array(height) { y ->
             IntArray(width) { x ->
-                if (gray[y * width + x] <= threshold) 1 else 0
+                val dark = gray[y * width + x] <= mean
+                if (invert) (if (dark) 0 else 1) else (if (dark) 1 else 0)
             }
         }
     }
