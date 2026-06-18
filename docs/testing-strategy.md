@@ -40,6 +40,8 @@ fun testGenerateAndScanQRCode() {
 app/src/test/java/com/xenoamess/qrcodesimple/
 ├── generator/
 │   ├── BarcodeGenerationRoundtripTest.kt   # 全部 22 种格式 roundtrip
+│   ├── HanXinEncoderTest.kt                # Han Xin Code 编码器
+│   ├── HanXinRobustnessTest.kt             # Han Xin Code 鲁棒性（旋转/缩放/模糊）
 │   ├── MicroQrGenerationTest.kt            # Micro QR 容量边界
 │   ├── CustomLinearGenerationTest.kt       # 自定义一维码
 │   ├── Gs1DatabarGenerationTest.kt         # RSS-14 / RSS Expanded
@@ -48,7 +50,8 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 │   └── BarcodeValidationTest.kt            # 校验规则
 ├── decoder/
 │   ├── BarcodeScanUtilsLogicTest.kt
-│   └── CustomLinearDecoderLogicTest.kt
+│   ├── CustomLinearDecoderLogicTest.kt
+│   └── hanxin/HanXinDecoderInternalTest.kt # Han Xin Code 解码器内部测试
 ├── BarcodeGeneratorTest.kt
 ├── BarcodeFormatMappingTest.kt
 └── ...
@@ -80,6 +83,16 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 - 非法字符
 - 长度不足/超长
 - 超出数值范围（Pharmacode）
+
+### 5.4 Han Xin Code 鲁棒性测试
+
+`HanXinRobustnessTest.kt` 对生成的汉信码施加以下扰动后仍应解码成功：
+- 缩放（0.5x / 1.5x / 0.75x）
+- 90° / 180° / 270° 旋转
+- 高斯随机噪声
+- 均值模糊
+
+> 注：当前解码器尚未启用 Reed-Solomon 纠错，因此盐椒噪声等会破坏功能信息/数据位的强扰动暂不在测试范围内。
 
 ## 6. 运行测试
 

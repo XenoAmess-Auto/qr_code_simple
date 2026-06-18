@@ -35,7 +35,8 @@ object HanXinDecoder {
      */
     fun decode(bitmap: Bitmap): DecodeResult? {
         val binary = binarize(bitmap)
-        val (grid, size) = extractGrid(binary, bitmap.width, bitmap.height) ?: return null
+        val (cropped, width, height) = cropToSymbol(binary) ?: return null
+        val (grid, size) = extractGrid(cropped, width, height) ?: return null
         return decodeGrid(grid, size)
     }
 
@@ -68,20 +69,62 @@ object HanXinDecoder {
     }
 
     // -------------------------------------------------------------------------
+    // Symbol localization
+    // -------------------------------------------------------------------------
+
+    /**
+     * Crop the binarized image to the axis-aligned bounding box of the barcode
+     * symbol. Rows/columns are considered part of the symbol when they contain
+     * more than a small fraction of dark pixels, which ignores sparse noise.
+     */
+    private fun cropToSymbol(binary: Array<IntArray>): Triple<Array<IntArray>, Int, Int>? {
+        val height = binary.size
+        if (height == 0) return null
+        val width = binary[0].size
+
+        val rowCounts = IntArray(height) { y -> binary[y].count { it == 1 } }
+        val colCounts = IntArray(width) { x -> (0 until height).count { binary[it][x] == 1 } }
+
+        val rowThreshold = maxOf(1, width / 20)
+        val colThreshold = maxOf(1, height / 20)
+
+        var minY = 0
+        while (minY < height && rowCounts[minY] < rowThreshold) minY++
+        var maxY = height - 1
+        while (maxY >= 0 && rowCounts[maxY] < rowThreshold) maxY--
+        var minX = 0
+        while (minX < width && colCounts[minX] < colThreshold) minX++
+        var maxX = width - 1
+        while (maxX >= 0 && colCounts[maxX] < colThreshold) maxX--
+
+        if (minX > maxX || minY > maxY) return null
+
+        val newWidth = maxX - minX + 1
+        val newHeight = maxY - minY + 1
+        val cropped = Array(newHeight) { y ->
+            IntArray(newWidth) { x -> binary[minY + y][minX + x] }
+        }
+        return Triple(cropped, newWidth, newHeight)
+    }
+
+    // -------------------------------------------------------------------------
     // Grid extraction
     // -------------------------------------------------------------------------
 
     private fun extractGrid(binary: Array<IntArray>, width: Int, height: Int): Pair<IntArray, Int>? {
-        // Generated symbols are axis-aligned and start at the top-left. The bitmap
-        // dimensions are not necessarily an exact multiple of the symbol size, so
-        // try each valid Han Xin size and sample with integer module dimensions.
+        // The symbol may be rotated. Try each valid Han Xin size, sample with
+        // integer module dimensions, and then try all four rotations until the
+        // canonical finder patterns match.
         for (size in 23..189 step 2) {
             val moduleW = width / size
             val moduleH = height / size
             if (moduleW < 2 || moduleH < 2) continue
-            val grid = sampleGrid(binary, width, height, size, moduleW, moduleH)
-            if (verifyFinders(grid, size)) {
-                return grid to size
+            val sampled = sampleGrid(binary, width, height, size, moduleW, moduleH)
+            for (rotation in 0 until 4) {
+                val grid = rotateGrid(sampled, size, rotation)
+                if (verifyFinders(grid, size)) {
+                    return grid to size
+                }
             }
         }
         return null
@@ -122,6 +165,44 @@ object HanXinDecoder {
             }
         }
         return true
+    }
+
+    private fun rotateGrid(grid: IntArray, size: Int, times: Int): IntArray {
+        if (times == 0) return grid
+        val result = IntArray(grid.size)
+        when (times) {
+            1 -> {
+                // 90 degrees clockwise
+                for (y in 0 until size) {
+                    for (x in 0 until size) {
+                        val newX = size - 1 - y
+                        val newY = x
+                        result[newY * size + newX] = grid[y * size + x]
+                    }
+                }
+            }
+            2 -> {
+                // 180 degrees
+                for (y in 0 until size) {
+                    for (x in 0 until size) {
+                        val newX = size - 1 - x
+                        val newY = size - 1 - y
+                        result[newY * size + newX] = grid[y * size + x]
+                    }
+                }
+            }
+            3 -> {
+                // 270 degrees clockwise
+                for (y in 0 until size) {
+                    for (x in 0 until size) {
+                        val newX = y
+                        val newY = size - 1 - x
+                        result[newY * size + newX] = grid[y * size + x]
+                    }
+                }
+            }
+        }
+        return result
     }
 
     // -------------------------------------------------------------------------
