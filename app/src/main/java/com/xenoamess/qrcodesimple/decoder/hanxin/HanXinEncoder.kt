@@ -1674,7 +1674,9 @@ object HanXinEncoder {
         private val fieldSize = 1 shl symbolSize
         private val alphaTo = IntArray(fieldSize)
         private val indexOf = IntArray(fieldSize)
-        private var generator: IntArray = intArrayOf()
+        internal var generator: IntArray = intArrayOf()
+            private set
+        private var generatorRev: IntArray = intArrayOf()
 
         init {
             initField()
@@ -1708,45 +1710,59 @@ object HanXinEncoder {
             generator = IntArray(numEcc + 1)
             generator[0] = 1
             for (i in firstRoot until firstRoot + numEcc) {
-                generator[i - firstRoot + 1] = 1
-                for (j in i - firstRoot downTo 0) {
-                    if (generator[j] != 0) {
-                        generator[j + 1] = generator[j + 1] xor alphaTo[(indexOf[generator[j]] + i) % (fieldSize - 1)]
-                    }
+                val old = generator.copyOf()
+                val degree = i - firstRoot
+                // g(x) <- g(x) * (x + alpha^i)
+                // new_g[0] = alpha^i * old_g[0]
+                // new_g[j] = old_g[j-1] + alpha^i * old_g[j]  for 1 <= j <= d+1
+                for (j in 0..degree) {
+                    val shifted = old[j]
+                    val scaled = if (old[j + 1] != 0) {
+                        alphaTo[(indexOf[old[j + 1]] + i) % (fieldSize - 1)]
+                    } else 0
+                    generator[j + 1] = shifted xor scaled
                 }
-                generator[0] = alphaTo[(indexOf[generator[0]] + i) % (fieldSize - 1)]
+                generator[0] = if (old[0] != 0) {
+                    alphaTo[(indexOf[old[0]] + i) % (fieldSize - 1)]
+                } else 0
             }
+            generatorRev = IntArray(numEcc + 1) { generator[numEcc - it] }
         }
 
         fun encode(data: IntArray, dataLength: Int, ecc: IntArray) {
             val numEcc = ecc.size
-            val feedback = IntArray(numEcc) { 0 }
+            // Build dividend = reverse(data) * x^numEcc so that when we divide by
+            // the reciprocal generator g_rev(x) = x^numEcc * g(1/x) we obtain a
+            // remainder whose reverse is the ECC for the [data, ecc] codeword.
+            val dividend = IntArray(dataLength + numEcc)
             for (i in 0 until dataLength) {
-                val fb = data[i] xor feedback[0]
-                if (fb != 0) {
-                    val fbLog = indexOf[fb]
-                    for (j in 1 until numEcc) {
-                        val gen = generator[numEcc - j]
-                        feedback[j - 1] = if (gen != 0) {
-                            feedback[j] xor alphaTo[(fbLog + indexOf[gen]) % (fieldSize - 1)]
-                        } else {
-                            feedback[j]
-                        }
-                    }
-                    val gen0 = generator[0]
-                    feedback[numEcc - 1] = if (gen0 != 0) {
-                        alphaTo[(fbLog + indexOf[gen0]) % (fieldSize - 1)]
-                    } else {
-                        0
-                    }
-                } else {
-                    for (j in 1 until numEcc) {
-                        feedback[j - 1] = feedback[j]
-                    }
-                    feedback[numEcc - 1] = 0
+                dividend[i + numEcc] = data[dataLength - 1 - i]
+            }
+            val remainder = polyMod(dividend, generatorRev)
+            for (i in 0 until numEcc) {
+                ecc[i] = remainder[numEcc - 1 - i]
+            }
+        }
+
+        /**
+         * Compute the remainder of [dividend] divided by [divisor] over GF(2^symbolSize).
+         * Coefficients are stored in ascending power order (index i is x^i).
+         * The returned array contains the low-degree remainder coefficients.
+         */
+        private fun polyMod(dividend: IntArray, divisor: IntArray): IntArray {
+            val result = dividend.copyOf()
+            val degD = divisor.size - 1
+            val leadLog = indexOf[divisor[degD]]
+            for (i in result.size - 1 downTo degD) {
+                if (result[i] == 0) continue
+                val factorLog = (indexOf[result[i]] - leadLog).mod(fieldSize - 1)
+                for (j in 0..degD) {
+                    if (divisor[j] == 0) continue
+                    val exp = (factorLog + indexOf[divisor[j]]).mod(fieldSize - 1)
+                    result[i - degD + j] = result[i - degD + j] xor alphaTo[exp]
                 }
             }
-            feedback.copyInto(ecc)
+            return result.copyOf(degD)
         }
 
         /**

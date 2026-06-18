@@ -34,4 +34,15 @@ class HanXinDecoderInternalTest {
         assertNotNull(result)
         assertEquals("Hello Han Xin", result.text)
     }
+
+    @Test
+    fun `decode clean generated bitmap with Chinese content`() {
+        val bitmap = BarcodeGenerator.generate(
+            "汉信码",
+            BarcodeGenerator.BarcodeConfig(format = BarcodeFormat.HAN_XIN, width = 800, height = 800)
+        )!!
+        val result = HanXinDecoder.decode(bitmap)
+        assertNotNull(result)
+        assertEquals("汉信码", result.text)
+    }
 }
