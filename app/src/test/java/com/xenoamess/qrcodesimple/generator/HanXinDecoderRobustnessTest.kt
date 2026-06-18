@@ -120,6 +120,66 @@ class HanXinDecoderRobustnessTest {
         assertDecodes(embedded, content)
     }
 
+    @Test
+    fun `decode perspective distorted symbol`() {
+        val content = "Hello Han Xin"
+        val bitmap = generate(content, 600, 600)
+        val src = arrayOf(
+            0f to 0f,
+            bitmap.width.toFloat() to 0f,
+            bitmap.width.toFloat() to bitmap.height.toFloat(),
+            0f to bitmap.height.toFloat()
+        )
+        val dst = arrayOf(
+            80f to 120f,
+            720f to 60f,
+            780f to 680f,
+            40f to 720f
+        )
+        val perspective = applyPerspective(bitmap, src, dst, 820, 780)
+        assertDecodes(perspective, content)
+    }
+
+    @Test
+    fun `decode strong perspective with padding`() {
+        val content = "1234567890"
+        val bitmap = generate(content, 500, 500)
+        val src = arrayOf(
+            0f to 0f,
+            bitmap.width.toFloat() to 0f,
+            bitmap.width.toFloat() to bitmap.height.toFloat(),
+            0f to bitmap.height.toFloat()
+        )
+        val dst = arrayOf(
+            150f to 80f,
+            680f to 140f,
+            640f to 620f,
+            90f to 560f
+        )
+        val perspective = applyPerspective(bitmap, src, dst, 750, 700)
+        assertDecodes(perspective, content)
+    }
+
+    @Test
+    fun `decode perspective with Chinese content`() {
+        val content = "汉信码透视"
+        val bitmap = generate(content, 600, 600)
+        val src = arrayOf(
+            0f to 0f,
+            bitmap.width.toFloat() to 0f,
+            bitmap.width.toFloat() to bitmap.height.toFloat(),
+            0f to bitmap.height.toFloat()
+        )
+        val dst = arrayOf(
+            60f to 100f,
+            700f to 40f,
+            760f to 660f,
+            20f to 700f
+        )
+        val perspective = applyPerspective(bitmap, src, dst, 800, 760)
+        assertDecodes(perspective, content)
+    }
+
     // -------------------------------------------------------------------------
     // Bitmap transforms
     // -------------------------------------------------------------------------
@@ -193,5 +253,107 @@ class HanXinDecoderRobustnessTest {
             }
         }
         return result
+    }
+
+    private fun applyPerspective(
+        bitmap: Bitmap,
+        srcQuad: Array<Pair<Float, Float>>,
+        dstQuad: Array<Pair<Float, Float>>,
+        canvasW: Int,
+        canvasH: Int
+    ): Bitmap {
+        val result = Bitmap.createBitmap(canvasW, canvasH, Bitmap.Config.ARGB_8888)
+        result.eraseColor(0xFFFFFFFF.toInt())
+
+        val h = computeHomography(
+            dstQuad.map { Point(it.first.toDouble(), it.second.toDouble()) }.toTypedArray(),
+            srcQuad.map { Point(it.first.toDouble(), it.second.toDouble()) }.toTypedArray()
+        )
+
+        for (y in 0 until canvasH) {
+            for (x in 0 until canvasW) {
+                val wx = h[0] * x + h[1] * y + h[2]
+                val wy = h[3] * x + h[4] * y + h[5]
+                val ww = h[6] * x + h[7] * y + h[8]
+                val sx = (wx / ww).toInt()
+                val sy = (wy / ww).toInt()
+                if (sy in 0 until bitmap.height && sx in 0 until bitmap.width) {
+                    result.setPixel(x, y, bitmap.getPixel(sx, sy))
+                }
+            }
+        }
+        return result
+    }
+
+    private data class Point(val x: Double, val y: Double)
+
+    private fun computeHomography(src: Array<Point>, dst: Array<Point>): DoubleArray {
+        val a = Array(8) { DoubleArray(8) }
+        val b = DoubleArray(8)
+        for (i in 0..3) {
+            val sx = src[i].x
+            val sy = src[i].y
+            val dx = dst[i].x
+            val dy = dst[i].y
+            a[i * 2] = doubleArrayOf(sx, sy, 1.0, 0.0, 0.0, 0.0, -sx * dx, -sy * dx)
+            b[i * 2] = dx
+            a[i * 2 + 1] = doubleArrayOf(0.0, 0.0, 0.0, sx, sy, 1.0, -sx * dy, -sy * dy)
+            b[i * 2 + 1] = dy
+        }
+        val x = solveLinearSystem(a, b)
+        return doubleArrayOf(
+            x[0], x[1], x[2],
+            x[3], x[4], x[5],
+            x[6], x[7], 1.0
+        )
+    }
+
+    private fun solveLinearSystem(a: Array<DoubleArray>, b: DoubleArray): DoubleArray {
+        val n = b.size
+        val m = Array(n) { i -> a[i].copyOf() + b[i] }
+        for (i in 0 until n) {
+            var pivot = i
+            for (j in i + 1 until n) {
+                if (kotlin.math.abs(m[j][i]) > kotlin.math.abs(m[pivot][i])) pivot = j
+            }
+            if (kotlin.math.abs(m[pivot][i]) < 1e-10) continue
+            if (pivot != i) {
+                val tmp = m[i]
+                m[i] = m[pivot]
+                m[pivot] = tmp
+            }
+            for (j in i + 1 until n) {
+                val factor = m[j][i] / m[i][i]
+                for (k in i until n + 1) {
+                    m[j][k] -= factor * m[i][k]
+                }
+            }
+        }
+        val x = DoubleArray(n)
+        for (i in n - 1 downTo 0) {
+            var sum = m[i][n]
+            for (j in i + 1 until n) sum -= m[i][j] * x[j]
+            x[i] = if (kotlin.math.abs(m[i][i]) < 1e-10) 0.0 else sum / m[i][i]
+        }
+        return x
+    }
+
+    private fun inverse3x3(m: DoubleArray): DoubleArray {
+        val det = m[0] * (m[4] * m[8] - m[5] * m[7]) -
+                m[1] * (m[3] * m[8] - m[5] * m[6]) +
+                m[2] * (m[3] * m[7] - m[4] * m[6])
+        if (kotlin.math.abs(det) < 1e-10) return m.copyOf()
+        val inv = 1.0 / det
+        return doubleArrayOf(
+            (m[4] * m[8] - m[5] * m[7]) * inv,
+            (m[2] * m[7] - m[1] * m[8]) * inv,
+            (m[1] * m[5] - m[2] * m[4]) * inv,
+            (m[5] * m[6] - m[3] * m[8]) * inv,
+            (m[0] * m[8] - m[2] * m[6]) * inv,
+            (m[2] * m[3] - m[0] * m[5]) * inv,
+            (m[3] * m[7] - m[4] * m[6]) * inv,
+            (m[1] * m[6] - m[0] * m[7]) * inv,
+            (m[0] * m[4] - m[1] * m[3]) * inv
+        )
     }
 }

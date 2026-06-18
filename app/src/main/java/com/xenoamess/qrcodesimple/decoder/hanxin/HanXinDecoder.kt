@@ -35,9 +35,18 @@ object HanXinDecoder {
      */
     fun decode(bitmap: Bitmap): DecodeResult? {
         val binary = binarize(bitmap)
-        val (cropped, width, height) = cropToSymbol(binary) ?: return null
-        val (grid, size) = extractGrid(cropped, width, height) ?: return null
-        return decodeGrid(grid, size)
+        val cropped = cropToSymbol(binary) ?: return null
+        val (croppedArray, width, height) = cropped
+
+        // Fast path: axis-aligned symbol.
+        val axisAligned = extractGrid(croppedArray, width, height)
+        if (axisAligned != null) {
+            val result = decodeGrid(axisAligned.first, axisAligned.second)
+            if (result != null) return result
+        }
+
+        // Fallback: correct moderate perspective distortion.
+        return decodePerspective(croppedArray, width, height)
     }
 
     // -------------------------------------------------------------------------
@@ -90,8 +99,8 @@ object HanXinDecoder {
         val rowCounts = IntArray(height) { y -> binary[y].count { it == 1 } }
         val colCounts = IntArray(width) { x -> (0 until height).count { binary[it][x] == 1 } }
 
-        val rowThreshold = maxOf(1, width / 20)
-        val colThreshold = maxOf(1, height / 20)
+        val rowThreshold = maxOf(1, width / 50)
+        val colThreshold = maxOf(1, height / 50)
 
         var minY = 0
         while (minY < height && rowCounts[minY] < rowThreshold) minY++
@@ -110,6 +119,220 @@ object HanXinDecoder {
             IntArray(newWidth) { x -> binary[minY + y][minX + x] }
         }
         return Triple(cropped, newWidth, newHeight)
+    }
+
+    // -------------------------------------------------------------------------
+    // Perspective correction
+    // -------------------------------------------------------------------------
+
+    private data class Point(val x: Double, val y: Double)
+
+    private fun decodePerspective(binary: Array<IntArray>, width: Int, height: Int): DecodeResult? {
+        val corners = detectCorners(binary, width, height) ?: return null
+
+        val warpSize = minOf(400, maxOf(width, height)).coerceAtLeast(100)
+        val centroid = Point(
+            corners.sumOf { it.x } / 4,
+            corners.sumOf { it.y } / 4
+        )
+
+        // Search over small scale adjustments to compensate for binarisation
+        // expanding or shrinking the symbol relative to its true outer boundary.
+        val scales = doubleArrayOf(0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06)
+        for (scale in scales) {
+            val scaled = corners.map {
+                Point(
+                    centroid.x + (it.x - centroid.x) * scale,
+                    centroid.y + (it.y - centroid.y) * scale
+                )
+            }.toTypedArray()
+            val dst = arrayOf(
+                Point(0.0, 0.0),
+                Point(warpSize.toDouble(), 0.0),
+                Point(warpSize.toDouble(), warpSize.toDouble()),
+                Point(0.0, warpSize.toDouble())
+            )
+            val h = computeHomography(scaled, dst)
+            val hInv = inverse3x3(h)
+            val warped = warpPerspective(binary, width, height, hInv, warpSize)
+            val warpedBinary = Array(warpSize) { y -> IntArray(warpSize) { x -> warped[y * warpSize + x] } }
+            val extracted = extractGrid(warpedBinary, warpSize, warpSize)
+            if (extracted != null) {
+                val result = decodeGrid(extracted.first, extracted.second)
+                if (result != null) return result
+            }
+        }
+        return null
+    }
+
+    /**
+     * Detect the four outer corners of a perspective-distorted Han Xin symbol.
+     * Uses the convex hull of dark pixels and selects the farthest hull point in
+     * each quadrant around the centroid.
+     */
+    private fun detectCorners(binary: Array<IntArray>, width: Int, height: Int): Array<Point>? {
+        val darkPixels = mutableListOf<Point>()
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                if (binary[y][x] == 1) darkPixels.add(Point(x.toDouble(), y.toDouble()))
+            }
+        }
+        if (darkPixels.size < 4) return null
+
+        val hull = convexHull(darkPixels)
+        if (hull.size < 4) return null
+
+        val centroid = Point(
+            hull.sumOf { it.x } / hull.size,
+            hull.sumOf { it.y } / hull.size
+        )
+
+        val quadrantPoints = Array(4) { mutableListOf<Point>() }
+        for (p in hull) {
+            val angle = kotlin.math.atan2(p.y - centroid.y, p.x - centroid.x)
+            val quadrant = ((angle + kotlin.math.PI) / (kotlin.math.PI / 2)).toInt() % 4
+            quadrantPoints[quadrant].add(p)
+        }
+        if (quadrantPoints.any { it.isEmpty() }) return null
+
+        val corners = quadrantPoints.map { list ->
+            list.maxByOrNull {
+                val dx = it.x - centroid.x
+                val dy = it.y - centroid.y
+                dx * dx + dy * dy
+            }!!
+        }.toTypedArray()
+
+        return sortCorners(corners)
+    }
+
+    private fun convexHull(points: List<Point>): List<Point> {
+        if (points.size <= 3) return points
+        val sorted = points.sortedWith(compareBy({ it.x }, { it.y }))
+        val lower = mutableListOf<Point>()
+        for (p in sorted) {
+            while (lower.size >= 2 && cross(lower[lower.size - 2], lower.last(), p) <= 0) {
+                lower.removeAt(lower.size - 1)
+            }
+            lower.add(p)
+        }
+        val upper = mutableListOf<Point>()
+        for (i in sorted.size - 1 downTo 0) {
+            val p = sorted[i]
+            while (upper.size >= 2 && cross(upper[upper.size - 2], upper.last(), p) <= 0) {
+                upper.removeAt(upper.size - 1)
+            }
+            upper.add(p)
+        }
+        lower.removeAt(lower.size - 1)
+        upper.removeAt(upper.size - 1)
+        return lower + upper
+    }
+
+    private fun cross(o: Point, a: Point, b: Point): Double {
+        return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+    }
+
+    private fun sortCorners(corners: Array<Point>): Array<Point> {
+        val centroid = Point(
+            corners.sumOf { it.x } / corners.size,
+            corners.sumOf { it.y } / corners.size
+        )
+        return corners.sortedBy {
+            kotlin.math.atan2(it.y - centroid.y, it.x - centroid.x)
+        }.toTypedArray()
+    }
+
+    private fun computeHomography(src: Array<Point>, dst: Array<Point>): DoubleArray {
+        // Solve DLT with h33 = 1: 8 unknowns, 8 equations.
+        val a = Array(8) { DoubleArray(8) }
+        val b = DoubleArray(8)
+        for (i in 0..3) {
+            val sx = src[i].x
+            val sy = src[i].y
+            val dx = dst[i].x
+            val dy = dst[i].y
+            a[i * 2] = doubleArrayOf(sx, sy, 1.0, 0.0, 0.0, 0.0, -sx * dx, -sy * dx)
+            b[i * 2] = dx
+            a[i * 2 + 1] = doubleArrayOf(0.0, 0.0, 0.0, sx, sy, 1.0, -sx * dy, -sy * dy)
+            b[i * 2 + 1] = dy
+        }
+        val x = solveLinearSystem(a, b)
+        return doubleArrayOf(
+            x[0], x[1], x[2],
+            x[3], x[4], x[5],
+            x[6], x[7], 1.0
+        )
+    }
+
+    private fun solveLinearSystem(a: Array<DoubleArray>, b: DoubleArray): DoubleArray {
+        val n = b.size
+        val m = Array(n) { i -> a[i].copyOf() + b[i] }
+        for (i in 0 until n) {
+            var pivot = i
+            for (j in i + 1 until n) {
+                if (kotlin.math.abs(m[j][i]) > kotlin.math.abs(m[pivot][i])) pivot = j
+            }
+            if (kotlin.math.abs(m[pivot][i]) < 1e-10) continue
+            if (pivot != i) {
+                val tmp = m[i]
+                m[i] = m[pivot]
+                m[pivot] = tmp
+            }
+            for (j in i + 1 until n) {
+                val factor = m[j][i] / m[i][i]
+                for (k in i until n + 1) {
+                    m[j][k] -= factor * m[i][k]
+                }
+            }
+        }
+        val x = DoubleArray(n)
+        for (i in n - 1 downTo 0) {
+            var sum = m[i][n]
+            for (j in i + 1 until n) sum -= m[i][j] * x[j]
+            x[i] = if (kotlin.math.abs(m[i][i]) < 1e-10) 0.0 else sum / m[i][i]
+        }
+        return x
+    }
+
+    private fun inverse3x3(m: DoubleArray): DoubleArray {
+        val det = m[0] * (m[4] * m[8] - m[5] * m[7]) -
+                m[1] * (m[3] * m[8] - m[5] * m[6]) +
+                m[2] * (m[3] * m[7] - m[4] * m[6])
+        if (kotlin.math.abs(det) < 1e-10) return m.copyOf()
+        val inv = 1.0 / det
+        return doubleArrayOf(
+            (m[4] * m[8] - m[5] * m[7]) * inv,
+            (m[2] * m[7] - m[1] * m[8]) * inv,
+            (m[1] * m[5] - m[2] * m[4]) * inv,
+            (m[5] * m[6] - m[3] * m[8]) * inv,
+            (m[0] * m[8] - m[2] * m[6]) * inv,
+            (m[2] * m[3] - m[0] * m[5]) * inv,
+            (m[3] * m[7] - m[4] * m[6]) * inv,
+            (m[1] * m[6] - m[0] * m[7]) * inv,
+            (m[0] * m[4] - m[1] * m[3]) * inv
+        )
+    }
+
+    private fun warpPerspective(
+        binary: Array<IntArray>,
+        width: Int,
+        height: Int,
+        hInv: DoubleArray,
+        outSize: Int
+    ): IntArray {
+        val grid = IntArray(outSize * outSize)
+        for (y in 0 until outSize) {
+            for (x in 0 until outSize) {
+                val wx = hInv[0] * x + hInv[1] * y + hInv[2]
+                val wy = hInv[3] * x + hInv[4] * y + hInv[5]
+                val ww = hInv[6] * x + hInv[7] * y + hInv[8]
+                val sx = (wx / ww).toInt()
+                val sy = (wy / ww).toInt()
+                grid[y * outSize + x] = if (sy in 0 until height && sx in 0 until width) binary[sy][sx] else 0
+            }
+        }
+        return grid
     }
 
     // -------------------------------------------------------------------------
@@ -219,7 +442,8 @@ object HanXinDecoder {
         if (version !in 1..84) return null
 
         val functionInfo = readFunctionInfo(grid, size)
-        val (decodedVersion, eccLevel, mask) = decodeFunctionInfo(functionInfo) ?: return null
+        val decoded = decodeFunctionInfo(functionInfo)
+        val (decodedVersion, eccLevel, mask) = decoded ?: return null
         if (decodedVersion != version) return null
 
         val demasked = applyMaskInverse(grid, size, mask)
