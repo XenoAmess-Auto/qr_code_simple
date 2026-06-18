@@ -42,6 +42,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 │   ├── BarcodeGenerationRoundtripTest.kt   # 全部 22 种格式 roundtrip
 │   ├── HanXinEncoderTest.kt                # Han Xin Code 编码器
 │   ├── HanXinRobustnessTest.kt             # Han Xin Code 鲁棒性（旋转/缩放/模糊）
+│   ├── HanXinDecoderRobustnessTest.kt     # Han Xin Code 布局/反色鲁棒性
 │   ├── MicroQrGenerationTest.kt            # Micro QR 容量边界
 │   ├── CustomLinearGenerationTest.kt       # 自定义一维码
 │   ├── Gs1DatabarGenerationTest.kt         # RSS-14 / RSS Expanded
@@ -86,13 +87,16 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 ### 5.4 Han Xin Code 鲁棒性测试
 
-`HanXinRobustnessTest.kt` 对生成的汉信码施加以下扰动后仍应解码成功：
+`HanXinRobustnessTest.kt` 和 `HanXinDecoderRobustnessTest.kt` 对生成的汉信码施加以下扰动后仍应解码成功：
 - 缩放（0.5x / 1.5x / 0.75x）
 - 90° / 180° / 270° 旋转
 - 高斯随机噪声
 - 均值模糊
+- 白边填充、非居中放置、非正方形画布
+- 反色（深色背景上的浅色码）
+- 轻微的非等比缩放
 
-> 注：当前解码器尚未启用 Reed-Solomon 纠错，因此盐椒噪声等会破坏功能信息/数据位的强扰动暂不在测试范围内。
+> 注：当前解码器尚未启用 Reed-Solomon 纠错，也未实现透视校正，因此盐椒噪声、形变、局部遮挡等强扰动暂不在测试范围内。
 
 ## 6. 运行测试
 
