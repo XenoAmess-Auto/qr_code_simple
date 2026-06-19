@@ -20,9 +20,11 @@ import kotlin.test.assertNotNull
 /**
  * Han Xin Code decoder robustness tests using synthetic perturbations.
  *
- * Salt-and-pepper style bit flips are intentionally not tested because the
- * current decoder does not yet run Reed-Solomon error correction; detection
- * robustness (rotation, scaling, blur, soft noise) is covered instead.
+ * These tests exercise detection robustness (rotation, scaling, blur, soft
+ * noise and inversion). Reed-Solomon error correction is enabled in the
+ * decoder, so isolated module errors are tolerated automatically; heavy
+ * salt-and-pepper damage that exceeds the RS correction capability is covered
+ * separately in HanXinDecoderInternalTest.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
