@@ -228,6 +228,7 @@ class GenerateFragment : Fragment() {
             BarcodeFormat.PLESSEY -> HistoryType.PLESSEY
             BarcodeFormat.MSI_PLESSEY -> HistoryType.MSI_PLESSEY
             BarcodeFormat.TELEPEN -> HistoryType.TELEPEN
+            BarcodeFormat.HAN_XIN -> HistoryType.HAN_XIN
             else -> HistoryType.BARCODE
         }
     }
