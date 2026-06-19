@@ -4,7 +4,7 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.1.6`
+- 当前版本：`0.1.7`
 - 目标：支持 22 种条码格式的扫描与生成。
 
 ## 2. 技术栈
