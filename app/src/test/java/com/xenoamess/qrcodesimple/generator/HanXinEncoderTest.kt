@@ -97,6 +97,9 @@ class HanXinEncoderTest {
         val ecc = IntArray(4)
         rs4.encode(data, 3, ecc)
         val codeword = data + ecc
+        // The encoder reverses the ECC, so the transmitted codeword is valid for
+        // the reciprocal roots alpha^11 .. alpha^14.
+        rs4.initCode(4, 11)
         assertTrue(rs4.checkSyndromes(codeword, 3, 4), "Syndromes should be zero after encode")
     }
 
@@ -113,6 +116,9 @@ class HanXinEncoderTest {
         codeword[0] = codeword[0] xor 0xFF
         codeword[3] = codeword[3] xor 0xAA
         codeword[7] = codeword[7] xor 0x55
+
+        // Decode using the reciprocal roots that match the reversed ECC layout.
+        rs8.initCode(8, 247)
 
         // Verify syndromes are non-zero.
         val syndromes = rs8.calculateSyndromes(codeword, codeword.size, 8)
@@ -148,6 +154,8 @@ class HanXinEncoderTest {
         for (pos in errors) {
             codeword[pos] = codeword[pos] xor ((pos * 17 + 31) and 0xFF)
         }
+
+        rs8.initCode(22, 233)
 
         val corrected = codeword.copyOf()
         val (sigma, omega) = rs8.berlekampMassey(rs8.calculateSyndromes(codeword, codeword.size, 22), 22)

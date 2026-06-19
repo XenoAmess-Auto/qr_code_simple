@@ -475,12 +475,30 @@ object HanXinDecoder {
         // Fast path for clean generated symbols: no errors to correct.
         val direct = fullStream.copyOf(dataCodewords)
         val directText = parseDataStream(direct, dataCodewords)
-        if (directText != null) return DecodeResult(directText, version, eccLevel, mask)
+        if (directText != null && validateByReencoding(
+                directText,
+                direct,
+                fullStream,
+                size,
+                version,
+                eccLevel,
+                mask
+            )
+        ) {
+            return DecodeResult(directText, version, eccLevel, mask)
+        }
 
         // Attempt Reed-Solomon error correction.
         val corrected = correctErrors(fullStream, dataCodewords, version, eccLevel)
             ?: return null
         val text = parseDataStream(corrected, dataCodewords) ?: return null
+
+        // Verify that the corrected text re-encodes to the same data codewords
+        // and that the raw symbol is within the RS correction budget.
+        if (!validateByReencoding(text, corrected, fullStream, size, version, eccLevel, mask)) {
+            return null
+        }
+
         return DecodeResult(text, version, eccLevel, mask)
     }
 
@@ -506,7 +524,7 @@ object HanXinDecoder {
             val eccLength = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3 + 2]
             if (batchSize == 0) continue
 
-            rs8.initCode(eccLength, 1)
+            rs8.initCode(eccLength, 255 - eccLength)
             repeat(batchSize) {
                 val block = IntArray(dataLength + eccLength) { i ->
                     fullStream[inputPos + i]
@@ -582,7 +600,7 @@ object HanXinDecoder {
         }
 
         val rs4 = HanXinEncoder.ReedSolomon(0x13, 4)
-        rs4.initCode(4, 1)
+        rs4.initCode(4, 11)
         if (!rs4.checkSyndromes(cw, 3, 4)) return null
 
         val version = ((cw[0] shl 4) or cw[1]) - 20
@@ -909,6 +927,75 @@ object HanXinDecoder {
                 0xA8 to low
             }
         }
+    }
+
+    /**
+     * Re-encode [text] with the same parameters and compare the resulting data
+     * codewords to [correctedData]. Also count how many full-stream bytes differ
+     * between the raw symbol and the re-encoded symbol; reject if the count
+     * exceeds the RS correction budget. This guards against Reed-Solomon
+     * miscorrections when the error count exceeds the code's capability.
+     */
+    private fun validateByReencoding(
+        text: String,
+        correctedData: IntArray,
+        rawFullStream: IntArray,
+        size: Int,
+        version: Int,
+        eccLevel: Int,
+        mask: Int
+    ): Boolean {
+        val encoded = HanXinEncoder.encode(
+            text,
+            width = size * 10,
+            height = size * 10,
+            requestedVersion = version,
+            requestedEccLevel = eccLevel,
+            requestedMask = mask
+        ) ?: return false
+        if (encoded.version != version || encoded.eccLevel != eccLevel || encoded.mask != mask) {
+            return false
+        }
+        val expectedFullStream = extractFullStream(encoded.bitmap, size, mask)
+            ?: return false
+        if (!correctedData.contentEquals(expectedFullStream.copyOf(correctedData.size))) {
+            return false
+        }
+        val totalCodewords = HanXinEncoder.TOTAL_CODEWORDS[version - 1]
+        val dataCodewords = HanXinEncoder.DATA_CODEWORDS[eccLevel - 1][version - 1]
+        val eccCodewords = totalCodewords - dataCodewords
+        val correctionBudget = eccCodewords / 2
+        var byteErrors = 0
+        for (i in rawFullStream.indices) {
+            if (rawFullStream[i] != expectedFullStream[i]) byteErrors++
+        }
+        return byteErrors <= correctionBudget
+    }
+
+    private fun extractFullStream(bitmap: Bitmap, size: Int, mask: Int): IntArray? {
+        val grid = bitmapToGrid(bitmap, size)
+        val version = (size - 21) / 2
+        if (version !in 1..84) return null
+        val totalCodewords = HanXinEncoder.TOTAL_CODEWORDS[version - 1]
+        val demasked = applyMaskInverse(grid, size, mask)
+        val picketFence = readDataCodewords(demasked, size, totalCodewords)
+        return reversePicketFence(picketFence, totalCodewords)
+    }
+
+    private fun bitmapToGrid(bitmap: Bitmap, size: Int): IntArray {
+        val moduleW = bitmap.width / size
+        val moduleH = bitmap.height / size
+        val grid = IntArray(size * size)
+        for (y in 0 until size) {
+            val py = y * moduleH + moduleH / 2
+            for (x in 0 until size) {
+                val px = x * moduleW + moduleW / 2
+                val pixel = bitmap.getPixel(px, py)
+                val lum = ((pixel shr 16) and 0xFF) + ((pixel shr 8) and 0xFF) + (pixel and 0xFF)
+                grid[y * size + x] = if (lum < 384) 1 else 0
+            }
+        }
+        return grid
     }
 
     private fun convertOutput(bytes: List<Int>, eci: Int): String? {

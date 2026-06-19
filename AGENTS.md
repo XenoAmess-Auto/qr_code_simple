@@ -81,3 +81,6 @@ Native OpenCV is not loaded in Robolectric unit tests; `QRCodeApp.isWeChatQRCode
 
 ### No CI
 There are no GitHub Actions workflows. Verify locally with `./gradlew :app:testDebugUnitTest` before considering a change done.
+
+### Avoid `git credential fill` as a no-op
+Do not use `: | git credential fill` as a placeholder or no-op command. It always fails with `fatal: refusing to work with credential missing host field` and produces noisy output. Use a real no-op such as `true` or `:` (colon by itself) instead.

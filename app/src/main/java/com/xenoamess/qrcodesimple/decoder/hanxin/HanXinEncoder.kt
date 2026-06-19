@@ -627,7 +627,9 @@ object HanXinEncoder {
         }
 
         if (validGb) {
-            return Pair(result.toIntArray(), 32)
+            // Zint does not write an ECI header for GB18030 data either; match
+            // its behaviour so generated symbols are byte-for-byte compatible.
+            return Pair(result.toIntArray(), 0)
         }
 
         // Fallback: encode as UTF-8 bytes and use ECI 26 (UTF-8).
@@ -1677,6 +1679,7 @@ object HanXinEncoder {
         internal var generator: IntArray = intArrayOf()
             private set
         private var generatorRev: IntArray = intArrayOf()
+        private var firstRoot = 1
 
         init {
             initField()
@@ -1707,6 +1710,7 @@ object HanXinEncoder {
         }
 
         fun initCode(numEcc: Int, firstRoot: Int) {
+            this.firstRoot = firstRoot
             generator = IntArray(numEcc + 1)
             generator[0] = 1
             for (i in firstRoot until firstRoot + numEcc) {
@@ -1731,16 +1735,34 @@ object HanXinEncoder {
 
         fun encode(data: IntArray, dataLength: Int, ecc: IntArray) {
             val numEcc = ecc.size
-            // Build dividend = reverse(data) * x^numEcc so that when we divide by
-            // the reciprocal generator g_rev(x) = x^numEcc * g(1/x) we obtain a
-            // remainder whose reverse is the ECC for the [data, ecc] codeword.
-            val dividend = IntArray(dataLength + numEcc)
+            // Standard Reed-Solomon LFSR encoder matching zint. The generator
+            // polynomial has roots alpha^firstRoot .. alpha^(firstRoot+numEcc-1).
+            // ecc[] is filled with the remainder and then reversed so that the
+            // final codeword is [data, ecc] with ecc[0] as the highest-degree
+            // remainder coefficient.
+            for (i in 0 until numEcc) ecc[i] = 0
             for (i in 0 until dataLength) {
-                dividend[i + numEcc] = data[dataLength - 1 - i]
+                val m = ecc[numEcc - 1] xor data[i]
+                if (m != 0) {
+                    val logM = indexOf[m]
+                    for (k in numEcc - 1 downTo 1) {
+                        ecc[k] = ecc[k - 1] xor if (generator[k] != 0) {
+                            alphaTo[(logM + indexOf[generator[k]]) % (fieldSize - 1)]
+                        } else 0
+                    }
+                    ecc[0] = if (generator[0] != 0) {
+                        alphaTo[(logM + indexOf[generator[0]]) % (fieldSize - 1)]
+                    } else 0
+                } else {
+                    for (k in numEcc - 1 downTo 1) ecc[k] = ecc[k - 1]
+                    ecc[0] = 0
+                }
             }
-            val remainder = polyMod(dividend, generatorRev)
-            for (i in 0 until numEcc) {
-                ecc[i] = remainder[numEcc - 1 - i]
+            // Reverse to match zint's convention.
+            for (i in 0 until numEcc / 2) {
+                val tmp = ecc[i]
+                ecc[i] = ecc[numEcc - 1 - i]
+                ecc[numEcc - 1 - i] = tmp
             }
         }
 
@@ -1766,12 +1788,13 @@ object HanXinEncoder {
         }
 
         /**
-         * Calculate the syndromes of [data] using roots alpha^1 .. alpha^numEcc.
+         * Calculate the syndromes of [data] using roots alpha^firstRoot ..
+         * alpha^(firstRoot+numEcc-1).
          */
         fun calculateSyndromes(data: IntArray, totalLength: Int, numEcc: Int): IntArray {
             val syndromes = IntArray(numEcc)
             for (i in 0 until numEcc) {
-                val rootExp = i + 1
+                val rootExp = (firstRoot + i) % (fieldSize - 1)
                 var sum = 0
                 for (j in 0 until totalLength) {
                     if (data[j] == 0) continue
@@ -1866,7 +1889,8 @@ object HanXinEncoder {
 
         /**
          * Compute the error magnitude at logarithmic location [loc] using
-         * Forney's formula.
+         * Forney's formula. The syndrome roots start at alpha^firstRoot, so a
+         * correction factor alpha^(loc*(1-firstRoot)) is applied.
          */
         fun forney(sigma: IntArray, omega: IntArray, loc: Int): Int {
             var omegaVal = 0
@@ -1883,7 +1907,8 @@ object HanXinEncoder {
                 sigmaDerivative = sigmaDerivative xor alphaTo[exp]
             }
             if (sigmaDerivative == 0) return 0
-            val errLog = (indexOf[omegaVal] + (fieldSize - 1) - indexOf[sigmaDerivative]) % (fieldSize - 1)
+            val factorLog = ((1 - firstRoot) * loc).mod(fieldSize - 1)
+            val errLog = (indexOf[omegaVal] + factorLog + (fieldSize - 1) - indexOf[sigmaDerivative]) % (fieldSize - 1)
             return alphaTo[errLog]
         }
 

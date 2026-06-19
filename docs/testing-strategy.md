@@ -52,11 +52,19 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 ├── decoder/
 │   ├── BarcodeScanUtilsLogicTest.kt
 │   ├── CustomLinearDecoderLogicTest.kt
-│   └── hanxin/HanXinDecoderInternalTest.kt # Han Xin Code 解码器内部测试
+│   └── hanxin/
+│       ├── HanXinDecoderInternalTest.kt  # Han Xin Code 解码器内部测试
+│       └── HanXinDecoderExternalTest.kt  # 外部参考样本（Zint 生成）解码测试
 ├── BarcodeGeneratorTest.kt
 ├── BarcodeFormatMappingTest.kt
 └── ...
 ```
+
+外部样本存放在 `app/src/test/resources/hanxin/`，由 `expected-results.txt` 索引。
+当前包含：
+- Zint 2.15.0 生成的汉信码参考图（`zint_*.png`），用于验证编码器/解码器与
+  独立工具的字节级一致性。
+- 历史遗留样本；非汉信码图片标记为 `FAIL`。
 
 ## 5. 测试内容
 
@@ -99,6 +107,8 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 - 少量随机椒盐噪声（已启用 RS 纠错）
 
 > 注：汉信码已启用功能信息和数据区的 Reed-Solomon 纠错；强椒盐噪声或局部遮挡等超过 RS 纠错能力的扰动暂不在测试范围内。
+> 编码器默认行为与 Zint 2.15.0 对齐：GB18030 可编码内容不写入 ECI 头，
+> Reed-Solomon 使用 LFSR 编码并将 ECC 逆序输出，解码器按对应的互反根校验。
 
 ## 6. 运行测试
 
