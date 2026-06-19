@@ -349,6 +349,7 @@ object HanXinDecoder {
             if (moduleW < 2 || moduleH < 2) continue
             val sampled = sampleGrid(binary, width, height, size, moduleW, moduleH)
             for (rotation in 0 until 4) {
+                tryInvert = false
                 val grid = rotateGrid(sampled, size, rotation)
                 if (verifyFinders(grid, size)) {
                     return grid to size
@@ -389,10 +390,28 @@ object HanXinDecoder {
             for (xp in 0 until FINDER_SIZE) {
                 val expected = (pattern[yp] shr (6 - xp)) and 1
                 val actual = grid[(y0 + yp) * size + (x0 + xp)]
-                if (expected != actual) return false
+                if (expected != actual) {
+                    // The symbol might be rendered as light modules on dark
+                    // background. Flip the whole grid once on first mismatch and
+                    // retry verification from the beginning.
+                    if (!tryInvert) {
+                        tryInvert = true
+                        invertGrid(grid)
+                        return verifyFinders(grid, size)
+                    }
+                    return false
+                }
             }
         }
         return true
+    }
+
+    private var tryInvert = false
+
+    private fun invertGrid(grid: IntArray) {
+        for (i in grid.indices) {
+            grid[i] = grid[i] xor 1
+        }
     }
 
     private fun rotateGrid(grid: IntArray, size: Int, times: Int): IntArray {

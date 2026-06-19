@@ -8,12 +8,17 @@ import org.robolectric.annotation.Config
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * Decode real-world Han Xin Code images from `app/src/test/resources/hanxin/`.
  *
  * Each image must be listed in `expected-results.txt` as:
  *     filename.png=expected text
+ *
+ * If the expected text is the literal string `FAIL`, the test asserts that the
+ * decoder returns null for that image (used for samples that are not valid Han
+ * Xin symbols).
  *
  * If no expectations are configured, the suite passes vacuously so that the
  * build does not break when the directory only contains the README.
@@ -53,8 +58,12 @@ class HanXinDecoderExternalTest {
             assertNotNull(bitmap, "Failed to decode bitmap: $fileName")
 
             val result = HanXinDecoder.decode(bitmap)
-            assertNotNull(result, "Decoder should recover $fileName")
-            assertEquals(expectedText, result.text, "Decoded text mismatch for $fileName")
+            if (expectedText == "FAIL") {
+                assertNull(result, "Decoder should fail for $fileName")
+            } else {
+                assertNotNull(result, "Decoder should recover $fileName")
+                assertEquals(expectedText, result.text, "Decoded text mismatch for $fileName")
+            }
             checked++
         }
 

@@ -1,0 +1,20 @@
+# External Han Xin Code samples
+#
+# Each non-comment, non-empty line must be:
+#     filename.png=expected decoded text
+#
+# These samples were provided as Han Xin Code images. The current decoder
+# fails to decode all of them on first inspection because their finder
+# patterns do not match the Han Xin Code specification used by this
+# implementation (they appear to be QR Code symbols). The expected value is
+# therefore "FAIL" for each file, meaning the decoder should return null.
+#
+# If you have confirmed Han Xin Code samples from a specific generator,
+# replace the FAIL entries with the actual expected contents and adjust the
+# file list accordingly.
+
+123456.png=FAIL
+barcode.gif=FAIL
+image_2026-06-19_17-33-52.png=FAIL
+我是谁.png=FAIL
+汉信码测试.png=FAIL
