@@ -149,7 +149,26 @@ class ScanImageFragment : Fragment() {
     private fun loadBitmapFromUri(uri: Uri): Bitmap? {
         return try {
             requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-                BitmapFactory.decodeStream(inputStream)
+                val options = BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                }
+                BitmapFactory.decodeStream(inputStream, null, options)
+
+                val maxDimension = 2048
+                val maxDim = maxOf(options.outWidth, options.outHeight)
+                val sampleSize = if (maxDim > maxDimension) {
+                    Integer.highestOneBit((maxDim / maxDimension).coerceAtLeast(1))
+                } else {
+                    1
+                }
+
+                requireContext().contentResolver.openInputStream(uri)?.use { decodeStream ->
+                    BitmapFactory.decodeStream(
+                        decodeStream,
+                        null,
+                        BitmapFactory.Options().apply { inSampleSize = sampleSize }
+                    )
+                }
             }
         } catch (e: Exception) {
             null

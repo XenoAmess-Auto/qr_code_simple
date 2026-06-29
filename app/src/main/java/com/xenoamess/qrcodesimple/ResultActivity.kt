@@ -29,6 +29,8 @@ import com.xenoamess.qrcodesimple.databinding.ActivityResultBinding
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import kotlinx.coroutines.Dispatchers
 import android.widget.LinearLayout
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -40,6 +42,7 @@ class ResultActivity : AppCompatActivity() {
     private lateinit var contentActionHandler: ContentActionHandler
     private val results = mutableListOf<QRResult>()
     private val scanResults = mutableListOf<QRCodeScanner.ScanResult>()
+    private var scanJob: Job? = null
 
     companion object {
         const val EXTRA_BITMAP_URI = "bitmap_uri"
@@ -75,6 +78,11 @@ class ResultActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.no_image_provided), Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scanJob?.cancel()
     }
 
     private fun setupRecyclerView() {
@@ -114,8 +122,9 @@ class ResultActivity : AppCompatActivity() {
 
     private fun processImage(uri: Uri) {
         binding.progressBar.visibility = View.VISIBLE
+        scanJob?.cancel()
 
-        lifecycleScope.launch {
+        scanJob = lifecycleScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.IO) {
                     loadBitmapFromUri(uri)
@@ -130,6 +139,8 @@ class ResultActivity : AppCompatActivity() {
                 val detectedResults = withContext(Dispatchers.Default) {
                     QRCodeScanner.scan(this@ResultActivity, bitmap)
                 }
+
+                if (!isActive) return@launch
 
                 binding.progressBar.visibility = View.GONE
 
@@ -165,9 +176,11 @@ class ResultActivity : AppCompatActivity() {
                     Toast.makeText(this@ResultActivity, getString(R.string.detected_with, libsUsed), Toast.LENGTH_SHORT).show()
                 }
 
-            } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                Toast.makeText(this@ResultActivity, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+            } catch (e: Throwable) {
+                if (isActive) {
+                    binding.progressBar.visibility = View.GONE
+                    Toast.makeText(this@ResultActivity, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -175,7 +188,26 @@ class ResultActivity : AppCompatActivity() {
     private fun loadBitmapFromUri(uri: Uri): Bitmap? {
         return try {
             contentResolver.openInputStream(uri)?.use { inputStream ->
-                BitmapFactory.decodeStream(inputStream)
+                val options = BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                }
+                BitmapFactory.decodeStream(inputStream, null, options)
+
+                val maxDimension = 2048
+                val maxDim = maxOf(options.outWidth, options.outHeight)
+                val sampleSize = if (maxDim > maxDimension) {
+                    Integer.highestOneBit((maxDim / maxDimension).coerceAtLeast(1))
+                } else {
+                    1
+                }
+
+                contentResolver.openInputStream(uri)?.use { decodeStream ->
+                    BitmapFactory.decodeStream(
+                        decodeStream,
+                        null,
+                        BitmapFactory.Options().apply { inSampleSize = sampleSize }
+                    )
+                }
             }
         } catch (e: Exception) {
             null

@@ -349,7 +349,6 @@ object HanXinDecoder {
             if (moduleW < 2 || moduleH < 2) continue
             val sampled = sampleGrid(binary, width, height, size, moduleW, moduleH)
             for (rotation in 0 until 4) {
-                tryInvert = false
                 val grid = rotateGrid(sampled, size, rotation)
                 if (verifyFinders(grid, size)) {
                     return grid to size
@@ -378,14 +377,21 @@ object HanXinDecoder {
         return grid
     }
 
-    private fun verifyFinders(grid: IntArray, size: Int): Boolean {
-        return matchesFinder(grid, size, 0, 0, FINDER_TL) &&
-                matchesFinder(grid, size, size - FINDER_SIZE, 0, FINDER_TR_BL) &&
-                matchesFinder(grid, size, 0, size - FINDER_SIZE, FINDER_TR_BL) &&
-                matchesFinder(grid, size, size - FINDER_SIZE, size - FINDER_SIZE, FINDER_BR)
+    private fun verifyFinders(grid: IntArray, size: Int, allowInvert: Boolean = true): Boolean {
+        return matchesFinder(grid, size, 0, 0, FINDER_TL, allowInvert) &&
+                matchesFinder(grid, size, size - FINDER_SIZE, 0, FINDER_TR_BL, false) &&
+                matchesFinder(grid, size, 0, size - FINDER_SIZE, FINDER_TR_BL, false) &&
+                matchesFinder(grid, size, size - FINDER_SIZE, size - FINDER_SIZE, FINDER_BR, false)
     }
 
-    private fun matchesFinder(grid: IntArray, size: Int, x0: Int, y0: Int, pattern: IntArray): Boolean {
+    private fun matchesFinder(
+        grid: IntArray,
+        size: Int,
+        x0: Int,
+        y0: Int,
+        pattern: IntArray,
+        allowInvert: Boolean
+    ): Boolean {
         for (yp in 0 until FINDER_SIZE) {
             for (xp in 0 until FINDER_SIZE) {
                 val expected = (pattern[yp] shr (6 - xp)) and 1
@@ -394,10 +400,9 @@ object HanXinDecoder {
                     // The symbol might be rendered as light modules on dark
                     // background. Flip the whole grid once on first mismatch and
                     // retry verification from the beginning.
-                    if (!tryInvert) {
-                        tryInvert = true
+                    if (allowInvert) {
                         invertGrid(grid)
-                        return verifyFinders(grid, size)
+                        return verifyFinders(grid, size, false)
                     }
                     return false
                 }
@@ -405,8 +410,6 @@ object HanXinDecoder {
         }
         return true
     }
-
-    private var tryInvert = false
 
     private fun invertGrid(grid: IntArray) {
         for (i in grid.indices) {
