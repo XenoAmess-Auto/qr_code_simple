@@ -79,6 +79,7 @@
     <string name="wifi_permission_denied">WiFi-Berechtigung verweigert</string>
 
     <!-- Error Messages -->
+    <string name="scanning_more">Erkenne weitere…</string>
     <string name="no_app_found">Keine geeignete App gefunden</string>
     <string name="no_calendar_app">Keine Kalender-App gefunden</string>
     <string name="no_email_app">Keine E-Mail-App gefunden</string>

@@ -45,13 +45,17 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 所有条码生成统一通过 `BarcodeGenerator.generate(content, config)`。
 
 ### 扫描入口
-所有条码扫描统一通过 `QRCodeScanner.scan(context, bitmap)` 或 `QRCodeScanner.scanSync(context, bitmap)`。
+
+- 实时扫描（相机/视频）：`QRCodeScanner.scan(context, bitmap)` 或 `QRCodeScanner.scanSync(context, bitmap)`，内部并行执行 6 个引擎，等待全部结束后返回完整结果列表。
+- 图片扫描：`QRCodeScanner.scanAsFlow(context, bitmap, config)`，6 个引擎并行执行，任一引擎识别到结果即通过 `Flow` 分批 emit；ResultActivity 收集到首个结果即展示页面，后续结果动态追加。图片扫描使用 `IMAGE_SCAN_CONFIG`（总超时 120s / 单引擎 60s），实时扫描使用 `CAMERA_SCAN_CONFIG`（总超时 15s / 单引擎 5s）。
 
 ### 历史记录
 - `HistoryRepository.insertGenerate(content, type, barcodeFormat)` 保存生成记录。
 - `HistoryItem.barcodeFormat` 字段保存格式名称字符串。
 
-## 5. 扫描引擎优先级
+## 5. 扫描引擎
+
+当前包含 6 个扫描引擎，图片扫描时并行运行：
 
 1. WeChatQRCode（仅 QR Code）
 2. ZXing MultiFormatReader（17 种格式）
@@ -59,6 +63,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 4. BoofCV MicroQrCodeDetector（Micro QR）
 5. HanXinDecoder（Han Xin Code / 汉信码）
 6. CustomLinearBarcodeScanner（Pharmacode / Plessey / MSI Plessey / Telepen）
+
+图片扫描的结果按 `text + format` 去重，保留最先识别到的引擎标签。
 
 ## 6. 文件索引
 

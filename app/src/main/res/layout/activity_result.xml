@@ -30,6 +30,16 @@
         android:layout_gravity="center"
         android:visibility="visible" />
 
+    <TextView
+        android:id="@+id/tvScanningMore"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/scanning_more"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:padding="8dp"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"

@@ -30,6 +30,7 @@ import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import kotlinx.coroutines.Dispatchers
 import android.widget.LinearLayout
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -122,7 +123,17 @@ class ResultActivity : AppCompatActivity() {
 
     private fun processImage(uri: Uri) {
         binding.progressBar.visibility = View.VISIBLE
+        binding.tvScanningMore.visibility = View.GONE
+        binding.tvNoResults.visibility = View.GONE
+        binding.recyclerView.visibility = View.GONE
+        binding.layoutButtons.visibility = View.GONE
+        binding.ivProcessedImage.visibility = View.GONE
         scanJob?.cancel()
+
+        results.clear()
+        scanResults.clear()
+        adapter.notifyDataSetChanged()
+        updateSelectionCount()
 
         scanJob = lifecycleScope.launch {
             try {
@@ -136,49 +147,53 @@ class ResultActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                val detectedResults = withContext(Dispatchers.Default) {
-                    QRCodeScanner.scan(this@ResultActivity, bitmap)
-                }
+                binding.ivProcessedImage.setImageBitmap(bitmap)
+                binding.ivProcessedImage.visibility = View.VISIBLE
+
+                var hasResults = false
+                QRCodeScanner.scanAsFlow(this@ResultActivity, bitmap, QRCodeScanner.IMAGE_SCAN_CONFIG)
+                    .collect { batch ->
+                        if (batch.isEmpty()) return@collect
+
+                        if (!hasResults) {
+                            hasResults = true
+                            binding.progressBar.visibility = View.GONE
+                            binding.tvNoResults.visibility = View.GONE
+                            binding.recyclerView.visibility = View.VISIBLE
+                            binding.layoutButtons.visibility = View.VISIBLE
+                        }
+
+                        val startIndex = results.size
+                        results.addAll(batch.map {
+                            QRResult(it.text, false, it.library)
+                        })
+                        scanResults.addAll(batch)
+
+                        adapter.notifyItemRangeInserted(startIndex, batch.size)
+                        updateSelectionCount()
+                        saveToHistory(batch)
+
+                        val libsUsed = batch.map { it.library.name }.distinct().joinToString(", ")
+                        Toast.makeText(this@ResultActivity, getString(R.string.detected_with, libsUsed), Toast.LENGTH_SHORT).show()
+                    }
 
                 if (!isActive) return@launch
 
+                binding.tvScanningMore.visibility = View.GONE
                 binding.progressBar.visibility = View.GONE
 
-                if (detectedResults.isEmpty()) {
+                if (!hasResults) {
                     binding.tvNoResults.visibility = View.VISIBLE
                     binding.tvNoResults.text = getString(R.string.no_qr_codes_found_detail)
                     binding.recyclerView.visibility = View.GONE
                     binding.layoutButtons.visibility = View.GONE
-                } else {
-                    binding.tvNoResults.visibility = View.GONE
-                    binding.recyclerView.visibility = View.VISIBLE
-                    binding.layoutButtons.visibility = View.VISIBLE
-                    binding.ivProcessedImage.visibility = View.VISIBLE
-
-                    // 显示原图
-                    binding.ivProcessedImage.setImageBitmap(bitmap)
-
-                    results.clear()
-                    results.addAll(detectedResults.map {
-                        QRResult(it.text, false, it.library)
-                    })
-                    scanResults.clear()
-                    scanResults.addAll(detectedResults)
-
-                    adapter.notifyDataSetChanged()
-                    updateSelectionCount()
-
-                    // 保存到历史记录
-                    saveToHistory(detectedResults)
-
-                    // 显示使用了哪个库
-                    val libsUsed = detectedResults.map { it.library.name }.distinct().joinToString(", ")
-                    Toast.makeText(this@ResultActivity, getString(R.string.detected_with, libsUsed), Toast.LENGTH_SHORT).show()
+                    binding.ivProcessedImage.visibility = View.GONE
                 }
 
             } catch (e: Throwable) {
                 if (isActive) {
                     binding.progressBar.visibility = View.GONE
+                    binding.tvScanningMore.visibility = View.GONE
                     Toast.makeText(this@ResultActivity, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
                 }
             }

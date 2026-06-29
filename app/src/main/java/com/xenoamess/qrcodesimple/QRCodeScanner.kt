@@ -20,7 +20,13 @@ import com.xenoamess.qrcodesimple.decoder.CustomLinearBarcodeScanner
 import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
 import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinDecoder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -83,27 +89,45 @@ private fun CustomLinearBarcodeScanner.Format.toZXingFormat(): BarcodeFormat {
 }
 
 /**
+ * 扫描配置。不同使用场景（图片扫描、相机实时扫描）可配置不同的超时与缩放策略。
+ */
+data class ScanConfig(
+    val totalTimeoutMs: Long,
+    val perEngineTimeoutMs: Long,
+    val maxDimension: Int
+) {
+    init {
+        require(totalTimeoutMs > 0)
+        require(perEngineTimeoutMs > 0)
+        require(maxDimension > 0)
+    }
+}
+
+/**
  * 多库二维码扫描管理器
- * 按优先级顺序尝试：WeChatQRCode -> ZXing -> ML Kit
+ * 6 个引擎并行执行，任一返回结果即可通过 Flow emit；也可等待全部结束后统一返回。
  */
 object QRCodeScanner {
 
     private const val TAG = "QRCodeScanner"
 
     /**
-     * 单次扫描总超时（毫秒）。防止某个解码器挂起导致页面/后台线程被无限期占用。
+     * 图片扫描配置：大图识别通常需要更长时间，因此总超时和单引擎超时都较长。
      */
-    private const val TOTAL_SCAN_TIMEOUT_MS = 15000L
+    val IMAGE_SCAN_CONFIG = ScanConfig(
+        totalTimeoutMs = 120_000L,
+        perEngineTimeoutMs = 60_000L,
+        maxDimension = 1280
+    )
 
     /**
-     * 单个引擎超时（毫秒）。每个库最多只能占用这么长时间。
+     * 相机/视频实时扫描配置：帧率高，单帧不能占用太久。
      */
-    private const val PER_ENGINE_TIMEOUT_MS = 5000L
-
-    /**
-     * 扫描前缩放的最大边长。过大的图片会占用大量内存并显著降低解码速度。
-     */
-    private const val MAX_SCAN_DIMENSION = 1280
+    val CAMERA_SCAN_CONFIG = ScanConfig(
+        totalTimeoutMs = 15_000L,
+        perEngineTimeoutMs = 5_000L,
+        maxDimension = 1280
+    )
 
     private val scanningEnabled = AtomicBoolean(true)
 
@@ -118,13 +142,13 @@ object QRCodeScanner {
     /**
      * 将 Bitmap 缩放到合适的尺寸，减少内存占用并加快解码。
      */
-    private fun preprocessBitmap(bitmap: Bitmap): Bitmap {
+    private fun preprocessBitmap(bitmap: Bitmap, maxDimension: Int): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
         val maxDim = maxOf(width, height)
-        if (maxDim <= MAX_SCAN_DIMENSION) return bitmap
+        if (maxDim <= maxDimension) return bitmap
 
-        val scale = MAX_SCAN_DIMENSION.toFloat() / maxDim
+        val scale = maxDimension.toFloat() / maxDim
         val newWidth = (width * scale).toInt()
         val newHeight = (height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
@@ -136,9 +160,10 @@ object QRCodeScanner {
      */
     private suspend fun <T> runEngineSafely(
         name: String,
+        timeoutMs: Long,
         block: suspend () -> List<T>
     ): List<T> = try {
-        withTimeoutOrNull(PER_ENGINE_TIMEOUT_MS) {
+        withTimeoutOrNull(timeoutMs) {
             block()
         } ?: emptyList()
     } catch (e: Throwable) {
@@ -151,7 +176,13 @@ object QRCodeScanner {
         val library: Library,
         val format: BarcodeFormat = BarcodeFormat.QR_CODE,
         val resultMetadata: Map<com.google.zxing.ResultMetadataType, Any>? = null
-    )
+    ) {
+        /**
+         * 去重键：相同内容 + 相同格式视为同一条码，保留最先识别到的引擎标签。
+         */
+        val deduplicationKey: String
+            get() = "$text#${format.name}"
+    }
 
     enum class Library {
         WECHAT_QR,
@@ -163,180 +194,123 @@ object QRCodeScanner {
     }
 
     /**
-     * 扫描位图中的所有二维码
-     * 按顺序尝试各个库，直到获得结果
+     * 并行扫描位图中的所有条码，以 Flow 形式逐步返回结果。
+     * 6 个引擎同时启动，任一引擎识别到结果即 emit 一次；
+     * 后续引擎返回的新结果（按 text+format 去重）会继续追加 emit。
+     *
+     * @param config 扫描配置，图片扫描建议使用 [IMAGE_SCAN_CONFIG]，相机扫描使用 [CAMERA_SCAN_CONFIG]。
      */
-    suspend fun scan(context: Context, bitmap: Bitmap): List<ScanResult> = try {
-        withTimeoutOrNull(TOTAL_SCAN_TIMEOUT_MS) {
-            withContext(Dispatchers.Default) {
-                if (!scanningEnabled.get()) {
-                    Log.w(TAG, "Scanning is disabled")
-                    return@withContext emptyList<ScanResult>()
-                }
+    fun scanAsFlow(
+        context: Context,
+        bitmap: Bitmap,
+        config: ScanConfig = IMAGE_SCAN_CONFIG
+    ): Flow<List<ScanResult>> = channelFlow {
+        if (!scanningEnabled.get()) {
+            Log.w(TAG, "Scanning is disabled")
+            send(emptyList())
+            return@channelFlow
+        }
 
-                val processedBitmap = preprocessBitmap(bitmap)
-                val shouldRecycleProcessed = processedBitmap !== bitmap
-                val results = mutableListOf<ScanResult>()
+        val processedBitmap = preprocessBitmap(bitmap, config.maxDimension)
+        val shouldRecycleProcessed = processedBitmap !== bitmap
 
-                try {
-                    // 1. 尝试 WeChatQRCode
-                    if (QRCodeApp.isWeChatQRCodeInitialized && isActive) {
-                        val wechatResults = runEngineSafely("WeChatQRCode") {
-                            scanWithWeChatQRCode(processedBitmap)
-                        }
-                        if (wechatResults.isNotEmpty()) {
-                            results.addAll(wechatResults)
-                            Log.d(TAG, "WeChatQRCode detected ${wechatResults.size} codes")
+        try {
+            withTimeoutOrNull(config.totalTimeoutMs) {
+                coroutineScope {
+                    val seenKeys = mutableSetOf<String>()
+                    val allDeferred = mutableListOf<kotlinx.coroutines.Deferred<List<ScanResult>>>()
+
+                    fun emitNew(results: List<ScanResult>) {
+                        val newResults = results.filter { seenKeys.add(it.deduplicationKey) }
+                        if (newResults.isNotEmpty()) {
+                            trySend(newResults)
                         }
                     }
 
-                    // 2. 尝试 ZXing
-                    if (results.isEmpty() && isActive) {
-                        val zxingResults = runEngineSafely("ZXing") {
+                    // 1. WeChatQRCode
+                    if (QRCodeApp.isWeChatQRCodeInitialized) {
+                        allDeferred += async {
+                            runEngineSafely("WeChatQRCode", config.perEngineTimeoutMs) {
+                                scanWithWeChatQRCode(processedBitmap)
+                            }.also { emitNew(it) }
+                        }
+                    }
+
+                    // 2. ZXing
+                    allDeferred += async {
+                        runEngineSafely("ZXing", config.perEngineTimeoutMs) {
                             scanWithZXing(processedBitmap)
-                        }
-                        if (zxingResults.isNotEmpty()) {
-                            results.addAll(zxingResults)
-                            Log.d(TAG, "ZXing detected ${zxingResults.size} codes")
-                        }
+                        }.also { emitNew(it) }
                     }
 
-                    // 3. 尝试 ML Kit
-                    if (results.isEmpty() && isActive) {
-                        val mlKitResults = runEngineSafely("ML Kit") {
+                    // 3. ML Kit
+                    allDeferred += async {
+                        runEngineSafely("ML Kit", config.perEngineTimeoutMs) {
                             scanWithMLKit(processedBitmap)
-                        }
-                        if (mlKitResults.isNotEmpty()) {
-                            results.addAll(mlKitResults)
-                            Log.d(TAG, "ML Kit detected ${mlKitResults.size} codes")
-                        }
+                        }.also { emitNew(it) }
                     }
 
-                    // 4. 尝试 Micro QR Code (BoofCV)
-                    if (results.isEmpty() && isActive) {
-                        val microQrResults = runEngineSafely("BoofCV Micro QR") {
+                    // 4. BoofCV Micro QR
+                    allDeferred += async {
+                        runEngineSafely("BoofCV Micro QR", config.perEngineTimeoutMs) {
                             MicroQrCodeScanner.scan(processedBitmap)
                                 .map { ScanResult(it.text, Library.BOOFCV, BarcodeFormat.QR_CODE) }
-                        }
-                        if (microQrResults.isNotEmpty()) {
-                            results.addAll(microQrResults)
-                            Log.d(TAG, "BoofCV Micro QR detected ${microQrResults.size} codes")
-                            return@withContext results
-                        }
+                        }.also { emitNew(it) }
                     }
 
-                    // 5. 尝试 Han Xin Code
-                    if (results.isEmpty() && isActive) {
-                        val hanXinResults = runEngineSafely("Han Xin") {
+                    // 5. Han Xin Code
+                    allDeferred += async {
+                        runEngineSafely("Han Xin", config.perEngineTimeoutMs) {
                             HanXinDecoder.decode(processedBitmap)?.let {
                                 listOf(ScanResult(it.text, Library.HAN_XIN, BarcodeFormat.QR_CODE))
                             } ?: emptyList()
-                        }
-                        if (hanXinResults.isNotEmpty()) {
-                            results.addAll(hanXinResults)
-                            Log.d(TAG, "Han Xin decoder detected 1 code")
-                            return@withContext results
-                        }
+                        }.also { emitNew(it) }
                     }
 
-                    // 6. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
-                    if (results.isEmpty() && isActive) {
-                        val customResults = runEngineSafely("CustomLinear") {
+                    // 6. 自定义一维码
+                    allDeferred += async {
+                        runEngineSafely("CustomLinear", config.perEngineTimeoutMs) {
                             CustomLinearBarcodeScanner.scan(processedBitmap)
                                 .map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) }
-                        }
-                        if (customResults.isNotEmpty()) {
-                            results.addAll(customResults)
-                            Log.d(TAG, "Custom linear decoder detected ${customResults.size} codes")
-                            return@withContext results
-                        }
+                        }.also { emitNew(it) }
                     }
 
-                    Log.d(TAG, "Total detected: ${results.size} codes")
-                    results
-                } finally {
-                    if (shouldRecycleProcessed && !processedBitmap.isRecycled) {
-                        processedBitmap.recycle()
-                    }
+                    // 等待所有引擎结束，确保后续结果都能被 emit
+                    allDeferred.awaitAll()
                 }
-                if (QRCodeApp.isWeChatQRCodeInitialized && isActive) {
-                    val wechatResults = runEngineSafely("WeChatQRCode") {
-                        scanWithWeChatQRCode(processedBitmap)
-                    }
-                    if (wechatResults.isNotEmpty()) {
-                        results.addAll(wechatResults)
-                        Log.d(TAG, "WeChatQRCode detected ${wechatResults.size} codes")
-                    }
-                }
-
-                // 2. 尝试 ZXing
-                if (results.isEmpty() && isActive) {
-                    val zxingResults = runEngineSafely("ZXing") {
-                        scanWithZXing(processedBitmap)
-                    }
-                    if (zxingResults.isNotEmpty()) {
-                        results.addAll(zxingResults)
-                        Log.d(TAG, "ZXing detected ${zxingResults.size} codes")
-                    }
-                }
-
-                // 3. 尝试 ML Kit
-                if (results.isEmpty() && isActive) {
-                    val mlKitResults = runEngineSafely("ML Kit") {
-                        scanWithMLKit(processedBitmap)
-                    }
-                    if (mlKitResults.isNotEmpty()) {
-                        results.addAll(mlKitResults)
-                        Log.d(TAG, "ML Kit detected ${mlKitResults.size} codes")
-                    }
-                }
-
-                // 4. 尝试 Micro QR Code (BoofCV)
-                if (results.isEmpty() && isActive) {
-                    val microQrResults = runEngineSafely("BoofCV Micro QR") {
-                        MicroQrCodeScanner.scan(processedBitmap)
-                            .map { ScanResult(it.text, Library.BOOFCV, BarcodeFormat.QR_CODE) }
-                    }
-                    if (microQrResults.isNotEmpty()) {
-                        results.addAll(microQrResults)
-                        Log.d(TAG, "BoofCV Micro QR detected ${microQrResults.size} codes")
-                        return@withContext results
-                    }
-                }
-
-                // 5. 尝试 Han Xin Code
-                if (results.isEmpty() && isActive) {
-                    val hanXinResults = runEngineSafely("Han Xin") {
-                        HanXinDecoder.decode(processedBitmap)?.let {
-                            listOf(ScanResult(it.text, Library.HAN_XIN, BarcodeFormat.QR_CODE))
-                        } ?: emptyList()
-                    }
-                    if (hanXinResults.isNotEmpty()) {
-                        results.addAll(hanXinResults)
-                        Log.d(TAG, "Han Xin decoder detected 1 code")
-                        return@withContext results
-                    }
-                }
-
-                // 6. 尝试自定义一维码解码器（Pharmacode / Plessey / MSI Plessey / Telepen）
-                if (results.isEmpty() && isActive) {
-                    val customResults = runEngineSafely("CustomLinear") {
-                        CustomLinearBarcodeScanner.scan(processedBitmap)
-                            .map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) }
-                    }
-                    if (customResults.isNotEmpty()) {
-                        results.addAll(customResults)
-                        Log.d(TAG, "Custom linear decoder detected ${customResults.size} codes")
-                        return@withContext results
-                    }
-                }
-
-                Log.d(TAG, "Total detected: ${results.size} codes")
-                results
             }
-        } ?: emptyList()
+        } catch (e: Throwable) {
+            Log.e(TAG, "Scan flow crashed", e)
+        } finally {
+            if (shouldRecycleProcessed && !processedBitmap.isRecycled) {
+                processedBitmap.recycle()
+            }
+        }
+    }
+
+    /**
+     * 并行扫描，等待所有引擎结束后返回完整结果列表（已去重）。
+     * 主要用于相机/视频实时扫描，保持原有调用方语义不变。
+     */
+    suspend fun scan(context: Context, bitmap: Bitmap): List<ScanResult> {
+        val allResults = mutableListOf<ScanResult>()
+        val seenKeys = mutableSetOf<String>()
+        scanAsFlow(context, bitmap, CAMERA_SCAN_CONFIG).collect { batch ->
+            allResults.addAll(batch.filter { seenKeys.add(it.deduplicationKey) })
+        }
+        return allResults
+    }
+
+    /**
+     * 同步扫描（用于非协程环境，如视频扫描）。
+     * 内部并行执行，但等待全部引擎结束后返回完整列表，保持调用方语义不变。
+     */
+    fun scanSync(context: Context, bitmap: Bitmap): List<ScanResult> = try {
+        runBlocking(Dispatchers.Default) {
+            scan(context, bitmap)
+        }
     } catch (e: Throwable) {
-        Log.e(TAG, "Scan pipeline crashed", e)
+        Log.e(TAG, "Sync scan pipeline crashed", e)
         emptyList()
     }
 
@@ -532,18 +506,5 @@ object QRCodeScanner {
             Barcode.FORMAT_ITF -> BarcodeFormat.ITF
             else -> BarcodeFormat.QR_CODE
         }
-    }
-
-    /**
-     * 同步扫描（用于非协程环境，如视频扫描）
-     * 支持条形码扫描
-     */
-    fun scanSync(context: Context, bitmap: Bitmap): List<ScanResult> = try {
-        runBlocking(Dispatchers.Default) {
-            scan(context, bitmap)
-        }
-    } catch (e: Throwable) {
-        Log.e(TAG, "Sync scan pipeline crashed", e)
-        emptyList()
     }
 }

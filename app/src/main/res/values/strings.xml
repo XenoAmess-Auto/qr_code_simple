@@ -53,6 +53,7 @@
     <string name="no_qr_codes_found">No QR codes found in this image</string>
     <string name="checking_security">Checking security…</string>
     <string name="no_qr_codes_found_detail">No QR codes found (tried WeChatQR, ZXing, ML Kit)</string>
+    <string name="scanning_more">Recognizing more…</string>
     <string name="no_image_provided">No image provided</string>
     <string name="no_video_provided">No video provided</string>
     <string name="failed_to_load_image">Failed to load image</string>
