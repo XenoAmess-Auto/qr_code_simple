@@ -1,103 +1,114 @@
 # QR Code Simple
 
-[English](#english) | [中文](#中文)
-
----
-
-<a name="english"></a>
-## English
+[English](README.md) | [中文](README_CN.md)
 
 A feature-rich Android QR/Barcode scanning and generation app.
 
-### Features
+---
 
-#### Core Features
-- ✅ **Full Barcode Support** - Supports 22 barcode formats for scanning and generation (QR Code, Data Matrix, Aztec, PDF417, Han Xin Code, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, and more)
-- ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URL, geo-location with one-click actions
-- ✅ **Batch Generation** - Import CSV/Excel data to generate QR codes in bulk, support ZIP export
-- ✅ **Style Customization** - Foreground/background colors, center logo, rounded/dot styles
-- ✅ **QR Code Repair** - Smart repair for blurry/damaged QR codes
+## Features
 
-#### History Management
-- ✅ **Full-text Search** - Search by content/time/type
-- ✅ **Smart Categories** - Auto-classify into links, text, WiFi, contacts, etc.
-- ✅ **Favorites/Pinning** - Mark important items
-- ✅ **Tag System** - Custom tag management
-- ✅ **Import/Export** - JSON/CSV backup
+### Core
 
-#### Scanning Experience
-- ✅ **Continuous Scan Mode** - Scan multiple codes without confirmation
-- ✅ **Scan Feedback** - Vibration effects
-- ✅ **Smart/Manual Focus** - Auto-adjust based on code size, tap to focus
-- ✅ **Scan Area Limit** - Recognize within selected region
+- ✅ **22 Barcode Formats** - Scan and generate QR Code, Data Matrix, Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, and UPC/EAN Extension.
+- ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
+- ✅ **Batch Generation** - Import CSV data and generate QR codes in bulk, with ZIP export. (Excel import is **not** currently supported; only `commons-csv` is wired in.)
+- ✅ **Style Customization** - Foreground/background colors, center logo, rounded and dot styles.
+- ✅ **QR Code Repair** - Enhancement model for blurry or damaged QR codes (TensorFlow Lite).
 
-#### Share & Export
-- ✅ **Vector Export** - SVG format QR code export (lossless scaling)
-- ✅ **Share Templates** - Generate share images with description text
+### History
 
-#### Security & Privacy
-- ✅ **Malicious Link Detection** - Local blacklist, URL suspicious feature analysis
-- ✅ **Privacy Mode** - Incognito scanning (no history saved)
-- ✅ **App Lock** - Fingerprint/password protection for sensitive history
-- ✅ **Local Encryption** - SQLCipher AES-256 database encryption
+- ✅ **Full-text Search** - Search by content, time, or type.
+- ✅ **Smart Categories** - Auto-classify into links, text, WiFi, contacts, and more.
+- ✅ **Favorites / Pinning** - Mark important items.
+- ✅ **Tag System** - Custom tag management.
+- ✅ **Import / Export** - JSON / CSV backup.
 
-#### UI & UX
-- ✅ **Material You** - Android 12+ dynamic colors
-- ✅ **Landscape Support** - Optimized for tablets and landscape
-- ✅ **Shortcuts** - Long-press icon for quick scan/generate
-- ✅ **Home Widgets** - Quick scan/generate widgets
-- ✅ **Animation** - Page transitions, scan line animation
-- ✅ **Internationalization** - Simplified Chinese, Traditional Chinese, English, Japanese, Korean, German
+### Scanning Experience
 
-#### Technical
-- ✅ **Unit Tests** - Comprehensive test coverage
-- ✅ **Performance** - Large image loading memory optimization
-- ✅ **Crash Monitoring** - Firebase Crashlytics integration
-- ✅ **Offline Enhancement** - TensorFlow Lite model support
+- ✅ **Continuous Scan Mode** - Scan multiple codes without confirmation dialogs.
+- ✅ **Haptic Feedback** - Vibration on successful decode.
+- ✅ **Auto / Tap-to-focus** - Adapts to code size; tap to focus manually.
+- ✅ **Scan Region Limit** - Decode only within a selected area.
+- ✅ **Video Scan** - Decode barcodes directly from video files.
 
-### Supported Barcode Formats
+### Share & Export
 
-The app supports **22 barcode formats** for scanning, including **22 formats for generation**.
+- ✅ **Vector Export** - SVG format for lossless scaling.
+- ✅ **Share Templates** - Generate share images with description text.
 
-#### 2D Matrix Codes
+### Security & Privacy
+
+- ✅ **Malicious Link Detection** - Local blacklist + URL suspicious-feature analysis.
+- ✅ **Privacy Mode** - Incognito scanning; nothing is written to history.
+- ✅ **App Lock** - Fingerprint or password protection for sensitive history.
+- ✅ **Local Encryption** - SQLCipher (AES-256) on the history database.
+
+### UI & UX
+
+- ✅ **Material You** - Android 12+ dynamic colors.
+- ✅ **Landscape Support** - Tablet and landscape optimized.
+- ✅ **Shortcuts** - Long-press the launcher icon to scan or generate.
+- ✅ **Home Widgets** - Quick Scan and Quick Generate widgets.
+- ✅ **Internationalization** - Simplified Chinese, English, Japanese, Korean, German.
+- ✅ **Animation** - Page transitions and scan-line animation.
+
+### Technical
+
+- ✅ **Unit Tests** - Roundtrip tests for every supported format (Robolectric).
+- ✅ **Memory-aware Image Loading** - Large image handling.
+- ✅ **Crash Monitoring** - Firebase Crashlytics.
+- ✅ **Offline Enhancement** - TensorFlow Lite model.
+
+---
+
+## Supported Barcode Formats
+
+The app supports **22 barcode formats** for both scanning and generation.
+
+### 2D Matrix Codes
 
 | Format | Scan | Generate | Description |
 |--------|:----:|:--------:|-------------|
-| **QR Code** | ✅ | ✅ | Most common 2D code, widely used for payments, URLs, and contact sharing. |
-| **Data Matrix** | ✅ | ✅ | Compact 2D code that can store data in very small spaces, common for electronic components and medical devices. |
-| **Aztec Code** | ✅ | ✅ | 2D code that does not require a quiet zone, often used for train tickets and boarding passes. |
-| **PDF417** | ✅ | ✅ | Stacked linear barcode capable of storing large amounts of text and binary data, used on IDs and shipping labels. |
-| **MaxiCode** | ✅ | ✅ | Fixed-size 2D code developed by UPS, used in international logistics and air freight. |
+| **QR Code** | ✅ | ✅ | Most common 2D code; widely used for payments, URLs, and contact sharing. |
+| **Data Matrix** | ✅ | ✅ | Compact 2D code for very small spaces; common on electronic components and medical devices. |
+| **Aztec Code** | ✅ | ✅ | 2D code with no required quiet zone; often used on train tickets and boarding passes. |
+| **PDF417** | ✅ | ✅ | Stacked linear barcode capable of holding large text and binary payloads; used on IDs and shipping labels. |
+| **MaxiCode** | ✅ | ✅ | Fixed-size 2D code developed by UPS; used in international logistics and air freight. |
 | **Micro QR Code** | ✅ | ✅ | Miniaturized QR code for extremely small marking spaces. |
-| **Han Xin Code** | ✅ | ✅ | Chinese 2D matrix code (GB18030) supporting Chinese characters and ECI. |
+| **Han Xin Code** | ✅ | ✅ | Chinese 2D matrix code (GB/T 36527); supports Chinese characters and ECI. The in-app display name is `Han Xin`. |
 
-#### 1D/Linear Barcodes
+### 1D / Linear Barcodes
 
 | Format | Scan | Generate | Description |
 |--------|:----:|:--------:|-------------|
-| **Code 128** | ✅ | ✅ | High-density alphanumeric encoding widely used in logistics and supply chain. |
-| **Code 39** | ✅ | ✅ | Supports digits, uppercase letters, and several symbols, used in industrial and military applications. |
-| **Code 93** | ✅ | ✅ | Compact improvement over Code 39, commonly used in logistics and industry. |
-| **EAN-13** | ✅ | ✅ | 13-digit European Article Number, the standard retail barcode in most countries. |
-| **EAN-8** | ✅ | ✅ | Short version of EAN-13 for small packaging. |
+| **Code 128** | ✅ | ✅ | High-density alphanumeric encoding; widely used in logistics and supply chain. |
+| **Code 39** | ✅ | ✅ | Digits, uppercase letters, and a few symbols; common in industrial and military use. |
+| **Code 93** | ✅ | ✅ | Compact improvement over Code 39; common in logistics and industry. |
+| **EAN-13** | ✅ | ✅ | 13-digit European Article Number; the standard retail barcode in most countries. |
+| **EAN-8** | ✅ | ✅ | Short form of EAN-13 for small packaging. |
 | **UPC-A** | ✅ | ✅ | 12-digit Universal Product Code standard in North American retail. |
-| **UPC-E** | ✅ | ✅ | Compressed version of UPC-A for small packages. |
-| **Codabar** | ✅ | ✅ | Encodes digits and a few symbols, historically used in libraries and blood banks. |
-| **ITF** | ✅ | ✅ | Interleaved 2 of 5, a numeric-only barcode often used on carton packaging. |
-| **Pharmacode** | ✅ | ✅ | One-dimensional code specifically designed for pharmaceutical packaging. |
-| **Plessey Code** | ✅ | ✅ | Barcode commonly used in libraries and inventory management. |
-| **MSI Plessey** | ✅ | ✅ | Variant of Plessey commonly used in libraries and inventory management. |
-| **Telepen** | ✅ | ✅ | Barcode often used in libraries and academic institutions. |
+| **UPC-E** | ✅ | ✅ | Compressed form of UPC-A for small packages. |
+| **Codabar** | ✅ | ✅ | Digits and a few symbols; historically used in libraries and blood banks. |
+| **ITF** | ✅ | ✅ | Interleaved 2 of 5; numeric-only, common on carton packaging. |
+| **Pharmacode** | ✅ | ✅ | One-dimensional code designed for pharmaceutical packaging (numeric, 3 - 131070). |
+| **Plessey Code** | ✅ | ✅ | Common in libraries and inventory management. |
+| **MSI Plessey** | ✅ | ✅ | Variant of Plessey; common in libraries and inventory management. |
+| **Telepen** | ✅ | ✅ | Common in libraries and academic institutions. |
 
-#### UPC/EAN Extensions and GS1 DataBar
+### UPC/EAN Extension and GS1 DataBar
 
 | Format | Scan | Generate | Description |
 |--------|:----:|:--------:|-------------|
-| **UPC/EAN Extension** | ✅ | ✅ | 2 or 5-digit add-on supplementing UPC/EAN barcodes. |
+| **UPC/EAN Extension** | ✅¹ | ✅ | 2- or 5-digit add-on for UPC/EAN. |
 | **RSS-14 / GS1 DataBar** | ✅ | ✅ | GS1 standard barcode designed to replace traditional UPC/EAN in retail. |
-| **RSS Expanded** | ✅ | ✅ | Variable-length alphanumeric GS1 barcode for product attributes such as batch or weight. |
+| **RSS Expanded** | ✅ | ✅ | Variable-length alphanumeric GS1 barcode for batch, weight, and similar attributes. |
 
-### Screenshots
+¹ The UPC/EAN Extension **cannot be scanned standalone**. The generator attaches it to a dummy EAN-13, and the extension value comes back via ZXing's `ResultMetadataType.UPC_EAN_EXTENSION` rather than as a primary decode.
+
+---
+
+## Screenshots
 
 | Live Scan Result | Image Scan |
 |:----------------:|:----------:|
@@ -107,259 +118,183 @@ The app supports **22 barcode formats** for scanning, including **22 formats for
 |:-------------:|:------------------:|
 | ![QR Generate](./screenshots/generate_qr.jpg) | ![History](./screenshots/history_list.jpg) |
 
-### Tech Stack
+---
 
-- **Language**: Kotlin
-- **UI**: Jetpack Compose / XML Layout
-- **Database**: Room + SQLCipher (encrypted)
-- **DI**: Singleton pattern
+## Tech Stack
+
+- **Language**: Kotlin 2.2.10
+- **UI**: Jetpack Compose + XML Layouts (viewBinding)
+- **Database**: Room 2.7.1 + SQLCipher 4.5.4 (encrypted)
 - **Async**: Kotlin Coroutines
-- **Camera**: CameraX
-- **QR Recognition**: ZXing + ML Kit + WeChatQRCode
-- **ML**: TensorFlow Lite
+- **Camera**: CameraX 1.3.3
+- **Barcode Recognition**: ZXing 3.5.3, ML Kit 17.2.0, WeChatQRCode 2.6.0 (OpenCV)
+- **Micro QR**: BoofCV 1.4.0
+- **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode)
+- **ML**: TensorFlow Lite 2.17.0
+- **CSV Parsing**: Apache Commons CSV 1.14.1
+- **Biometric**: androidx.biometric 1.1.0
 - **Crash Monitoring**: Firebase Crashlytics
+- **Tests**: JUnit 4 + Robolectric 4.16.1
 
-### Build Requirements
+The full file index and architectural notes live in [`docs/knowledge-base.md`](docs/knowledge-base.md).
 
-- Android Studio Hedgehog (2023.1.1) or higher
-- JDK 21
-- Android SDK 35
-- Gradle 9.5.1
+---
 
-### Build Instructions
+## Build Requirements
+
+- **JDK 21** (required by `compileOptions` and `kotlinOptions.jvmTarget = '21'`)
+- **Android SDK 35** (`compileSdk 35`, `targetSdk 35`, `minSdk 24`)
+- **Gradle 9.5.1** (already pinned via `gradle-wrapper.properties`)
+- **Android Studio Ladybug (2024.2.1) or newer** - AGP 9.2.1 will not load in older IDEs
+- **NDK** is **not** required to build; only the native libraries shipped through the WeChatQRCode / OpenCV AARs are used
+
+Set `JAVA_HOME` to your JDK 21 install and put `sdk.dir=/path/to/Android/Sdk` into `local.properties`. `local.properties` is git-ignored.
+
+---
+
+## Build Instructions
 
 ```bash
 # Clone
 git clone https://github.com/XenoAmess-Auto/qr_code_simple.git
 cd qr_code_simple
 
-# Build Debug
-./gradlew assembleDebug
+# Build Debug APK (use the wrapper, not a global gradle)
+./gradlew :app:assembleDebug
 
-# Run tests
+# Run unit tests (Robolectric)
 ./gradlew :app:testDebugUnitTest
 
-# Install to device
-./gradlew installDebug
+# Install to a connected device
+./gradlew :app:installDebug
 ```
 
-### Project Structure
+If you see "App not installed" or signature mismatch errors, see `README_CN.md` → "签名问题解决方案" for three workarounds (download CI debug keystore, use CI-built APK, or uninstall and reinstall).
+
+---
+
+## Project Structure
 
 ```
 app/src/main/java/com/xenoamess/qrcodesimple/
-├── MainActivity.kt              # Main activity
-├── QRCodeApp.kt                 # Application class
-├── data/                        # Data layer
-│   ├── AppDatabase.kt           # Encrypted database
-│   ├── HistoryItem.kt           # History entity
-│   ├── HistoryDao.kt            # Database access
-│   └── HistoryRepository.kt     # Data repository
-├── ui/                          # UI components
-│   ├── CameraScanFragment.kt    # Real-time scan
-│   ├── ScanImageActivity.kt     # Image scan
-│   ├── GenerateActivity.kt      # QR generation
-│   └── HistoryFragment.kt       # History
-├── decoder/                     # Custom decoders
-│   ├── CustomLinearBarcodeScanner.kt
-│   ├── MicroQrCodeScanner.kt
+├── MainActivity.kt                  # TabLayout + ViewPager2 entry
+├── QRCodeApp.kt                     # Application class; native-lib loader
+├── QRCodeScanner.kt                 # Multi-engine scanner (WeChatQRCode -> ZXing -> ML Kit -> BoofCV -> HanXin -> custom)
+├── BarcodeGenerator.kt              # Barcode generation entry
+├── AdvancedBarcodeGenerator.kt      # Styled generation (colors, logos, shapes)
+├── SvgQRCodeGenerator.kt            # SVG (vector) export
+├── ShareTemplateGenerator.kt        # Share-image composition
+├── ContentParser.kt                 # Plain-text -> WiFi / contact / URL / event / geo parsing
+├── ContentActionHandler.kt          # Action dispatcher for parsed content
+├── LocaleHelper.kt                  # Language switching helper
+│
+├── CameraScanActivity.kt            # Live camera scan UI
+├── CameraScanFragment.kt            # Live camera scan logic
+├── ScanImageActivity.kt             # Static-image scan UI
+├── ScanImageFragment.kt             # Static-image scan logic
+├── ContinuousScanActivity.kt        # Continuous (batch) scan mode
+├── ContinuousScanAdapter.kt         # List adapter for continuous scan
+├── VideoScanActivity.kt             # Decode barcodes from video files
+├── GenerateActivity.kt              # Single-code generation UI
+├── GenerateFragment.kt              # Single-code generation logic
+├── BatchGenerateActivity.kt         # CSV-driven batch generation UI
+├── BatchResultActivity.kt           # Batch results screen
+├── BatchGenerator.kt                # CSV parsing + bulk generation
+├── ResultActivity.kt                # Single-code result screen (action menu)
+├── HistoryFragment.kt               # History list
+├── HistoryAdapter.kt                # History list adapter
+├── HistoryBackupManager.kt          # JSON / CSV import & export
+├── TagManager.kt                    # Custom-tag CRUD
+├── AboutFragment.kt                 # About / acknowledgements
+│
+├── AppLockManager.kt                # Biometric / PIN lock for history
+├── SecurityManager.kt               # Malicious-link heuristics
+├── PrivacySettingsActivity.kt       # Privacy mode toggle
+├── DatabaseSecurityActivity.kt      # SQLCipher key rotation
+├── QRCodeRestorationManager.kt      # QR restoration / enhancement glue
+├── QREnhancementModel.kt            # TFLite wrapper for QR repair
+├── ImagePerformanceManager.kt       # Large-image memory optimizer
+├── CameraFocusManager.kt            # Auto / tap-to-focus
+├── ScanRegionView.kt                # Region-of-interest overlay
+├── ScannerOverlayView.kt            # Camera scan-line overlay
+├── AnimationUtils.kt                # Shared animation helpers
+├── EdgeToEdgeExt.kt                 # Edge-to-edge utilities
+├── AppShortcutManager.kt            # Static + dynamic shortcuts
+├── CrashlyticsManager.kt            # Crashlytics init wrappers
+│
+├── QuickScanWidget.kt               # Home-screen Quick Scan widget
+├── QuickGenerateWidget.kt           # Home-screen Quick Generate widget
+├── BackupActivity.kt                # Backup / restore UI
+│
+├── data/
+│   ├── AppDatabase.kt               # Room database
+│   ├── Converters.kt                # Room type converters
+│   ├── HistoryDao.kt                # History DAO
+│   ├── HistoryItem.kt               # History entity + BarcodeFormat + HistoryType enums
+│   └── HistoryRepository.kt         # Repository wrapping DAO
+│
+├── decoder/
+│   ├── BarcodeScanUtils.kt          # Shared pre-processing helpers
+│   ├── CustomLinearBarcodeScanner.kt# Dispatches to Pharmacode / Plessey / MSI Plessey / Telepen
+│   ├── MicroQrCodeScanner.kt        # BoofCV-based Micro QR scanner
+│   ├── PharmacodeDecoder.kt         # Pharmacode
+│   ├── PlesseyDecoder.kt            # Plessey
+│   ├── MsiPlesseyDecoder.kt         # MSI Plessey
+│   ├── TelepenDecoder.kt            # Telepen
 │   └── hanxin/
-│       ├── HanXinEncoder.kt
-│       └── HanXinDecoder.kt
-└── util/                        # Utils
-    ├── BarcodeGenerator.kt      # Barcode generator
-    ├── ContentParser.kt         # Content parser
-    ├── QRCodeScanner.kt         # QR scanner
-    └── LocaleHelper.kt          # Language helper
+│       ├── HanXinEncoder.kt         # Han Xin Code encoder
+│       └── HanXinDecoder.kt         # Han Xin Code decoder
+│
+└── ViewPagerAdapter.kt              # Adapter for MainActivity tab pager
 ```
 
-### License
+Resources of note:
 
-MIT License
-
-### Contributing
-
-Issues and Pull Requests welcome!
+```
+app/src/main/res/
+├── layout/                          # XML layouts (activities + fragments + list items + widgets)
+├── values/                          # Default (English) strings, colors, themes (Material 3)
+├── values-de/                       # German
+├── values-ja/                       # Japanese
+├── values-ko/                       # Korean
+├── values-zh/                       # Simplified Chinese
+├── values-night/                    # Dark theme overrides
+├── drawable/                        # Vector icons (flash, camera switch, etc.)
+├── anim/                            # Shared animations
+├── menu/                            # Toolbar menus
+├── xml/                             # locales_config.xml, shortcuts.xml, widget provider info, ...
+└── mipmap-*/                        # Launcher icons
+```
 
 ---
 
-<a name="中文"></a>
-## 中文
+## Acknowledgements
 
-一款功能丰富的 Android 二维码/条码扫描与生成应用。
-
-### 功能特性
-
-#### 核心功能
-- ✅ **全条码支持** - 支持 22 种条码格式扫描与生成（QR Code、Data Matrix、Aztec、PDF417、汉信码、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF 等）
-- ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等格式，提供一键操作
-- ✅ **批量生成** - 从 CSV/Excel 导入数据批量生成二维码，支持 ZIP 导出
-- ✅ **样式定制** - 前景色/背景色自定义、中心 Logo、圆角/点阵样式
-- ✅ **二维码修复** - 对模糊/破损二维码进行智能修复识别
-
-#### 历史记录
-- ✅ **全文搜索** - 按内容/时间/类型搜索历史
-- ✅ **智能分类** - 自动归类为链接、文本、WiFi、联系人等
-- ✅ **收藏/置顶** - 重要内容标记
-- ✅ **标签系统** - 自定义标签管理
-- ✅ **导入/导出** - JSON/CSV 格式备份
-
-#### 扫描体验
-- ✅ **连续扫描模式** - 无需确认连续扫描多个码
-- ✅ **扫描反馈** - 震动效果
-- ✅ **智能/手动对焦** - 根据码大小自动调整对焦距离，支持点击对焦
-- ✅ **扫描区域限定** - 框选特定区域识别
-
-#### 分享与导出
-- ✅ **矢量导出** - SVG 格式二维码导出（无损放大）
-- ✅ **分享模板** - 生成带说明文字的分享图片
-
-#### 安全与隐私
-- ✅ **恶意链接检测** - 本地黑名单检测、URL 可疑特征分析
-- ✅ **隐私模式** - 无痕扫描（不保存历史）
-- ✅ **应用锁** - 指纹/密码保护敏感历史
-- ✅ **本地加密** - SQLCipher AES-256 数据库加密
-
-#### 界面与体验
-- ✅ **Material You** - Android 12+ 动态取色
-- ✅ **横屏适配** - 平板和横屏优化布局
-- ✅ **快捷方式** - 长按图标快速扫码/生成
-- ✅ **桌面小组件** - 快速扫描/生成小组件
-- ✅ **动画优化** - 页面过渡、扫描线动画
-- ✅ **国际化** - 支持简体中文、繁体中文、英语、日语、韩语、德语
-
-#### 技术特性
-- ✅ **单元测试** - 全面的单元测试覆盖
-- ✅ **性能优化** - 大图加载内存优化
-- ✅ **崩溃监控** - Firebase Crashlytics 集成
-- ✅ **离线增强** - TensorFlow Lite 模型支持
-
-### 支持的条码格式
-
-应用当前支持 **22 种条码格式** 扫描，其中 **22 种支持生成**。
-
-#### 二维码
-
-| 格式 | 扫描 | 生成 | 简介 |
-|------|:----:|:----:|------|
-| **QR Code** | ✅ | ✅ | 最常见的二维码，广泛用于支付、网址、名片和 WiFi 共享。 |
-| **Data Matrix** | ✅ | ✅ | 可在极小空间存储数据，常用于电子元器件和医疗器械标识。 |
-| **Aztec Code** | ✅ | ✅ | 无需静音区即可识别，常用于火车票、登机牌等场景。 |
-| **PDF417** | ✅ | ✅ | 堆叠式线性条码，可存储大量文本与二进制数据，用于身份证、驾照和快递面单。 |
-| **MaxiCode** | ✅ | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
-| **Micro QR Code** | ✅ | ✅ | 微型 QR 码，用于极小空间的标识。 |
-| **Han Xin Code** | ✅ | ✅ | 汉信码，支持中文与 ECI 的国产二维矩阵码。 |
-
-#### 一维条码
-
-| 格式 | 扫描 | 生成 | 简介 |
-|------|:----:|:----:|------|
-| **Code 128** | ✅ | ✅ | 高密度字母数字编码，广泛用于物流与供应链。 |
-| **Code 39** | ✅ | ✅ | 支持数字、大写字母及部分符号，常用于工业和军事领域。 |
-| **Code 93** | ✅ | ✅ | Code 39 的高密度改进版，常用于物流和工业场景。 |
-| **EAN-13** | ✅ | ✅ | 13 位欧洲商品编码，是大多数国家零售商品的标准条码。 |
-| **EAN-8** | ✅ | ✅ | EAN-13 的短版，用于小包装商品。 |
-| **UPC-A** | ✅ | ✅ | 12 位通用产品代码，北美零售商品的标准条码。 |
-| **UPC-E** | ✅ | ✅ | UPC-A 的压缩版，用于小包装商品。 |
-| **Codabar** | ✅ | ✅ | 编码数字和少量符号，常用于图书馆和血库。 |
-| **ITF** | ✅ | ✅ | 交叉 25 码，纯数字条码，常用于纸箱包装和物流外箱。 |
-| **Pharmacode** | ✅ | ✅ | 药品包装专用的一维码。 |
-| **Plessey Code** | ✅ | ✅ | 图书馆和库存管理中常用的条码。 |
-| **MSI Plessey** | ✅ | ✅ | Plessey 的变体，常用于图书馆和库存管理。 |
-| **Telepen** | ✅ | ✅ | 图书馆和学术机构常用的条码。 |
-
-#### UPC/EAN 扩展码与 GS1 DataBar
-
-| 格式 | 扫描 | 生成 | 简介 |
-|------|:----:|:----:|------|
-| **UPC/EAN Extension** | ✅ | ✅ | UPC/EAN 的 2 位或 5 位扩展码，作为主码的附加信息。 |
-| **RSS-14 / GS1 DataBar** | ✅ | ✅ | GS1 标准条码，用于替代传统 UPC/EAN，常见于零售生鲜和医疗。 |
-| **RSS Expanded** | ✅ | ✅ | RSS-14 的扩展版，可变长度字母数字，用于生产日期、批次号、重量等。 |
-
-### 使用效果图
-
-| 实时扫描结果 | 图片扫描识别 |
-|:------------:|:------------:|
-| ![扫描结果](./screenshots/scan_result.jpg) | ![图片扫描](./screenshots/link_history.jpg) |
-
-| 二维码生成 | 历史记录管理 |
-|:----------:|:------------:|
-| ![二维码生成](./screenshots/generate_qr.jpg) | ![历史记录](./screenshots/history_list.jpg) |
-
-### 技术栈
-
-- **语言**: Kotlin
-- **UI**: Jetpack Compose / XML Layout
-- **数据库**: Room + SQLCipher（加密）
-- **依赖注入**: 无（使用单例模式）
-- **异步**: Kotlin Coroutines
-- **相机**: CameraX
-- **二维码识别**: ZXing + ML Kit + WeChatQRCode
-- **机器学习**: TensorFlow Lite
-- **崩溃监控**: Firebase Crashlytics
-
-### 构建要求
-
-- Android Studio Hedgehog (2023.1.1) 或更高版本
-- JDK 21
-- Android SDK 35
-- Gradle 9.5.1
-
-### 构建说明
-
-```bash
-# 克隆项目
-git clone https://github.com/XenoAmess-Auto/qr_code_simple.git
-
-# 进入项目目录
-cd qr_code_simple
-
-# 构建 Debug 版本
-./gradlew assembleDebug
-
-# 运行单元测试
-./gradlew test
-
-# 安装到设备
-./gradlew installDebug
-```
-
-### 项目结构
-
-```
-app/src/main/java/com/xenoamess/qrcodesimple/
-├── MainActivity.kt              # 主界面
-├── QRCodeApp.kt                 # Application 类
-├── data/                        # 数据层
-│   ├── AppDatabase.kt           # 加密数据库
-│   ├── HistoryItem.kt           # 历史记录实体
-│   ├── HistoryDao.kt            # 数据库访问
-│   └── HistoryRepository.kt     # 数据仓库
-├── ui/                          # UI 组件
-│   ├── CameraScanFragment.kt    # 实时扫描
-│   ├── ScanImageActivity.kt     # 图片扫描
-│   ├── GenerateActivity.kt      # 二维码生成
-│   └── HistoryFragment.kt       # 历史记录
-└── util/                        # 工具类
-    ├── BarcodeGenerator.kt      # 条码生成器
-    ├── ContentParser.kt         # 内容解析器
-    ├── QRCodeScanner.kt         # 二维码扫描器
-    └── LocaleHelper.kt          # 语言切换助手
-```
-
-### 开源许可
-
-MIT License
-
-### 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
----
-
-## Acknowledgments / 致谢
-
-- [ZXing](https://github.com/zxing/zxing) - QR code recognition
-- [ML Kit](https://developers.google.com/ml-kit) - Google ML suite
-- [WeChatQRCode](https://github.com/WeChatCV/opencv_3rdparty) - WeChat QR engine
+- [ZXing](https://github.com/zxing/zxing) - QR / barcode recognition fallback
+- [ML Kit](https://developers.google.com/ml-kit) - Google ML barcode scanning
+- [WeChatQRCode](https://github.com/WeChatCV/opencv_3rdparty) - Primary QR engine (via [jenly1314](https://github.com/jenly1314/WeChatQRCode))
+- [BoofCV](https://boofcv.org/) - Micro QR Code detector
+- [OkapiBarcode](https://github.com/woo-j/OkapiBarcode) - RSS-14 / RSS Expanded / MaxiCode generation
 - [SQLCipher](https://www.zetetic.net/sqlcipher/) - Database encryption
 - [TensorFlow Lite](https://www.tensorflow.org/lite) - On-device ML
+- [Apache Commons CSV](https://commons.apache.org/proper/commons-csv/) - CSV parsing for batch generation
+
+---
+
+## License
+
+Apache License 2.0 - see [LICENSE](LICENSE).
+
+---
+
+## Contributing
+
+Issues and Pull Requests are welcome. Before opening a PR, please run `./gradlew :app:testDebugUnitTest` and keep `docs/knowledge-base.md` in sync with the code.
+
+---
+
+## Support
+
+If this project helps you, consider supporting development:
+
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-ff5f5f?logo=ko-fi)](https://ko-fi.com/xenoamess)
