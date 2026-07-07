@@ -70,7 +70,8 @@
 
 | # | 任务 | 目标文件 | 关键改动 | 验收标准 |
 |---|------|----------|----------|----------|
-| 4.1 | 引入 POI 依赖 | `app/build.gradle` | 引入 `org.apache.poi:poi:5.3.0` 和 `poi-ooxml:5.3.0` | 构建通过 |
+| 4.1 | 引入 POI 依赖 | `app/build.gradle` | 引入 `org.apache.poi:poi:3.17` 和 `poi-ooxml:3.17`（并启用 `coreLibraryDesugaring`） | 构建通过 |
+| 4.4 | 修复 POI Android 兼容性 | `app/build.gradle`、`BatchGenerator.kt` | POI 5.3.0 使用 `MethodHandle` 无法在 `minSdk 24` 上 dex；降级到 3.17 并排除重复 `xmlbeans`；`CellType` 改用 `Cell.CELL_TYPE_*` | 构建与测试通过 |
 | 4.2 | 实现 Excel 解析 | `BatchGenerator.kt` | 新增 `parseExcel()`；兼容三种情况：<br>① 有标题行，列名 `content`/`format`/`filename`/`fg_color`/`bg_color`<br>② 无标题行，单列内容按顺序读取<br>③ 列数不足时默认 `QR_CODE` | 三种 Excel 都能导入 |
 | 4.3 | 扩展文件选择器 | `BatchGenerateActivity.kt` | MIME type 增加 `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` 和 `application/vnd.ms-excel` | 可选择 `.xlsx` / `.xls` |
 
