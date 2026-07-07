@@ -62,12 +62,20 @@ class HistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        repository = HistoryRepository(requireContext())
-        setupRecyclerView()
-        setupFilterTabs()
-        setupTagFilter()
-        setupSearchView()
-        setupClearButton()
+        try {
+            repository = HistoryRepository(requireContext())
+            setupRecyclerView()
+            setupFilterTabs()
+            setupTagFilter()
+            setupSearchView()
+            setupClearButton()
+        } catch (e: Exception) {
+            android.util.Log.e("HistoryFragment", "DB init failed", e)
+            Toast.makeText(requireContext(), "History unavailable: ${e.message}", Toast.LENGTH_LONG).show()
+            binding.tvEmpty.text = "History unavailable"
+            binding.tvEmpty.visibility = View.VISIBLE
+            return
+        }
 
         if (AppLockManager.isUnlocked()) {
             loadHistory()
@@ -239,21 +247,32 @@ class HistoryFragment : Fragment() {
 
     private fun loadHistory() {
         lifecycleScope.launch {
-            val flow = when {
-                currentTag != null -> repository.getHistoryByTag(currentTag!!)
-                currentSearchQuery.isNotEmpty() -> repository.searchHistory(currentSearchQuery)
-                currentFilter == FilterType.FAVORITE -> repository.getFavoriteHistory()
-                else -> when (currentFilter) {
-                    FilterType.ALL -> repository.allHistory
-                    FilterType.SCANNED -> repository.scannedHistory
-                    FilterType.GENERATED -> repository.generatedHistory
-                    FilterType.FAVORITE -> repository.getFavoriteHistory()
+            try {
+                val flow = when {
+                    currentTag != null -> repository.getHistoryByTag(currentTag!!)
+                    currentSearchQuery.isNotEmpty() -> repository.searchHistory(currentSearchQuery)
+                    currentFilter == FilterType.FAVORITE -> repository.getFavoriteHistory()
+                    else -> when (currentFilter) {
+                        FilterType.ALL -> repository.allHistory
+                        FilterType.SCANNED -> repository.scannedHistory
+                        FilterType.GENERATED -> repository.generatedHistory
+                        FilterType.FAVORITE -> repository.getFavoriteHistory()
+                    }
                 }
-            }
 
-            flow.collectLatest { items ->
-                adapter.submitList(items)
-                updateEmptyState(items.isEmpty())
+                flow.collectLatest { items ->
+                    adapter.submitList(items)
+                    updateEmptyState(items.isEmpty())
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HistoryFragment", "loadHistory failed", e)
+                withContext(Dispatchers.Main) {
+                    if (_binding != null) {
+                        adapter.submitList(emptyList())
+                        updateEmptyState(true)
+                        binding.tvEmpty.text = "History unavailable: ${e.message}"
+                    }
+                }
             }
         }
     }
