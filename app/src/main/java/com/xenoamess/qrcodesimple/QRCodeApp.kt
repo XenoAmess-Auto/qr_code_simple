@@ -83,6 +83,9 @@ class QRCodeApp : Application() {
         
         // 初始化标签管理器
         TagManager.init(this)
+
+        // 初始化应用锁
+        AppLockManager.init(this)
         
         // 应用启动时预加载 WeChatQRCode 库（可选，失败不影响其他库）
         val success = initWeChatQRCodeDetector(this)

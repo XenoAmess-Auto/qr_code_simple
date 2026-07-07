@@ -1,7 +1,10 @@
 package com.xenoamess.qrcodesimple
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -26,7 +29,6 @@ class PrivacySettingsActivity : AppCompatActivity() {
         binding = ActivityPrivacySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 设置沉浸式状态栏并处理安全区域
         setupEdgeToEdge()
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -39,10 +41,11 @@ class PrivacySettingsActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        // 加载隐私模式状态
         val isPrivacyMode = QRCodeApp.isPrivacyMode(this)
         binding.switchPrivacyMode.isChecked = isPrivacyMode
         updatePrivacyModeUI(isPrivacyMode)
+
+        updateAppLockUI()
     }
 
     private fun setupListeners() {
@@ -59,6 +62,98 @@ class PrivacySettingsActivity : AppCompatActivity() {
         binding.btnClearAllHistory.setOnClickListener {
             showClearHistoryDialog()
         }
+
+        binding.switchAppLock.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                if (AppLockManager.hasPin()) {
+                    AppLockManager.setLockEnabled(true)
+                    updateAppLockUI()
+                    Toast.makeText(this, getString(R.string.app_lock_enabled), Toast.LENGTH_SHORT).show()
+                } else {
+                    showSetPinDialog { success ->
+                        if (success) {
+                            AppLockManager.setLockEnabled(true)
+                        } else {
+                            binding.switchAppLock.isChecked = false
+                        }
+                        updateAppLockUI()
+                    }
+                }
+            } else {
+                AppLockManager.setLockEnabled(false)
+                updateAppLockUI()
+                Toast.makeText(this, getString(R.string.app_lock_disabled), Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnChangePin.setOnClickListener {
+            showSetPinDialog { success ->
+                if (success) {
+                    Toast.makeText(this, getString(R.string.pin_set), Toast.LENGTH_SHORT).show()
+                }
+                updateAppLockUI()
+            }
+        }
+    }
+
+    private fun showSetPinDialog(onResult: (Boolean) -> Unit) {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 24)
+        }
+
+        val pinInput = EditText(this).apply {
+            hint = getString(R.string.enter_pin)
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        }
+
+        val confirmPinInput = EditText(this).apply {
+            hint = getString(R.string.confirm_pin)
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        }
+
+        container.addView(pinInput)
+        container.addView(confirmPinInput)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.set_pin))
+            .setView(container)
+            .setPositiveButton(getString(R.string.set_pin)) { _, _ ->
+                val pin = pinInput.text?.toString()?.trim() ?: ""
+                val confirmPin = confirmPinInput.text?.toString()?.trim() ?: ""
+
+                if (pin.length < 4) {
+                    Toast.makeText(this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT).show()
+                    onResult(false)
+                    return@setPositiveButton
+                }
+
+                if (pin != confirmPin) {
+                    Toast.makeText(this, getString(R.string.pin_mismatch), Toast.LENGTH_SHORT).show()
+                    onResult(false)
+                    return@setPositiveButton
+                }
+
+                AppLockManager.setPin(pin)
+                onResult(true)
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setOnDismissListener { onResult(false) }
+            .show()
+    }
+
+    private fun updateAppLockUI() {
+        val isEnabled = AppLockManager.isLockEnabled()
+        binding.switchAppLock.isChecked = isEnabled
+        binding.tvAppLockStatus.text = if (isEnabled) {
+            getString(R.string.app_lock_enabled)
+        } else {
+            getString(R.string.app_lock_disabled)
+        }
+        binding.tvAppLockStatus.setTextColor(
+            if (isEnabled) getColor(android.R.color.holo_green_dark) else getColor(android.R.color.darker_gray)
+        )
+        binding.btnChangePin.visibility = if (AppLockManager.hasPin()) View.VISIBLE else View.GONE
     }
 
     private fun showEnablePrivacyModeDialog() {

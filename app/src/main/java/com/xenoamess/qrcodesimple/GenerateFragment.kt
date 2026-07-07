@@ -15,14 +15,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.slider.Slider
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentGenerateBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -38,9 +42,19 @@ class GenerateFragment : Fragment() {
     private var lastGeneratedContent: String? = null
     private var lastGeneratedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
+    private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
+    private var cornerRadius = 0f
+    private var dotScale = 1f
+    private var logoBitmap: Bitmap? = null
 
     companion object {
         private const val TAG = "GenerateFragment"
+    }
+
+    private val pickLogoLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { loadLogo(it) }
     }
 
     override fun onCreateView(
@@ -58,7 +72,94 @@ class GenerateFragment : Fragment() {
         historyRepository = HistoryRepository(requireContext())
 
         setupFormatSelector()
+        setupStyleControls()
+        setupButtons()
+    }
 
+    private fun setupFormatSelector() {
+        val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            formats.map { it.displayName }
+        )
+        binding.spinnerFormat.setAdapter(adapter)
+
+        val initialPosition = formats.indexOf(selectedFormat)
+        if (initialPosition >= 0) {
+            binding.spinnerFormat.setText(formats[initialPosition].displayName, false)
+        }
+
+        binding.spinnerFormat.setOnItemClickListener { _, _, position, _ ->
+            selectedFormat = formats[position]
+            updateHintForFormat()
+            generateBarcode()
+        }
+    }
+
+    private fun setupStyleControls() {
+        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; generateBarcode() }
+        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; generateBarcode() }
+        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; generateBarcode() }
+        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; generateBarcode() }
+        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; generateBarcode() }
+        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; generateBarcode() }
+        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; generateBarcode() }
+        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; generateBarcode() }
+
+        binding.seekBarCornerRadius.addOnChangeListener(Slider.OnChangeListener { _, value, fromUser ->
+            cornerRadius = value / 100f * 20f
+            binding.tvCornerRadiusValue.text = "${value.toInt()}%"
+            if (fromUser) generateBarcode()
+        })
+
+        binding.seekBarDotScale.addOnChangeListener(Slider.OnChangeListener { _, value, fromUser ->
+            dotScale = 0.3f + (value / 100f) * 0.7f
+            binding.tvDotScaleValue.text = "${(dotScale * 100).toInt()}%"
+            if (fromUser) generateBarcode()
+        })
+
+        binding.btnAddLogo.setOnClickListener {
+            pickLogoLauncher.launch("image/*")
+        }
+
+        binding.btnRemoveLogo.setOnClickListener {
+            logoBitmap = null
+            binding.ivLogoPreview.setImageBitmap(null)
+            binding.ivLogoPreview.visibility = View.GONE
+            generateBarcode()
+        }
+    }
+
+    private fun updateHintForFormat() {
+        val hintRes = when (selectedFormat) {
+            BarcodeFormat.EAN_13 -> R.string.hint_ean_13
+            BarcodeFormat.EAN_8 -> R.string.hint_ean_8
+            BarcodeFormat.UPC_A -> R.string.hint_upc_a
+            BarcodeFormat.UPC_E -> R.string.hint_upc_e
+            BarcodeFormat.CODE_39 -> R.string.hint_code_39
+            BarcodeFormat.CODE_128 -> R.string.hint_code_128
+            else -> R.string.enter_content
+        }
+        binding.tilContent.hint = getString(hintRes)
+    }
+
+    private fun loadLogo(uri: Uri) {
+        lifecycleScope.launch {
+            try {
+                requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                    logoBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+                    binding.ivLogoPreview.setImageBitmap(logoBitmap)
+                    binding.ivLogoPreview.visibility = View.VISIBLE
+                    generateBarcode()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), getString(R.string.failed_to_load_logo, e.message), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun setupButtons() {
         binding.btnGenerate.setOnClickListener {
             generateBarcode()
         }
@@ -78,25 +179,6 @@ class GenerateFragment : Fragment() {
         }
     }
 
-    private fun setupFormatSelector() {
-        val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            formats.map { it.displayName }
-        )
-        binding.spinnerFormat.setAdapter(adapter)
-
-        val initialPosition = formats.indexOf(selectedFormat)
-        if (initialPosition >= 0) {
-            binding.spinnerFormat.setText(formats[initialPosition].displayName, false)
-        }
-
-        binding.spinnerFormat.setOnItemClickListener { _, _, position, _ ->
-            selectedFormat = formats[position]
-        }
-    }
-
     private fun generateBarcode() {
         val content = binding.etContent.text?.toString()?.trim()
         if (content.isNullOrEmpty()) {
@@ -111,21 +193,19 @@ class GenerateFragment : Fragment() {
         }
 
         try {
-            val size = resources.getDimensionPixelSize(R.dimen.qr_code_size)
-            val config = BarcodeGenerator.BarcodeConfig(
-                format = selectedFormat,
-                width = size,
-                height = size,
-                foregroundColor = Color.BLACK,
-                backgroundColor = Color.WHITE
+            val style = selectedStyle.copy(
+                cornerRadius = cornerRadius,
+                dotScale = dotScale,
+                logoBitmap = logoBitmap
             )
-            val bitmap = BarcodeGenerator.generate(content, config)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
             if (bitmap == null) {
                 Toast.makeText(requireContext(), getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return
             }
             currentBitmap = bitmap
             binding.ivQRCode.setImageBitmap(bitmap)
+            validateGeneratedBarcode(content, selectedFormat, bitmap)
 
             if (content != lastGeneratedContent || selectedFormat != lastGeneratedFormat) {
                 lastGeneratedContent = content
@@ -151,7 +231,8 @@ class GenerateFragment : Fragment() {
         }
 
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "${selectedFormat.name}_$timeStamp.png"
+        val prefix = selectedFormat.name.lowercase().replace("_", "")
+        val fileName = "${prefix}_$timeStamp.png"
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -207,10 +288,52 @@ class GenerateFragment : Fragment() {
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(intent, getString(R.string.share_barcode)))
+            startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
         } catch (e: Exception) {
             Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun validateGeneratedBarcode(content: String, format: BarcodeFormat, bitmap: Bitmap) {
+        lifecycleScope.launch(Dispatchers.Default) {
+            try {
+                val results = QRCodeScanner.scanSync(requireContext(), bitmap)
+                val warning = when {
+                    results.isEmpty() -> getString(R.string.warning_barcode_not_scannable)
+                    !results.any { matchResult(content, format, it) } -> getString(R.string.warning_barcode_content_mismatch)
+                    else -> null
+                }
+                withContext(Dispatchers.Main) {
+                    if (_binding != null) {
+                        binding.tvGenerationWarning.apply {
+                            if (warning != null) {
+                                text = warning
+                                visibility = View.VISIBLE
+                            } else {
+                                visibility = View.GONE
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Validation failed", e)
+            }
+        }
+    }
+
+    private fun matchResult(content: String, format: BarcodeFormat, result: QRCodeScanner.ScanResult): Boolean {
+        return when (format) {
+            BarcodeFormat.RSS_EXPANDED -> normalizeRss(content) == normalizeRss(result.text)
+            BarcodeFormat.UPC_EAN_EXTENSION -> {
+                val extension = result.resultMetadata?.get(com.google.zxing.ResultMetadataType.UPC_EAN_EXTENSION) as? String
+                extension == content
+            }
+            else -> result.text == content
+        }
+    }
+
+    private fun normalizeRss(text: String): String {
+        return text.replace("[", "(").replace("]", ")")
     }
 
     private fun BarcodeFormat.toHistoryType(): HistoryType {

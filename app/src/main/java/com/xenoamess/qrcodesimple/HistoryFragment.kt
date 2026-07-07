@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -65,7 +66,62 @@ class HistoryFragment : Fragment() {
         setupFilterTabs()
         setupSearchView()
         setupClearButton()
-        loadHistory()
+
+        if (AppLockManager.isUnlocked()) {
+            loadHistory()
+        } else {
+            showAppLockDialog()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::repository.isInitialized && !AppLockManager.isUnlocked()) {
+            adapter.submitList(emptyList())
+            showAppLockDialog()
+        }
+    }
+
+    private fun showAppLockDialog() {
+        if (AppLockManager.isBiometricEnabled() && AppLockManager.isBiometricAvailable(requireContext())) {
+            AppLockManager.showBiometricPrompt(
+                requireActivity(),
+                onSuccess = {
+                    AppLockManager.recordUnlock()
+                    loadHistory()
+                },
+                onFailed = { showPinDialog() }
+            )
+        } else {
+            showPinDialog()
+        }
+    }
+
+    private fun showPinDialog() {
+        val input = EditText(requireContext()).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            hint = getString(R.string.enter_pin)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.app_lock))
+            .setView(input)
+            .setPositiveButton(getString(R.string.unlock)) { _, _ ->
+                val pin = input.text?.toString() ?: ""
+                if (AppLockManager.verifyPin(pin)) {
+                    AppLockManager.recordUnlock()
+                    loadHistory()
+                } else {
+                    Toast.makeText(requireContext(), getString(R.string.pin_incorrect), Toast.LENGTH_SHORT).show()
+                    adapter.submitList(emptyList())
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
+                adapter.submitList(emptyList())
+            }
+            .setOnCancelListener {
+                adapter.submitList(emptyList())
+            }
+            .show()
     }
 
     private fun setupRecyclerView() {
