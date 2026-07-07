@@ -5,49 +5,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 扫描预览区域 -->
-    <FrameLayout
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragmentContainer"
+        android:name="com.xenoamess.qrcodesimple.CameraScanFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1" />
 
-        <androidx.camera.view.PreviewView
-            android:id="@+id/previewView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <com.xenoamess.qrcodesimple.ScannerOverlayView
-            android:id="@+id/scannerOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <!-- 控制按钮 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_gravity="bottom"
-            android:padding="16dp">
-
-            <Button
-                android:id="@+id/btnStartScan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Start Scan" />
-
-            <Button
-                android:id="@+id/btnStopScan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Stop Scan"
-                android:visibility="gone" />
-
-        </LinearLayout>
-
-    </FrameLayout>
-
-    <!-- 结果列表区域 -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -58,7 +22,6 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <!-- 工具栏 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -81,7 +44,7 @@
                     android:layout_height="40dp"
                     android:src="@drawable/ic_settings"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Settings" />
+                    android:contentDescription="@string/settings" />
 
                 <ImageButton
                     android:id="@+id/btnClearAll"
@@ -89,13 +52,13 @@
                     android:layout_height="40dp"
                     android:src="@drawable/ic_delete"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Clear All" />
+                    android:contentDescription="@string/clear_all" />
 
                 <Button
                     android:id="@+id/btnSaveAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Save All"
+                    android:text="@string/save_all"
                     android:layout_marginStart="8dp"
                     style="?android:attr/borderlessButtonStyle" />
 

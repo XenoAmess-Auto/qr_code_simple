@@ -41,6 +41,10 @@ import kotlin.math.min
 
 class CameraScanFragment : Fragment() {
 
+    interface OnScanResultListener {
+        fun onScanResult(result: QRCodeScanner.ScanResult)
+    }
+
     private var _binding: FragmentCameraScanBinding? = null
     private val binding get() = _binding!!
     private var cameraExecutor: ExecutorService? = null
@@ -58,6 +62,11 @@ class CameraScanFragment : Fragment() {
     private var isBackCamera = true
     private var maxZoom = 10f
     private var currentParsedContent: ParsedContent? = null
+    private var scanResultListener: OnScanResultListener? = null
+
+    fun setScanResultListener(listener: OnScanResultListener?) {
+        scanResultListener = listener
+    }
 
     companion object {
         private const val TAG = "CameraScanFragment"
@@ -333,6 +342,12 @@ class CameraScanFragment : Fragment() {
 
     private fun showResult(result: QRCodeScanner.ScanResult) {
         if (!isAdded) return
+        scanResultListener?.let { listener ->
+            activity?.runOnUiThread {
+                listener.onScanResult(result)
+            }
+            return
+        }
         activity?.runOnUiThread {
             binding.tvResult.text = result.text
             binding.resultCard.visibility = View.VISIBLE

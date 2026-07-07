@@ -1,8 +1,6 @@
 package com.xenoamess.qrcodesimple
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -11,8 +9,6 @@ import android.os.VibratorManager
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -30,13 +26,12 @@ class ContinuousScanActivity : AppCompatActivity() {
     private lateinit var adapter: ContinuousScanAdapter
     private val results = mutableListOf<ScanResult>()
     private lateinit var historyRepository: HistoryRepository
-    
-    // 扫描间隔（毫秒）
+
     private var scanInterval = 500L
     private var isVibrationEnabled = true
-    private var isSoundEnabled = true
     private var isAutoSaveEnabled = true
-    
+    private var lastScanTime = 0L
+
     data class ScanResult(
         val content: String,
         val type: HistoryType = HistoryType.QR_CODE,
@@ -50,17 +45,26 @@ class ContinuousScanActivity : AppCompatActivity() {
         binding = ActivityContinuousScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 设置沉浸式状态栏并处理安全区域
         setupEdgeToEdge()
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.continuous_scan)
 
         historyRepository = HistoryRepository(this)
-        
+
         setupRecyclerView()
         setupButtons()
         loadSettings()
+        setupCameraFragment()
+    }
+
+    private fun setupCameraFragment() {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? CameraScanFragment
+        fragment?.setScanResultListener(object : CameraScanFragment.OnScanResultListener {
+            override fun onScanResult(result: QRCodeScanner.ScanResult) {
+                handleScanResult(result)
+            }
+        })
     }
 
     private fun setupRecyclerView() {
@@ -75,14 +79,6 @@ class ContinuousScanActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
-        binding.btnStartScan.setOnClickListener {
-            startContinuousScan()
-        }
-
-        binding.btnStopScan.setOnClickListener {
-            stopContinuousScan()
-        }
-
         binding.btnClearAll.setOnClickListener {
             showClearConfirmDialog()
         }
@@ -96,66 +92,32 @@ class ContinuousScanActivity : AppCompatActivity() {
         }
     }
 
-    private fun startContinuousScan() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, 
-                arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
+    private fun handleScanResult(result: QRCodeScanner.ScanResult) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastScanTime < scanInterval) {
+            return
+        }
+        lastScanTime = currentTime
+
+        if (results.any { it.content == result.text }) {
             return
         }
 
-        binding.btnStartScan.visibility = View.GONE
-        binding.btnStopScan.visibility = View.VISIBLE
-        binding.scannerOverlay.visibility = View.VISIBLE
-        
-        // 启动扫描
-        startScanning()
-    }
-
-    private fun stopContinuousScan() {
-        binding.btnStartScan.visibility = View.VISIBLE
-        binding.btnStopScan.visibility = View.GONE
-        binding.scannerOverlay.visibility = View.GONE
-        
-        // 停止扫描
-        stopScanning()
-    }
-
-    private fun startScanning() {
-        // 实际扫描逻辑在 CameraScanActivity 中实现
-        // 这里简化处理，实际应该集成 CameraX 扫描
-        Toast.makeText(this, "Continuous scan started", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun stopScanning() {
-        Toast.makeText(this, "Continuous scan stopped", Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * 处理扫描结果（由扫描器调用）
-     */
-    fun onScanResult(content: String) {
-        // 检查是否已存在相同内容（去重）
-        if (results.any { it.content == content }) {
-            return
-        }
-
-        val result = ScanResult(content = content)
-        results.add(0, result) // 添加到顶部
+        val scanResult = ScanResult(
+            content = result.text,
+            type = result.format.toHistoryType()
+        )
+        results.add(0, scanResult)
         adapter.notifyItemInserted(0)
         binding.recyclerView.scrollToPosition(0)
-
-        // 更新计数
         updateCount()
 
-        // 震动反馈
         if (isVibrationEnabled) {
             vibrate()
         }
 
-        // 自动保存到历史
         if (isAutoSaveEnabled) {
-            saveResult(result)
+            saveResult(scanResult)
         }
     }
 
@@ -204,7 +166,7 @@ class ContinuousScanActivity : AppCompatActivity() {
                 }
             }
             adapter.notifyDataSetChanged()
-            Toast.makeText(this@ContinuousScanActivity, 
+            Toast.makeText(this@ContinuousScanActivity,
                 "Saved $savedCount items", Toast.LENGTH_SHORT).show()
         }
     }
@@ -246,10 +208,38 @@ class ContinuousScanActivity : AppCompatActivity() {
     }
 
     private fun showSettingsDialog() {
+        val items = arrayOf(
+            "Vibration ${if (isVibrationEnabled) "ON" else "OFF"}",
+            "Auto Save ${if (isAutoSaveEnabled) "ON" else "OFF"}",
+            "Scan Interval: ${scanInterval}ms"
+        )
         MaterialAlertDialogBuilder(this)
             .setTitle("Scan Settings")
-            .setMessage("Settings will be implemented in future update")
-            .setPositiveButton("OK", null)
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> {
+                        isVibrationEnabled = !isVibrationEnabled
+                        saveSettings()
+                    }
+                    1 -> {
+                        isAutoSaveEnabled = !isAutoSaveEnabled
+                        saveSettings()
+                    }
+                    2 -> showIntervalDialog()
+                }
+            }
+            .show()
+    }
+
+    private fun showIntervalDialog() {
+        val intervals = arrayOf("100ms", "300ms", "500ms", "1000ms", "2000ms")
+        val values = longArrayOf(100L, 300L, 500L, 1000L, 2000L)
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Scan Interval")
+            .setItems(intervals) { _, which ->
+                scanInterval = values[which]
+                saveSettings()
+            }
             .show()
     }
 
@@ -257,7 +247,6 @@ class ContinuousScanActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("continuous_scan", Context.MODE_PRIVATE)
         scanInterval = prefs.getLong("scan_interval", 500L)
         isVibrationEnabled = prefs.getBoolean("vibration", true)
-        isSoundEnabled = prefs.getBoolean("sound", true)
         isAutoSaveEnabled = prefs.getBoolean("auto_save", true)
     }
 
@@ -266,7 +255,6 @@ class ContinuousScanActivity : AppCompatActivity() {
         prefs.edit().apply {
             putLong("scan_interval", scanInterval)
             putBoolean("vibration", isVibrationEnabled)
-            putBoolean("sound", isSoundEnabled)
             putBoolean("auto_save", isAutoSaveEnabled)
             apply()
         }
@@ -279,9 +267,5 @@ class ContinuousScanActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
-    }
-
-    companion object {
-        private const val REQUEST_CAMERA = 100
     }
 }

@@ -112,6 +112,10 @@
     <string name="type_pdf417">PDF417</string>
     <string name="type_text">Text</string>
 
+    <!-- Continuous Scan -->
+    <string name="settings">Settings</string>
+    <string name="save_all">Save All</string>
+
     <!-- About -->
     <string name="about">About</string>
     <string name="version_with_prefix">v%1$s (%2$s)</string>
