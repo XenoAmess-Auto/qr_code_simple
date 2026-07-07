@@ -285,7 +285,7 @@
 
     <!-- Generation validation -->
     <string name="warning_barcode_not_scannable">Generated barcode cannot be recognized by this app. Please check content or format.</string>
-    <string name="warning_barcode_content_mismatch">Scan result does not match the original content. Please confirm if it is acceptable.</string>
+    <string name="warning_barcode_content_mismatch">Scan result does not match the original content. Original: %1$s, Scanned: %2$s. Please confirm if it is acceptable.</string>
 
     <!-- App Lock -->
     <string name="app_lock">App Lock</string>

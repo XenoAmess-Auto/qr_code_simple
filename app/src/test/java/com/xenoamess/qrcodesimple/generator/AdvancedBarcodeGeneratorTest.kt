@@ -12,6 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -53,6 +54,72 @@ class AdvancedBarcodeGeneratorTest {
             BarcodeFormat.HAN_XIN -> "汉信码"
             BarcodeFormat.UNKNOWN -> "UNKNOWN"
         }
+    }
+
+    private fun expectedRoundtripText(format: BarcodeFormat, content: String): String {
+        return when (format) {
+            BarcodeFormat.RSS_14 -> content + "1"
+            BarcodeFormat.RSS_EXPANDED -> content.replace("(", "[").replace(")", "]")
+            else -> content
+        }
+    }
+
+    private fun actualRoundtripText(format: BarcodeFormat, results: List<QRCodeScanner.ScanResult>): String? {
+        val first = results.firstOrNull() ?: return null
+        return when (format) {
+            BarcodeFormat.UPC_EAN_EXTENSION -> {
+                results.firstOrNull { it.format == com.google.zxing.BarcodeFormat.UPC_EAN_EXTENSION }?.text
+                    ?: first.resultMetadata?.get(com.google.zxing.ResultMetadataType.UPC_EAN_EXTENSION) as? String
+            }
+            BarcodeFormat.RSS_EXPANDED -> first.text.replace("(", "[").replace(")", "]")
+            else -> first.text
+        }
+    }
+
+    @Test
+    fun `roundtrip all formats with default style`() {
+        for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
+            val content = generateContent(format)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, AdvancedBarcodeGenerator.StyleConfig())
+            assertNotNull(bitmap, "Should generate $format")
+
+            val results = QRCodeScanner.scanSync(context, bitmap!!)
+            assertTrue(results.isNotEmpty(), "Should scan back $format")
+
+            val expected = expectedRoundtripText(format, content)
+            val actual = actualRoundtripText(format, results)
+            assertEquals(expected, actual, "Roundtrip content should match for $format")
+        }
+    }
+
+    @Test
+    fun `roundtrip all formats with custom colors`() {
+        val style = AdvancedBarcodeGenerator.StyleConfig(
+            foregroundColor = Color.parseColor("#1976D2"),
+            backgroundColor = Color.WHITE
+        )
+        for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
+            val content = generateContent(format)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, style)
+            assertNotNull(bitmap, "Should generate $format with custom colors")
+
+            val results = QRCodeScanner.scanSync(context, bitmap!!)
+            assertTrue(results.isNotEmpty(), "Should scan back $format with custom colors")
+        }
+    }
+
+    @Test
+    fun `roundtrip QR with logo`() {
+        val logo = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
+        android.graphics.Canvas(logo).drawColor(Color.RED)
+        val style = AdvancedBarcodeGenerator.StyleConfig(logoBitmap = logo, logoScale = 0.15f)
+        val content = "https://example.com"
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 800, style)
+        assertNotNull(bitmap, "Should generate QR with logo")
+
+        val results = QRCodeScanner.scanSync(context, bitmap!!)
+        assertTrue(results.isNotEmpty(), "Should scan back QR with logo")
+        assertEquals(content, results.first().text, "Roundtrip content should match for QR with logo")
     }
 
     @Test

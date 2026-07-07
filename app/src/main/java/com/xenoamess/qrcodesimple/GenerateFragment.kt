@@ -371,7 +371,6 @@ class GenerateFragment : Fragment() {
     }
 
     private fun validateGeneratedBarcode(content: String, format: BarcodeFormat, bitmap: Bitmap) {
-        // 取消上一次未完成的校验，避免多个扫描任务并发竞争同一 ImageView
         validationJob?.cancel()
         val ctx = context ?: return
         validationJob = lifecycleScope.launch(Dispatchers.Default) {
@@ -379,7 +378,10 @@ class GenerateFragment : Fragment() {
                 val results = QRCodeScanner.scanSync(ctx, bitmap)
                 val warning = when {
                     results.isEmpty() -> getString(R.string.warning_barcode_not_scannable)
-                    !results.any { matchResult(content, format, it) } -> getString(R.string.warning_barcode_content_mismatch)
+                    !results.any { matchResult(content, format, it) } -> {
+                        val scanned = results.firstOrNull()?.let { resultTextForFormat(format, it) } ?: ""
+                        getString(R.string.warning_barcode_content_mismatch, content, scanned)
+                    }
                     else -> null
                 }
                 withContext(Dispatchers.Main) {
@@ -397,6 +399,16 @@ class GenerateFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e(TAG, "Validation failed", e)
             }
+        }
+    }
+
+    private fun resultTextForFormat(format: BarcodeFormat, result: QRCodeScanner.ScanResult): String {
+        return when (format) {
+            BarcodeFormat.UPC_EAN_EXTENSION -> {
+                result.resultMetadata?.get(com.google.zxing.ResultMetadataType.UPC_EAN_EXTENSION) as? String
+                    ?: result.text
+            }
+            else -> result.text
         }
     }
 

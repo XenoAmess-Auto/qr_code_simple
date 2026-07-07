@@ -4,14 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.Shader
 import com.google.zxing.EncodeHintType
-import com.google.zxing.MultiFormatWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 
@@ -48,9 +44,6 @@ object AdvancedBarcodeGenerator {
         return try {
             when (format) {
                 BarcodeFormat.QR_CODE -> generateStyledQR(content, size, style)
-                BarcodeFormat.DATA_MATRIX,
-                BarcodeFormat.AZTEC,
-                BarcodeFormat.PDF417 -> generateStyledZXing2D(content, format, size, style)
                 else -> generateGenericWithStyle(content, format, size, style)
             }
         } catch (e: Exception) {
@@ -68,47 +61,6 @@ object AdvancedBarcodeGenerator {
 
         val writer = com.google.zxing.qrcode.QRCodeWriter()
         val bitMatrix = writer.encode(content, com.google.zxing.BarcodeFormat.QR_CODE, size, size, hints)
-
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        output.eraseColor(styleConfig.backgroundColor)
-
-        val cellSize = size.toFloat() / bitMatrix.width
-        val hasGradient = styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null
-
-        for (x in 0 until bitMatrix.width) {
-            for (y in 0 until bitMatrix.height) {
-                if (bitMatrix.get(x, y)) {
-                    val startX = (x * cellSize).toInt()
-                    val endX = ((x + 1) * cellSize).toInt().coerceAtMost(size)
-                    val startY = (y * cellSize).toInt()
-                    val endY = ((y + 1) * cellSize).toInt().coerceAtMost(size)
-                    fillModule(output, startX, endX, startY, endY, styleConfig, hasGradient)
-                }
-            }
-        }
-
-        styleConfig.logoBitmap?.let { logo ->
-            addLogoToCenter(Canvas(output), output, logo, styleConfig.logoScale, styleConfig.backgroundColor)
-        }
-
-        return output
-    }
-
-    private fun generateStyledZXing2D(
-        content: String,
-        format: BarcodeFormat,
-        size: Int,
-        styleConfig: StyleConfig
-    ): Bitmap {
-        val zxingFormat = when (format) {
-            BarcodeFormat.DATA_MATRIX -> com.google.zxing.BarcodeFormat.DATA_MATRIX
-            BarcodeFormat.AZTEC -> com.google.zxing.BarcodeFormat.AZTEC
-            BarcodeFormat.PDF417 -> com.google.zxing.BarcodeFormat.PDF_417
-            else -> throw IllegalArgumentException("Unsupported format: $format")
-        }
-
-        val writer = MultiFormatWriter()
-        val bitMatrix = writer.encode(content, zxingFormat, size, size)
 
         val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         output.eraseColor(styleConfig.backgroundColor)
@@ -170,7 +122,7 @@ object AdvancedBarcodeGenerator {
         val config = BarcodeGenerator.BarcodeConfig(
             format = format,
             width = size,
-            height = size / 2,
+            height = size,
             foregroundColor = Color.BLACK,
             backgroundColor = Color.WHITE
         )
@@ -203,57 +155,25 @@ object AdvancedBarcodeGenerator {
         val width = bitmap.width
         val height = bitmap.height
         val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        canvas.drawColor(styleConfig.backgroundColor)
-
-        val mask = bitmapToMask(bitmap)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-
-        if (styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null) {
-            val shader = createGradientShader(width, height, styleConfig)
-            paint.shader = shader
-            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
-            paint.shader = null
-            paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
-            canvas.drawBitmap(mask, 0f, 0f, paint)
-        } else {
-            paint.color = styleConfig.foregroundColor
-            paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-            canvas.drawBitmap(mask, 0f, 0f, paint)
-        }
-
-        return output
-    }
-
-    private fun bitmapToMask(bitmap: Bitmap): Bitmap {
-        val width = bitmap.width
-        val height = bitmap.height
-        val mask = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
 
-        for (i in pixels.indices) {
-            val pixel = pixels[i]
-            val gray = (Color.red(pixel) + Color.green(pixel) + Color.blue(pixel)) / 3
-            mask.setPixel(i % width, i / width, if (gray < 128) Color.BLACK else Color.TRANSPARENT)
-        }
-        return mask
-    }
+        val hasGradient = styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null
 
-    private fun createGradientShader(width: Int, height: Int, styleConfig: StyleConfig): Shader {
-        val start = styleConfig.gradientStartColor ?: styleConfig.foregroundColor
-        val end = styleConfig.gradientEndColor ?: styleConfig.foregroundColor
-        return when (styleConfig.gradientDirection) {
-            GradientDirection.HORIZONTAL -> LinearGradient(
-                0f, 0f, width.toFloat(), 0f, start, end, Shader.TileMode.CLAMP
-            )
-            GradientDirection.VERTICAL -> LinearGradient(
-                0f, 0f, 0f, height.toFloat(), start, end, Shader.TileMode.CLAMP
-            )
-            GradientDirection.DIAGONAL -> LinearGradient(
-                0f, 0f, width.toFloat(), height.toFloat(), start, end, Shader.TileMode.CLAMP
-            )
+        for (i in pixels.indices) {
+            val x = i % width
+            val y = i / width
+            val gray = (Color.red(pixels[i]) + Color.green(pixels[i]) + Color.blue(pixels[i])) / 3
+            val isDark = gray < 128
+            val color = when {
+                isDark && hasGradient -> resolveForegroundColor(x + 0.5f, y + 0.5f, width, height, styleConfig)
+                isDark -> styleConfig.foregroundColor
+                else -> styleConfig.backgroundColor
+            }
+            output.setPixel(x, y, color)
         }
+
+        return output
     }
 
     private fun resolveForegroundColor(cx: Float, cy: Float, width: Int, height: Int, styleConfig: StyleConfig): Int {
