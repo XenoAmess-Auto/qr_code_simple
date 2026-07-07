@@ -38,18 +38,21 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun buildDatabase(context: Context): AppDatabase {
-            val passphrase = getDatabasePassword(context)
-            val factory = SupportFactory(passphrase.toByteArray())
-
-            return Room.databaseBuilder(
+            val builder = Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 "qr_code_history_db_encrypted"
             )
-                .openHelperFactory(factory)
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .fallbackToDestructiveMigration()
-                .build()
+
+            // Robolectric does not provide native SQLCipher support; run unencrypted in unit tests.
+            if (!android.os.Build.FINGERPRINT.contains("robolectric")) {
+                val passphrase = getDatabasePassword(context)
+                builder.openHelperFactory(SupportFactory(passphrase.toByteArray()))
+            }
+
+            return builder.build()
         }
 
         /**

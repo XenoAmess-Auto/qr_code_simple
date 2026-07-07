@@ -1,78 +1,39 @@
-name: Build APK
+name: Build and Test
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ master, main ]
-  workflow_dispatch:
+    branches: [ main, master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
-    
-    - name: Set up JDK 21
-      uses: actions/setup-java@v5
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: gradle
-    
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    
-    - name: Setup consistent debug keystore
-      run: |
-        # 优先使用 GitHub Secret 中的 keystore（如果存在）
-        if [ -n "$DEBUG_KEYSTORE" ]; then
-          echo "Using keystore from GitHub Secret"
-          echo "$DEBUG_KEYSTORE" | base64 -d > app/debug.keystore
-        elif [ -f "app/debug.keystore" ]; then
-          echo "Using existing app/debug.keystore"
-        else
-          echo "Generating new debug.keystore"
-          keytool -genkey -v \
-            -keystore app/debug.keystore \
-            -alias androiddebugkey \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass android \
-            -keypass android \
-            -dname "CN=Android Debug,O=Android,C=US"
-        fi
-        ls -la app/debug.keystore
-      env:
-        DEBUG_KEYSTORE: ${{ secrets.DEBUG_KEYSTORE }}
-    
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
-    
-    - name: Verify APK signature
-      run: |
-        echo "=== APK Signature Info ==="
-        keytool -list -printcert -jarfile app/build/outputs/apk/debug/app-debug.apk || true
-        echo ""
-        echo "=== APK Info ==="
-        ls -la app/build/outputs/apk/debug/app-debug.apk
-        echo ""
-        echo "=== Keystore Hash ==="
-        sha256sum app/debug.keystore || true
-    
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v7
-      with:
-        name: debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
-    
-    - name: Upload Keystore (for local sync)
-      uses: actions/upload-artifact@v7
-      with:
-        name: debug-keystore
-        path: app/debug.keystore
-        retention-days: 30
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug
+
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: app/build/reports/tests/
