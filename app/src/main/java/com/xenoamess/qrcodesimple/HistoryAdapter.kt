@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class HistoryAdapter(
+    private val onItemClick: (HistoryItem) -> Unit = {},
     private val onEdit: (HistoryItem) -> Unit,
     private val onShare: (HistoryItem) -> Unit,
     private val onShareQR: (HistoryItem) -> Unit,
@@ -90,6 +91,7 @@ class HistoryAdapter(
             binding.btnDelete.setOnClickListener { onDelete(item) }
             binding.btnFavorite.setOnClickListener { onFavorite(item) }
             binding.btnNote.setOnClickListener { onAddNote(item) }
+            binding.root.setOnClickListener { onItemClick(item) }
         }
     }
 

@@ -86,6 +86,11 @@
     <string name="clear_all">Clear All</string>
     <string name="clear_history">Clear History</string>
     <string name="clear_history_confirm">Are you sure you want to clear all history?</string>
+    <string name="barcode_image">Barcode image</string>
+    <string name="history_detail">History Detail</string>
+    <string name="add_to_favorites">Add to favorites</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="all_tags">All Tags</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="edit">Edit</string>

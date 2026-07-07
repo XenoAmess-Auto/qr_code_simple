@@ -22,9 +22,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun attachBaseContext(newBase: Context) {
-        // 在 Activity 创建之前应用语言设置
-        LocaleHelper.applyLanguage(newBase)
-        super.attachBaseContext(newBase)
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

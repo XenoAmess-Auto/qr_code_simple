@@ -53,6 +53,23 @@
 
     </LinearLayout>
 
+    <!-- 标签筛选 -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupTags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            app:singleSelection="true" />
+    </HorizontalScrollView>
+
     <!-- 历史记录列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

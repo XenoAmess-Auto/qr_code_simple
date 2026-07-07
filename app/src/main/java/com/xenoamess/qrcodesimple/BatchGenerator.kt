@@ -44,13 +44,13 @@ object BatchGenerator {
         try {
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 val reader = InputStreamReader(inputStream)
-                val csvParser = CSVParser.parse(
-                    reader,
-                    CSVFormat.DEFAULT
-                        .withFirstRecordAsHeader()
-                        .withIgnoreHeaderCase()
-                        .withTrim()
-                )
+                val csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)
+                    .setHeader()
+                    .setSkipHeaderRecord(true)
+                    .setIgnoreHeaderCase(true)
+                    .setTrim(true)
+                    .build()
+                val csvParser = CSVParser.parse(reader, csvFormat)
 
                 var lineNumber = 1
                 for (record in csvParser) {

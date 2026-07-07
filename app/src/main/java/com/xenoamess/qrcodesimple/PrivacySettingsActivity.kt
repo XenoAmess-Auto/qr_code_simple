@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.content.Context
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
@@ -23,8 +24,11 @@ class PrivacySettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPrivacySettingsBinding
     private lateinit var historyRepository: HistoryRepository
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityPrivacySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)

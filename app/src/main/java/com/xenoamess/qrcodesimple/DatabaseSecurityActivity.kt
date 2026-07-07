@@ -20,6 +20,10 @@ class DatabaseSecurityActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDatabaseSecurityBinding
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDatabaseSecurityBinding.inflate(layoutInflater)

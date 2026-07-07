@@ -44,7 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
                 "qr_code_history_db_encrypted"
             )
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(true)
 
             // Robolectric does not provide native SQLCipher support; run unencrypted in unit tests.
             if (!android.os.Build.FINGERPRINT.contains("robolectric")) {
@@ -97,7 +97,7 @@ abstract class AppDatabase : RoomDatabase() {
          * 数据库迁移：从版本1（未加密）到版本2（加密）
          */
         private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+            override fun migrate(db: SupportSQLiteDatabase) {
                 // 表结构没有变化，只是切换到加密数据库
                 // Room 会自动处理
             }
@@ -107,8 +107,8 @@ abstract class AppDatabase : RoomDatabase() {
          * 数据库迁移：从版本2到版本3，添加标签字段
          */
         private val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE history ADD COLUMN tags TEXT")
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE history ADD COLUMN tags TEXT")
             }
         }
 

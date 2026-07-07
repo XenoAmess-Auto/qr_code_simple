@@ -47,8 +47,11 @@ class VideoScanActivity : AppCompatActivity() {
         val format: com.google.zxing.BarcodeFormat = com.google.zxing.BarcodeFormat.QR_CODE
     )
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityVideoScanBinding.inflate(layoutInflater)
         setContentView(binding.root)

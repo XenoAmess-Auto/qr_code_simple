@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.ContentValues
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -47,8 +48,11 @@ class BatchResultActivity : AppCompatActivity() {
         val fileName: String
     )
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityBatchResultBinding.inflate(layoutInflater)
         setContentView(binding.root)

@@ -55,8 +55,11 @@ class ResultActivity : AppCompatActivity() {
         val library: QRCodeScanner.Library? = null
     )
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityResultBinding.inflate(layoutInflater)
         setContentView(binding.root)

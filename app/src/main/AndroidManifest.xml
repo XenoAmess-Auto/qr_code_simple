@@ -85,6 +85,10 @@
             android:name=".BackupActivity"
             android:label="@string/backup_restore" />
 
+        <activity
+            android:name=".HistoryDetailActivity"
+            android:label="@string/history_detail" />
+
         <!-- 桌面小组件 -->
         <receiver
             android:name=".QuickScanWidget"

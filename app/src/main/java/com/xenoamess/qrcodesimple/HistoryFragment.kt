@@ -44,6 +44,7 @@ class HistoryFragment : Fragment() {
     private lateinit var adapter: HistoryAdapter
     private var currentFilter = FilterType.ALL
     private var currentSearchQuery = ""
+    private var currentTag: String? = null
 
     enum class FilterType {
         ALL, SCANNED, GENERATED, FAVORITE
@@ -64,6 +65,7 @@ class HistoryFragment : Fragment() {
         repository = HistoryRepository(requireContext())
         setupRecyclerView()
         setupFilterTabs()
+        setupTagFilter()
         setupSearchView()
         setupClearButton()
 
@@ -126,6 +128,7 @@ class HistoryFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = HistoryAdapter(
+            onItemClick = { item -> openHistoryDetail(item) },
             onEdit = { item -> showEditDialog(item) },
             onShare = { item -> shareContent(item.content) },
             onShareQR = { item -> shareQRCode(item.content) },
@@ -135,6 +138,13 @@ class HistoryFragment : Fragment() {
         )
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
+    }
+
+    private fun openHistoryDetail(item: HistoryItem) {
+        val intent = Intent(requireContext(), HistoryDetailActivity::class.java).apply {
+            putExtra(HistoryDetailActivity.EXTRA_ITEM_ID, item.id)
+        }
+        startActivity(intent)
     }
 
     private fun setupFilterTabs() {
@@ -188,9 +198,49 @@ class HistoryFragment : Fragment() {
         }
     }
 
+    private fun setupTagFilter() {
+        lifecycleScope.launch {
+            val tags = repository.getAllTags()
+            if (tags.isEmpty()) {
+                binding.chipGroupTags.visibility = View.GONE
+                return@launch
+            }
+            binding.chipGroupTags.visibility = View.VISIBLE
+            binding.chipGroupTags.removeAllViews()
+
+            val allChip = com.google.android.material.chip.Chip(requireContext()).apply {
+                text = getString(R.string.all_tags)
+                isCheckable = true
+                isChecked = true
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        currentTag = null
+                        loadHistory()
+                    }
+                }
+            }
+            binding.chipGroupTags.addView(allChip)
+
+            for (tag in tags) {
+                val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                    text = tag
+                    isCheckable = true
+                    setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) {
+                            currentTag = tag
+                            loadHistory()
+                        }
+                    }
+                }
+                binding.chipGroupTags.addView(chip)
+            }
+        }
+    }
+
     private fun loadHistory() {
         lifecycleScope.launch {
             val flow = when {
+                currentTag != null -> repository.getHistoryByTag(currentTag!!)
                 currentSearchQuery.isNotEmpty() -> repository.searchHistory(currentSearchQuery)
                 currentFilter == FilterType.FAVORITE -> repository.getFavoriteHistory()
                 else -> when (currentFilter) {

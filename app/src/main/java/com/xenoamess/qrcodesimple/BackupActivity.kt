@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -41,6 +42,10 @@ class BackupActivity : AppCompatActivity() {
                 importData(uri)
             }
         }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

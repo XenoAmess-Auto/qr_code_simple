@@ -39,8 +39,11 @@ class ContinuousScanActivity : AppCompatActivity() {
         var isSaved: Boolean = false
     )
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        LocaleHelper.applyLanguage(this)
         super.onCreate(savedInstanceState)
         binding = ActivityContinuousScanBinding.inflate(layoutInflater)
         setContentView(binding.root)

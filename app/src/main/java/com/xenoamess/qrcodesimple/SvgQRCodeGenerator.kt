@@ -3,21 +3,46 @@ package com.xenoamess.qrcodesimple
 import android.graphics.Bitmap
 import android.graphics.Color
 import com.google.zxing.EncodeHintType
+import com.google.zxing.MultiFormatWriter
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 
 /**
- * SVG 矢量二维码生成器
+ * SVG 矢量条码生成器
  */
 object SvgQRCodeGenerator {
 
     data class SvgConfig(
+        val width: Int = 512,
+        val height: Int = 512,
         val size: Int = 512,
         val foregroundColor: String = "#000000",
         val backgroundColor: String = "#FFFFFF",
         val moduleSize: Float = 10f
     )
+
+    /**
+     * 生成条码 SVG 字符串（支持全部格式）
+     */
+    fun generateSVG(content: String, format: BarcodeFormat, config: SvgConfig = SvgConfig()): String {
+        return when (format) {
+            BarcodeFormat.QR_CODE -> generateSVG(content, config)
+            BarcodeFormat.DATA_MATRIX,
+            BarcodeFormat.AZTEC,
+            BarcodeFormat.PDF417,
+            BarcodeFormat.CODE_128,
+            BarcodeFormat.CODE_39,
+            BarcodeFormat.CODE_93,
+            BarcodeFormat.EAN_13,
+            BarcodeFormat.EAN_8,
+            BarcodeFormat.UPC_A,
+            BarcodeFormat.UPC_E,
+            BarcodeFormat.CODABAR,
+            BarcodeFormat.ITF -> generateZXingSvg(content, format, config)
+            else -> generateBitmapSvg(content, format, config)
+        }
+    }
 
     /**
      * 生成 QR Code SVG 字符串
@@ -34,19 +59,16 @@ object SvgQRCodeGenerator {
 
         val width = bitMatrix.width
         val height = bitMatrix.height
-        
-        // 计算实际的 SVG 大小
+
         val actualSize = width * config.moduleSize
-        
+
         val svgBuilder = StringBuilder()
-        
-        // SVG 头部
+
         svgBuilder.append("""<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${actualSize}" height="${actualSize}" viewBox="0 0 $width $height" xmlns="http://www.w3.org/2000/svg">
   <rect width="$width" height="$height" fill="${config.backgroundColor}"/>
 """)
 
-        // 生成黑色模块
         for (y in 0 until height) {
             for (x in 0 until width) {
                 if (bitMatrix.get(x, y)) {
@@ -55,10 +77,107 @@ object SvgQRCodeGenerator {
             }
         }
 
-        // SVG 尾部
         svgBuilder.append("</svg>")
 
         return svgBuilder.toString()
+    }
+
+    private fun generateZXingSvg(content: String, format: BarcodeFormat, config: SvgConfig): String {
+        val zxingFormat = when (format) {
+            BarcodeFormat.DATA_MATRIX -> com.google.zxing.BarcodeFormat.DATA_MATRIX
+            BarcodeFormat.AZTEC -> com.google.zxing.BarcodeFormat.AZTEC
+            BarcodeFormat.PDF417 -> com.google.zxing.BarcodeFormat.PDF_417
+            BarcodeFormat.CODE_128 -> com.google.zxing.BarcodeFormat.CODE_128
+            BarcodeFormat.CODE_39 -> com.google.zxing.BarcodeFormat.CODE_39
+            BarcodeFormat.CODE_93 -> com.google.zxing.BarcodeFormat.CODE_93
+            BarcodeFormat.EAN_13 -> com.google.zxing.BarcodeFormat.EAN_13
+            BarcodeFormat.EAN_8 -> com.google.zxing.BarcodeFormat.EAN_8
+            BarcodeFormat.UPC_A -> com.google.zxing.BarcodeFormat.UPC_A
+            BarcodeFormat.UPC_E -> com.google.zxing.BarcodeFormat.UPC_E
+            BarcodeFormat.CODABAR -> com.google.zxing.BarcodeFormat.CODABAR
+            BarcodeFormat.ITF -> com.google.zxing.BarcodeFormat.ITF
+            else -> com.google.zxing.BarcodeFormat.QR_CODE
+        }
+
+        val hints = hashMapOf(
+            EncodeHintType.CHARACTER_SET to "UTF-8"
+        )
+
+        val writer = MultiFormatWriter()
+        val bitMatrix = writer.encode(content, zxingFormat, config.width, config.height, hints)
+
+        val width = bitMatrix.width
+        val height = bitMatrix.height
+        val backgroundColor = config.backgroundColor
+        val foregroundColor = config.foregroundColor
+
+        val svgBuilder = StringBuilder()
+        svgBuilder.append("""<?xml version="1.0" encoding="UTF-8"?>
+<svg width="$width" height="$height" viewBox="0 0 $width $height" xmlns="http://www.w3.org/2000/svg">
+  <rect width="$width" height="$height" fill="$backgroundColor"/>
+""")
+
+        for (y in 0 until height) {
+            var x = 0
+            while (x < width) {
+                if (bitMatrix.get(x, y)) {
+                    val start = x
+                    while (x < width && bitMatrix.get(x, y)) x++
+                    svgBuilder.append("  <rect x=\"$start\" y=\"$y\" width=\"${x - start}\" height=\"1\" fill=\"$foregroundColor\"/>\n")
+                } else {
+                    x++
+                }
+            }
+        }
+
+        svgBuilder.append("</svg>")
+        return svgBuilder.toString()
+    }
+
+    private fun generateBitmapSvg(content: String, format: BarcodeFormat, config: SvgConfig): String {
+        val barcodeConfig = BarcodeGenerator.BarcodeConfig(
+            format = format,
+            width = config.width,
+            height = config.height,
+            foregroundColor = parseColor(config.foregroundColor),
+            backgroundColor = parseColor(config.backgroundColor)
+        )
+        val bitmap = BarcodeGenerator.generate(content, barcodeConfig)
+            ?: throw IllegalArgumentException("Failed to generate SVG for $format")
+        return bitmapToSvg(bitmap, config)
+    }
+
+    private fun bitmapToSvg(bitmap: Bitmap, config: SvgConfig): String {
+        val width = bitmap.width
+        val height = bitmap.height
+        val backgroundColor = parseColor(config.backgroundColor)
+        val foregroundColor = config.foregroundColor
+
+        val svgBuilder = StringBuilder()
+        svgBuilder.append("""<?xml version="1.0" encoding="UTF-8"?>
+<svg width="$width" height="$height" viewBox="0 0 $width $height" xmlns="http://www.w3.org/2000/svg">
+  <rect width="$width" height="$height" fill="${config.backgroundColor}"/>
+""")
+
+        for (y in 0 until height) {
+            var x = 0
+            while (x < width) {
+                if (bitmap.getPixel(x, y) != backgroundColor) {
+                    val start = x
+                    while (x < width && bitmap.getPixel(x, y) != backgroundColor) x++
+                    svgBuilder.append("  <rect x=\"$start\" y=\"$y\" width=\"${x - start}\" height=\"1\" fill=\"$foregroundColor\"/>\n")
+                } else {
+                    x++
+                }
+            }
+        }
+
+        svgBuilder.append("</svg>")
+        return svgBuilder.toString()
+    }
+
+    private fun parseColor(color: String): Int {
+        return Color.parseColor(color)
     }
 
     /**
@@ -80,20 +199,18 @@ object SvgQRCodeGenerator {
 
         val width = bitMatrix.width
         val height = bitMatrix.height
-        
+
         val actualSize = width * config.moduleSize
-        
+
         val svgBuilder = StringBuilder()
-        
-        // SVG 头部
+
         svgBuilder.append("""<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${actualSize}" height="${actualSize}" viewBox="0 0 $width $height" xmlns="http://www.w3.org/2000/svg">
   <rect width="$width" height="$height" fill="${config.backgroundColor}" rx="${cornerRadius / config.moduleSize}"/>
 """)
 
-        // 生成模块（使用圆角矩形）
         val radius = if (cornerRadius > 0) " rx=\"${0.2}\" ry=\"${0.2}\"" else ""
-        
+
         for (y in 0 until height) {
             for (x in 0 until width) {
                 if (bitMatrix.get(x, y)) {
@@ -116,16 +233,14 @@ object SvgQRCodeGenerator {
         logoSvg: String? = null
     ): String {
         val baseSvg = generateSVG(content, config)
-        
+
         if (logoSvg == null) return baseSvg
-        
-        // 在中心位置添加 Logo
+
         val size = config.size
         val logoSize = size / 5
         val logoX = (size - logoSize) / 2
         val logoY = (size - logoSize) / 2
-        
-        // 在 SVG 中添加 Logo 层
+
         return baseSvg.replace(
             "</svg>",
             """  <g transform="translate($logoX, $logoY)">

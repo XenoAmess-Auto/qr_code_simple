@@ -3,20 +3,21 @@ package com.xenoamess.qrcodesimple
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import java.util.Locale
 
+/**
+ * 语言/区域设置辅助类
+ */
 object LocaleHelper {
 
     private const val PREFS_NAME = "app_settings"
     private const val KEY_LANGUAGE = "language"
     private const val KEY_FOLLOW_SYSTEM = "follow_system"
 
-    // 支持的语言列表
     val SUPPORTED_LANGUAGES = listOf(
         Language("system", "跟随系统 / System default"),
         Language("en", "English"),
@@ -32,24 +33,14 @@ object LocaleHelper {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    /**
-     * 获取当前设置的语言代码
-     */
     fun getLanguage(context: Context): String {
         return getPrefs(context).getString(KEY_LANGUAGE, "system") ?: "system"
     }
 
-    /**
-     * 是否跟随系统语言
-     */
     fun isFollowSystem(context: Context): Boolean {
         return getPrefs(context).getBoolean(KEY_FOLLOW_SYSTEM, true)
     }
 
-    /**
-     * 设置语言
-     * @param languageCode 语言代码 ("system", "en", "zh")
-     */
     fun setLanguage(context: Context, languageCode: String) {
         getPrefs(context).edit().apply {
             putString(KEY_LANGUAGE, languageCode)
@@ -59,29 +50,24 @@ object LocaleHelper {
     }
 
     /**
-     * 应用语言设置
+     * 返回应用了语言设置的新 Context。
+     * 推荐在 Activity/Application 的 attachBaseContext 中使用。
      */
-    fun applyLanguage(context: Context) {
+    fun applyLanguage(context: Context): Context {
         val languageCode = getLanguage(context)
         val locale = if (languageCode == "system") {
-            getSystemLocale()
+            getSystemLocale(context)
         } else {
             Locale(languageCode)
         }
-
         Locale.setDefault(locale)
 
-        val resources = context.resources
-        val configuration = resources.configuration
+        val configuration = Configuration(context.resources.configuration)
         configuration.setLocale(locale)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             configuration.setLocales(LocaleList(locale))
         }
 
-        resources.updateConfiguration(configuration, resources.displayMetrics)
-
-        // Android 13+ 额外设置 per-app language API（用于系统设置同步）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val localeList = if (languageCode == "system") {
                 LocaleListCompat.getEmptyLocaleList()
@@ -90,63 +76,18 @@ object LocaleHelper {
             }
             AppCompatDelegate.setApplicationLocales(localeList)
         }
+
+        return context.createConfigurationContext(configuration)
     }
 
-    /**
-     * 获取应用 Context（已应用语言设置）
-     */
-    fun getLocalizedContext(context: Context): Context {
-        val languageCode = getLanguage(context)
-        val locale = if (languageCode == "system") {
-            getSystemLocale()
-        } else {
-            Locale(languageCode)
-        }
-        return updateResources(context, locale)
-    }
-
-    private fun getSystemLocale(): Locale {
+    private fun getSystemLocale(context: Context): Locale {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            LocaleList.getDefault().get(0) ?: Locale.getDefault()
+            context.resources.configuration.locales.get(0) ?: Locale.getDefault()
         } else {
             Locale.getDefault()
         }
     }
 
-    private fun updateResources(context: Context, locale: Locale): Context {
-        Locale.setDefault(locale)
-
-        val resources = context.resources
-        val configuration = Configuration(resources.configuration)
-
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            configuration.setLocale(locale)
-            configuration.setLocales(LocaleList(locale))
-            context.createConfigurationContext(configuration)
-        } else {
-            configuration.locale = locale
-            resources.updateConfiguration(configuration, resources.displayMetrics)
-            context
-        }
-    }
-
-    /**
-     * 设置应用级别的语言（用于 Android 13+ per-app language）
-     */
-    fun setApplicationLocale(languageCode: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val localeList = if (languageCode == "system") {
-                LocaleListCompat.getEmptyLocaleList()
-            } else {
-                LocaleListCompat.create(Locale(languageCode))
-            }
-            AppCompatDelegate.setApplicationLocales(localeList)
-        }
-    }
-
-    /**
-     * 获取当前语言显示名称
-     */
     fun getCurrentLanguageDisplayName(context: Context): String {
         val code = getLanguage(context)
         return SUPPORTED_LANGUAGES.find { it.code == code }?.displayName ?: "System default"

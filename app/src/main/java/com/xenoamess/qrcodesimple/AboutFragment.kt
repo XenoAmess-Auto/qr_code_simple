@@ -81,7 +81,6 @@ class AboutFragment : Fragment() {
                 val selectedLanguage = languages[which]
                 if (selectedLanguage.code != currentLang) {
                     LocaleHelper.setLanguage(requireContext(), selectedLanguage.code)
-                    LocaleHelper.setApplicationLocale(selectedLanguage.code)
                     updateLanguageButton()
                     showRestartDialog()
                 }
