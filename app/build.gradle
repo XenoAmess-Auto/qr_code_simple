@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId "com.xenoamess.qrcodesimple"
-        minSdk 24
+        minSdk 28
         targetSdk 35
         versionCode 10
         versionName "0.1.7"
@@ -53,7 +53,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled false
     }
     kotlinOptions {
         jvmTarget = '21'
@@ -114,18 +114,8 @@ dependencies {
     implementation 'org.apache.commons:commons-csv:1.14.1'
 
     // Apache POI - Excel import for batch generation
-    implementation('org.apache.poi:poi:3.17') {
-        exclude group: 'org.apache.xmlbeans', module: 'xmlbeans'
-    }
-    implementation('org.apache.poi:poi-ooxml:3.17') {
-        exclude group: 'org.apache.xmlbeans', module: 'xmlbeans'
-    }
-    implementation('org.apache.poi:poi-ooxml-schemas:3.17') {
-        exclude group: 'org.apache.xmlbeans', module: 'xmlbeans'
-    }
-
-    // Core library desugaring for POI/log4j MethodHandle support on API 24
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+    implementation 'org.apache.poi:poi:5.3.0'
+    implementation 'org.apache.poi:poi-ooxml:5.3.0'
 
     // Biometric
     implementation 'androidx.biometric:biometric:1.1.0'

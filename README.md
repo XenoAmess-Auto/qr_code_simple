@@ -143,7 +143,7 @@ The full file index and architectural notes live in [`docs/knowledge-base.md`](d
 ## Build Requirements
 
 - **JDK 21** (required by `compileOptions` and `kotlinOptions.jvmTarget = '21'`)
-- **Android SDK 35** (`compileSdk 35`, `targetSdk 35`, `minSdk 24`)
+- **Android SDK 35** (`compileSdk 35`, `targetSdk 35`, `minSdk 28`)
 - **Gradle 9.6.1** (already pinned via `gradle-wrapper.properties`)
 - **Android Studio Ladybug (2024.2.1) or newer** - AGP 9.2.1 will not load in older IDEs
 - **NDK** is **not** required to build; only the native libraries shipped through the WeChatQRCode / OpenCV AARs are used

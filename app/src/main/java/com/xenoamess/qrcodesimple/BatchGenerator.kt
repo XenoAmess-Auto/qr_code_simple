@@ -10,6 +10,7 @@ import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVRecord
 import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import java.io.InputStreamReader
@@ -168,10 +169,10 @@ object BatchGenerator {
 
     private fun getCellString(cell: Cell?): String? {
         return when (cell?.cellType) {
-            Cell.CELL_TYPE_STRING -> cell.stringCellValue
-            Cell.CELL_TYPE_NUMERIC -> cell.numericCellValue.toString()
-            Cell.CELL_TYPE_BOOLEAN -> cell.booleanCellValue.toString()
-            Cell.CELL_TYPE_FORMULA -> cell.stringCellValue
+            CellType.STRING -> cell.stringCellValue
+            CellType.NUMERIC -> cell.numericCellValue.toString()
+            CellType.BOOLEAN -> cell.booleanCellValue.toString()
+            CellType.FORMULA -> cell.stringCellValue
             else -> null
         }
     }

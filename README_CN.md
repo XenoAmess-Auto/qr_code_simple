@@ -162,7 +162,7 @@
 ## 构建要求
 
 - **JDK 21**（`compileOptions` 和 `kotlinOptions.jvmTarget = '21'` 强制要求）
-- **Android SDK 35**（`compileSdk 35`、`targetSdk 35`、`minSdk 24`）
+- **Android SDK 35**（`compileSdk 35`、`targetSdk 35`、`minSdk 28`）
 - **Gradle 9.6.1**（已通过 `gradle-wrapper.properties` 锁定）
 - **Android Studio Ladybug (2024.2.1) 或更新版本** - AGP 9.2.1 无法在更老的 IDE 中加载
 - **NDK 编译非必需** - 仅通过 WeChatQRCode / OpenCV 的 AAR 引入原生库
