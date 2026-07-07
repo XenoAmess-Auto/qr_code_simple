@@ -72,6 +72,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 |------|------|
 | `BarcodeGenerator.kt` | 条码生成器主入口 |
 | `AdvancedBarcodeGenerator.kt` | 带样式的高级生成器 |
+| `SvgQRCodeGenerator.kt` | 全格式 SVG 导出（ZXing 路径 + bitmap 回退） |
 | `QRCodeScanner.kt` | 多引擎扫描器 |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
 | `decoder/CustomLinearBarcodeScanner.kt` | 自定义一维码扫描入口 |
@@ -82,8 +83,13 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `decoder/hanxin/HanXinDecoder.kt` | Han Xin Code 扫描器 |
 | `data/HistoryItem.kt` | 历史记录实体与枚举 |
 | `data/HistoryRepository.kt` | 历史记录仓库 |
+| `data/AppDatabase.kt` | 加密 Room 数据库（生产用 SQLCipher，Robolectric 回退到未加密） |
+| `AppLockManager.kt` | 应用锁（PIN / 生物识别） |
 | `GenerateFragment.kt` | 生成界面 Fragment |
-| `BatchGenerateActivity.kt` | 批量生成 Activity |
+| `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel） |
+| `ContinuousScanActivity.kt` | 连续扫描 Activity |
+| `HistoryDetailActivity.kt` | 历史记录详情页 |
+| `.github/workflows/build.yml` | CI 工作流（build + unit tests） |
 
 ## 7. 开发原则
 

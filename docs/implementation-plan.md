@@ -108,6 +108,17 @@
 
 ---
 
+## 完成状态
+
+- 阶段一：已完成并提交。
+- 阶段二：已完成并提交。
+- 阶段三：已完成并提交。
+- 阶段四：已完成并提交。
+- 阶段五：已完成并提交；新增 `SvgBarcodeGenerationTest` 在阶段六一起提交。
+- 阶段六：已完成并提交。
+
+---
+
 ## 已知跳过项
 
 - **TFLite 二维码增强**：`qr_enhance_model.tflite` 模型文件缺失，且开源社区无专门的开源二维码增强 TFLite 模型。本次不做处理，保留现有传统图像增强（`QRCodeRestorationManager`）作为 fallback。

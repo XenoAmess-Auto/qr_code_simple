@@ -12,7 +12,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 - ✅ **22 Barcode Formats** - Scan and generate QR Code, Data Matrix, Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, and UPC/EAN Extension.
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
-- ✅ **Batch Generation** - Import CSV data and generate QR codes in bulk, with ZIP export. (Excel import is **not** currently supported; only `commons-csv` is wired in.)
+- ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with ZIP export.
 - ✅ **Style Customization** - Foreground/background colors, center logo, rounded and dot styles.
 - ✅ **QR Code Repair** - Enhancement model for blurry or damaged QR codes (TensorFlow Lite).
 
@@ -144,7 +144,7 @@ The full file index and architectural notes live in [`docs/knowledge-base.md`](d
 
 - **JDK 21** (required by `compileOptions` and `kotlinOptions.jvmTarget = '21'`)
 - **Android SDK 35** (`compileSdk 35`, `targetSdk 35`, `minSdk 24`)
-- **Gradle 9.5.1** (already pinned via `gradle-wrapper.properties`)
+- **Gradle 9.6.1** (already pinned via `gradle-wrapper.properties`)
 - **Android Studio Ladybug (2024.2.1) or newer** - AGP 9.2.1 will not load in older IDEs
 - **NDK** is **not** required to build; only the native libraries shipped through the WeChatQRCode / OpenCV AARs are used
 
@@ -197,11 +197,12 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── VideoScanActivity.kt             # Decode barcodes from video files
 ├── GenerateActivity.kt              # Single-code generation UI
 ├── GenerateFragment.kt              # Single-code generation logic
-├── BatchGenerateActivity.kt         # CSV-driven batch generation UI
+├── BatchGenerateActivity.kt         # CSV / Excel batch generation UI
 ├── BatchResultActivity.kt           # Batch results screen
-├── BatchGenerator.kt                # CSV parsing + bulk generation
+├── BatchGenerator.kt                # CSV / Excel parsing + bulk generation
 ├── ResultActivity.kt                # Single-code result screen (action menu)
 ├── HistoryFragment.kt               # History list
+├── HistoryDetailActivity.kt         # History record detail
 ├── HistoryAdapter.kt                # History list adapter
 ├── HistoryBackupManager.kt          # JSON / CSV import & export
 ├── TagManager.kt                    # Custom-tag CRUD

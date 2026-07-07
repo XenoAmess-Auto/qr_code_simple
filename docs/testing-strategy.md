@@ -39,24 +39,30 @@ fun testGenerateAndScanQRCode() {
 ```
 app/src/test/java/com/xenoamess/qrcodesimple/
 ├── generator/
-│   ├── BarcodeGenerationRoundtripTest.kt   # 全部 22 种格式 roundtrip
-│   ├── HanXinEncoderTest.kt                # Han Xin Code 编码器
-│   ├── HanXinRobustnessTest.kt             # Han Xin Code 鲁棒性（旋转/缩放/模糊）
-│   ├── HanXinDecoderRobustnessTest.kt     # Han Xin Code 布局/反色鲁棒性
-│   ├── MicroQrGenerationTest.kt            # Micro QR 容量边界
-│   ├── CustomLinearGenerationTest.kt       # 自定义一维码
-│   ├── Gs1DatabarGenerationTest.kt         # RSS-14 / RSS Expanded
-│   ├── MaxiCodeGenerationTest.kt           # MaxiCode 各模式
-│   ├── UpcEanExtensionGenerationTest.kt    # UPC/EAN 附加码
-│   └── BarcodeValidationTest.kt            # 校验规则
+│   ├── BarcodeGenerationRoundtripTest.kt     # 全部 22 种格式 roundtrip
+│   ├── HanXinEncoderTest.kt                  # Han Xin Code 编码器
+│   ├── HanXinRobustnessTest.kt               # Han Xin Code 鲁棒性（旋转/缩放/模糊）
+│   ├── HanXinDecoderRobustnessTest.kt        # Han Xin Code 布局/反色鲁棒性
+│   ├── MicroQrGenerationTest.kt              # Micro QR 容量边界
+│   ├── CustomLinearGenerationTest.kt           # 自定义一维码
+│   ├── Gs1DatabarGenerationTest.kt             # RSS-14 / RSS Expanded
+│   ├── MaxiCodeGenerationTest.kt               # MaxiCode 各模式
+│   ├── UpcEanExtensionGenerationTest.kt        # UPC/EAN 附加码
+│   ├── BarcodeValidationTest.kt                # 校验规则
+│   └── SvgBarcodeGenerationTest.kt             # SVG 全格式导出
 ├── decoder/
 │   ├── BarcodeScanUtilsLogicTest.kt
 │   ├── CustomLinearDecoderLogicTest.kt
 │   └── hanxin/
-│       ├── HanXinDecoderInternalTest.kt  # Han Xin Code 解码器内部测试
-│       └── HanXinDecoderExternalTest.kt  # 外部参考样本（Zint 生成）解码测试
+│       ├── HanXinDecoderInternalTest.kt        # Han Xin Code 解码器内部测试
+│       └── HanXinDecoderExternalTest.kt        # 外部参考样本（Zint 生成）解码测试
+├── AppLockManagerTest.kt
+├── HistoryBackupManagerTest.kt
+├── TagManagerTest.kt
 ├── BarcodeGeneratorTest.kt
 ├── BarcodeFormatMappingTest.kt
+├── ContentParserTest.kt
+├── SecurityManagerTest.kt
 └── ...
 ```
 
@@ -116,8 +122,11 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 ./gradlew :app:testDebugUnitTest
 ```
 
+CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `assembleDebug` 和 `testDebugUnitTest`。
+
 ## 7. 注意事项
 
 - ML Kit 在 Robolectric 环境下可能无法初始化，因此 roundtrip 测试主要依赖 ZXing、BoofCV 和自定义解码器。
 - 对于仅 ZXing 能扫描的格式（RSS、MaxiCode），确保生成图像质量足够高。
 - 自定义一维码需预留足够 quiet zone，避免解码失败。
+- `AppDatabase` 在 Robolectric 测试中会回退到未加密数据库，因为 SQLCipher 原生库在 JVM 单元测试中不可用。

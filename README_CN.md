@@ -12,7 +12,7 @@
 
 - ✅ **22 种条码格式** - 支持 QR Code、Data Matrix、Aztec、PDF417、汉信码（Han Xin Code）、MaxiCode、Micro QR、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF、Pharmacode、Plessey、MSI Plessey、Telepen、RSS-14、RSS Expanded、UPC/EAN Extension 的扫描与生成。
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等，提供一键操作。
-- ✅ **批量生成** - 从 CSV 导入数据批量生成二维码，支持 ZIP 导出。当前**仅支持 CSV**（基于 Apache Commons CSV），尚未支持 Excel。
+- ✅ **批量生成** - 从 CSV 或 Excel 导入数据批量生成条码，支持 ZIP 导出。
 - ✅ **样式定制** - 前景/背景颜色、中心 Logo、圆角/点阵样式。
 - ✅ **二维码修复** - 基于 TensorFlow Lite 的增强模型，对模糊/破损二维码进行识别增强。
 
@@ -163,7 +163,7 @@
 
 - **JDK 21**（`compileOptions` 和 `kotlinOptions.jvmTarget = '21'` 强制要求）
 - **Android SDK 35**（`compileSdk 35`、`targetSdk 35`、`minSdk 24`）
-- **Gradle 9.5.1**（已通过 `gradle-wrapper.properties` 锁定）
+- **Gradle 9.6.1**（已通过 `gradle-wrapper.properties` 锁定）
 - **Android Studio Ladybug (2024.2.1) 或更新版本** - AGP 9.2.1 无法在更老的 IDE 中加载
 - **NDK 编译非必需** - 仅通过 WeChatQRCode / OpenCV 的 AAR 引入原生库
 
@@ -218,9 +218,9 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── VideoScanActivity.kt             # 视频文件扫描
 ├── GenerateActivity.kt              # 单码生成 UI
 ├── GenerateFragment.kt              # 单码生成逻辑
-├── BatchGenerateActivity.kt         # CSV 批量生成 UI
+├── BatchGenerateActivity.kt         # CSV / Excel 批量生成 UI
 ├── BatchResultActivity.kt           # 批量生成结果页
-├── BatchGenerator.kt                # CSV 解析 + 批量生成
+├── BatchGenerator.kt                # CSV / Excel 解析 + 批量生成
 ├── ResultActivity.kt                # 单码结果页（操作菜单）
 ├── HistoryFragment.kt               # 历史记录列表
 ├── HistoryAdapter.kt                # 历史记录列表适配器
