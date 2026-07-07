@@ -185,7 +185,9 @@
     <string name="background_color">背景色</string>
     <string name="custom_color">自定义</string>
     <string name="corner_radius">圆角半径</string>
-    <string name="module_size">模块大小</string>
+    <string name="corner_radius_hint">圆角化整张条码图片的外边角</string>
+    <string name="module_roundness">模块圆角</string>
+    <string name="module_roundness_hint">圆角化每个模块。0% = 方块，100% = 圆点。模块保持实心。</string>
     <string name="logo_scale">Logo 缩放</string>
     <string name="logo_preview">Logo 预览</string>
     <string name="add_logo">添加 Logo</string>
@@ -193,5 +195,6 @@
     <string name="failed_to_load_logo">加载 Logo 失败：%1$s</string>
     <string name="hex_color_hint">#RRGGBB</string>
     <string name="invalid_color_format">颜色格式无效</string>
+    <string name="pick_color">选取颜色</string>
 
 </resources>

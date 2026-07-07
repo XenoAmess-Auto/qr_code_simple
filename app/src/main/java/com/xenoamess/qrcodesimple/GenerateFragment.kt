@@ -3,7 +3,9 @@ package com.xenoamess.qrcodesimple
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -25,6 +27,7 @@ import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentGenerateBinding
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -44,12 +47,14 @@ class GenerateFragment : Fragment() {
     private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
     private var cornerRadius = 0f
-    private var dotScale = 1f
+    private var moduleRoundness = 0f
     private var logoScale = 0.2f
     private var logoBitmap: Bitmap? = null
+    private var validationJob: Job? = null
 
     companion object {
         private const val TAG = "GenerateFragment"
+        private const val MAX_LOGO_PX = 512
     }
 
     private val pickLogoLauncher = registerForActivityResult(
@@ -99,14 +104,14 @@ class GenerateFragment : Fragment() {
     }
 
     private fun setupStyleControls() {
-        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; updateColorInputs(); generateBarcode() }
-        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; updateColorInputs(); generateBarcode() }
-        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; updateColorInputs(); generateBarcode() }
-        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; updateColorInputs(); generateBarcode() }
-        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; updateColorInputs(); generateBarcode() }
-        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; updateColorInputs(); generateBarcode() }
-        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; updateColorInputs(); generateBarcode() }
-        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; updateColorInputs(); generateBarcode() }
+        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; updateColorPreviews(); generateBarcode() }
+        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; updateColorPreviews(); generateBarcode() }
+        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; updateColorPreviews(); generateBarcode() }
+        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; updateColorPreviews(); generateBarcode() }
+        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; updateColorPreviews(); generateBarcode() }
+        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; updateColorPreviews(); generateBarcode() }
+        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; updateColorPreviews(); generateBarcode() }
+        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; updateColorPreviews(); generateBarcode() }
 
         binding.seekBarCornerRadius.addOnChangeListener { _, value, _ ->
             cornerRadius = value / 100f
@@ -117,9 +122,10 @@ class GenerateFragment : Fragment() {
             override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
         })
 
+        // 原「模块大小」改为「模块圆角」：模块始终实心，只控制每个模块的圆角程度。
         binding.seekBarDotScale.addOnChangeListener { _, value, _ ->
-            dotScale = 0.3f + (value / 100f) * 0.7f
-            binding.tvDotScaleValue.text = "${(dotScale * 100).toInt()}%"
+            moduleRoundness = value / 100f
+            binding.tvDotScaleValue.text = "${value.toInt()}%"
         }
         binding.seekBarDotScale.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
@@ -135,21 +141,28 @@ class GenerateFragment : Fragment() {
             override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
         })
 
-        binding.btnApplyCustomColor.setOnClickListener {
-            val fg = parseColor(binding.etForegroundColor.text?.toString())
-            val bg = parseColor(binding.etBackgroundColor.text?.toString())
-            if (fg != null && bg != null) {
-                selectedStyle = AdvancedBarcodeGenerator.StyleConfig(
-                    foregroundColor = fg,
-                    backgroundColor = bg
-                )
-                generateBarcode()
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.invalid_color_format), Toast.LENGTH_SHORT).show()
-            }
+        binding.btnPickForegroundColor.setOnClickListener {
+            ColorPickerDialog().apply {
+                setInitialColor(selectedStyle.foregroundColor)
+                onColorSelected = { color ->
+                    selectedStyle = selectedStyle.copy(foregroundColor = color)
+                    updateColorPreviews()
+                    generateBarcode()
+                }
+            }.show(parentFragmentManager, "fg_color")
+        }
+        binding.btnPickBackgroundColor.setOnClickListener {
+            ColorPickerDialog().apply {
+                setInitialColor(selectedStyle.backgroundColor)
+                onColorSelected = { color ->
+                    selectedStyle = selectedStyle.copy(backgroundColor = color)
+                    updateColorPreviews()
+                    generateBarcode()
+                }
+            }.show(parentFragmentManager, "bg_color")
         }
 
-        updateColorInputs()
+        updateColorPreviews()
         binding.seekBarLogoScale.value = logoScale * 100f
         binding.tvLogoScaleValue.text = "${(logoScale * 100).toInt()}%"
 
@@ -165,21 +178,11 @@ class GenerateFragment : Fragment() {
         }
     }
 
-    private fun updateColorInputs() {
-        binding.etForegroundColor.setText(colorToHex(selectedStyle.foregroundColor))
-        binding.etBackgroundColor.setText(colorToHex(selectedStyle.backgroundColor))
-    }
-
-    private fun colorToHex(color: Int): String {
-        return String.format("#%06X", 0xFFFFFF and color)
-    }
-
-    private fun parseColor(value: String?): Int? {
-        return try {
-            Color.parseColor(value?.trim())
-        } catch (e: IllegalArgumentException) {
-            null
-        }
+    private fun updateColorPreviews() {
+        val fg = selectedStyle.foregroundColor
+        val bg = selectedStyle.backgroundColor
+        binding.viewFgColorPreview.background = ColorDrawable(fg)
+        binding.viewBgColorPreview.background = ColorDrawable(bg)
     }
 
     private fun updateHintForFormat() {
@@ -196,18 +199,47 @@ class GenerateFragment : Fragment() {
     }
 
     private fun loadLogo(uri: Uri) {
+        val ctx = context ?: return
         lifecycleScope.launch {
             try {
-                requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-                    logoBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
-                    binding.ivLogoPreview.setImageBitmap(logoBitmap)
+                val bmp = withContext(Dispatchers.IO) {
+                    ctx.contentResolver.openInputStream(uri)?.use { inputStream ->
+                        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                        BitmapFactory.decodeStream(inputStream, null, bounds)
+                        // 重新打开流（上一轮已消费）
+                        ctx.contentResolver.openInputStream(uri)?.use { realStream ->
+                            val opts = BitmapFactory.Options().apply {
+                                inSampleSize = calculateSampleSize(bounds.outWidth, bounds.outHeight, MAX_LOGO_PX)
+                                inPreferredConfig = Bitmap.Config.ARGB_8888
+                            }
+                            BitmapFactory.decodeStream(realStream, null, opts)
+                        }
+                    }
+                }
+                if (bmp != null) {
+                    logoBitmap = bmp
+                    binding.ivLogoPreview.setImageBitmap(bmp)
                     binding.ivLogoPreview.visibility = View.VISIBLE
                     generateBarcode()
+                } else if (_binding != null) {
+                    Toast.makeText(ctx, getString(R.string.failed_to_load_logo, "decode null"), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), getString(R.string.failed_to_load_logo, e.message), Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "loadLogo failed", e)
+                if (_binding != null) {
+                    Toast.makeText(ctx, getString(R.string.failed_to_load_logo, e.message), Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+
+    private fun calculateSampleSize(width: Int, height: Int, maxPx: Int): Int {
+        if (width <= 0 || height <= 0) return 1
+        var sample = 1
+        while ((width / sample) > maxPx || (height / sample) > maxPx) {
+            sample *= 2
+        }
+        return sample
     }
 
     private fun setupButtons() {
@@ -231,28 +263,29 @@ class GenerateFragment : Fragment() {
     }
 
     private fun generateBarcode() {
+        val ctx = context ?: return
         val content = binding.etContent.text?.toString()?.trim()
         if (content.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), getString(R.string.please_enter_content), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, getString(R.string.please_enter_content), Toast.LENGTH_SHORT).show()
             return
         }
 
         val validation = BarcodeGenerator.validateContent(content, selectedFormat)
         if (!validation.isValid) {
-            Toast.makeText(requireContext(), validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_LONG).show()
+            Toast.makeText(ctx, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_LONG).show()
             return
         }
 
         try {
             val style = selectedStyle.copy(
                 cornerRadius = cornerRadius,
-                dotScale = dotScale,
+                moduleRoundness = moduleRoundness,
                 logoBitmap = logoBitmap,
                 logoScale = logoScale
             )
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
             if (bitmap == null) {
-                Toast.makeText(requireContext(), getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return
             }
             currentBitmap = bitmap
@@ -271,14 +304,16 @@ class GenerateFragment : Fragment() {
                 }
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.failed_to_generate, e.message), Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "generateBarcode failed", e)
+            Toast.makeText(ctx, getString(R.string.failed_to_generate, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun saveBarcode() {
+        val ctx = context ?: return
         val bitmap = currentBitmap
         if (bitmap == null) {
-            Toast.makeText(requireContext(), getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -294,12 +329,12 @@ class GenerateFragment : Fragment() {
                     put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
                 }
 
-                val uri = requireContext().contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                val uri = ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
                 uri?.let {
-                    requireContext().contentResolver.openOutputStream(it)?.use { outputStream ->
+                    ctx.contentResolver.openOutputStream(it)?.use { outputStream ->
                         bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                     }
-                    Toast.makeText(requireContext(), getString(R.string.saved_to_gallery, fileName), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, getString(R.string.saved_to_gallery, fileName), Toast.LENGTH_SHORT).show()
                 }
             } else {
                 val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
@@ -307,22 +342,23 @@ class GenerateFragment : Fragment() {
                 FileOutputStream(file).use { outputStream ->
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                 }
-                Toast.makeText(requireContext(), getString(R.string.saved_to, file.absolutePath), Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, getString(R.string.saved_to, file.absolutePath), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun shareBarcode() {
+        val ctx = context ?: return
         val bitmap = currentBitmap
         if (bitmap == null) {
-            Toast.makeText(requireContext(), getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
 
         try {
-            val cachePath = File(requireContext().cacheDir, "images")
+            val cachePath = File(ctx.cacheDir, "images")
             cachePath.mkdirs()
             val file = File(cachePath, "barcode.png")
             FileOutputStream(file).use { outputStream ->
@@ -330,8 +366,8 @@ class GenerateFragment : Fragment() {
             }
 
             val uri = FileProvider.getUriForFile(
-                requireContext(),
-                "${requireContext().packageName}.fileprovider",
+                ctx,
+                "${ctx.packageName}.fileprovider",
                 file
             )
 
@@ -342,14 +378,17 @@ class GenerateFragment : Fragment() {
             }
             startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun validateGeneratedBarcode(content: String, format: BarcodeFormat, bitmap: Bitmap) {
-        lifecycleScope.launch(Dispatchers.Default) {
+        // 取消上一次未完成的校验，避免多个扫描任务并发竞争同一 ImageView
+        validationJob?.cancel()
+        val ctx = context ?: return
+        validationJob = lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val results = QRCodeScanner.scanSync(requireContext(), bitmap)
+                val results = QRCodeScanner.scanSync(ctx, bitmap)
                 val warning = when {
                     results.isEmpty() -> getString(R.string.warning_barcode_not_scannable)
                     !results.any { matchResult(content, format, it) } -> getString(R.string.warning_barcode_content_mismatch)
@@ -410,6 +449,7 @@ class GenerateFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        validationJob?.cancel()
         _binding = null
     }
 }

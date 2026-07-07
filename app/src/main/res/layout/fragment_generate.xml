@@ -166,55 +166,51 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="4dp">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilForegroundColor"
+                    <View
+                        android:id="@+id/viewFgColorPreview"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="#000000"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="@string/foreground_color" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPickForegroundColor"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:hint="@string/foreground_color"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etForegroundColor"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="#000000"
-                            android:inputType="textNoSuggestions"
-                            android:maxLines="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilBackgroundColor"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:hint="@string/background_color"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etBackgroundColor"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="#FFFFFF"
-                            android:inputType="textNoSuggestions"
-                            android:maxLines="1" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
+                        android:text="@string/foreground_color"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                 </LinearLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnApplyCustomColor"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/custom_color"
-                    android:layout_marginTop="8dp"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp">
+
+                    <View
+                        android:id="@+id/viewBgColorPreview"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="#FFFFFF"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="@string/background_color" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPickBackgroundColor"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/background_color"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="match_parent"
@@ -222,6 +218,14 @@
                     android:text="@string/corner_radius"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/corner_radius_hint"
+                    android:textSize="10sp"
+                    android:textColor="?android:attr/textColorHint"
+                    android:layout_marginBottom="4dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -251,9 +255,17 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/module_size"
+                    android:text="@string/module_roundness"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/module_roundness_hint"
+                    android:textSize="10sp"
+                    android:textColor="?android:attr/textColorHint"
+                    android:layout_marginBottom="4dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -268,14 +280,14 @@
                         android:layout_weight="1"
                         android:valueFrom="0"
                         android:valueTo="100"
-                        android:value="100"
+                        android:value="0"
                         android:stepSize="1" />
 
                     <TextView
                         android:id="@+id/tvDotScaleValue"
                         android:layout_width="50dp"
                         android:layout_height="wrap_content"
-                        android:text="100%"
+                        android:text="0%"
                         android:textSize="12sp" />
 
                 </LinearLayout>

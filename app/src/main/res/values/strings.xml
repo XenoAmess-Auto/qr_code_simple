@@ -273,7 +273,9 @@
     <string name="background_color">Background Color</string>
     <string name="custom_color">Custom</string>
     <string name="corner_radius">Corner Radius</string>
-    <string name="module_size">Module Size</string>
+    <string name="corner_radius_hint">Rounds the outer corners of the barcode image</string>
+    <string name="module_roundness">Module Roundness</string>
+    <string name="module_roundness_hint">Rounds each module. 0% = square, 100% = circle. Modules stay solid.</string>
     <string name="logo_scale">Logo Scale</string>
     <string name="add_logo">Add Logo</string>
     <string name="remove">Remove</string>
@@ -281,6 +283,7 @@
     <string name="failed_to_load_logo">Failed to load logo: %1$s</string>
     <string name="hex_color_hint">#RRGGBB</string>
     <string name="invalid_color_format">Invalid color format</string>
+    <string name="pick_color">Pick Color</string>
 
     <!-- Generation validation -->
     <string name="warning_barcode_not_scannable">Generated barcode cannot be recognized by this app. Please check content or format.</string>

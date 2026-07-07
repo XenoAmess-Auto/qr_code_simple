@@ -1,21 +1,19 @@
 package com.xenoamess.qrcodesimple
 
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
-import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
-import androidx.core.graphics.withSave
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
-import kotlin.math.max
 
 /**
  * 高级条码生成器 - 支持样式定制
@@ -25,8 +23,17 @@ object AdvancedBarcodeGenerator {
     data class StyleConfig(
         val foregroundColor: Int = Color.BLACK,
         val backgroundColor: Int = Color.WHITE,
+        /**
+         * 整张条码图片的外圆角半径（0~1，占图片短边的一半）。
+         * 0 = 直角，1 = 完全圆形。
+         */
         val cornerRadius: Float = 0f,
-        val dotScale: Float = 1f,
+        /**
+         * 每个模块（cell）的圆角程度（0~1）。
+         * 模块始终是实心的（不缩放、不留空隙），只改变圆角。
+         * 0 = 方块，1 = 圆点。
+         */
+        val moduleRoundness: Float = 0f,
         val logoBitmap: Bitmap? = null,
         val logoScale: Float = 0.2f,
         val gradientStartColor: Int? = null,
@@ -72,9 +79,10 @@ object AdvancedBarcodeGenerator {
         val canvas = Canvas(output)
         canvas.drawColor(styleConfig.backgroundColor)
 
+        // 模块始终实心（radius = cellSize/2），只通过 moduleRoundness 控制圆角
         val cellSize = size.toFloat() / bitMatrix.width
-        val radius = cellSize * styleConfig.dotScale / 2
-        val cornerRadius = styleConfig.cornerRadius.coerceIn(0f, 1f) * radius
+        val halfCell = cellSize / 2f
+        val cellCorner = styleConfig.moduleRoundness.coerceIn(0f, 1f) * halfCell
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.style = Paint.Style.FILL
@@ -83,17 +91,21 @@ object AdvancedBarcodeGenerator {
         for (x in 0 until bitMatrix.width) {
             for (y in 0 until bitMatrix.height) {
                 if (bitMatrix.get(x, y)) {
-                    val cx = x * cellSize + cellSize / 2
-                    val cy = y * cellSize + cellSize / 2
+                    val cx = x * cellSize + halfCell
+                    val cy = y * cellSize + halfCell
                     paint.color = resolveForegroundColor(cx, cy, size, size, styleConfig)
 
                     val rect = RectF(
-                        cx - radius,
-                        cy - radius,
-                        cx + radius,
-                        cy + radius
+                        cx - halfCell,
+                        cy - halfCell,
+                        cx + halfCell,
+                        cy + halfCell
                     )
-                    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
+                    if (cellCorner > 0f) {
+                        canvas.drawRoundRect(rect, cellCorner, cellCorner, paint)
+                    } else {
+                        canvas.drawRect(rect, paint)
+                    }
                 }
             }
         }
@@ -102,7 +114,7 @@ object AdvancedBarcodeGenerator {
             addLogoToCenter(canvas, output, logo, styleConfig.logoScale, styleConfig.backgroundColor)
         }
 
-        return output
+        return applyOuterCornerRadius(output, styleConfig)
     }
 
     private fun generateStyledZXing2D(
@@ -126,19 +138,23 @@ object AdvancedBarcodeGenerator {
         canvas.drawColor(styleConfig.backgroundColor)
 
         val cellSize = size.toFloat() / bitMatrix.width
-        val radius = cellSize * styleConfig.dotScale / 2
-        val cornerRadius = styleConfig.cornerRadius.coerceIn(0f, 1f) * radius
+        val halfCell = cellSize / 2f
+        val cellCorner = styleConfig.moduleRoundness.coerceIn(0f, 1f) * halfCell
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.style = Paint.Style.FILL }
 
         for (x in 0 until bitMatrix.width) {
             for (y in 0 until bitMatrix.height) {
                 if (bitMatrix.get(x, y)) {
-                    val cx = x * cellSize + cellSize / 2
-                    val cy = y * cellSize + cellSize / 2
+                    val cx = x * cellSize + halfCell
+                    val cy = y * cellSize + halfCell
                     paint.color = resolveForegroundColor(cx, cy, size, size, styleConfig)
 
-                    val rect = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
-                    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
+                    val rect = RectF(cx - halfCell, cy - halfCell, cx + halfCell, cy + halfCell)
+                    if (cellCorner > 0f) {
+                        canvas.drawRoundRect(rect, cellCorner, cellCorner, paint)
+                    } else {
+                        canvas.drawRect(rect, paint)
+                    }
                 }
             }
         }
@@ -147,7 +163,7 @@ object AdvancedBarcodeGenerator {
             addLogoToCenter(canvas, output, logo, styleConfig.logoScale, styleConfig.backgroundColor)
         }
 
-        return output
+        return applyOuterCornerRadius(output, styleConfig)
     }
 
     private fun generateGenericWithStyle(
@@ -173,9 +189,19 @@ object AdvancedBarcodeGenerator {
             addLogoToCenter(Canvas(styled), styled, logo, styleConfig.logoScale, styleConfig.backgroundColor)
         }
 
-        val maxRadius = minOf(styled.width, styled.height) / 2f
-        val cornerRadiusPx = styleConfig.cornerRadius.coerceIn(0f, 1f) * maxRadius
-        return if (cornerRadiusPx > 0) addRoundedCorners(styled, cornerRadiusPx) else styled
+        return applyOuterCornerRadius(styled, styleConfig)
+    }
+
+    /**
+     * 把整张条码图片的外圆角按 styleConfig.cornerRadius 裁剪。
+     * 用 BitmapShader + drawRoundRect 实现，避免 clipPath 在硬件加速下的不稳定。
+     */
+    private fun applyOuterCornerRadius(bitmap: Bitmap, styleConfig: StyleConfig): Bitmap {
+        val ratio = styleConfig.cornerRadius.coerceIn(0f, 1f)
+        if (ratio <= 0f) return bitmap
+        val maxRadius = minOf(bitmap.width, bitmap.height) / 2f
+        val radiusPx = ratio * maxRadius
+        return addRoundedCorners(bitmap, radiusPx)
     }
 
     private fun applyStyle(bitmap: Bitmap, styleConfig: StyleConfig): Bitmap {
@@ -264,7 +290,10 @@ object AdvancedBarcodeGenerator {
         scale: Float,
         backgroundColor: Int
     ) {
-        val logoSize = max(50, (barcodeBitmap.width * scale).toInt()).coerceAtMost(barcodeBitmap.width / 3)
+        // 允许 logo 放大到条码宽度的 70%，不再强制限制在 1/3。
+        val maxLogoSize = (barcodeBitmap.width * 0.7f).toInt().coerceAtLeast(50)
+        val requested = (barcodeBitmap.width * scale.coerceIn(0f, 1f)).toInt().coerceAtLeast(50)
+        val logoSize = requested.coerceAtMost(maxLogoSize)
         val scaledLogo = Bitmap.createScaledBitmap(logo, logoSize, logoSize, true)
         val left = (barcodeBitmap.width - logoSize) / 2f
         val top = (barcodeBitmap.height - logoSize) / 2f
@@ -291,19 +320,14 @@ object AdvancedBarcodeGenerator {
     }
 
     fun addRoundedCorners(bitmap: Bitmap, radius: Float): Bitmap {
+        if (radius <= 0f) return bitmap
         val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(output)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-
-        canvas.withSave {
-            val rect = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
-            val path = android.graphics.Path().apply {
-                addRoundRect(rect, radius, radius, android.graphics.Path.Direction.CCW)
-            }
-            clipPath(path)
-            drawBitmap(bitmap, 0f, 0f, paint)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
         }
-
+        val rect = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+        canvas.drawRoundRect(rect, radius, radius, paint)
         return output
     }
 

@@ -43,6 +43,11 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 ### 生成入口
 所有条码生成统一通过 `BarcodeGenerator.generate(content, config)`。
+样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, size, style)`，`StyleConfig` 字段：
+- `cornerRadius`（0~1）：整张条码图片**外**圆角，0=直角，1=完全圆形。对所有格式生效（QR / 2D / 1D）。
+- `moduleRoundness`（0~1）：每个模块的圆角程度，模块**始终实心不缩放**。0=方块，1=圆点。
+- `logoScale`（0~1）：中心 Logo 占条码宽度比例，上限 70%。
+- `foregroundColor` / `backgroundColor`：可用 `ColorPickerDialog` 色谱选取。
 
 ### 扫描入口
 
@@ -86,6 +91,9 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `data/AppDatabase.kt` | 加密 Room 数据库（生产用 SQLCipher，Robolectric 回退到未加密） |
 | `AppLockManager.kt` | 应用锁（PIN / 生物识别） |
 | `GenerateFragment.kt` | 生成界面 Fragment |
+| `AdvancedBarcodeGenerator.kt` | 带样式的条码生成（颜色、外圆角、模块圆角、Logo） |
+| `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条） |
+| `ColorPickerDialog.kt` | 颜色选取对话框（含 hex 输入） |
 | `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel） |
 | `ContinuousScanActivity.kt` | 连续扫描 Activity |
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
