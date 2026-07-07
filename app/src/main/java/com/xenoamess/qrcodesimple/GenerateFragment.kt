@@ -121,7 +121,7 @@ class GenerateFragment : Fragment() {
             )
             val bitmap = BarcodeGenerator.generate(content, config)
             if (bitmap == null) {
-                Toast.makeText(requireContext(), getString(R.string.failed_to_generate, null), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return
             }
             currentBitmap = bitmap

@@ -218,7 +218,7 @@ class GenerateActivity : AppCompatActivity() {
                 currentBitmap = bitmap
                 binding.ivQRCode.setImageBitmap(bitmap)
             } else {
-                Toast.makeText(this, getString(R.string.failed_to_generate), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             Toast.makeText(this, getString(R.string.failed_to_generate, e.message), Toast.LENGTH_SHORT).show()

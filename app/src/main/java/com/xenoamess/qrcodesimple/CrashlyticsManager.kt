@@ -2,6 +2,7 @@ package com.xenoamess.qrcodesimple
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.pm.PackageInfoCompat
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -35,7 +36,7 @@ object CrashlyticsManager {
             // 设置自定义键值
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             crashlytics?.setCustomKey("app_version", packageInfo.versionName ?: "unknown")
-            crashlytics?.setCustomKey("app_version_code", packageInfo.longVersionCode)
+            crashlytics?.setCustomKey("app_version_code", PackageInfoCompat.getLongVersionCode(packageInfo))
 
             isInitialized = true
             Log.i(TAG, "Crashlytics initialized successfully")

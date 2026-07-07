@@ -2,6 +2,8 @@ package com.xenoamess.qrcodesimple.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -54,7 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
          * 获取数据库密码（首次生成并保存）
          */
         private fun getDatabasePassword(context: Context): String {
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val prefs = getEncryptedSharedPreferences(context)
             var password = prefs.getString(KEY_DB_PASSWORD, null)
 
             if (password == null) {
@@ -64,6 +66,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
 
             return password
+        }
+
+        private fun getEncryptedSharedPreferences(context: Context): SharedPreferences {
+            val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+
+            return EncryptedSharedPreferences.create(
+                PREFS_NAME,
+                masterKeyAlias,
+                context,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
         }
 
         /**
@@ -108,7 +122,7 @@ abstract class AppDatabase : RoomDatabase() {
                 context.deleteDatabase("qr_code_history_db_encrypted")
 
                 // 清除密码
-                context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                getEncryptedSharedPreferences(context)
                     .edit()
                     .remove(KEY_DB_PASSWORD)
                     .apply()

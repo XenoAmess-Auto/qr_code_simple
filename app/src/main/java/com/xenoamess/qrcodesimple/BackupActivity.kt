@@ -133,11 +133,11 @@ class BackupActivity : AppCompatActivity() {
                 }
 
                 val result = if (content.trim().startsWith("[")) {
-                    // CSV
-                    HistoryBackupManager.importFromCsv(this@BackupActivity, content)
-                } else {
                     // JSON
                     HistoryBackupManager.importFromJson(this@BackupActivity, content)
+                } else {
+                    // CSV
+                    HistoryBackupManager.importFromCsv(this@BackupActivity, content)
                 }
 
                 Toast.makeText(

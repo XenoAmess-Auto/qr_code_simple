@@ -2,11 +2,11 @@
 
 ## Project
 
-Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin-first with XML layouts and some Jetpack Compose.
+Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin-first with XML layouts and some Jetpack Compose. Build config is in `app/build.gradle`.
 
 ## Toolchain
 
-- Kotlin 2.2.10, Android Gradle Plugin 9.2.1, Gradle 9.5.1
+- Kotlin 2.2.10, Android Gradle Plugin 9.2.1, Gradle 9.6.1
 - `compileSdk 35`, `minSdk 24`, `targetSdk 35`
 - **JDK 21 required** (`sourceCompatibility/targetCompatibility = VERSION_21`, `jvmTarget = '21'`).
   README says JDK 17 — trust build config.

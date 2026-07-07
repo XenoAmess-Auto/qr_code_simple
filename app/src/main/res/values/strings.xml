@@ -45,6 +45,7 @@
     <string name="saved_to">Saved to: %1$s</string>
     <string name="failed_to_save">Failed to save: %1$s</string>
     <string name="failed_to_generate">Failed to generate QR code: %1$s</string>
+    <string name="unknown_error">Unknown error</string>
 
     <!-- Results -->
     <string name="scan_result">Scan Result</string>

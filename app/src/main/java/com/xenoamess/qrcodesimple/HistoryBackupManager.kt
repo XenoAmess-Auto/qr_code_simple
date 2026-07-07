@@ -43,6 +43,7 @@ object HistoryBackupManager {
                 put("barcodeFormat", item.barcodeFormat ?: JSONObject.NULL)
                 put("isFavorite", item.isFavorite)
                 put("notes", item.notes ?: JSONObject.NULL)
+                put("tags", item.tags ?: JSONObject.NULL)
             }
             jsonArray.put(jsonObject)
         }
@@ -84,7 +85,8 @@ object HistoryBackupManager {
                     isGenerated = itemObject.optBoolean("isGenerated", false),
                     barcodeFormat = itemObject.optString("barcodeFormat").takeIf { it != "null" },
                     isFavorite = itemObject.optBoolean("isFavorite", false),
-                    notes = itemObject.optString("notes").takeIf { it != "null" }
+                    notes = itemObject.optString("notes").takeIf { it != "null" },
+                    tags = itemObject.optString("tags").takeIf { it != "null" }
                 )
 
                 try {
@@ -109,7 +111,7 @@ object HistoryBackupManager {
         val items = repository.allHistory.first()
 
         val csvBuilder = StringBuilder()
-        csvBuilder.appendLine("content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes")
+        csvBuilder.appendLine("content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags")
 
         items.forEach { item ->
             val line = buildString {
@@ -126,6 +128,8 @@ object HistoryBackupManager {
                 append(item.isFavorite)
                 append(",")
                 append(escapeCsv(item.notes ?: ""))
+                append(",")
+                append(escapeCsv(item.tags ?: ""))
             }
             csvBuilder.appendLine(line)
         }
@@ -161,7 +165,8 @@ object HistoryBackupManager {
                             isGenerated = parts[3].toBoolean(),
                             barcodeFormat = parts.getOrNull(4)?.takeIf { it.isNotBlank() },
                             isFavorite = parts.getOrNull(5)?.toBoolean() ?: false,
-                            notes = parts.getOrNull(6)?.takeIf { it.isNotBlank() }
+                            notes = parts.getOrNull(6)?.takeIf { it.isNotBlank() },
+                            tags = parts.getOrNull(7)?.takeIf { it.isNotBlank() }
                         )
 
                         try {
@@ -200,21 +205,29 @@ object HistoryBackupManager {
         val result = mutableListOf<String>()
         val current = StringBuilder()
         var inQuotes = false
+        var i = 0
 
-        for (char in line) {
+        while (i < line.length) {
+            val char = line[i]
             when {
                 char == '"' -> {
-                    if (inQuotes && line.getOrNull(line.indexOf(char) + 1) == '"') {
+                    if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
                         current.append('"')
+                        i += 2
                     } else {
                         inQuotes = !inQuotes
+                        i++
                     }
                 }
                 char == ',' && !inQuotes -> {
                     result.add(current.toString())
                     current.clear()
+                    i++
                 }
-                else -> current.append(char)
+                else -> {
+                    current.append(char)
+                    i++
+                }
             }
         }
         result.add(current.toString())
