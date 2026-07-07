@@ -30,7 +30,7 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 
 ## Agent workflow
 
-- After finishing work, stage and commit changes yourself: `git add .` then `git commit -m "..."`. Write concise, repo-style commit messages.
+- After finishing work, stage, commit, and push changes yourself: `git add .`, `git commit -m "..."`, then `git push`. Write concise, repo-style commit messages. If the push is rejected, pull/rebase first and then push.
 - After finishing work, sync documentation and the knowledge base (`docs/`, `README.md`, `README_CN.md`) so they stay consistent with the code.
 
 ## High-signal gotchas
