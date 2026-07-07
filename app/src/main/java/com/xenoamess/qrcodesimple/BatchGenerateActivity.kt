@@ -23,10 +23,10 @@ class BatchGenerateActivity : AppCompatActivity() {
     private lateinit var binding: ActivityBatchGenerateBinding
     private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
 
-    private val pickCsvLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
+    private val pickFileLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
-        uri?.let { importFromCsv(it) }
+        uri?.let { importFromFile(it) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +35,6 @@ class BatchGenerateActivity : AppCompatActivity() {
         binding = ActivityBatchGenerateBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 设置沉浸式状态栏并处理安全区域
         setupEdgeToEdge()
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -64,8 +63,13 @@ class BatchGenerateActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
+        binding.btnImportCsv.text = getString(R.string.import_csv_excel)
         binding.btnImportCsv.setOnClickListener {
-            pickCsvLauncher.launch("text/csv")
+            pickFileLauncher.launch(arrayOf(
+                "text/csv",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel"
+            ))
         }
 
         binding.btnDownloadTemplate.setOnClickListener {
@@ -81,11 +85,14 @@ class BatchGenerateActivity : AppCompatActivity() {
         }
     }
 
-    private fun importFromCsv(uri: Uri) {
+    private fun importFromFile(uri: Uri) {
         lifecycleScope.launch {
             binding.progressBar.visibility = View.VISIBLE
             
-            val result = BatchGenerator.parseCsv(this@BatchGenerateActivity, uri)
+            val result = when (getFileExtension(uri)) {
+                "xlsx", "xls" -> BatchGenerator.parseExcel(this@BatchGenerateActivity, uri)
+                else -> BatchGenerator.parseCsv(this@BatchGenerateActivity, uri)
+            }
             
             binding.progressBar.visibility = View.GONE
 
@@ -98,7 +105,6 @@ class BatchGenerateActivity : AppCompatActivity() {
             }
 
             if (result.items.isNotEmpty()) {
-                // 显示预览
                 val previewText = result.items.joinToString("\n") { it.content }
                 binding.etContent.setText(previewText)
                 Toast.makeText(
@@ -109,11 +115,21 @@ class BatchGenerateActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(
                     this@BatchGenerateActivity,
-                    "No valid items found in CSV",
+                    "No valid items found",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         }
+    }
+
+    private fun getFileExtension(uri: Uri): String {
+        return contentResolver.getType(uri)?.let { mime ->
+            when (mime) {
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> "xlsx"
+                "application/vnd.ms-excel" -> "xls"
+                else -> "csv"
+            }
+        } ?: uri.path?.substringAfterLast('.', "") ?: "csv"
     }
 
     private fun downloadTemplate() {
@@ -158,7 +174,6 @@ class BatchGenerateActivity : AppCompatActivity() {
             return
         }
 
-        // 跳转到结果页面进行批量生成
         val intent = Intent(this, BatchResultActivity::class.java).apply {
             putStringArrayListExtra(EXTRA_CONTENTS, ArrayList(items.map { it.content }))
             putExtra(EXTRA_FORMAT, selectedFormat.name)

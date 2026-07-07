@@ -194,7 +194,7 @@
     <!-- Batch Generate -->
     <string name="batch_generate">Batch Generate</string>
     <string name="batch_result">Batch Result</string>
-    <string name="import_csv">Import CSV</string>
+    <string name="import_csv_excel">Import CSV/Excel</string>
     <string name="download_template">Download Template</string>
     <string name="generate_batch">Generate Batch</string>
     <string name="save_all_zip">Save All as ZIP</string>
