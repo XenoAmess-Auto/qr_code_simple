@@ -177,4 +177,21 @@
     <!-- Phone -->
     <string name="confirm_call">拨打此号码？</string>
     <string name="call">拨打</string>
+
+    <!-- Barcode Style -->
+    <string name="style">样式</string>
+    <string name="color_scheme">配色方案</string>
+    <string name="foreground_color">前景色</string>
+    <string name="background_color">背景色</string>
+    <string name="custom_color">自定义</string>
+    <string name="corner_radius">圆角半径</string>
+    <string name="module_size">模块大小</string>
+    <string name="logo_scale">Logo 缩放</string>
+    <string name="logo_preview">Logo 预览</string>
+    <string name="add_logo">添加 Logo</string>
+    <string name="remove">移除</string>
+    <string name="failed_to_load_logo">加载 Logo 失败：%1$s</string>
+    <string name="hex_color_hint">#RRGGBB</string>
+    <string name="invalid_color_format">颜色格式无效</string>
+
 </resources>

@@ -45,6 +45,7 @@ class GenerateFragment : Fragment() {
     private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
     private var cornerRadius = 0f
     private var dotScale = 1f
+    private var logoScale = 0.2f
     private var logoBitmap: Bitmap? = null
 
     companion object {
@@ -98,26 +99,59 @@ class GenerateFragment : Fragment() {
     }
 
     private fun setupStyleControls() {
-        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; generateBarcode() }
-        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; generateBarcode() }
-        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; generateBarcode() }
-        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; generateBarcode() }
-        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; generateBarcode() }
-        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; generateBarcode() }
-        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; generateBarcode() }
-        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; generateBarcode() }
+        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; updateColorInputs(); generateBarcode() }
+        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; updateColorInputs(); generateBarcode() }
+        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; updateColorInputs(); generateBarcode() }
+        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; updateColorInputs(); generateBarcode() }
+        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; updateColorInputs(); generateBarcode() }
+        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; updateColorInputs(); generateBarcode() }
+        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; updateColorInputs(); generateBarcode() }
+        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; updateColorInputs(); generateBarcode() }
 
-        binding.seekBarCornerRadius.addOnChangeListener(Slider.OnChangeListener { _, value, fromUser ->
-            cornerRadius = value / 100f * 20f
+        binding.seekBarCornerRadius.addOnChangeListener { _, value, _ ->
+            cornerRadius = value / 100f
             binding.tvCornerRadiusValue.text = "${value.toInt()}%"
-            if (fromUser) generateBarcode()
+        }
+        binding.seekBarCornerRadius.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
         })
 
-        binding.seekBarDotScale.addOnChangeListener(Slider.OnChangeListener { _, value, fromUser ->
+        binding.seekBarDotScale.addOnChangeListener { _, value, _ ->
             dotScale = 0.3f + (value / 100f) * 0.7f
             binding.tvDotScaleValue.text = "${(dotScale * 100).toInt()}%"
-            if (fromUser) generateBarcode()
+        }
+        binding.seekBarDotScale.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
         })
+
+        binding.seekBarLogoScale.addOnChangeListener { _, value, _ ->
+            logoScale = value / 100f
+            binding.tvLogoScaleValue.text = "${value.toInt()}%"
+        }
+        binding.seekBarLogoScale.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
+        })
+
+        binding.btnApplyCustomColor.setOnClickListener {
+            val fg = parseColor(binding.etForegroundColor.text?.toString())
+            val bg = parseColor(binding.etBackgroundColor.text?.toString())
+            if (fg != null && bg != null) {
+                selectedStyle = AdvancedBarcodeGenerator.StyleConfig(
+                    foregroundColor = fg,
+                    backgroundColor = bg
+                )
+                generateBarcode()
+            } else {
+                Toast.makeText(requireContext(), getString(R.string.invalid_color_format), Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        updateColorInputs()
+        binding.seekBarLogoScale.value = logoScale * 100f
+        binding.tvLogoScaleValue.text = "${(logoScale * 100).toInt()}%"
 
         binding.btnAddLogo.setOnClickListener {
             pickLogoLauncher.launch("image/*")
@@ -128,6 +162,23 @@ class GenerateFragment : Fragment() {
             binding.ivLogoPreview.setImageBitmap(null)
             binding.ivLogoPreview.visibility = View.GONE
             generateBarcode()
+        }
+    }
+
+    private fun updateColorInputs() {
+        binding.etForegroundColor.setText(colorToHex(selectedStyle.foregroundColor))
+        binding.etBackgroundColor.setText(colorToHex(selectedStyle.backgroundColor))
+    }
+
+    private fun colorToHex(color: Int): String {
+        return String.format("#%06X", 0xFFFFFF and color)
+    }
+
+    private fun parseColor(value: String?): Int? {
+        return try {
+            Color.parseColor(value?.trim())
+        } catch (e: IllegalArgumentException) {
+            null
         }
     }
 
@@ -196,7 +247,8 @@ class GenerateFragment : Fragment() {
             val style = selectedStyle.copy(
                 cornerRadius = cornerRadius,
                 dotScale = dotScale,
-                logoBitmap = logoBitmap
+                logoBitmap = logoBitmap,
+                logoScale = logoScale
             )
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
             if (bitmap == null) {

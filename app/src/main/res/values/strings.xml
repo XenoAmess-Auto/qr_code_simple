@@ -269,12 +269,18 @@
     <!-- Barcode Style -->
     <string name="style">Style</string>
     <string name="color_scheme">Color Scheme</string>
+    <string name="foreground_color">Foreground Color</string>
+    <string name="background_color">Background Color</string>
+    <string name="custom_color">Custom</string>
     <string name="corner_radius">Corner Radius</string>
-    <string name="dot_scale">Dot Scale</string>
+    <string name="module_size">Module Size</string>
+    <string name="logo_scale">Logo Scale</string>
     <string name="add_logo">Add Logo</string>
     <string name="remove">Remove</string>
-    <string name="logo_preview">Logo preview</string>
+    <string name="logo_preview">Logo Preview</string>
     <string name="failed_to_load_logo">Failed to load logo: %1$s</string>
+    <string name="hex_color_hint">#RRGGBB</string>
+    <string name="invalid_color_format">Invalid color format</string>
 
     <!-- Generation validation -->
     <string name="warning_barcode_not_scannable">Generated barcode cannot be recognized by this app. Please check content or format.</string>

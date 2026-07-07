@@ -74,7 +74,7 @@ object AdvancedBarcodeGenerator {
 
         val cellSize = size.toFloat() / bitMatrix.width
         val radius = cellSize * styleConfig.dotScale / 2
-        val cornerRadius = styleConfig.cornerRadius.coerceIn(0f, radius)
+        val cornerRadius = styleConfig.cornerRadius.coerceIn(0f, 1f) * radius
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.style = Paint.Style.FILL
@@ -87,17 +87,13 @@ object AdvancedBarcodeGenerator {
                     val cy = y * cellSize + cellSize / 2
                     paint.color = resolveForegroundColor(cx, cy, size, size, styleConfig)
 
-                    if (cornerRadius > 0) {
-                        val rect = RectF(
-                            cx - radius,
-                            cy - radius,
-                            cx + radius,
-                            cy + radius
-                        )
-                        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
-                    } else {
-                        canvas.drawCircle(cx, cy, radius, paint)
-                    }
+                    val rect = RectF(
+                        cx - radius,
+                        cy - radius,
+                        cx + radius,
+                        cy + radius
+                    )
+                    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
                 }
             }
         }
@@ -131,7 +127,7 @@ object AdvancedBarcodeGenerator {
 
         val cellSize = size.toFloat() / bitMatrix.width
         val radius = cellSize * styleConfig.dotScale / 2
-        val cornerRadius = styleConfig.cornerRadius.coerceIn(0f, radius)
+        val cornerRadius = styleConfig.cornerRadius.coerceIn(0f, 1f) * radius
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.style = Paint.Style.FILL }
 
         for (x in 0 until bitMatrix.width) {
@@ -141,12 +137,8 @@ object AdvancedBarcodeGenerator {
                     val cy = y * cellSize + cellSize / 2
                     paint.color = resolveForegroundColor(cx, cy, size, size, styleConfig)
 
-                    if (cornerRadius > 0) {
-                        val rect = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
-                        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
-                    } else {
-                        canvas.drawCircle(cx, cy, radius, paint)
-                    }
+                    val rect = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
+                    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
                 }
             }
         }
@@ -181,7 +173,9 @@ object AdvancedBarcodeGenerator {
             addLogoToCenter(Canvas(styled), styled, logo, styleConfig.logoScale, styleConfig.backgroundColor)
         }
 
-        return if (styleConfig.cornerRadius > 0) addRoundedCorners(styled, styleConfig.cornerRadius) else styled
+        val maxRadius = minOf(styled.width, styled.height) / 2f
+        val cornerRadiusPx = styleConfig.cornerRadius.coerceIn(0f, 1f) * maxRadius
+        return if (cornerRadiusPx > 0) addRoundedCorners(styled, cornerRadiusPx) else styled
     }
 
     private fun applyStyle(bitmap: Bitmap, styleConfig: StyleConfig): Bitmap {
