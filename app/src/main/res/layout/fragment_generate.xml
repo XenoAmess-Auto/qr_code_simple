@@ -252,46 +252,6 @@
 
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/module_roundness"
-                    android:textSize="12sp"
-                    android:layout_marginTop="8dp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/module_roundness_hint"
-                    android:textSize="10sp"
-                    android:textColor="?android:attr/textColorHint"
-                    android:layout_marginBottom="4dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <com.google.android.material.slider.Slider
-                        android:id="@+id/seekBarDotScale"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:valueFrom="0"
-                        android:valueTo="100"
-                        android:value="0"
-                        android:stepSize="1" />
-
-                    <TextView
-                        android:id="@+id/tvDotScaleValue"
-                        android:layout_width="50dp"
-                        android:layout_height="wrap_content"
-                        android:text="0%"
-                        android:textSize="12sp" />
-
-                </LinearLayout>
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -185,10 +185,9 @@
     <string name="background_color">背景色</string>
     <string name="custom_color">自定义</string>
     <string name="corner_radius">圆角半径</string>
-    <string name="corner_radius_hint">圆角化整张条码图片的外边角</string>
-    <string name="module_roundness">模块圆角</string>
-    <string name="module_roundness_hint">圆角化每个模块。0% = 方块，100% = 圆点。模块保持实心。</string>
+    <string name="corner_radius_hint">为条码图片添加外圆角</string>
     <string name="logo_scale">Logo 缩放</string>
+
     <string name="logo_preview">Logo 预览</string>
     <string name="add_logo">添加 Logo</string>
     <string name="remove">移除</string>

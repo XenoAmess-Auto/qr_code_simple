@@ -47,7 +47,6 @@ class GenerateFragment : Fragment() {
     private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
     private var cornerRadius = 0f
-    private var moduleRoundness = 0f
     private var logoScale = 0.2f
     private var logoBitmap: Bitmap? = null
     private var validationJob: Job? = null
@@ -118,16 +117,6 @@ class GenerateFragment : Fragment() {
             binding.tvCornerRadiusValue.text = "${value.toInt()}%"
         }
         binding.seekBarCornerRadius.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-            override fun onStartTrackingTouch(slider: Slider) {}
-            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
-        })
-
-        // 原「模块大小」改为「模块圆角」：模块始终实心，只控制每个模块的圆角程度。
-        binding.seekBarDotScale.addOnChangeListener { _, value, _ ->
-            moduleRoundness = value / 100f
-            binding.tvDotScaleValue.text = "${value.toInt()}%"
-        }
-        binding.seekBarDotScale.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
             override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
         })
@@ -279,7 +268,6 @@ class GenerateFragment : Fragment() {
         try {
             val style = selectedStyle.copy(
                 cornerRadius = cornerRadius,
-                moduleRoundness = moduleRoundness,
                 logoBitmap = logoBitmap,
                 logoScale = logoScale
             )

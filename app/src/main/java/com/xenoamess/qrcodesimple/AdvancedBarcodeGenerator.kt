@@ -28,12 +28,6 @@ object AdvancedBarcodeGenerator {
          * 0 = 直角，1 = 完全圆形。
          */
         val cornerRadius: Float = 0f,
-        /**
-         * 每个模块（cell）的圆角程度（0~1）。
-         * 模块始终是实心的（不缩放、不留空隙），只改变圆角。
-         * 0 = 方块，1 = 圆点。
-         */
-        val moduleRoundness: Float = 0f,
         val logoBitmap: Bitmap? = null,
         val logoScale: Float = 0.2f,
         val gradientStartColor: Int? = null,
@@ -79,10 +73,8 @@ object AdvancedBarcodeGenerator {
         val canvas = Canvas(output)
         canvas.drawColor(styleConfig.backgroundColor)
 
-        // 模块始终实心（radius = cellSize/2），只通过 moduleRoundness 控制圆角
         val cellSize = size.toFloat() / bitMatrix.width
         val halfCell = cellSize / 2f
-        val cellCorner = styleConfig.moduleRoundness.coerceIn(0f, 1f) * halfCell
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.style = Paint.Style.FILL
@@ -101,11 +93,7 @@ object AdvancedBarcodeGenerator {
                         cx + halfCell,
                         cy + halfCell
                     )
-                    if (cellCorner > 0f) {
-                        canvas.drawRoundRect(rect, cellCorner, cellCorner, paint)
-                    } else {
-                        canvas.drawRect(rect, paint)
-                    }
+                    canvas.drawRect(rect, paint)
                 }
             }
         }
@@ -139,7 +127,6 @@ object AdvancedBarcodeGenerator {
 
         val cellSize = size.toFloat() / bitMatrix.width
         val halfCell = cellSize / 2f
-        val cellCorner = styleConfig.moduleRoundness.coerceIn(0f, 1f) * halfCell
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.style = Paint.Style.FILL }
 
         for (x in 0 until bitMatrix.width) {
@@ -150,11 +137,7 @@ object AdvancedBarcodeGenerator {
                     paint.color = resolveForegroundColor(cx, cy, size, size, styleConfig)
 
                     val rect = RectF(cx - halfCell, cy - halfCell, cx + halfCell, cy + halfCell)
-                    if (cellCorner > 0f) {
-                        canvas.drawRoundRect(rect, cellCorner, cellCorner, paint)
-                    } else {
-                        canvas.drawRect(rect, paint)
-                    }
+                    canvas.drawRect(rect, paint)
                 }
             }
         }

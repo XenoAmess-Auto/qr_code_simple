@@ -274,8 +274,6 @@
     <string name="custom_color">Custom</string>
     <string name="corner_radius">Corner Radius</string>
     <string name="corner_radius_hint">Rounds the outer corners of the barcode image</string>
-    <string name="module_roundness">Module Roundness</string>
-    <string name="module_roundness_hint">Rounds each module. 0% = square, 100% = circle. Modules stay solid.</string>
     <string name="logo_scale">Logo Scale</string>
     <string name="add_logo">Add Logo</string>
     <string name="remove">Remove</string>
