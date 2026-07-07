@@ -49,17 +49,46 @@ class GenerateFragment : Fragment() {
     private var cornerRadius = 0f
     private var logoScale = 0.2f
     private var logoBitmap: Bitmap? = null
+    private var foregroundImageBitmap: Bitmap? = null
+    private var backgroundImageBitmap: Bitmap? = null
     private var validationJob: Job? = null
 
     companion object {
         private const val TAG = "GenerateFragment"
         private const val MAX_LOGO_PX = 512
+        private const val MAX_STYLE_IMAGE_PX = 1024
     }
 
     private val pickLogoLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { loadLogo(it) }
+        uri?.let { loadImage(it, MAX_LOGO_PX) { bitmap ->
+            logoBitmap = bitmap
+            updateImagePreview(binding.ivLogoPreview, bitmap)
+            generateBarcode()
+        } }
+    }
+
+    private val pickForegroundImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { loadImage(it, MAX_STYLE_IMAGE_PX) { bitmap ->
+            foregroundImageBitmap = bitmap
+            updateImagePreview(binding.viewFgImagePreview, bitmap)
+            binding.btnRemoveForegroundImage.visibility = View.VISIBLE
+            generateBarcode()
+        } }
+    }
+
+    private val pickBackgroundImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { loadImage(it, MAX_STYLE_IMAGE_PX) { bitmap ->
+            backgroundImageBitmap = bitmap
+            updateImagePreview(binding.viewBgImagePreview, bitmap)
+            binding.btnRemoveBackgroundImage.visibility = View.VISIBLE
+            generateBarcode()
+        } }
     }
 
     override fun onCreateView(
@@ -103,14 +132,14 @@ class GenerateFragment : Fragment() {
     }
 
     private fun setupStyleControls() {
-        binding.btnColorClassic.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC; updateColorPreviews(); generateBarcode() }
-        binding.btnColorBlue.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.BLUE; updateColorPreviews(); generateBarcode() }
-        binding.btnColorGreen.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.GREEN; updateColorPreviews(); generateBarcode() }
-        binding.btnColorRed.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.RED; updateColorPreviews(); generateBarcode() }
-        binding.btnColorPurple.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.PURPLE; updateColorPreviews(); generateBarcode() }
-        binding.btnColorOrange.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.ORANGE; updateColorPreviews(); generateBarcode() }
-        binding.btnColorDark.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.DARK; updateColorPreviews(); generateBarcode() }
-        binding.btnColorCyan.setOnClickListener { selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CYAN; updateColorPreviews(); generateBarcode() }
+        binding.btnColorClassic.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.CLASSIC) }
+        binding.btnColorBlue.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.BLUE) }
+        binding.btnColorGreen.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.GREEN) }
+        binding.btnColorRed.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.RED) }
+        binding.btnColorPurple.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.PURPLE) }
+        binding.btnColorOrange.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.ORANGE) }
+        binding.btnColorDark.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.DARK) }
+        binding.btnColorCyan.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.CYAN) }
 
         binding.seekBarCornerRadius.addOnChangeListener { _, value, _ ->
             cornerRadius = value / 100f
@@ -134,7 +163,7 @@ class GenerateFragment : Fragment() {
             ColorPickerDialog().apply {
                 setInitialColor(selectedStyle.foregroundColor)
                 onColorSelected = { color ->
-                    selectedStyle = selectedStyle.copy(foregroundColor = color)
+                    selectedStyle = selectedStyle.copy(foregroundColor = color, foregroundBitmap = null)
                     updateColorPreviews()
                     generateBarcode()
                 }
@@ -144,11 +173,32 @@ class GenerateFragment : Fragment() {
             ColorPickerDialog().apply {
                 setInitialColor(selectedStyle.backgroundColor)
                 onColorSelected = { color ->
-                    selectedStyle = selectedStyle.copy(backgroundColor = color)
+                    selectedStyle = selectedStyle.copy(backgroundColor = color, backgroundBitmap = null)
                     updateColorPreviews()
                     generateBarcode()
                 }
             }.show(parentFragmentManager, "bg_color")
+        }
+
+        binding.btnPickForegroundImage.setOnClickListener {
+            pickForegroundImageLauncher.launch("image/*")
+        }
+        binding.btnRemoveForegroundImage.setOnClickListener {
+            foregroundImageBitmap = null
+            selectedStyle = selectedStyle.copy(foregroundBitmap = null)
+            updateImagePreview(binding.viewFgImagePreview, null)
+            binding.btnRemoveForegroundImage.visibility = View.GONE
+            generateBarcode()
+        }
+        binding.btnPickBackgroundImage.setOnClickListener {
+            pickBackgroundImageLauncher.launch("image/*")
+        }
+        binding.btnRemoveBackgroundImage.setOnClickListener {
+            backgroundImageBitmap = null
+            selectedStyle = selectedStyle.copy(backgroundBitmap = null)
+            updateImagePreview(binding.viewBgImagePreview, null)
+            binding.btnRemoveBackgroundImage.visibility = View.GONE
+            generateBarcode()
         }
 
         updateColorPreviews()
@@ -165,6 +215,20 @@ class GenerateFragment : Fragment() {
             binding.ivLogoPreview.visibility = View.GONE
             generateBarcode()
         }
+    }
+
+    private fun applyColorScheme(scheme: AdvancedBarcodeGenerator.StyleConfig) {
+        selectedStyle = scheme.copy(
+            foregroundBitmap = foregroundImageBitmap,
+            backgroundBitmap = backgroundImageBitmap
+        )
+        updateColorPreviews()
+        generateBarcode()
+    }
+
+    private fun updateImagePreview(imageView: android.widget.ImageView, bitmap: Bitmap?) {
+        imageView.setImageBitmap(bitmap)
+        imageView.visibility = if (bitmap != null) View.VISIBLE else View.GONE
     }
 
     private fun updateColorPreviews() {
@@ -187,7 +251,7 @@ class GenerateFragment : Fragment() {
         binding.tilContent.hint = getString(hintRes)
     }
 
-    private fun loadLogo(uri: Uri) {
+    private fun loadImage(uri: Uri, maxPx: Int, onLoaded: (Bitmap) -> Unit) {
         val ctx = context ?: return
         lifecycleScope.launch {
             try {
@@ -198,7 +262,7 @@ class GenerateFragment : Fragment() {
                         // 重新打开流（上一轮已消费）
                         ctx.contentResolver.openInputStream(uri)?.use { realStream ->
                             val opts = BitmapFactory.Options().apply {
-                                inSampleSize = calculateSampleSize(bounds.outWidth, bounds.outHeight, MAX_LOGO_PX)
+                                inSampleSize = calculateSampleSize(bounds.outWidth, bounds.outHeight, maxPx)
                                 inPreferredConfig = Bitmap.Config.ARGB_8888
                             }
                             BitmapFactory.decodeStream(realStream, null, opts)
@@ -206,17 +270,14 @@ class GenerateFragment : Fragment() {
                     }
                 }
                 if (bmp != null) {
-                    logoBitmap = bmp
-                    binding.ivLogoPreview.setImageBitmap(bmp)
-                    binding.ivLogoPreview.visibility = View.VISIBLE
-                    generateBarcode()
+                    onLoaded(bmp)
                 } else if (_binding != null) {
-                    Toast.makeText(ctx, getString(R.string.failed_to_load_logo, "decode null"), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "loadLogo failed", e)
+                Log.e(TAG, "loadImage failed", e)
                 if (_binding != null) {
-                    Toast.makeText(ctx, getString(R.string.failed_to_load_logo, e.message), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -269,7 +330,9 @@ class GenerateFragment : Fragment() {
             val style = selectedStyle.copy(
                 cornerRadius = cornerRadius,
                 logoBitmap = logoBitmap,
-                logoScale = logoScale
+                logoScale = logoScale,
+                foregroundBitmap = foregroundImageBitmap,
+                backgroundBitmap = backgroundImageBitmap
             )
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
             if (bitmap == null) {

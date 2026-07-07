@@ -827,7 +827,11 @@ object BarcodeGenerator {
             AppBarcodeFormat.EAN_8 -> validateEAN8(content)
             AppBarcodeFormat.UPC_A -> validateUPCA(content)
             AppBarcodeFormat.UPC_E -> validateUPCE(content)
+            AppBarcodeFormat.CODE_128 -> validateCode128(content)
             AppBarcodeFormat.CODE_39 -> validateCode39(content)
+            AppBarcodeFormat.CODE_93 -> validateCode93(content)
+            AppBarcodeFormat.CODABAR -> validateCodabar(content)
+            AppBarcodeFormat.ITF -> validateITF(content)
             AppBarcodeFormat.RSS_14 -> validateRss14(content)
             AppBarcodeFormat.MICRO_QR -> validateMicroQr(content)
             AppBarcodeFormat.PHARMACODE -> validatePharmacode(content)
@@ -889,6 +893,46 @@ object BarcodeGenerator {
             ValidationResult(true)
         } else {
             ValidationResult(false, "Code 39 only supports: 0-9, A-Z, -, ., space, $, /, +, %")
+        }
+    }
+
+    private fun validateCode128(content: String): ValidationResult {
+        return if (content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 128 only supports ASCII characters")
+        }
+    }
+
+    private fun validateCode93(content: String): ValidationResult {
+        val validChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%"
+        return if (content.all { it in validChars }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 93 only supports: 0-9, A-Z, -, ., space, $, /, +, %")
+        }
+    }
+
+    private fun validateCodabar(content: String): ValidationResult {
+        val validChars = "0123456789-$:/.+"
+        return if (content.all { it in validChars }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Codabar only supports: 0-9, -, $, :, /, ., +")
+        }
+    }
+
+    private fun validateITF(content: String): ValidationResult {
+        if (content.isEmpty()) {
+            return ValidationResult(false, "ITF content cannot be empty")
+        }
+        if (!content.all { it.isDigit() }) {
+            return ValidationResult(false, "ITF only supports digits")
+        }
+        return if (content.length % 2 == 0) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "ITF requires an even number of digits")
         }
     }
 

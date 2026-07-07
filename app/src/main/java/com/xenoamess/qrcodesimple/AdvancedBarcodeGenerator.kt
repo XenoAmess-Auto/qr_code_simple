@@ -5,6 +5,7 @@ import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import com.google.zxing.EncodeHintType
@@ -13,15 +14,19 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 
 /**
  * 高级条码生成器 - 支持样式定制
+ * 所有像素操作均使用 Bitmap.setPixel / setPixels，避免 Robolectric 下 Canvas 绘制不可靠的问题。
  */
 object AdvancedBarcodeGenerator {
 
     data class StyleConfig(
         val foregroundColor: Int = Color.BLACK,
         val backgroundColor: Int = Color.WHITE,
+        val foregroundBitmap: Bitmap? = null,
+        val backgroundBitmap: Bitmap? = null,
         /**
          * 整张条码图片的外圆角半径（0~1，占图片短边的一半）。
          * 0 = 直角，1 = 完全圆形。
+         * 仅对 1D 条码生效；QR/2D 码保持直角以保证定位图案完整。
          */
         val cornerRadius: Float = 0f,
         val logoBitmap: Bitmap? = null,
@@ -63,10 +68,10 @@ object AdvancedBarcodeGenerator {
         val bitMatrix = writer.encode(content, com.google.zxing.BarcodeFormat.QR_CODE, size, size, hints)
 
         val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        output.eraseColor(styleConfig.backgroundColor)
+        fillBackground(output, styleConfig)
 
+        val logoRect = computeLogoRect(output, styleConfig)
         val cellSize = size.toFloat() / bitMatrix.width
-        val hasGradient = styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null
 
         for (x in 0 until bitMatrix.width) {
             for (y in 0 until bitMatrix.height) {
@@ -75,16 +80,43 @@ object AdvancedBarcodeGenerator {
                     val endX = ((x + 1) * cellSize).toInt().coerceAtMost(size)
                     val startY = (y * cellSize).toInt()
                     val endY = ((y + 1) * cellSize).toInt().coerceAtMost(size)
-                    fillModule(output, startX, endX, startY, endY, styleConfig, hasGradient)
+                    fillModule(output, startX, endX, startY, endY, styleConfig, logoRect)
                 }
             }
         }
 
         styleConfig.logoBitmap?.let { logo ->
-            addLogoToCenter(Canvas(output), output, logo, styleConfig.logoScale, styleConfig.backgroundColor)
+            drawLogoOnBitmap(output, logo, logoRect)
         }
 
         return output
+    }
+
+    private fun fillBackground(bitmap: Bitmap, styleConfig: StyleConfig) {
+        val width = bitmap.width
+        val height = bitmap.height
+        when {
+            styleConfig.backgroundBitmap != null -> {
+                val scaled = Bitmap.createScaledBitmap(styleConfig.backgroundBitmap, width, height, true)
+                bitmap.setPixels(scaled.getPixelsArray(), 0, width, 0, 0, width, height)
+                if (scaled !== styleConfig.backgroundBitmap) scaled.recycle()
+            }
+            else -> {
+                bitmap.eraseColor(styleConfig.backgroundColor)
+            }
+        }
+    }
+
+    private fun Bitmap.getPixelsArray(): IntArray {
+        val pixels = IntArray(width * height)
+        getPixels(pixels, 0, width, 0, 0, width, height)
+        return pixels
+    }
+
+    private fun sampleBitmap(bitmap: Bitmap, x: Int, y: Int, width: Int, height: Int): Int {
+        val bx = (x.toFloat() / width * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
+        val by = (y.toFloat() / height * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
+        return bitmap.getPixel(bx, by)
     }
 
     private fun fillModule(
@@ -94,21 +126,19 @@ object AdvancedBarcodeGenerator {
         startY: Int,
         endY: Int,
         styleConfig: StyleConfig,
-        hasGradient: Boolean
+        logoRect: Rect?
     ) {
-        if (hasGradient) {
-            for (x in startX until endX) {
-                for (y in startY until endY) {
-                    val color = resolveForegroundColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig)
-                    output.setPixel(x, y, color)
+        val foregroundBitmap = styleConfig.foregroundBitmap
+        val hasGradient = styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null
+        for (x in startX until endX) {
+            for (y in startY until endY) {
+                if (logoRect?.contains(x, y) == true) continue
+                val color = when {
+                    foregroundBitmap != null -> sampleBitmap(foregroundBitmap, x, y, output.width, output.height)
+                    hasGradient -> resolveGradientColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig)
+                    else -> styleConfig.foregroundColor
                 }
-            }
-        } else {
-            val color = styleConfig.foregroundColor
-            for (x in startX until endX) {
-                for (y in startY until endY) {
-                    output.setPixel(x, y, color)
-                }
+                output.setPixel(x, y, color)
             }
         }
     }
@@ -130,19 +160,16 @@ object AdvancedBarcodeGenerator {
         val original = BarcodeGenerator.generate(content, config)
             ?: throw IllegalStateException("Failed to generate barcode")
 
-        val styled = applyStyle(original, styleConfig)
+        val logoRect = computeLogoRect(original, styleConfig)
+        val styled = applyStyle(original, styleConfig, logoRect)
 
         styleConfig.logoBitmap?.let { logo ->
-            addLogoToCenter(Canvas(styled), styled, logo, styleConfig.logoScale, styleConfig.backgroundColor)
+            drawLogoOnBitmap(styled, logo, logoRect)
         }
 
         return applyOuterCornerRadius(styled, styleConfig)
     }
 
-    /**
-     * 把整张条码图片的外圆角按 styleConfig.cornerRadius 裁剪。
-     * 用 BitmapShader + drawRoundRect 实现，避免 clipPath 在硬件加速下的不稳定。
-     */
     private fun applyOuterCornerRadius(bitmap: Bitmap, styleConfig: StyleConfig): Bitmap {
         val ratio = styleConfig.cornerRadius.coerceIn(0f, 1f)
         if (ratio <= 0f) return bitmap
@@ -151,23 +178,31 @@ object AdvancedBarcodeGenerator {
         return addRoundedCorners(bitmap, radiusPx)
     }
 
-    private fun applyStyle(bitmap: Bitmap, styleConfig: StyleConfig): Bitmap {
+    private fun applyStyle(bitmap: Bitmap, styleConfig: StyleConfig, logoRect: Rect?): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
         val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
 
+        val foregroundBitmap = styleConfig.foregroundBitmap
+        val backgroundBitmap = styleConfig.backgroundBitmap
         val hasGradient = styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null
 
         for (i in pixels.indices) {
             val x = i % width
             val y = i / width
+            if (logoRect?.contains(x, y) == true) {
+                output.setPixel(x, y, resolveBackgroundColor(x, y, width, height, styleConfig))
+                continue
+            }
             val gray = (Color.red(pixels[i]) + Color.green(pixels[i]) + Color.blue(pixels[i])) / 3
             val isDark = gray < 128
             val color = when {
-                isDark && hasGradient -> resolveForegroundColor(x + 0.5f, y + 0.5f, width, height, styleConfig)
+                isDark && foregroundBitmap != null -> sampleBitmap(foregroundBitmap, x, y, width, height)
+                isDark && hasGradient -> resolveGradientColor(x + 0.5f, y + 0.5f, width, height, styleConfig)
                 isDark -> styleConfig.foregroundColor
+                backgroundBitmap != null -> sampleBitmap(backgroundBitmap, x, y, width, height)
                 else -> styleConfig.backgroundColor
             }
             output.setPixel(x, y, color)
@@ -176,7 +211,15 @@ object AdvancedBarcodeGenerator {
         return output
     }
 
-    private fun resolveForegroundColor(cx: Float, cy: Float, width: Int, height: Int, styleConfig: StyleConfig): Int {
+    private fun resolveBackgroundColor(x: Int, y: Int, width: Int, height: Int, styleConfig: StyleConfig): Int {
+        return if (styleConfig.backgroundBitmap != null) {
+            sampleBitmap(styleConfig.backgroundBitmap, x, y, width, height)
+        } else {
+            styleConfig.backgroundColor
+        }
+    }
+
+    private fun resolveGradientColor(cx: Float, cy: Float, width: Int, height: Int, styleConfig: StyleConfig): Int {
         return if (styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null) {
             val fraction = when (styleConfig.gradientDirection) {
                 GradientDirection.HORIZONTAL -> cx / width
@@ -198,37 +241,28 @@ object AdvancedBarcodeGenerator {
         return Color.argb(a, r, g, b)
     }
 
-    private fun addLogoToCenter(
-        canvas: Canvas,
-        barcodeBitmap: Bitmap,
-        logo: Bitmap,
-        scale: Float,
-        backgroundColor: Int
-    ) {
-        // Logo 最大占条码宽度的 30%，确保 QR 码仍有足够容错能力。
-        val maxLogoSize = (barcodeBitmap.width * 0.3f).toInt().coerceAtLeast(50)
-        val requested = (barcodeBitmap.width * scale.coerceIn(0f, 1f)).toInt().coerceAtLeast(50)
+    private fun computeLogoRect(bitmap: Bitmap, styleConfig: StyleConfig): Rect? {
+        val logo = styleConfig.logoBitmap ?: return null
+        val maxLogoSize = (bitmap.width * 0.3f).toInt().coerceAtLeast(50)
+        val requested = (bitmap.width * styleConfig.logoScale.coerceIn(0f, 1f)).toInt().coerceAtLeast(50)
         val logoSize = requested.coerceAtMost(maxLogoSize)
+        val left = (bitmap.width - logoSize) / 2
+        val top = (bitmap.height - logoSize) / 2
+        return Rect(left, top, left + logoSize, top + logoSize)
+    }
+
+    private fun drawLogoOnBitmap(output: Bitmap, logo: Bitmap, logoRect: Rect?) {
+        if (logoRect == null) return
+        val logoSize = logoRect.width()
         val scaledLogo = Bitmap.createScaledBitmap(logo, logoSize, logoSize, true)
-        val left = (barcodeBitmap.width - logoSize) / 2f
-        val top = (barcodeBitmap.height - logoSize) / 2f
-        val padding = 10f
-
-        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = backgroundColor
-            style = Paint.Style.FILL
+        for (y in 0 until logoSize) {
+            for (x in 0 until logoSize) {
+                val color = scaledLogo.getPixel(x, y)
+                if (Color.alpha(color) > 0) {
+                    output.setPixel(logoRect.left + x, logoRect.top + y, color)
+                }
+            }
         }
-        canvas.drawRoundRect(
-            left - padding,
-            top - padding,
-            left + logoSize + padding,
-            top + logoSize + padding,
-            10f,
-            10f,
-            bgPaint
-        )
-        canvas.drawBitmap(scaledLogo, left, top, null)
-
         if (scaledLogo !== logo) {
             scaledLogo.recycle()
         }

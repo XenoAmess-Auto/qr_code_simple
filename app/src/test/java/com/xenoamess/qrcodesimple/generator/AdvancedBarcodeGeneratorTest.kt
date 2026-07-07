@@ -284,19 +284,55 @@ class AdvancedBarcodeGeneratorTest {
     }
 
     @Test
-    fun `QR Code with combined style options scans back`() {
+    fun `QR Code with foreground image scans back`() {
         val content = "https://example.com"
-        val logo = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
-        android.graphics.Canvas(logo).drawColor(Color.RED)
+        val fg = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        for (x in 0 until 100) {
+            for (y in 0 until 100) {
+                fg.setPixel(x, y, Color.rgb(x * 255 / 100, y * 255 / 100, 128))
+            }
+        }
+        val style = AdvancedBarcodeGenerator.StyleConfig(foregroundBitmap = fg)
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 800, style)
+        assertNotNull(bitmap)
+        val results = QRCodeScanner.scanSync(context, bitmap!!)
+        assertTrue(results.isNotEmpty(), "QR with foreground image should scan back")
+    }
+
+    @Test
+    fun `QR Code with background image scans back`() {
+        val content = "https://example.com"
+        val bg = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        for (x in 0 until 100) {
+            for (y in 0 until 100) {
+                bg.setPixel(x, y, Color.rgb(255, x * 255 / 100, y * 255 / 100))
+            }
+        }
+        val style = AdvancedBarcodeGenerator.StyleConfig(backgroundBitmap = bg)
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 800, style)
+        assertNotNull(bitmap)
+        val results = QRCodeScanner.scanSync(context, bitmap!!)
+        assertTrue(results.isNotEmpty(), "QR with background image should scan back")
+    }
+
+    @Test
+    fun `QR Code with foreground and background images scans back`() {
+        val content = "https://example.com"
+        val fg = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        val bg = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        for (x in 0 until 100) {
+            for (y in 0 until 100) {
+                fg.setPixel(x, y, Color.rgb(0, x * 255 / 100, y * 255 / 100))
+                bg.setPixel(x, y, Color.rgb(255, 255, 255))
+            }
+        }
         val style = AdvancedBarcodeGenerator.StyleConfig(
-            foregroundColor = Color.parseColor("#1976D2"),
-            backgroundColor = Color.WHITE,
-            logoBitmap = logo,
-            logoScale = 0.15f
+            foregroundBitmap = fg,
+            backgroundBitmap = bg
         )
         val bitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 800, style)
         assertNotNull(bitmap)
         val results = QRCodeScanner.scanSync(context, bitmap!!)
-        assertTrue(results.isNotEmpty(), "QR with combined style should scan back")
+        assertTrue(results.isNotEmpty(), "QR with foreground and background images should scan back")
     }
 }
