@@ -95,23 +95,31 @@ object BarcodeGenerator {
 
     private fun generateDataMatrix(content: String, config: BarcodeConfig): Bitmap {
         val size = minOf(config.width, config.height)
+        val hints = hashMapOf(
+            EncodeHintType.CHARACTER_SET to "UTF-8"
+        )
         val writer = MultiFormatWriter()
         val bitMatrix = writer.encode(
             content,
             BarcodeFormat.DATA_MATRIX,
             size,
-            size
+            size,
+            hints
         )
         return createPaddedBitmap(bitMatrix, config)
     }
 
     private fun generateAztec(content: String, config: BarcodeConfig): Bitmap {
+        val hints = hashMapOf(
+            EncodeHintType.CHARACTER_SET to "UTF-8"
+        )
         val writer = MultiFormatWriter()
         val bitMatrix = writer.encode(
             content,
             BarcodeFormat.AZTEC,
             config.width,
-            config.height
+            config.height,
+            hints
         )
         return createPaddedBitmap(bitMatrix, config)
     }
@@ -833,12 +841,16 @@ object BarcodeGenerator {
             AppBarcodeFormat.CODABAR -> validateCodabar(content)
             AppBarcodeFormat.ITF -> validateITF(content)
             AppBarcodeFormat.RSS_14 -> validateRss14(content)
+            AppBarcodeFormat.RSS_EXPANDED -> validateRssExpanded(content)
             AppBarcodeFormat.MICRO_QR -> validateMicroQr(content)
             AppBarcodeFormat.PHARMACODE -> validatePharmacode(content)
             AppBarcodeFormat.PLESSEY -> validatePlessey(content)
             AppBarcodeFormat.MSI_PLESSEY -> validateMsiPlessey(content)
             AppBarcodeFormat.TELEPEN -> validateTelepen(content)
             AppBarcodeFormat.UPC_EAN_EXTENSION -> validateUpcEanExtension(content)
+            AppBarcodeFormat.DATA_MATRIX -> validateDataMatrix(content)
+            AppBarcodeFormat.AZTEC -> validateAztec(content)
+            AppBarcodeFormat.PDF417 -> validatePDF417(content)
             AppBarcodeFormat.MAXICODE -> validateMaxiCode(content)
             AppBarcodeFormat.HAN_XIN -> validateHanXin(content)
             else -> ValidationResult(true)
@@ -945,6 +957,14 @@ object BarcodeGenerator {
         }
     }
 
+    private fun validateRssExpanded(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 } && content.any { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "RSS Expanded content must be ASCII and contain at least one digit")
+        }
+    }
+
     private fun validateMicroQr(content: String): ValidationResult {
         return if (content.length <= 35) {
             ValidationResult(true)
@@ -998,11 +1018,35 @@ object BarcodeGenerator {
         }
     }
 
-    private fun validateMaxiCode(content: String): ValidationResult {
+    private fun validateDataMatrix(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code <= 255 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Data Matrix only supports ISO-8859-1 characters")
+        }
+    }
+
+    private fun validateAztec(content: String): ValidationResult {
         return if (content.isNotEmpty()) {
             ValidationResult(true)
         } else {
-            ValidationResult(false, "MaxiCode requires non-empty content")
+            ValidationResult(false, "Aztec content cannot be empty")
+        }
+    }
+
+    private fun validatePDF417(content: String): ValidationResult {
+        return if (content.isNotEmpty()) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "PDF417 content cannot be empty")
+        }
+    }
+
+    private fun validateMaxiCode(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "MaxiCode only supports ASCII characters")
         }
     }
 

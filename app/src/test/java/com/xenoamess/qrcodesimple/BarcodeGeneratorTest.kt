@@ -109,9 +109,54 @@ class BarcodeGeneratorTest {
     }
 
     @Test
-    fun `Data Matrix accepts Chinese text`() {
-        val result = BarcodeGenerator.validateContent("中文内容", BarcodeFormat.DATA_MATRIX)
+    fun `valid RSS Expanded GS1 content`() {
+        val result = BarcodeGenerator.validateContent("(01)12345678901231", BarcodeFormat.RSS_EXPANDED)
         assertTrue(result.isValid)
+    }
+
+    @Test
+    fun `valid RSS Expanded bracket syntax content`() {
+        val result = BarcodeGenerator.validateContent("[01]12345678901231", BarcodeFormat.RSS_EXPANDED)
+        assertTrue(result.isValid)
+    }
+
+    @Test
+    fun `RSS Expanded rejects Chinese`() {
+        val result = BarcodeGenerator.validateContent("可是你不觉得这很有趣吗？", BarcodeFormat.RSS_EXPANDED)
+        assertFalse(result.isValid)
+    }
+
+    @Test
+    fun `Chinese sentence 可是你不觉得这很有趣吗 is accepted by 2D formats and rejected by 1D formats`() {
+        val chineseSentence = "可是你不觉得这很有趣吗？"
+        val acceptingFormats = listOf(
+            BarcodeFormat.QR_CODE,
+            BarcodeFormat.AZTEC,
+            BarcodeFormat.PDF417,
+            BarcodeFormat.MICRO_QR,
+            BarcodeFormat.HAN_XIN
+        )
+        val rejectingFormats = BarcodeFormat.entries.filter {
+            it != BarcodeFormat.UNKNOWN && it !in acceptingFormats
+        }
+
+        for (format in acceptingFormats) {
+            val result = BarcodeGenerator.validateContent(chineseSentence, format)
+            assertTrue(result.isValid, "Expected $format to accept Chinese sentence")
+        }
+
+        for (format in rejectingFormats) {
+            val result = BarcodeGenerator.validateContent(chineseSentence, format)
+            assertFalse(result.isValid, "Expected $format to reject Chinese sentence")
+        }
+    }
+
+    @Test
+    fun `Data Matrix only accepts ISO-8859-1 text`() {
+        val asciiResult = BarcodeGenerator.validateContent("Hello World", BarcodeFormat.DATA_MATRIX)
+        assertTrue(asciiResult.isValid)
+        val chineseResult = BarcodeGenerator.validateContent("中文内容", BarcodeFormat.DATA_MATRIX)
+        assertFalse(chineseResult.isValid)
     }
 
     @Test

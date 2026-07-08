@@ -335,4 +335,23 @@ class AdvancedBarcodeGeneratorTest {
         val results = QRCodeScanner.scanSync(context, bitmap!!)
         assertTrue(results.isNotEmpty(), "QR with foreground and background images should scan back")
     }
+
+    @Test
+    fun `Chinese sentence 可是你不觉得这很有趣吗 roundtrips for 2D formats`() {
+        val content = "可是你不觉得这很有趣吗？"
+        val formats = listOf(
+            BarcodeFormat.QR_CODE,
+            BarcodeFormat.AZTEC,
+            BarcodeFormat.PDF417,
+            BarcodeFormat.HAN_XIN
+        )
+        for (format in formats) {
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, AdvancedBarcodeGenerator.StyleConfig())
+            assertNotNull(bitmap, "Should generate $format with Chinese sentence")
+
+            val results = QRCodeScanner.scanSync(context, bitmap!!)
+            assertTrue(results.isNotEmpty(), "Should scan back $format with Chinese sentence")
+            assertEquals(content, results.first().text, "Roundtrip content should match for $format")
+        }
+    }
 }
