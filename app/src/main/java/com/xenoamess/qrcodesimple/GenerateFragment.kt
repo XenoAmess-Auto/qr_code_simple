@@ -96,33 +96,34 @@ class GenerateFragment : Fragment() {
     private val cropLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val type = pendingImageType ?: return@registerForActivityResult
+        val type = pendingImageType
+        pendingImageType = null
+        if (type == null) return@registerForActivityResult
         val resultUri = UCrop.getOutput(result.data ?: return@registerForActivityResult)
-        if (result.resultCode == android.app.Activity.RESULT_OK && resultUri != null) {
-            loadImage(resultUri, MAX_STYLE_IMAGE_PX) { bitmap ->
-                when (type) {
-                    ImageType.FOREGROUND -> {
-                        foregroundImageBitmap = bitmap
-                        selectedStyle = selectedStyle.copy(foregroundBitmap = bitmap)
-                        updateImagePreview(binding.viewFgImagePreview, bitmap)
-                        binding.btnRemoveForegroundImage.visibility = View.VISIBLE
-                    }
-                    ImageType.BACKGROUND -> {
-                        backgroundImageBitmap = bitmap
-                        selectedStyle = selectedStyle.copy(backgroundBitmap = bitmap)
-                        updateImagePreview(binding.viewBgImagePreview, bitmap)
-                        binding.btnRemoveBackgroundImage.visibility = View.VISIBLE
-                    }
+        if (result.resultCode != android.app.Activity.RESULT_OK || resultUri == null) return@registerForActivityResult
+        loadImage(resultUri, MAX_STYLE_IMAGE_PX) { bitmap ->
+            when (type) {
+                ImageType.FOREGROUND -> {
+                    foregroundImageBitmap = bitmap
+                    selectedStyle = selectedStyle.copy(foregroundBitmap = bitmap)
+                    updateImagePreview(binding.viewFgImagePreview, bitmap)
+                    binding.btnRemoveForegroundImage.visibility = View.VISIBLE
                 }
-                generateBarcode()
+                ImageType.BACKGROUND -> {
+                    backgroundImageBitmap = bitmap
+                    selectedStyle = selectedStyle.copy(backgroundBitmap = bitmap)
+                    updateImagePreview(binding.viewBgImagePreview, bitmap)
+                    binding.btnRemoveBackgroundImage.visibility = View.VISIBLE
+                }
             }
-        } else {
-            pendingImageType = null
+            generateBarcode()
         }
     }
 
     private fun createCropDestination(prefix: String): Uri {
-        val file = File(requireContext().cacheDir, "$prefix-${System.currentTimeMillis()}.jpg")
+        val dir = File(requireContext().cacheDir, "images")
+        dir.mkdirs()
+        val file = File(dir, "$prefix-${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(
             requireContext(),
             "${requireContext().packageName}.fileprovider",
@@ -131,16 +132,23 @@ class GenerateFragment : Fragment() {
     }
 
     private fun launchCrop(sourceUri: Uri, destinationUri: Uri) {
-        val options = UCrop.Options().apply {
-            setFreeStyleCropEnabled(true)
-            setCompressionQuality(100)
-            setHideBottomControls(false)
-            setToolbarTitle(getString(R.string.crop_image))
+        try {
+            val options = UCrop.Options().apply {
+                setFreeStyleCropEnabled(true)
+                setCompressionQuality(100)
+                setHideBottomControls(false)
+                setToolbarTitle(getString(R.string.crop_image))
+            }
+            val intent = UCrop.of(sourceUri, destinationUri)
+                .withOptions(options)
+                .getIntent(requireContext())
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            cropLauncher.launch(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "launchCrop failed", e)
+            pendingImageType = null
+            Toast.makeText(context, getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
         }
-        val intent = UCrop.of(sourceUri, destinationUri)
-            .withOptions(options)
-            .getIntent(requireContext())
-        cropLauncher.launch(intent)
     }
 
     override fun onCreateView(
