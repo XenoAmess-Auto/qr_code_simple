@@ -215,5 +215,6 @@
     <string name="warning_barcode_not_scannable">生成的条码无法被本应用识别，请检查内容或格式。</string>
     <string name="warning_barcode_content_mismatch">扫描结果与原始内容不一致。原始：%1$s，扫描：%2$s。请确认是否可接受。</string>
     <string name="warning_generate_only_format">该格式仅支持生成，无法被本应用扫描识别。</string>
+    <string name="warning_scan_success">扫描验证通过</string>
 
 </resources>

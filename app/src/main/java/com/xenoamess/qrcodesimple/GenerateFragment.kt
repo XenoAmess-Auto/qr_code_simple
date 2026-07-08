@@ -488,6 +488,13 @@ class GenerateFragment : Fragment() {
             return
         }
 
+        // 每次重新生成前清除之前的告警/成功标记
+        binding.tvGenerationWarning.apply {
+            text = ""
+            visibility = View.GONE
+            background = null
+        }
+
         val validation = BarcodeGenerator.validateContent(content, selectedFormat)
         if (!validation.isValid) {
             Toast.makeText(ctx, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_LONG).show()
@@ -514,6 +521,8 @@ class GenerateFragment : Fragment() {
             } else {
                 binding.tvGenerationWarning.apply {
                     text = getString(R.string.warning_generate_only_format)
+                    background = resources.getDrawable(R.drawable.bg_warning, null)
+                    setTextColor(resources.getColor(R.color.yellow_700, null))
                     visibility = View.VISIBLE
                 }
             }
@@ -627,9 +636,14 @@ class GenerateFragment : Fragment() {
                         binding.tvGenerationWarning.apply {
                             if (warning != null) {
                                 text = warning
+                                background = resources.getDrawable(R.drawable.bg_warning, null)
+                                setTextColor(resources.getColor(R.color.yellow_700, null))
                                 visibility = View.VISIBLE
                             } else {
-                                visibility = View.GONE
+                                text = getString(R.string.warning_scan_success)
+                                background = resources.getDrawable(R.drawable.bg_success, null)
+                                setTextColor(android.graphics.Color.parseColor("#2E7D32"))
+                                visibility = View.VISIBLE
                             }
                         }
                     }
