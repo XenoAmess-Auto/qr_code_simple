@@ -163,6 +163,7 @@ class HistoryDetailActivity : AppCompatActivity() {
             HistoryType.MSI_PLESSEY -> "MSI Plessey"
             HistoryType.TELEPEN -> "Telepen"
             HistoryType.HAN_XIN -> "Han Xin"
+            HistoryType.GENERATED_ONLY -> "Generated Only"
             HistoryType.TEXT -> getString(R.string.type_text)
         }
     }

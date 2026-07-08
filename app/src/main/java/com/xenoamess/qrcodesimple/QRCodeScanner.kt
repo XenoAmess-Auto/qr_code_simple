@@ -58,7 +58,9 @@ fun BarcodeFormat.toHistoryType(): HistoryType {
  */
 fun AppBarcodeFormat.toHistoryType(): HistoryType {
     return when (this) {
-        AppBarcodeFormat.QR_CODE -> HistoryType.QR_CODE
+        AppBarcodeFormat.QR_CODE,
+        AppBarcodeFormat.SWISS_QR_CODE,
+        AppBarcodeFormat.UPN_QR_CODE -> HistoryType.QR_CODE
         AppBarcodeFormat.DATA_MATRIX -> HistoryType.DATA_MATRIX
         AppBarcodeFormat.AZTEC -> HistoryType.AZTEC
         AppBarcodeFormat.PDF417 -> HistoryType.PDF417
@@ -72,9 +74,14 @@ fun AppBarcodeFormat.toHistoryType(): HistoryType {
         AppBarcodeFormat.MSI_PLESSEY -> HistoryType.MSI_PLESSEY
         AppBarcodeFormat.TELEPEN -> HistoryType.TELEPEN
         AppBarcodeFormat.HAN_XIN -> HistoryType.HAN_XIN
-        else -> HistoryType.BARCODE
+        else -> HistoryType.GENERATED_ONLY
     }
 }
+
+/**
+ * 判断该格式是否能被当前扫描栈识别。
+ */
+fun AppBarcodeFormat.isScannable(): Boolean = this.isScannable
 
 /**
  * 将自定义一维码格式映射到 ZXing 条码格式（用于扫描结果展示）

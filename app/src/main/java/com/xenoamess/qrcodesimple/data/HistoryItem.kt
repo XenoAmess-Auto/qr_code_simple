@@ -2,10 +2,6 @@ package com.xenoamess.qrcodesimple.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-
-/**
- * 历史记录实体
- */
 @Entity(tableName = "history")
 data class HistoryItem(
     @PrimaryKey(autoGenerate = true)
@@ -36,45 +32,6 @@ enum class HistoryType {
     MSI_PLESSEY,        // MSI Plessey
     TELEPEN,            // Telepen
     HAN_XIN,            // Han Xin Code
+    GENERATED_ONLY,     // 仅支持生成的格式（Okapi 新增格式）
     TEXT                // 纯文本
-}
-
-/**
- * 条码格式枚举
- */
-enum class BarcodeFormat(val displayName: String) {
-    QR_CODE("QR Code"),
-    DATA_MATRIX("Data Matrix"),
-    AZTEC("Aztec"),
-    PDF417("PDF417"),
-    CODE_128("Code 128"),
-    CODE_39("Code 39"),
-    CODE_93("Code 93"),
-    EAN_13("EAN-13"),
-    EAN_8("EAN-8"),
-    UPC_A("UPC-A"),
-    UPC_E("UPC-E"),
-    CODABAR("Codabar"),
-    ITF("ITF"),
-    UPC_EAN_EXTENSION("UPC/EAN Extension"),
-    RSS_14("RSS-14 / GS1 DataBar"),
-    RSS_EXPANDED("RSS Expanded"),
-    MAXICODE("MaxiCode"),
-    MICRO_QR("Micro QR"),
-    PHARMACODE("Pharmacode"),
-    PLESSEY("Plessey"),
-    MSI_PLESSEY("MSI Plessey"),
-    TELEPEN("Telepen"),
-    HAN_XIN("Han Xin"),
-    UNKNOWN("Unknown");
-
-    companion object {
-        fun fromString(format: String): BarcodeFormat {
-            return try {
-                valueOf(format.uppercase())
-            } catch (e: Exception) {
-                UNKNOWN
-            }
-        }
-    }
 }

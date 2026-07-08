@@ -435,7 +435,14 @@ class GenerateFragment : Fragment() {
             }
             currentBitmap = bitmap
             binding.ivQRCode.setImageBitmap(bitmap)
-            validateGeneratedBarcode(content, selectedFormat, bitmap)
+            if (selectedFormat.isScannable) {
+                validateGeneratedBarcode(content, selectedFormat, bitmap)
+            } else {
+                binding.tvGenerationWarning.apply {
+                    text = getString(R.string.warning_generate_only_format)
+                    visibility = View.VISIBLE
+                }
+            }
 
             if (content != lastGeneratedContent || selectedFormat != lastGeneratedFormat) {
                 lastGeneratedContent = content

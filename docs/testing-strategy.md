@@ -2,8 +2,8 @@
 
 ## 1. 测试目标
 
-- 所有 22 种条码格式都能成功生成。
-- 生成的条码能被本项目自身扫描器准确识别。
+- 所有可扫描条码格式都能成功生成，且生成的条码能被本项目自身扫描器准确识别。
+- 所有仅生成条码格式都能成功生成（不强制扫描回环）。
 - 非法输入能被正确校验拒绝。
 
 ## 2. 测试框架
@@ -12,9 +12,9 @@
 - **Robolectric 4.16.1**：在 JVM 上模拟 Android `Bitmap`。
 - **Kotlin test**：辅助断言。
 
-## 3. Roundtrip 测试模式
+## 3. Roundtrip 与生成测试模式
 
-每个 roundtrip 测试遵循以下模式：
+可扫描格式使用 roundtrip 模式：
 
 ```kotlin
 @Test
@@ -34,12 +34,24 @@ fun testGenerateAndScanQRCode() {
 }
 ```
 
+仅生成格式（`isScannable = false`）只验证生成成功：
+
+```kotlin
+@Test
+fun testGenerateOnlyFormat() {
+    val bitmap = BarcodeGenerator.generate(content, config)
+    assertNotNull(bitmap)
+}
+```
+
 ## 4. 测试目录结构
 
 ```
 app/src/test/java/com/xenoamess/qrcodesimple/
 ├── generator/
-│   ├── BarcodeGenerationRoundtripTest.kt     # 全部 22 种格式 roundtrip
+│   ├── BarcodeGenerationRoundtripTest.kt     # 可扫描格式 roundtrip + 仅生成格式生成测试
+│   ├── BarcodeFormatTestFixtures.kt          # 每种格式的合法测试内容
+│   ├── AdvancedBarcodeGeneratorTest.kt       # 样式化生成与 roundtrip
 │   ├── HanXinEncoderTest.kt                  # Han Xin Code 编码器
 │   ├── HanXinRobustnessTest.kt               # Han Xin Code 鲁棒性（旋转/缩放/模糊）
 │   ├── HanXinDecoderRobustnessTest.kt        # Han Xin Code 布局/反色鲁棒性
@@ -74,15 +86,11 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 ## 5. 测试内容
 
-### 5.1 Roundtrip 测试
+### 5.1 Roundtrip 与生成测试
 
-对每种格式至少测试：
-- 最短合法内容
-- 典型内容
-- 最长合法内容（如适用）
-- 生成图像非空
-- 扫描结果内容一致
-- 扫描结果格式正确
+- **可扫描格式**：对每种格式至少测试最短合法内容、典型内容、最长合法内容（如适用）；验证生成图像非空、扫描结果内容一致、格式正确。
+- **仅生成格式**：对每种格式至少测试一种合法内容，验证 `BarcodeGenerator.generate()` 返回非空 `Bitmap`。
+- 共享测试内容集中在 `BarcodeFormatTestFixtures.kt`，便于统一维护。
 
 ### 5.2 自定义一维码测试
 
@@ -130,3 +138,4 @@ CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `as
 - 对于仅 ZXing 能扫描的格式（RSS、MaxiCode），确保生成图像质量足够高。
 - 自定义一维码需预留足够 quiet zone，避免解码失败。
 - `AppDatabase` 在 Robolectric 测试中会回退到未加密数据库，因为 SQLCipher 原生库在 JVM 单元测试中不可用。
+- 部分 OkapiBarcode 生成的格式（如 Code One、Grid Matrix、各类邮政码）存在编码器限制或已知 bug，测试内容需使用合法样例，详见 `BarcodeFormatTestFixtures.kt`。

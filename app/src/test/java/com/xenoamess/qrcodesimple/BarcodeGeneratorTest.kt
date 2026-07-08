@@ -131,10 +131,12 @@ class BarcodeGeneratorTest {
         val chineseSentence = "可是你不觉得这很有趣吗？"
         val acceptingFormats = listOf(
             BarcodeFormat.QR_CODE,
+            BarcodeFormat.DATA_MATRIX,
             BarcodeFormat.AZTEC,
             BarcodeFormat.PDF417,
             BarcodeFormat.MICRO_QR,
-            BarcodeFormat.HAN_XIN
+            BarcodeFormat.HAN_XIN,
+            BarcodeFormat.GRID_MATRIX
         )
         val rejectingFormats = BarcodeFormat.entries.filter {
             it != BarcodeFormat.UNKNOWN && it !in acceptingFormats
@@ -152,11 +154,21 @@ class BarcodeGeneratorTest {
     }
 
     @Test
-    fun `Data Matrix only accepts ISO-8859-1 text`() {
-        val asciiResult = BarcodeGenerator.validateContent("Hello World", BarcodeFormat.DATA_MATRIX)
-        assertTrue(asciiResult.isValid)
-        val chineseResult = BarcodeGenerator.validateContent("中文内容", BarcodeFormat.DATA_MATRIX)
-        assertFalse(chineseResult.isValid)
+    fun `valid Data Matrix content`() {
+        val result = BarcodeGenerator.validateContent("Hello World", BarcodeFormat.DATA_MATRIX)
+        assertTrue(result.isValid)
+    }
+
+    @Test
+    fun `Data Matrix accepts Chinese text with Okapi`() {
+        val result = BarcodeGenerator.validateContent("中文内容", BarcodeFormat.DATA_MATRIX)
+        assertTrue(result.isValid)
+    }
+
+    @Test
+    fun `Data Matrix rejects empty content`() {
+        val result = BarcodeGenerator.validateContent("", BarcodeFormat.DATA_MATRIX)
+        assertFalse(result.isValid)
     }
 
     @Test

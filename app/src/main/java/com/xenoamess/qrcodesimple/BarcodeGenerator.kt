@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Typeface
+import android.graphics.Rect
+import android.graphics.RectF
 import boofcv.alg.fiducial.microqr.MicroQrCodeEncoder
 import boofcv.alg.fiducial.microqr.MicroQrCodeGenerator
 import boofcv.struct.image.GrayU8
@@ -14,13 +17,19 @@ import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat as AppBarcodeFormat
 import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinEncoder
-import uk.org.okapibarcode.backend.DataBar14
-import uk.org.okapibarcode.backend.DataBarExpanded
-import uk.org.okapibarcode.backend.MaxiCode
-import uk.org.okapibarcode.backend.Symbol
+import uk.org.okapibarcode.backend.*
+import uk.org.okapibarcode.graphics.TextAlignment
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * 条码生成器 - 支持全部 22 种条码格式
+ * 条码生成器 - 支持全部 OkapiBarcode 能生成的格式。
+ *
+ * 策略：
+ * - 现有 22 种已支持扫描的格式继续沿用原有生成器（ZXing / 自定义 / BoofCV / HanXin），
+ *   保证扫描回环不被破坏。
+ * - Data Matrix 改由 OkapiBarcode 生成，通过 ECI 支持 UTF-8 / 中文。
+ * - 所有新增格式统一走 OkapiBarcode，渲染时自动绘制人眼可读数字。
  */
 object BarcodeGenerator {
 
@@ -32,12 +41,6 @@ object BarcodeGenerator {
         val backgroundColor: Int = Color.WHITE
     )
 
-    /**
-     * 生成条码
-     * @param content 条码内容
-     * @param config 条码配置
-     * @return 生成的条码 Bitmap，如果生成失败返回 null
-     */
     fun generate(content: String, config: BarcodeConfig): Bitmap? {
         return try {
             when (config.format) {
@@ -64,6 +67,44 @@ object BarcodeGenerator {
                 AppBarcodeFormat.MSI_PLESSEY -> generateMsiPlessey(content, config)
                 AppBarcodeFormat.TELEPEN -> generateTelepen(content, config)
                 AppBarcodeFormat.HAN_XIN -> generateHanXin(content, config)
+                // Okapi 新增格式
+                AppBarcodeFormat.SWISS_QR_CODE -> generateSwissQrCode(content, config)
+                AppBarcodeFormat.UPN_QR_CODE -> generateUpnQrCode(content, config)
+                AppBarcodeFormat.AZTEC_RUNE -> generateAztecRune(content, config)
+                AppBarcodeFormat.CODE_ONE -> generateCodeOne(content, config)
+                AppBarcodeFormat.GRID_MATRIX -> generateGridMatrix(content, config)
+                AppBarcodeFormat.CODE_39_EXTENDED -> generateCode39Extended(content, config)
+                AppBarcodeFormat.ITF_14 -> generateItf14(content, config)
+                AppBarcodeFormat.CODE_2_OF_5_STANDARD -> generateCode2Of5(content, config, Code2Of5.ToFMode.INTERLEAVED)
+                AppBarcodeFormat.CODE_2_OF_5_MATRIX -> generateCode2Of5(content, config, Code2Of5.ToFMode.MATRIX)
+                AppBarcodeFormat.CODE_2_OF_5_INDUSTRIAL -> generateCode2Of5(content, config, Code2Of5.ToFMode.INDUSTRIAL)
+                AppBarcodeFormat.CODE_2_OF_5_IATA -> generateCode2Of5(content, config, Code2Of5.ToFMode.IATA)
+                AppBarcodeFormat.CODE_2_OF_5_DATALOGIC -> generateCode2Of5(content, config, Code2Of5.ToFMode.DATA_LOGIC)
+                AppBarcodeFormat.CODE_2_OF_5_DEUTSCHE_POST_LEITCODE -> generateCode2Of5(content, config, Code2Of5.ToFMode.DP_LEITCODE)
+                AppBarcodeFormat.CODE_2_OF_5_DEUTSCHE_POST_IDENTCODE -> generateCode2Of5(content, config, Code2Of5.ToFMode.DP_IDENTCODE)
+                AppBarcodeFormat.CODE_11 -> generateCode11(content, config)
+                AppBarcodeFormat.CODE_16K -> generateCode16k(content, config)
+                AppBarcodeFormat.CODE_32 -> generateCode32(content, config)
+                AppBarcodeFormat.CODE_49 -> generateCode49(content, config)
+                AppBarcodeFormat.CODABLOCK_F -> generateCodablockF(content, config)
+                AppBarcodeFormat.CHANNEL_CODE -> generateChannelCode(content, config)
+                AppBarcodeFormat.LOGMARS -> generateLogmars(content, config)
+                AppBarcodeFormat.NVE_18 -> generateNve18(content, config)
+                AppBarcodeFormat.DPD_CODE -> generateDpdCode(content, config)
+                AppBarcodeFormat.PHARMACODE_2_TRACK -> generatePharmacode2Track(content, config)
+                AppBarcodeFormat.PHARMAZENTRALNUMMER -> generatePharmazentralnummer(content, config)
+                AppBarcodeFormat.TELEPEN_NUMERIC -> generateTelepenNumeric(content, config)
+                AppBarcodeFormat.POSTNET -> generatePostnet(content, config)
+                AppBarcodeFormat.ROYAL_MAIL_4_STATE -> generateRoyalMail4State(content, config)
+                AppBarcodeFormat.USPS_ONE_CODE -> generateUspsOneCode(content, config)
+                AppBarcodeFormat.USPS_PACKAGE -> generateUspsPackage(content, config)
+                AppBarcodeFormat.JAPAN_POST -> generateJapanPost(content, config)
+                AppBarcodeFormat.KIX_CODE -> generateKixCode(content, config)
+                AppBarcodeFormat.KOREA_POST -> generateKoreaPost(content, config)
+                AppBarcodeFormat.AUSTRALIA_POST -> generateAustraliaPost(content, config)
+                AppBarcodeFormat.DATA_BAR_LIMITED -> generateDataBarLimited(content, config)
+                AppBarcodeFormat.COMPOSITE -> generateComposite(content, config)
+                AppBarcodeFormat.EAN_UPC_ADD_ON -> generateEanUpcAddOn(content, config)
                 AppBarcodeFormat.UNKNOWN -> generateQRCode(content, config)
             }
         } catch (e: Exception) {
@@ -80,47 +121,15 @@ object BarcodeGenerator {
             EncodeHintType.CHARACTER_SET to "UTF-8",
             EncodeHintType.MARGIN to 2
         )
-
         val writer = MultiFormatWriter()
-        val bitMatrix = writer.encode(
-            content,
-            BarcodeFormat.QR_CODE,
-            config.width,
-            config.height,
-            hints
-        )
-
-        return createPaddedBitmap(bitMatrix, config)
-    }
-
-    private fun generateDataMatrix(content: String, config: BarcodeConfig): Bitmap {
-        val size = minOf(config.width, config.height)
-        val hints = hashMapOf(
-            EncodeHintType.CHARACTER_SET to "UTF-8"
-        )
-        val writer = MultiFormatWriter()
-        val bitMatrix = writer.encode(
-            content,
-            BarcodeFormat.DATA_MATRIX,
-            size,
-            size,
-            hints
-        )
+        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, config.width, config.height, hints)
         return createPaddedBitmap(bitMatrix, config)
     }
 
     private fun generateAztec(content: String, config: BarcodeConfig): Bitmap {
-        val hints = hashMapOf(
-            EncodeHintType.CHARACTER_SET to "UTF-8"
-        )
+        val hints = hashMapOf(EncodeHintType.CHARACTER_SET to "UTF-8")
         val writer = MultiFormatWriter()
-        val bitMatrix = writer.encode(
-            content,
-            BarcodeFormat.AZTEC,
-            config.width,
-            config.height,
-            hints
-        )
+        val bitMatrix = writer.encode(content, BarcodeFormat.AZTEC, config.width, config.height, hints)
         return createPaddedBitmap(bitMatrix, config)
     }
 
@@ -130,13 +139,7 @@ object BarcodeGenerator {
             EncodeHintType.CHARACTER_SET to "UTF-8"
         )
         val writer = MultiFormatWriter()
-        val bitMatrix = writer.encode(
-            content,
-            BarcodeFormat.PDF_417,
-            config.width,
-            config.height / 2,
-            hints
-        )
+        val bitMatrix = writer.encode(content, BarcodeFormat.PDF_417, config.width, config.height / 2, hints)
         return createPaddedBitmap(bitMatrix, config.copy(height = config.height / 2))
     }
 
@@ -155,80 +158,235 @@ object BarcodeGenerator {
         }
     }
 
-    private fun generateCode128(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.CODE_128, config)
-    }
-
-    private fun generateCode39(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.CODE_39, config)
-    }
-
-    private fun generateCode93(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.CODE_93, config)
-    }
-
-    private fun generateEAN13(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.EAN_13, config)
-    }
-
-    private fun generateEAN8(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.EAN_8, config)
-    }
-
-    private fun generateUPCA(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.UPC_A, config)
-    }
-
-    private fun generateUPCE(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.UPC_E, config)
-    }
-
-    private fun generateCodabar(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.CODABAR, config)
-    }
-
-    private fun generateITF(content: String, config: BarcodeConfig): Bitmap {
-        return createZXingLinear(content, BarcodeFormat.ITF, config)
-    }
+    private fun generateCode128(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.CODE_128, config)
+    private fun generateCode39(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.CODE_39, config)
+    private fun generateCode93(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.CODE_93, config)
+    private fun generateEAN13(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.EAN_13, config)
+    private fun generateEAN8(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.EAN_8, config)
+    private fun generateUPCA(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.UPC_A, config)
+    private fun generateUPCE(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.UPC_E, config)
+    private fun generateCodabar(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.CODABAR, config)
+    private fun generateITF(content: String, config: BarcodeConfig): Bitmap = createZXingLinear(content, BarcodeFormat.ITF, config)
 
     private fun createZXingLinear(
         content: String,
         zxingFormat: BarcodeFormat,
         config: BarcodeConfig
     ): Bitmap {
-        val hints = hashMapOf(
-            EncodeHintType.CHARACTER_SET to "UTF-8"
-        )
+        val hints = hashMapOf(EncodeHintType.CHARACTER_SET to "UTF-8")
         val writer = MultiFormatWriter()
-        val bitMatrix = writer.encode(
-            content,
-            zxingFormat,
-            config.width,
-            config.height / 3,
-            hints
-        )
+        val bitMatrix = writer.encode(content, zxingFormat, config.width, config.height / 3, hints)
         return createLinearBarcodeBitmap(bitMatrix, config, content)
     }
 
     // ==================== OkapiBarcode 生成的格式 ====================
 
+    private fun generateDataMatrix(content: String, config: BarcodeConfig): Bitmap {
+        // 可扫描场景：ASCII 内容仍走 ZXing，保证 roundtrip 成功。
+        // 非 ASCII 内容使用 OkapiBarcode 的 DataMatrix 并启用 ECI 26（UTF-8）。
+        return if (content.all { it.code in 0..127 }) {
+            generateZXing2D(content, BarcodeFormat.DATA_MATRIX, config)
+        } else {
+            val symbol = DataMatrix().apply {
+                setEciMode(26)
+                setContent(content)
+            }
+            symbolToBitmap(symbol, config)
+        }
+    }
+
+    private fun generateZXing2D(content: String, zxingFormat: BarcodeFormat, config: BarcodeConfig): Bitmap {
+        val hints = hashMapOf(EncodeHintType.CHARACTER_SET to "UTF-8")
+        val writer = MultiFormatWriter()
+        val bitMatrix = writer.encode(content, zxingFormat, config.width, config.height, hints)
+        return createPaddedBitmap(bitMatrix, config)
+    }
+
     private fun generateRss14(content: String, config: BarcodeConfig): Bitmap {
-        val symbol = DataBar14()
-        symbol.content = content
+        val symbol = DataBar14().apply { setContent(content) }
         return symbolToBitmap(symbol, config)
     }
 
     private fun generateRssExpanded(content: String, config: BarcodeConfig): Bitmap {
-        val symbol = DataBarExpanded()
-        symbol.dataType = Symbol.DataType.GS1
-        // Okapi expects GS1 AI delimiters in square brackets, but ZXing returns them in parentheses.
-        symbol.content = content.replace("(", "[").replace(")", "]")
+        val symbol = DataBarExpanded().apply {
+            dataType = Symbol.DataType.GS1
+            setContent(content.replace("(", "[").replace(")", "]"))
+        }
         return symbolToBitmap(symbol, config)
     }
 
     private fun generateMaxiCode(content: String, config: BarcodeConfig): Bitmap {
-        val symbol = MaxiCode()
-        symbol.content = content
+        val symbol = MaxiCode().apply { setContent(content) }
+        return symbolToBitmap(symbol, config)
+    }
+
+    private fun generateSwissQrCode(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<SwissQrCode>(content, config)
+    }
+
+    private fun generateUpnQrCode(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<UpnQr>(content, config)
+    }
+
+    private fun generateAztecRune(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<AztecRune>(content, config)
+    }
+
+    private fun generateCodeOne(content: String, config: BarcodeConfig): Bitmap {
+        // OkapiBarcode 0.5.6 的 Code One 自动选择版本时存在数组越界问题，
+        // 按 S/T/A/B/C/D/E/F/G/H 顺序尝试固定版本，可绕过该 bug。
+        val versions = listOf(
+            CodeOne.Version.S,
+            CodeOne.Version.T,
+            CodeOne.Version.A,
+            CodeOne.Version.B,
+            CodeOne.Version.C,
+            CodeOne.Version.D,
+            CodeOne.Version.E,
+            CodeOne.Version.F,
+            CodeOne.Version.G,
+            CodeOne.Version.H
+        )
+        for (version in versions) {
+            val symbol = CodeOne().apply {
+                setPreferredVersion(version)
+            }
+            try {
+                symbol.setContent(content)
+                return symbolToBitmap(symbol, config)
+            } catch (e: Exception) {
+                // 该版本无法容纳内容或仍触发编码问题，继续尝试下一版本
+            }
+        }
+        throw IllegalArgumentException("Unable to encode Code One for content: $content")
+    }
+
+    private fun generateGridMatrix(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<GridMatrix>(content, config)
+    }
+
+    private fun generateCode39Extended(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Code3Of9Extended>(content, config)
+    }
+
+    private fun generateItf14(content: String, config: BarcodeConfig): Bitmap {
+        return generateCode2Of5(content, config, Code2Of5.ToFMode.ITF14)
+    }
+
+    private fun generateCode2Of5(content: String, config: BarcodeConfig, mode: Code2Of5.ToFMode): Bitmap {
+        return generateOkapi<Code2Of5>(content, config) {
+            setMode(mode)
+            setModuleWidthRatio(3.0)
+        }
+    }
+
+    private fun generateCode11(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Code11>(content, config)
+    }
+
+    private fun generateCode16k(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Code16k>(content, config)
+    }
+
+    private fun generateCode32(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Code32>(content, config)
+    }
+
+    private fun generateCode49(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Code49>(content, config)
+    }
+
+    private fun generateCodablockF(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<CodablockF>(content, config)
+    }
+
+    private fun generateChannelCode(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<ChannelCode>(content, config)
+    }
+
+    private fun generateLogmars(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Logmars>(content, config)
+    }
+
+    private fun generateNve18(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Nve18>(content, config)
+    }
+
+    private fun generateDpdCode(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<DpdCode>(content, config)
+    }
+
+    private fun generatePharmacode2Track(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Pharmacode2Track>(content, config)
+    }
+
+    private fun generatePharmazentralnummer(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Pharmazentralnummer>(content, config)
+    }
+
+    private fun generateTelepenNumeric(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Telepen>(content, config) {
+            setMode(Telepen.Mode.NUMERIC)
+        }
+    }
+
+    private fun generatePostnet(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<Postnet>(content, config)
+    }
+
+    private fun generateRoyalMail4State(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<RoyalMail4State>(content, config)
+    }
+
+    private fun generateUspsOneCode(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<UspsOneCode>(content, config)
+    }
+
+    private fun generateUspsPackage(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<UspsPackage>(content, config)
+    }
+
+    private fun generateJapanPost(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<JapanPost>(content, config)
+    }
+
+    private fun generateKixCode(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<KixCode>(content, config)
+    }
+
+    private fun generateKoreaPost(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<KoreaPost>(content, config)
+    }
+
+    private fun generateAustraliaPost(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<AustraliaPost>(content, config)
+    }
+
+    private fun generateDataBarLimited(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<DataBarLimited>(content, config)
+    }
+
+    private fun generateComposite(content: String, config: BarcodeConfig): Bitmap {
+        val symbol = Composite().apply {
+            setSymbology(Composite.LinearEncoding.CODE_128)
+            setLinearDataType(Symbol.DataType.GS1)
+            setLinearContent("[01]12345678901231")
+            setContent(content)
+        }
+        return symbolToBitmap(symbol, config)
+    }
+
+    private fun generateEanUpcAddOn(content: String, config: BarcodeConfig): Bitmap {
+        return generateOkapi<EanUpcAddOn>(content, config)
+    }
+
+    private inline fun <reified T : Symbol> generateOkapi(
+        content: String,
+        config: BarcodeConfig,
+        configure: T.() -> Unit = {}
+    ): Bitmap {
+        val symbol = T::class.java.getDeclaredConstructor().newInstance().apply(configure)
+        symbol.setContent(content)
         return symbolToBitmap(symbol, config)
     }
 
@@ -287,6 +445,32 @@ object BarcodeGenerator {
             }
         }
 
+        if (symbol.texts.isNotEmpty()) {
+            val canvas = Canvas(bitmap)
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = config.foregroundColor
+                typeface = Typeface.DEFAULT
+                textSize = (symbol.fontSize * scale).toFloat()
+            }
+            for (textBox in symbol.texts) {
+                paint.textAlign = when (textBox.alignment) {
+                    TextAlignment.LEFT -> Paint.Align.LEFT
+                    TextAlignment.RIGHT -> Paint.Align.RIGHT
+                    TextAlignment.CENTER, TextAlignment.JUSTIFY -> Paint.Align.CENTER
+                    else -> Paint.Align.CENTER
+                }
+                val x = (textBox.x * scale).toFloat() + padding
+                val y = (textBox.y * scale).toFloat() + padding
+                val boxWidth = (textBox.width * scale).toFloat()
+                val textX = when (paint.textAlign) {
+                    Paint.Align.LEFT -> x
+                    Paint.Align.RIGHT -> x + boxWidth
+                    Paint.Align.CENTER -> x + boxWidth / 2f
+                }
+                canvas.drawText(textBox.text, textX, y, paint)
+            }
+        }
+
         return scaleAndPad(bitmap, config)
     }
 
@@ -337,20 +521,12 @@ object BarcodeGenerator {
 
     private fun generatePharmacode(content: String, config: BarcodeConfig): Bitmap {
         val value = content.toInt()
-
-        // Pharmacode digits 0-3 map to bar/space widths:
-        // 0 -> narrow bar (1) + wide space (2) = "12"
-        // 1 -> wide bar (2) + wide space (2) = "22"
-        // 2 -> narrow bar (1) + narrow space (1) = "11"
-        // 3 -> wide bar (2) + narrow space (1) = "21"
-        // Least significant digit is placed leftmost; decoder reads from right to left.
         val digitToSymbol = mapOf(
             0 to listOf(1, 2),
             1 to listOf(2, 2),
             2 to listOf(1, 1),
             3 to listOf(2, 1)
         )
-
         val bars = mutableListOf<Int>()
         var v = value
         while (v > 0) {
@@ -358,24 +534,17 @@ object BarcodeGenerator {
             v /= 4
             bars.addAll(digitToSymbol[digit]!!)
         }
-        // Pharmacode symbols end with a bar so the last digit's trailing space
-        // is not swallowed by the quiet zone.
         bars.add(1)
-
         return createGenericLinearBitmap(bars, config, content)
     }
 
     private fun generateUpcEanExtension(content: String, config: BarcodeConfig): Bitmap {
         val digits = content.filter { it.isDigit() }
         require(digits.length == 2 || digits.length == 5) { "UPC/EAN Extension must be 2 or 5 digits" }
-
-        // UPC/EAN extension cannot be scanned standalone; generate it attached to a dummy EAN-13.
         val mainContent = "1234567890128"
         val mainBitmapFull = generateEAN13(mainContent, config)
             ?: return generateGenericLinearUpcEanExtension(digits, config)
 
-        // Remove the 40px padding that createLinearBarcodeBitmap added on each side,
-        // keeping the quiet zone already rendered by ZXing inside the EAN-13 symbol.
         val padding = 40
         val mainWidth = (mainBitmapFull.width - padding * 2).coerceAtLeast(1)
         val mainBitmap = Bitmap.createBitmap(mainBitmapFull, padding, 0, mainWidth, mainBitmapFull.height)
@@ -408,7 +577,7 @@ object BarcodeGenerator {
         val ean5Parity = intArrayOf(24, 20, 18, 17, 12, 6, 3, 10, 9, 5)
 
         val bits = StringBuilder()
-        bits.append("1011") // guard
+        bits.append("1011")
 
         if (digits.length == 5) {
             val d = digits.map { it.digitToInt() }
@@ -422,7 +591,7 @@ object BarcodeGenerator {
                 val useG = ((parity shr (4 - i)) and 1) == 1
                 val pattern = if (useG) gPatterns[d[i]] else lPatterns[d[i]]
                 bits.append(pattern)
-                if (i < 4) bits.append("01") // separator
+                if (i < 4) bits.append("01")
             }
         } else {
             val d = digits.map { it.digitToInt() }
@@ -533,8 +702,6 @@ object BarcodeGenerator {
         val check = if (sum % 127 == 0) 0 else 127 - (sum % 127)
         bars.addAll(telepenTable[check].map { it - '0' })
         bars.addAll(telepenTable['z'.code].map { it - '0' })
-        // Telepen symbols end with a space; append a narrow termination bar
-        // so the last space is not swallowed by the quiet zone.
         bars.add(1)
 
         return createGenericLinearBitmap(bars, config, content)
@@ -566,7 +733,6 @@ object BarcodeGenerator {
         bits.append(digitToBits[crcHigh])
         bits.append(stop)
 
-        // Plessey: bit 0 = narrow bar (1) + narrow space (1); bit 1 = wide bar (2) + narrow space (1)
         val bars = mutableListOf<Int>()
         for (bit in bits.toString()) {
             if (bit == '0') {
@@ -615,11 +781,11 @@ object BarcodeGenerator {
 
         val dataWithCheck = content + calculateMod10(content)
         val pattern = StringBuilder()
-        pattern.append("21") // start
+        pattern.append("21")
         for (ch in dataWithCheck) {
             pattern.append(digitPatterns[ch])
         }
-        pattern.append("121") // stop
+        pattern.append("121")
 
         val bars = mutableListOf<Int>()
         for (c in pattern.toString()) {
@@ -837,9 +1003,11 @@ object BarcodeGenerator {
             AppBarcodeFormat.UPC_E -> validateUPCE(content)
             AppBarcodeFormat.CODE_128 -> validateCode128(content)
             AppBarcodeFormat.CODE_39 -> validateCode39(content)
+            AppBarcodeFormat.CODE_39_EXTENDED -> validateCode39Extended(content)
             AppBarcodeFormat.CODE_93 -> validateCode93(content)
             AppBarcodeFormat.CODABAR -> validateCodabar(content)
             AppBarcodeFormat.ITF -> validateITF(content)
+            AppBarcodeFormat.ITF_14 -> validateITF14(content)
             AppBarcodeFormat.RSS_14 -> validateRss14(content)
             AppBarcodeFormat.RSS_EXPANDED -> validateRssExpanded(content)
             AppBarcodeFormat.MICRO_QR -> validateMicroQr(content)
@@ -847,13 +1015,50 @@ object BarcodeGenerator {
             AppBarcodeFormat.PLESSEY -> validatePlessey(content)
             AppBarcodeFormat.MSI_PLESSEY -> validateMsiPlessey(content)
             AppBarcodeFormat.TELEPEN -> validateTelepen(content)
+            AppBarcodeFormat.TELEPEN_NUMERIC -> validateTelepenNumeric(content)
             AppBarcodeFormat.UPC_EAN_EXTENSION -> validateUpcEanExtension(content)
+            AppBarcodeFormat.EAN_UPC_ADD_ON -> validateEanUpcAddOn(content)
             AppBarcodeFormat.DATA_MATRIX -> validateDataMatrix(content)
             AppBarcodeFormat.AZTEC -> validateAztec(content)
             AppBarcodeFormat.PDF417 -> validatePDF417(content)
             AppBarcodeFormat.MAXICODE -> validateMaxiCode(content)
             AppBarcodeFormat.HAN_XIN -> validateHanXin(content)
-            else -> ValidationResult(true)
+            AppBarcodeFormat.QR_CODE -> validateQRCode(content)
+            AppBarcodeFormat.SWISS_QR_CODE -> validateSwissQrCode(content)
+            AppBarcodeFormat.UPN_QR_CODE -> validateUpnQrCode(content)
+            // 新增 Okapi 格式：基本非空校验，让 Okapi 在生成时拒绝非法内容
+            AppBarcodeFormat.CODE_2_OF_5_STANDARD,
+            AppBarcodeFormat.CODE_2_OF_5_MATRIX,
+            AppBarcodeFormat.CODE_2_OF_5_INDUSTRIAL,
+            AppBarcodeFormat.CODE_2_OF_5_IATA,
+            AppBarcodeFormat.CODE_2_OF_5_DATALOGIC,
+            AppBarcodeFormat.CODE_2_OF_5_DEUTSCHE_POST_LEITCODE,
+            AppBarcodeFormat.CODE_2_OF_5_DEUTSCHE_POST_IDENTCODE -> validateCode2Of5(content)
+            AppBarcodeFormat.CODE_11 -> validateCode11(content)
+            AppBarcodeFormat.CODE_16K -> validateCode16k(content)
+            AppBarcodeFormat.CODE_32 -> validateCode32(content)
+            AppBarcodeFormat.CODE_49 -> validateCode49(content)
+            AppBarcodeFormat.CODABLOCK_F -> validateCodablockF(content)
+            AppBarcodeFormat.CHANNEL_CODE -> validateChannelCode(content)
+            AppBarcodeFormat.LOGMARS -> validateLogmars(content)
+            AppBarcodeFormat.NVE_18 -> validateNve18(content)
+            AppBarcodeFormat.DPD_CODE -> validateDpdCode(content)
+            AppBarcodeFormat.PHARMACODE_2_TRACK -> validatePharmacode2Track(content)
+            AppBarcodeFormat.PHARMAZENTRALNUMMER -> validatePharmazentralnummer(content)
+            AppBarcodeFormat.POSTNET -> validatePostnet(content)
+            AppBarcodeFormat.ROYAL_MAIL_4_STATE -> validateRoyalMail4State(content)
+            AppBarcodeFormat.USPS_ONE_CODE -> validateUspsOneCode(content)
+            AppBarcodeFormat.USPS_PACKAGE -> validateUspsPackage(content)
+            AppBarcodeFormat.JAPAN_POST -> validateJapanPost(content)
+            AppBarcodeFormat.KIX_CODE -> validateKixCode(content)
+            AppBarcodeFormat.KOREA_POST -> validateKoreaPost(content)
+            AppBarcodeFormat.AUSTRALIA_POST -> validateAustraliaPost(content)
+            AppBarcodeFormat.DATA_BAR_LIMITED -> validateDataBarLimited(content)
+            AppBarcodeFormat.COMPOSITE -> validateComposite(content)
+            AppBarcodeFormat.AZTEC_RUNE -> validateAztecRune(content)
+            AppBarcodeFormat.CODE_ONE -> validateCodeOne(content)
+            AppBarcodeFormat.GRID_MATRIX -> validateGridMatrix(content)
+            AppBarcodeFormat.UNKNOWN -> ValidationResult(true)
         }
     }
 
@@ -908,6 +1113,14 @@ object BarcodeGenerator {
         }
     }
 
+    private fun validateCode39Extended(content: String): ValidationResult {
+        return if (content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 39 Extended only supports ASCII characters")
+        }
+    }
+
     private fun validateCode128(content: String): ValidationResult {
         return if (content.all { it.code in 0..127 }) {
             ValidationResult(true)
@@ -946,6 +1159,12 @@ object BarcodeGenerator {
         } else {
             ValidationResult(false, "ITF requires an even number of digits")
         }
+    }
+
+    private fun validateITF14(content: String): ValidationResult {
+        if (content.isEmpty()) return ValidationResult(false, "ITF-14 content cannot be empty")
+        if (!content.all { it.isDigit() }) return ValidationResult(false, "ITF-14 only supports digits")
+        return if (content.length <= 13) ValidationResult(true) else ValidationResult(false, "ITF-14 input too long")
     }
 
     private fun validateRss14(content: String): ValidationResult {
@@ -1009,6 +1228,14 @@ object BarcodeGenerator {
         }
     }
 
+    private fun validateTelepenNumeric(content: String): ValidationResult {
+        return if (content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Telepen Numeric supports digits only")
+        }
+    }
+
     private fun validateUpcEanExtension(content: String): ValidationResult {
         val digitsOnly = content.filter { it.isDigit() }
         return if (digitsOnly.length == 2 || digitsOnly.length == 5) {
@@ -1018,28 +1245,29 @@ object BarcodeGenerator {
         }
     }
 
-    private fun validateDataMatrix(content: String): ValidationResult {
-        return if (content.isNotEmpty() && content.all { it.code <= 255 }) {
+    private fun validateEanUpcAddOn(content: String): ValidationResult {
+        val digitsOnly = content.filter { it.isDigit() }
+        return if (digitsOnly.length in 2..5) {
             ValidationResult(true)
         } else {
-            ValidationResult(false, "Data Matrix only supports ISO-8859-1 characters")
+            ValidationResult(false, "EAN/UPC Add-On requires 2 to 5 digits")
+        }
+    }
+
+    private fun validateDataMatrix(content: String): ValidationResult {
+        return if (content.isNotEmpty()) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Data Matrix content cannot be empty")
         }
     }
 
     private fun validateAztec(content: String): ValidationResult {
-        return if (content.isNotEmpty()) {
-            ValidationResult(true)
-        } else {
-            ValidationResult(false, "Aztec content cannot be empty")
-        }
+        return if (content.isNotEmpty()) ValidationResult(true) else ValidationResult(false, "Aztec content cannot be empty")
     }
 
     private fun validatePDF417(content: String): ValidationResult {
-        return if (content.isNotEmpty()) {
-            ValidationResult(true)
-        } else {
-            ValidationResult(false, "PDF417 content cannot be empty")
-        }
+        return if (content.isNotEmpty()) ValidationResult(true) else ValidationResult(false, "PDF417 content cannot be empty")
     }
 
     private fun validateMaxiCode(content: String): ValidationResult {
@@ -1051,10 +1279,241 @@ object BarcodeGenerator {
     }
 
     private fun validateHanXin(content: String): ValidationResult {
-        return if (content.isNotEmpty()) {
+        return if (content.isNotEmpty()) ValidationResult(true) else ValidationResult(false, "Han Xin Code requires non-empty content")
+    }
+
+    private fun validateQRCode(content: String): ValidationResult {
+        return if (content.isNotEmpty()) ValidationResult(true) else ValidationResult(false, "QR Code content cannot be empty")
+    }
+
+    private fun validateSwissQrCode(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.length <= 997 && content.all { it.code in 0..255 }) {
             ValidationResult(true)
         } else {
-            ValidationResult(false, "Han Xin Code requires non-empty content")
+            ValidationResult(false, "Swiss QR Code content must be Latin-1 and up to 997 characters")
+        }
+    }
+
+    private fun validateUpnQrCode(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "UPN QR Code only supports ISO-8859-2 characters")
+        }
+    }
+
+    private fun validateCode2Of5(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 2 of 5 requires digits only")
+        }
+    }
+
+    private fun validateCode11(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() || it == '-' }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 11 supports digits and hyphens")
+        }
+    }
+
+    private fun validateCode16k(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 16K supports ASCII characters")
+        }
+    }
+
+    private fun validateCode32(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.length <= 8 && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 32 requires up to 8 digits")
+        }
+    }
+
+    private fun validateCode49(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code 49 supports ASCII characters")
+        }
+    }
+
+    private fun validateCodablockF(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Codablock F supports ASCII characters")
+        }
+    }
+
+    private fun validateChannelCode(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Channel Code requires digits")
+        }
+    }
+
+    private fun validateLogmars(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "LOGMARS supports ASCII characters")
+        }
+    }
+
+    private fun validateNve18(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() || it.isUpperCase() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "NVE-18 supports digits and uppercase letters")
+        }
+    }
+
+    private fun validateDpdCode(content: String): ValidationResult {
+        return if (content.isNotEmpty()
+            && content.length in 27..28
+            && content.matches(Regex(".?[0-9A-Z]{11}[0-9]{16}"))
+        ) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "DPD Code requires 27 or 28 characters: optional prefix + 11 alphanumerics + 16 digits")
+        }
+    }
+
+    private fun validatePharmacode2Track(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Pharmacode Two-Track requires digits")
+        }
+    }
+
+    private fun validatePharmazentralnummer(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.length <= 7 && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Pharmazentralnummer requires up to 7 digits")
+        }
+    }
+
+    private fun validatePostnet(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Postnet requires digits")
+        }
+    }
+
+    private fun validateRoyalMail4State(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() || it.isUpperCase() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Royal Mail 4-State supports digits and uppercase letters")
+        }
+    }
+
+    private fun validateUspsOneCode(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "USPS OneCode requires digits")
+        }
+    }
+
+    private fun validateUspsPackage(content: String): ValidationResult {
+        // USPS Package (IMpb) 使用 GS1-128 编码，内容需以 AI 开头且总长度为偶数
+        return if (content.isNotEmpty()
+            && content.matches(Regex("[0-9\\[\\]]+"))
+            && content.length % 2 == 0
+            && content.contains("[")
+        ) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "USPS Package requires GS1 Application Identifier data with brackets and an even number of characters")
+        }
+    }
+
+    private fun validateJapanPost(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.code in 0..127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Japan Post supports ASCII characters")
+        }
+    }
+
+    private fun validateKixCode(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() || it.isUpperCase() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "KIX Code supports digits and uppercase letters")
+        }
+    }
+
+    private fun validateKoreaPost(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Korea Post requires digits")
+        }
+    }
+
+    private fun validateAustraliaPost(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() || it.isUpperCase() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Australia Post supports digits and uppercase letters")
+        }
+    }
+
+    private fun validateDataBarLimited(content: String): ValidationResult {
+        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "GS1 DataBar Limited requires digits")
+        }
+    }
+
+    private fun validateComposite(content: String): ValidationResult {
+        return if (content.isNotEmpty()
+            && content.all { it.code in 0..127 }
+            && content.contains("[")
+        ) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Composite 2D component must be ASCII and contain GS1 Application Identifiers in brackets")
+        }
+    }
+
+    private fun validateAztecRune(content: String): ValidationResult {
+        val value = content.toIntOrNull()
+        return if (value != null && value in 0..255) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Aztec Rune requires an integer between 0 and 255")
+        }
+    }
+
+    private fun validateCodeOne(content: String): ValidationResult {
+        // Code One 仅支持 Latin-1 (ISO-8859-1) 字符集
+        return if (content.isNotEmpty() && content.all { it.code in 0..255 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Code One only supports ISO-8859-1 characters")
+        }
+    }
+
+    private fun validateGridMatrix(content: String): ValidationResult {
+        // Grid Matrix 在 OkapiBarcode 0.5.6 中对纯 ASCII 内容存在编码 bug，
+        // 至少包含一个非 ASCII 字符（通常是中文）可避免该问题。
+        return if (content.isNotEmpty() && content.any { it.code > 127 }) {
+            ValidationResult(true)
+        } else {
+            ValidationResult(false, "Grid Matrix requires at least one non-ASCII character")
         }
     }
 }

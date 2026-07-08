@@ -27,43 +27,6 @@ class AdvancedBarcodeGeneratorTest {
         context = ApplicationProvider.getApplicationContext()
     }
 
-    private fun generateContent(format: BarcodeFormat): String {
-        return when (format) {
-            BarcodeFormat.QR_CODE -> "https://example.com"
-            BarcodeFormat.DATA_MATRIX -> "Hello DM"
-            BarcodeFormat.AZTEC -> "Aztec Test"
-            BarcodeFormat.PDF417 -> "PDF417 Test"
-            BarcodeFormat.CODE_128 -> "CODE128-TEST"
-            BarcodeFormat.CODE_39 -> "ABC-123"
-            BarcodeFormat.CODE_93 -> "CODE93-TEST"
-            BarcodeFormat.EAN_13 -> "1234567890128"
-            BarcodeFormat.EAN_8 -> "12345670"
-            BarcodeFormat.UPC_A -> "123456789012"
-            BarcodeFormat.UPC_E -> "01234565"
-            BarcodeFormat.CODABAR -> "12345"
-            BarcodeFormat.ITF -> "1234567890"
-            BarcodeFormat.UPC_EAN_EXTENSION -> "12"
-            BarcodeFormat.RSS_14 -> "1234567890123"
-            BarcodeFormat.RSS_EXPANDED -> "(01)12345678901231"
-            BarcodeFormat.MICRO_QR -> "MicroQR"
-            BarcodeFormat.PHARMACODE -> "1234"
-            BarcodeFormat.PLESSEY -> "1A2B"
-            BarcodeFormat.MSI_PLESSEY -> "12345"
-            BarcodeFormat.TELEPEN -> "TELEPEN"
-            BarcodeFormat.MAXICODE -> "[)>\u001E01\u001D961Z00004981\u001DUPSN\u001D06X610\u001D\u001D0011/1000\u001D\u001DN\u001D\u001D\u001E\u0004"
-            BarcodeFormat.HAN_XIN -> "汉信码"
-            BarcodeFormat.UNKNOWN -> "UNKNOWN"
-        }
-    }
-
-    private fun expectedRoundtripText(format: BarcodeFormat, content: String): String {
-        return when (format) {
-            BarcodeFormat.RSS_14 -> content + "1"
-            BarcodeFormat.RSS_EXPANDED -> content.replace("(", "[").replace(")", "]")
-            else -> content
-        }
-    }
-
     private fun actualRoundtripText(format: BarcodeFormat, results: List<QRCodeScanner.ScanResult>): String? {
         val first = results.firstOrNull() ?: return null
         return when (format) {
@@ -71,35 +34,34 @@ class AdvancedBarcodeGeneratorTest {
                 results.firstOrNull { it.format == com.google.zxing.BarcodeFormat.UPC_EAN_EXTENSION }?.text
                     ?: first.resultMetadata?.get(com.google.zxing.ResultMetadataType.UPC_EAN_EXTENSION) as? String
             }
-            BarcodeFormat.RSS_EXPANDED -> first.text.replace("(", "[").replace(")", "]")
             else -> first.text
         }
     }
 
     @Test
-    fun `roundtrip all formats with default style`() {
-        for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
-            val content = generateContent(format)
+    fun `roundtrip all scannable formats with default style`() {
+        for (format in BarcodeFormat.entries.filter { it.isScannable }) {
+            val content = BarcodeFormatTestFixtures.validContent(format)
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, AdvancedBarcodeGenerator.StyleConfig())
             assertNotNull(bitmap, "Should generate $format")
 
             val results = QRCodeScanner.scanSync(context, bitmap!!)
             assertTrue(results.isNotEmpty(), "Should scan back $format")
 
-            val expected = expectedRoundtripText(format, content)
+            val expected = BarcodeFormatTestFixtures.expectedRoundtripText(format, content)
             val actual = actualRoundtripText(format, results)
             assertEquals(expected, actual, "Roundtrip content should match for $format")
         }
     }
 
     @Test
-    fun `roundtrip all formats with custom colors`() {
+    fun `roundtrip all scannable formats with custom colors`() {
         val style = AdvancedBarcodeGenerator.StyleConfig(
             foregroundColor = Color.parseColor("#1976D2"),
             backgroundColor = Color.WHITE
         )
-        for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
-            val content = generateContent(format)
+        for (format in BarcodeFormat.entries.filter { it.isScannable }) {
+            val content = BarcodeFormatTestFixtures.validContent(format)
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, style)
             assertNotNull(bitmap, "Should generate $format with custom colors")
 
@@ -125,7 +87,7 @@ class AdvancedBarcodeGeneratorTest {
     @Test
     fun `generateStyled works for all formats with default style`() {
         for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
-            val content = generateContent(format)
+            val content = BarcodeFormatTestFixtures.validContent(format)
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, AdvancedBarcodeGenerator.StyleConfig())
             assertNotNull(bitmap, "Failed to generate $format with default style for content: $content")
         }
@@ -138,7 +100,7 @@ class AdvancedBarcodeGeneratorTest {
             backgroundColor = Color.WHITE
         )
         for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
-            val content = generateContent(format)
+            val content = BarcodeFormatTestFixtures.validContent(format)
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, style)
             assertNotNull(bitmap, "Failed to generate $format with custom colors for content: $content")
         }
@@ -148,7 +110,7 @@ class AdvancedBarcodeGeneratorTest {
     fun `generateStyled works for all formats with outer corner radius`() {
         val style = AdvancedBarcodeGenerator.StyleConfig(cornerRadius = 0.2f)
         for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
-            val content = generateContent(format)
+            val content = BarcodeFormatTestFixtures.validContent(format)
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, style)
             assertNotNull(bitmap, "Failed to generate $format with corner radius for content: $content")
         }
@@ -169,7 +131,7 @@ class AdvancedBarcodeGeneratorTest {
 
         for (scheme in schemes) {
             for (format in BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }) {
-                val content = generateContent(format)
+                val content = BarcodeFormatTestFixtures.validContent(format)
                 val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, scheme)
                 assertNotNull(bitmap, "Failed to generate $format with color scheme for content: $content")
             }
@@ -341,6 +303,7 @@ class AdvancedBarcodeGeneratorTest {
         val content = "可是你不觉得这很有趣吗？"
         val formats = listOf(
             BarcodeFormat.QR_CODE,
+            BarcodeFormat.DATA_MATRIX,
             BarcodeFormat.AZTEC,
             BarcodeFormat.PDF417,
             BarcodeFormat.HAN_XIN

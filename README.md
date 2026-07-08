@@ -10,7 +10,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 ### Core
 
-- ✅ **22 Barcode Formats** - Scan and generate QR Code, Data Matrix, Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, and UPC/EAN Extension.
+- ✅ **50+ Barcode Formats** - Scan and generate QR Code, Data Matrix (including Chinese/UTF-8), Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, UPC/EAN Extension, and many more OkapiBarcode-only generate-only formats (Code 2 of 5 variants, postal codes, Codablock F, Grid Matrix, Code One, etc.).
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
 - ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with ZIP export.
 - ✅ **Style Customization** - Foreground/background colors, center logo, rounded and dot styles.
@@ -55,7 +55,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 ### Technical
 
-- ✅ **Unit Tests** - Roundtrip tests for every supported format (Robolectric).
+- ✅ **Unit Tests** - Roundtrip tests for every scannable format and generation tests for every generate-only format (Robolectric).
 - ✅ **Memory-aware Image Loading** - Large image handling.
 - ✅ **Crash Monitoring** - Firebase Crashlytics.
 - ✅ **Offline Enhancement** - TensorFlow Lite model.
@@ -64,19 +64,24 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 ## Supported Barcode Formats
 
-The app supports **22 barcode formats** for both scanning and generation.
+The app supports **50+ barcode formats** for generation, with the scannable subset able to roundtrip through the app's own scanner.
 
 ### 2D Matrix Codes
 
 | Format | Scan | Generate | Description |
 |--------|:----:|:--------:|-------------|
 | **QR Code** | ✅ | ✅ | Most common 2D code; widely used for payments, URLs, and contact sharing. |
-| **Data Matrix** | ✅ | ✅ | Compact 2D code for very small spaces; common on electronic components and medical devices. |
+| **Data Matrix** | ✅ | ✅ | Compact 2D code for very small spaces; supports UTF-8 / Chinese content via ECI. |
 | **Aztec Code** | ✅ | ✅ | 2D code with no required quiet zone; often used on train tickets and boarding passes. |
 | **PDF417** | ✅ | ✅ | Stacked linear barcode capable of holding large text and binary payloads; used on IDs and shipping labels. |
 | **MaxiCode** | ✅ | ✅ | Fixed-size 2D code developed by UPS; used in international logistics and air freight. |
 | **Micro QR Code** | ✅ | ✅ | Miniaturized QR code for extremely small marking spaces. |
 | **Han Xin Code** | ✅ | ✅ | Chinese 2D matrix code (GB/T 36527); supports Chinese characters and ECI. The in-app display name is `Han Xin`. |
+| **Swiss QR Code** | - | ✅ | QR-bill format used for Swiss payment slips. |
+| **UPN QR Code** | - | ✅ | Slovenian Universal Payment Order QR format. |
+| **Aztec Rune** | - | ✅ | Small fixed-size Aztec symbol carrying a numeric message (0-255). |
+| **Code One** | - | ✅ | 2D matrix code family; generate-only due to OkapiBarcode encoder limitations. |
+| **Grid Matrix** | - | ✅ | Chinese 2D matrix code; requires at least one non-ASCII character (usually Chinese). |
 
 ### 1D / Linear Barcodes
 
@@ -84,6 +89,7 @@ The app supports **22 barcode formats** for both scanning and generation.
 |--------|:----:|:--------:|-------------|
 | **Code 128** | ✅ | ✅ | High-density alphanumeric encoding; widely used in logistics and supply chain. |
 | **Code 39** | ✅ | ✅ | Digits, uppercase letters, and a few symbols; common in industrial and military use. |
+| **Code 39 Extended** | - | ✅ | Full ASCII version of Code 39. |
 | **Code 93** | ✅ | ✅ | Compact improvement over Code 39; common in logistics and industry. |
 | **EAN-13** | ✅ | ✅ | 13-digit European Article Number; the standard retail barcode in most countries. |
 | **EAN-8** | ✅ | ✅ | Short form of EAN-13 for small packaging. |
@@ -91,10 +97,31 @@ The app supports **22 barcode formats** for both scanning and generation.
 | **UPC-E** | ✅ | ✅ | Compressed form of UPC-A for small packages. |
 | **Codabar** | ✅ | ✅ | Digits and a few symbols; historically used in libraries and blood banks. |
 | **ITF** | ✅ | ✅ | Interleaved 2 of 5; numeric-only, common on carton packaging. |
+| **ITF-14** | - | ✅ | 14-digit GTIN packaging variant of ITF. |
+| **Code 2 of 5 Standard** | - | ✅ | Standard Interleaved 2 of 5. |
+| **Code 2 of 5 Matrix** | - | ✅ | Matrix variant of Code 2 of 5. |
+| **Code 2 of 5 Industrial** | - | ✅ | Industrial variant of Code 2 of 5. |
+| **Code 2 of 5 IATA** | - | ✅ | IATA variant of Code 2 of 5. |
+| **Code 2 of 5 Datalogic** | - | ✅ | Datalogic variant of Code 2 of 5. |
+| **Code 2 of 5 Deutsche Post Leitcode** | - | ✅ | Deutsche Post Leitcode (max 13 digits). |
+| **Code 2 of 5 Deutsche Post Identcode** | - | ✅ | Deutsche Post Identcode (max 11 digits). |
+| **Code 11** | - | ✅ | Digits and hyphens; telecommunications. |
+| **Code 16K** | - | ✅ | 2D stacked barcode similar to Code 49. |
+| **Code 32** | - | ✅ | Italian pharmaceutical code (up to 8 digits). |
+| **Code 49** | - | ✅ | 2D stacked barcode. |
+| **Codablock F** | - | ✅ | Multi-row stacked barcode. |
+| **Channel Code** | - | ✅ | High-density numeric channel code. |
+| **LOGMARS** | - | ✅ | DOD LOGMARS variant of Code 39. |
+| **NVE-18** | - | ✅ | Nummer der Versandeinheit (18 characters). |
+| **DPD Code** | - | ✅ | DPD parcel routing code (27-28 characters). |
 | **Pharmacode** | ✅ | ✅ | One-dimensional code designed for pharmaceutical packaging (numeric, 3 - 131070). |
+| **Pharmacode Two-Track** | - | ✅ | Two-track variant of Pharmacode. |
+| **Pharmazentralnummer** | - | ✅ | German/Austrian PZN (up to 7 digits). |
 | **Plessey Code** | ✅ | ✅ | Common in libraries and inventory management. |
 | **MSI Plessey** | ✅ | ✅ | Variant of Plessey; common in libraries and inventory management. |
 | **Telepen** | ✅ | ✅ | Common in libraries and academic institutions. |
+| **Telepen Numeric** | - | ✅ | Numeric-only variant of Telepen. |
+| **EAN/UPC Add-On** | - | ✅ | 2-5 digit supplementary code for EAN/UPC. |
 
 ### UPC/EAN Extension and GS1 DataBar
 
@@ -103,8 +130,25 @@ The app supports **22 barcode formats** for both scanning and generation.
 | **UPC/EAN Extension** | ✅¹ | ✅ | 2- or 5-digit add-on for UPC/EAN. |
 | **RSS-14 / GS1 DataBar** | ✅ | ✅ | GS1 standard barcode designed to replace traditional UPC/EAN in retail. |
 | **RSS Expanded** | ✅ | ✅ | Variable-length alphanumeric GS1 barcode for batch, weight, and similar attributes. |
+| **GS1 DataBar Limited** | - | ✅ | Limited-capacity GS1 DataBar. |
+| **Composite** | - | ✅ | Composite barcode combining a linear and a 2D component; content must be GS1. |
 
 ¹ The UPC/EAN Extension **cannot be scanned standalone**. The generator attaches it to a dummy EAN-13, and the extension value comes back via ZXing's `ResultMetadataType.UPC_EAN_EXTENSION` rather than as a primary decode.
+
+### Postal Codes
+
+| Format | Scan | Generate | Description |
+|--------|:----:|:--------:|-------------|
+| **Postnet** | - | ✅ | USPS POSTNET barcode. |
+| **Royal Mail 4-State** | - | ✅ | Royal Mail 4-State customer code. |
+| **USPS OneCode** | - | ✅ | USPS Intelligent Mail barcode. |
+| **USPS Package** | - | ✅ | USPS Package IMpb (GS1-128 based). |
+| **Japan Post** | - | ✅ | Japan Post barcode. |
+| **KIX Code** | - | ✅ | Dutch KIX postal code. |
+| **Korea Post** | - | ✅ | Korea Post barcode. |
+| **Australia Post** | - | ✅ | Australia Post barcode. |
+
+> **Generate-only formats**: Formats marked with `-` under Scan are not supported by the current scanning stack (ZXing / ML Kit / BoofCV / WeChatQR / HanXin / custom linear). The app will generate them and show a generate-only warning in the UI.
 
 ---
 
@@ -129,7 +173,7 @@ The app supports **22 barcode formats** for both scanning and generation.
 - **Camera**: CameraX 1.3.3
 - **Barcode Recognition**: ZXing 3.5.3, ML Kit 17.2.0, WeChatQRCode 2.6.0 (OpenCV)
 - **Micro QR**: BoofCV 1.4.0
-- **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode)
+- **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal / 2 of 5 / Code One / Grid Matrix / ...)
 - **ML**: TensorFlow Lite 2.17.0
 - **CSV Parsing**: Apache Commons CSV 1.14.1
 - **Biometric**: androidx.biometric 1.1.0
@@ -229,9 +273,10 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 │
 ├── data/
 │   ├── AppDatabase.kt               # Room database
+│   ├── BarcodeFormat.kt             # App barcode format enum (with isScannable)
 │   ├── Converters.kt                # Room type converters
 │   ├── HistoryDao.kt                # History DAO
-│   ├── HistoryItem.kt               # History entity + BarcodeFormat + HistoryType enums
+│   ├── HistoryItem.kt               # History entity + HistoryType enums
 │   └── HistoryRepository.kt         # Repository wrapping DAO
 │
 ├── decoder/
@@ -275,7 +320,7 @@ app/src/main/res/
 - [ML Kit](https://developers.google.com/ml-kit) - Google ML barcode scanning
 - [WeChatQRCode](https://github.com/WeChatCV/opencv_3rdparty) - Primary QR engine (via [jenly1314](https://github.com/jenly1314/WeChatQRCode))
 - [BoofCV](https://boofcv.org/) - Micro QR Code detector
-- [OkapiBarcode](https://github.com/woo-j/OkapiBarcode) - RSS-14 / RSS Expanded / MaxiCode generation
+- [OkapiBarcode](https://github.com/woo-j/OkapiBarcode) - Generation for RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal codes / Code 2 of 5 / Code One / Grid Matrix / ...
 - [SQLCipher](https://www.zetetic.net/sqlcipher/) - Database encryption
 - [TensorFlow Lite](https://www.tensorflow.org/lite) - On-device ML
 - [Apache Commons CSV](https://commons.apache.org/proper/commons-csv/) - CSV parsing for batch generation

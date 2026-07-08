@@ -5,7 +5,7 @@
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
 - 当前版本：`0.1.7`
-- 目标：支持 22 种条码格式的扫描与生成。
+- 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
 
@@ -24,15 +24,19 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 ## 3. 支持格式总览
 
-项目当前支持 **22 种条码格式** 的扫描与生成。详见 `README.md` 和 `README_CN.md` 中的格式表格。
+项目当前支持 **超过 50 种条码格式** 的生成，并在可扫描的格式上保持扫描回环。格式按扫描能力分为两类：
 
-| 类别 | 扫描支持 | 生成支持 |
+- **可扫描格式**：`BarcodeFormat.isScannable = true`，生成图片可被当前扫描栈（ZXing / ML Kit / BoofCV / WeChatQR / HanXin / 自定义一维码）识别。
+- **仅生成格式**：`BarcodeFormat.isScannable = false`，由 OkapiBarcode 生成但不保证能被当前扫描器识别，生成页面会提示用户。
+
+| 类别 | 可扫描 | 仅生成 |
 |------|:------:|:------:|
-| QR Code / Data Matrix / Aztec / PDF417 / Han Xin Code | ✅ | ✅ |
-| Code 128 / Code 39 / Code 93 / EAN-13 / EAN-8 / UPC-A / UPC-E / Codabar / ITF | ✅ | ✅ |
-| UPC/EAN Extension / RSS-14 / RSS Expanded / MaxiCode / Micro QR / Pharmacode / Plessey / MSI Plessey / Telepen | ✅ | ✅ |
+| QR Code / Data Matrix / Aztec / PDF417 / Han Xin Code / MaxiCode / Micro QR | ✅ | - |
+| Code 128 / Code 39 / Code 93 / EAN-13 / EAN-8 / UPC-A / UPC-E / Codabar / ITF / RSS-14 / RSS Expanded | ✅ | - |
+| UPC/EAN Extension / Pharmacode / Plessey / MSI Plessey / Telepen | ✅ | - |
+| Code 39 Extended / ITF-14 / Code 2 of 5 系列 / Code 11 / Code 16K / Code 32 / Code 49 / Codablock F / Channel Code / LOGMARS / NVE-18 / DPD Code / Pharmacode Two-Track / Pharmazentralnummer / Telepen Numeric / 各类邮政码 / GS1 DataBar Limited / Composite / EAN/UPC Add-On / Swiss QR Code / UPN QR Code / Aztec Rune / Code One / Grid Matrix | - | ✅ |
 
-> 说明： historically doc/barcode-formats.md claimed the last group was scan-only. That is now outdated; generation support was added and verified via roundtrip tests.
+> 说明： historically doc/barcode-formats.md claimed the last group was scan-only. That is now outdated; generation support was added for all OkapiBarcode formats, and the old 22 scannable formats remain fully roundtrippable.
 
 ## 4. 核心约定
 
@@ -74,7 +78,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 | 文件 | 说明 |
 |------|------|
-| `BarcodeGenerator.kt` | 条码生成器主入口 |
+| `BarcodeGenerator.kt` | 条码生成器主入口（ZXing / 自定义 / BoofCV / HanXin / OkapiBarcode 路由） |
 | `AdvancedBarcodeGenerator.kt` | 带样式的高级生成器 |
 | `SvgQRCodeGenerator.kt` | 全格式 SVG 导出（ZXing 路径 + bitmap 回退） |
 | `QRCodeScanner.kt` | 多引擎扫描器 |
@@ -88,6 +92,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `data/HistoryItem.kt` | 历史记录实体与枚举 |
 | `data/HistoryRepository.kt` | 历史记录仓库 |
 | `data/AppDatabase.kt` | 加密 Room 数据库（生产用 SQLCipher，Robolectric 回退到未加密） |
+| `data/BarcodeFormat.kt` | 应用内条码格式枚举（含 `isScannable`） |
 | `AppLockManager.kt` | 应用锁（PIN / 生物识别） |
 | `GenerateFragment.kt` | 生成界面 Fragment |
 | `AdvancedBarcodeGenerator.kt` | 带样式的条码生成（颜色、外圆角、模块圆角、Logo） |
@@ -98,10 +103,22 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
 | `.github/workflows/build.yml` | CI 工作流（build + unit tests） |
 
+## 6.5 生成实现细节
+
+### Data Matrix 与中文
+- ASCII 内容继续走 ZXing 的 `DataMatrixWriter`，保证与现有扫描器完全回环。
+- 非 ASCII 内容走 OkapiBarcode `DataMatrix` + `setEciMode(26)`（UTF-8），使中文、日文等 Unicode 文本可生成。
+
+### OkapiBarcode 仅生成格式
+- 新增格式统一由 OkapiBarcode 生成，并在 `symbolToBitmap()` 中利用 `Symbol.getTexts()` 绘制人眼可读数字。
+- 部分格式存在 OkapiBarcode 0.5.6 已知问题：
+  - **Code One**：自动选择版本时可能数组越界，生成器按 `S → T → A → … → H` 尝试固定版本。
+  - **Grid Matrix**：纯 ASCII 内容触发数组越界，验证器要求至少包含一个非 ASCII 字符（通常为中文）。
+
 ## 7. 开发原则
 
-- 能扫描的格式必须能生成。
-- 能生成的格式必须能被本应用自身扫描器识别。
-- 每种新格式必须配套 roundtrip 单元测试。
+- **可扫描格式**：必须能生成，且生成的图片必须能被本应用自身扫描器识别。
+- **仅生成格式**：允许只生成不扫描；在 `BarcodeFormat` 上标记 `isScannable = false`，并在生成页面向用户展示提示。
+- 每种可扫描新格式必须配套 roundtrip 单元测试；仅生成格式至少保证 `BarcodeGenerator.generate()` 成功的生成测试。
 - 新增枚举值时需同步更新 `toHistoryType()` 映射。
 - 字符串资源需同时提供英文（`values/strings.xml`）和中文（`values-zh/strings.xml`）。

@@ -63,7 +63,8 @@ object AppShortcutManager {
             HistoryType.PHARMACODE,
             HistoryType.PLESSEY,
             HistoryType.MSI_PLESSEY,
-            HistoryType.TELEPEN -> R.drawable.ic_barcode
+            HistoryType.TELEPEN,
+            HistoryType.GENERATED_ONLY -> R.drawable.ic_barcode
             HistoryType.TEXT -> R.drawable.ic_text
         }
 

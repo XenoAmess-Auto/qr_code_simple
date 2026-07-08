@@ -47,27 +47,32 @@ class HistoryAdapter(
             binding.tvType.text = buildString {
                 append(if (item.isGenerated) context.getString(R.string.type_generated) else context.getString(R.string.type_scanned))
                 append(" • ")
-                append(when (item.type) {
-                    HistoryType.QR_CODE -> context.getString(R.string.type_qr_code)
-                    HistoryType.BARCODE -> context.getString(R.string.type_barcode)
-                    HistoryType.DATA_MATRIX -> "Data Matrix"
-                    HistoryType.AZTEC -> "Aztec"
-                    HistoryType.PDF417 -> "PDF417"
-                    HistoryType.RSS_14 -> "RSS-14"
-                    HistoryType.RSS_EXPANDED -> "RSS Expanded"
-                    HistoryType.MAXICODE -> "MaxiCode"
-                    HistoryType.MICRO_QR -> "Micro QR"
-                    HistoryType.UPC_EAN_EXTENSION -> "UPC/EAN Extension"
-                    HistoryType.PHARMACODE -> "Pharmacode"
-                    HistoryType.PLESSEY -> "Plessey"
-                    HistoryType.MSI_PLESSEY -> "MSI Plessey"
-                    HistoryType.TELEPEN -> "Telepen"
-                    HistoryType.HAN_XIN -> "Han Xin"
-                    HistoryType.TEXT -> context.getString(R.string.type_text)
-                })
-                item.barcodeFormat?.let {
-                    append(" • ")
-                    append(it)
+                if (item.type == HistoryType.GENERATED_ONLY) {
+                    append(item.barcodeFormat ?: "Generated Only")
+                } else {
+                    append(when (item.type) {
+                        HistoryType.QR_CODE -> context.getString(R.string.type_qr_code)
+                        HistoryType.BARCODE -> context.getString(R.string.type_barcode)
+                        HistoryType.DATA_MATRIX -> "Data Matrix"
+                        HistoryType.AZTEC -> "Aztec"
+                        HistoryType.PDF417 -> "PDF417"
+                        HistoryType.RSS_14 -> "RSS-14"
+                        HistoryType.RSS_EXPANDED -> "RSS Expanded"
+                        HistoryType.MAXICODE -> "MaxiCode"
+                        HistoryType.MICRO_QR -> "Micro QR"
+                        HistoryType.UPC_EAN_EXTENSION -> "UPC/EAN Extension"
+                        HistoryType.PHARMACODE -> "Pharmacode"
+                        HistoryType.PLESSEY -> "Plessey"
+                        HistoryType.MSI_PLESSEY -> "MSI Plessey"
+                        HistoryType.TELEPEN -> "Telepen"
+                        HistoryType.HAN_XIN -> "Han Xin"
+                        HistoryType.TEXT -> context.getString(R.string.type_text)
+                        HistoryType.GENERATED_ONLY -> "Generated Only"
+                    })
+                    item.barcodeFormat?.let {
+                        append(" • ")
+                        append(it)
+                    }
                 }
             }
             

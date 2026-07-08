@@ -10,7 +10,7 @@
 
 ### 核心功能
 
-- ✅ **22 种条码格式** - 支持 QR Code、Data Matrix、Aztec、PDF417、汉信码（Han Xin Code）、MaxiCode、Micro QR、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF、Pharmacode、Plessey、MSI Plessey、Telepen、RSS-14、RSS Expanded、UPC/EAN Extension 的扫描与生成。
+- ✅ **50+ 种条码格式** - 支持 QR Code、Data Matrix（含中文/UTF-8）、Aztec、PDF417、汉信码（Han Xin Code）、MaxiCode、Micro QR、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF、Pharmacode、Plessey、MSI Plessey、Telepen、RSS-14、RSS Expanded、UPC/EAN Extension 等可扫描格式的扫描与生成，同时支持大量 OkapiBarcode 仅生成格式（Code 2 of 5 系列、邮政码、Codablock F、Grid Matrix、Code One 等）。
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等，提供一键操作。
 - ✅ **批量生成** - 从 CSV 或 Excel 导入数据批量生成条码，支持 ZIP 导出。
 - ✅ **样式定制** - 前景/背景颜色、中心 Logo、圆角/点阵样式。
@@ -55,7 +55,7 @@
 
 ### 技术特性
 
-- ✅ **单元测试** - 每种格式都有基于 Robolectric 的回环（roundtrip）测试。
+- ✅ **单元测试** - 可扫描格式均提供基于 Robolectric 的 roundtrip 测试，仅生成格式均提供生成成功测试。
 - ✅ **大图加载优化** - 大图加载内存优化。
 - ✅ **崩溃监控** - Firebase Crashlytics。
 - ✅ **离线增强** - TensorFlow Lite 模型。
@@ -64,19 +64,24 @@
 
 ## 支持的条码格式
 
-应用支持 **22 种条码格式** 的扫描与生成。
+应用支持 **50+ 种条码格式** 的生成，其中可扫描格式能通过应用自身的扫描器完成回环识别。
 
 ### 二维码
 
 | 格式 | 扫描 | 生成 | 简介 |
 |------|:----:|:----:|------|
 | **QR Code** | ✅ | ✅ | 最常见的二维码，广泛用于支付、网址、名片和 WiFi 共享。 |
-| **Data Matrix** | ✅ | ✅ | 可在极小空间存储数据，常用于电子元器件和医疗器械标识。 |
+| **Data Matrix** | ✅ | ✅ | 可在极小空间存储数据，支持通过 ECI 编码中文等 Unicode 内容。 |
 | **Aztec Code** | ✅ | ✅ | 无需静音区即可识别，常用于火车票、登机牌等场景。 |
 | **PDF417** | ✅ | ✅ | 堆叠式线性条码，可存储大量文本与二进制数据，用于身份证、驾照和快递面单。 |
 | **MaxiCode** | ✅ | ✅ | UPS 开发的固定大小二维条码，用于国际物流和航空货运。 |
 | **Micro QR Code** | ✅ | ✅ | 微型 QR 码，用于极小空间的标识。 |
 | **Han Xin Code（汉信码）** | ✅ | ✅ | 汉信码（GB/T 36527），支持中文与 ECI 的国产二维矩阵码。应用内显示名为 `Han Xin`。 |
+| **Swiss QR Code** | - | ✅ | 瑞士 QR-bill 支付二维码。 |
+| **UPN QR Code** | - | ✅ | 斯洛文尼亚 UPN 支付二维码。 |
+| **Aztec Rune** | - | ✅ | 固定尺寸的 Aztec 小符号，可编码 0-255 的整数值。 |
+| **Code One** | - | ✅ | Code One 二维矩阵码家族；受 OkapiBarcode 编码器限制，仅生成。 |
+| **Grid Matrix** | - | ✅ | 国产 Grid Matrix 二维矩阵码；需至少包含一个非 ASCII 字符（通常为中文）。 |
 
 ### 一维条码
 
@@ -84,6 +89,7 @@
 |------|:----:|:----:|------|
 | **Code 128** | ✅ | ✅ | 高密度字母数字编码，广泛用于物流与供应链。 |
 | **Code 39** | ✅ | ✅ | 支持数字、大写字母及部分符号，常用于工业和军事领域。 |
+| **Code 39 Extended** | - | ✅ | 支持完整 ASCII 的 Code 39 扩展版。 |
 | **Code 93** | ✅ | ✅ | Code 39 的高密度改进版，常用于物流和工业场景。 |
 | **EAN-13** | ✅ | ✅ | 13 位欧洲商品编码，是大多数国家零售商品的标准条码。 |
 | **EAN-8** | ✅ | ✅ | EAN-13 的短版，用于小包装商品。 |
@@ -91,10 +97,31 @@
 | **UPC-E** | ✅ | ✅ | UPC-A 的压缩版，用于小包装商品。 |
 | **Codabar** | ✅ | ✅ | 编码数字和少量符号，常用于图书馆和血库。 |
 | **ITF** | ✅ | ✅ | 交叉 25 码，纯数字条码，常用于纸箱包装和物流外箱。 |
+| **ITF-14** | - | ✅ | 14 位 GTIN 包装版 ITF。 |
+| **Code 2 of 5 Standard** | - | ✅ | 标准 Interleaved 2 of 5。 |
+| **Code 2 of 5 Matrix** | - | ✅ | Code 2 of 5 Matrix 变体。 |
+| **Code 2 of 5 Industrial** | - | ✅ | Code 2 of 5 Industrial 变体。 |
+| **Code 2 of 5 IATA** | - | ✅ | Code 2 of 5 IATA 变体。 |
+| **Code 2 of 5 Datalogic** | - | ✅ | Code 2 of 5 Datalogic 变体。 |
+| **Code 2 of 5 Deutsche Post Leitcode** | - | ✅ | 德国邮政 Leitcode（最多 13 位数字）。 |
+| **Code 2 of 5 Deutsche Post Identcode** | - | ✅ | 德国邮政 Identcode（最多 11 位数字）。 |
+| **Code 11** | - | ✅ | 支持数字与连字符，常用于电信行业。 |
+| **Code 16K** | - | ✅ | 类 Code 49 的堆叠二维条码。 |
+| **Code 32** | - | ✅ | 意大利药品码（最多 8 位数字）。 |
+| **Code 49** | - | ✅ | 堆叠二维条码。 |
+| **Codablock F** | - | ✅ | 多行堆叠条码。 |
+| **Channel Code** | - | ✅ | 高密度数字 Channel Code。 |
+| **LOGMARS** | - | ✅ | 美国国防部 LOGMARS 版 Code 39。 |
+| **NVE-18** | - | ✅ | 18 位货运单元编号（Nummer der Versandeinheit）。 |
+| **DPD Code** | - | ✅ | DPD 包裹路由码（27-28 位字符）。 |
 | **Pharmacode** | ✅ | ✅ | 药品包装专用的一维码（纯数字，范围 3 - 131070）。 |
+| **Pharmacode Two-Track** | - | ✅ | Pharmacode 双轨变体。 |
+| **Pharmazentralnummer** | - | ✅ | 德国/奥地利 PZN（最多 7 位数字）。 |
 | **Plessey Code** | ✅ | ✅ | 图书馆和库存管理中常用的条码。 |
 | **MSI Plessey** | ✅ | ✅ | Plessey 的变体，常用于图书馆和库存管理。 |
 | **Telepen** | ✅ | ✅ | 图书馆和学术机构常用的条码。 |
+| **Telepen Numeric** | - | ✅ | 纯数字版 Telepen。 |
+| **EAN/UPC Add-On** | - | ✅ | EAN/UPC 的 2-5 位附加码。 |
 
 ### UPC/EAN 扩展码与 GS1 DataBar
 
@@ -103,8 +130,25 @@
 | **UPC/EAN Extension** | ✅¹ | ✅ | UPC/EAN 的 2 位或 5 位扩展码。 |
 | **RSS-14 / GS1 DataBar** | ✅ | ✅ | GS1 标准条码，用于替代传统 UPC/EAN，常见于零售生鲜和医疗。 |
 | **RSS Expanded** | ✅ | ✅ | 可变长度字母数字，用于批次号、重量等扩展属性。 |
+| **GS1 DataBar Limited** | - | ✅ | 有限容量 GS1 DataBar。 |
+| **Composite** | - | ✅ | 复合条码，由线性码与二维码组成；内容需为 GS1 格式。 |
 
 ¹ **UPC/EAN Extension 无法独立扫描**。生成器会把它附加到一组合成的 EAN-13 上，扩展位会通过 ZXing 的 `ResultMetadataType.UPC_EAN_EXTENSION` 返回，而不是作为主结果。
+
+### 邮政码
+
+| 格式 | 扫描 | 生成 | 简介 |
+|------|:----:|:----:|------|
+| **Postnet** | - | ✅ | USPS POSTNET 条码。 |
+| **Royal Mail 4-State** | - | ✅ | 英国皇家邮政 4-State 客户码。 |
+| **USPS OneCode** | - | ✅ | USPS 智能邮件条码。 |
+| **USPS Package** | - | ✅ | USPS 包裹 IMpb（基于 GS1-128）。 |
+| **Japan Post** | - | ✅ | 日本邮政条码。 |
+| **KIX Code** | - | ✅ | 荷兰 KIX 邮政码。 |
+| **Korea Post** | - | ✅ | 韩国邮政条码。 |
+| **Australia Post** | - | ✅ | 澳大利亚邮政条码。 |
+
+> **仅生成格式**：表格中扫描列标记为 `-` 的格式暂不被当前扫描栈（ZXing / ML Kit / BoofCV / WeChatQR / HanXin / 自定义一维码）支持，应用可生成并在 UI 中提示用户。
 
 ---
 
@@ -131,7 +175,7 @@
 - **相机**：CameraX 1.3.3
 - **条码识别**：ZXing 3.5.3、ML Kit 17.2.0、WeChatQRCode 2.6.0（OpenCV）
 - **Micro QR**：BoofCV 1.4.0
-- **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode）
+- **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix / ...）
 - **机器学习**：TensorFlow Lite 2.17.0
 - **CSV 解析**：Apache Commons CSV 1.14.1
 - **生物认证**：androidx.biometric 1.1.0
@@ -249,9 +293,10 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 │
 ├── data/
 │   ├── AppDatabase.kt               # Room 数据库
+│   ├── BarcodeFormat.kt             # 应用条码格式枚举（含 isScannable）
 │   ├── Converters.kt                # Room 类型转换器
 │   ├── HistoryDao.kt                # 历史记录 DAO
-│   ├── HistoryItem.kt               # 历史记录实体 + BarcodeFormat + HistoryType 枚举
+│   ├── HistoryItem.kt               # 历史记录实体 + HistoryType 枚举
 │   └── HistoryRepository.kt         # 仓库（包装 DAO）
 │
 ├── decoder/
@@ -320,7 +365,7 @@ adb install app-debug.apk
 - [ML Kit](https://developers.google.com/ml-kit) - Google ML 条码扫描
 - [WeChatQRCode](https://github.com/WeChatCV/opencv_3rdparty) - 主二维码识别引擎（基于 [jenly1314](https://github.com/jenly1314/WeChatQRCode)）
 - [BoofCV](https://boofcv.org/) - Micro QR Code 检测
-- [OkapiBarcode](https://github.com/woo-j/OkapiBarcode) - RSS-14 / RSS Expanded / MaxiCode 生成
+- [OkapiBarcode](https://github.com/woo-j/OkapiBarcode) - RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix 等生成
 - [SQLCipher](https://www.zetetic.net/sqlcipher/) - 数据库加密
 - [TensorFlow Lite](https://www.tensorflow.org/lite) - 端侧 ML
 - [Apache Commons CSV](https://commons.apache.org/proper/commons-csv/) - 批量生成的 CSV 解析
