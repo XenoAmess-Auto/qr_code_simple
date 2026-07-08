@@ -21,6 +21,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -68,9 +69,10 @@ class GenerateFragment : Fragment() {
     private var moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE
     private var moduleFillRatio = 0.8f
     private var positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
-    private var gradientAngle = 0f
+    internal var gradientAngle = 0f
     private var gradientStops = mutableListOf<AdvancedBarcodeGenerator.ColorStop>()
     private var gradientEnabled = false
+    internal var selectedScheme: AdvancedBarcodeGenerator.StyleConfig? = null
     private var validationJob: Job? = null
     private var pendingImageType: ImageType? = null
 
@@ -269,6 +271,7 @@ class GenerateFragment : Fragment() {
                 R.id.chipModuleRounded -> AdvancedBarcodeGenerator.ModuleShape.ROUNDED
                 else -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
             }
+            clearSchemeSelectionIfDiverged()
             generateBarcode()
         }
 
@@ -279,7 +282,10 @@ class GenerateFragment : Fragment() {
         }
         binding.seekBarModuleFillRatio.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
-            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
+            override fun onStopTrackingTouch(slider: Slider) {
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
+            }
         })
 
         // 定位点形状
@@ -291,6 +297,7 @@ class GenerateFragment : Fragment() {
                 R.id.chipPositionFollow -> AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE
                 else -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
             }
+            clearSchemeSelectionIfDiverged()
             generateBarcode()
         }
 
@@ -306,6 +313,7 @@ class GenerateFragment : Fragment() {
             updateGradientControlsVisibility()
             buildGradientStopViews()
             updateGradientPreview()
+            clearSchemeSelectionIfDiverged()
             generateBarcode()
         }
 
@@ -314,16 +322,40 @@ class GenerateFragment : Fragment() {
             gradientAngle = degrees
             binding.seekBarGradientAngle.value = degrees
             binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
+            binding.etGradientAngle.setText(degrees.toInt().toString())
+            clearSchemeSelectionIfDiverged()
             generateBarcode()
         }
         binding.seekBarGradientAngle.addOnChangeListener { _, value, _ ->
             gradientAngle = value
             binding.angleDial.angle = value
             binding.tvGradientAngleValue.text = "${value.toInt()}°"
+            binding.etGradientAngle.setText(value.toInt().toString())
         }
         binding.seekBarGradientAngle.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
-            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
+            override fun onStopTrackingTouch(slider: Slider) {
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
+            }
+        })
+        binding.etGradientAngle.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val text = s?.toString() ?: return
+                if (text.isBlank()) return
+                val value = text.toFloatOrNull() ?: return
+                val degrees = value.coerceIn(0f, 360f)
+                if (degrees != gradientAngle) {
+                    gradientAngle = degrees
+                    binding.angleDial.angle = degrees
+                    binding.seekBarGradientAngle.value = degrees
+                    binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
+                    clearSchemeSelectionIfDiverged()
+                    generateBarcode()
+                }
+            }
         })
 
         // 添加渐变节点
@@ -355,6 +387,7 @@ class GenerateFragment : Fragment() {
             buildGradientStopViews()
             updateGradientPreview()
             binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+            clearSchemeSelectionIfDiverged()
             generateBarcode()
         }
 
@@ -376,6 +409,7 @@ class GenerateFragment : Fragment() {
                     updateImagePreview(binding.viewFgImagePreview, null)
                     binding.btnRemoveForegroundImage.visibility = View.GONE
                     updateColorPreviews()
+                    clearSchemeSelectionIfDiverged()
                     generateBarcode()
                 }
             }.show(parentFragmentManager, "fg_color")
@@ -389,12 +423,14 @@ class GenerateFragment : Fragment() {
                     updateImagePreview(binding.viewBgImagePreview, null)
                     binding.btnRemoveBackgroundImage.visibility = View.GONE
                     updateColorPreviews()
+                    clearSchemeSelectionIfDiverged()
                     generateBarcode()
                 }
             }.show(parentFragmentManager, "bg_color")
         }
 
         binding.btnPickForegroundImage.setOnClickListener {
+            clearSchemeSelectionIfDiverged()
             pickForegroundImageLauncher.launch("image/*")
         }
         binding.btnRemoveForegroundImage.setOnClickListener {
@@ -402,9 +438,11 @@ class GenerateFragment : Fragment() {
             selectedStyle = selectedStyle.copy(foregroundBitmap = null)
             updateImagePreview(binding.viewFgImagePreview, null)
             binding.btnRemoveForegroundImage.visibility = View.GONE
+            clearSchemeSelectionIfDiverged()
             generateBarcode()
         }
         binding.btnPickBackgroundImage.setOnClickListener {
+            clearSchemeSelectionIfDiverged()
             pickBackgroundImageLauncher.launch("image/*")
         }
         binding.btnRemoveBackgroundImage.setOnClickListener {
@@ -412,6 +450,7 @@ class GenerateFragment : Fragment() {
             selectedStyle = selectedStyle.copy(backgroundBitmap = null)
             updateImagePreview(binding.viewBgImagePreview, null)
             binding.btnRemoveBackgroundImage.visibility = View.GONE
+            clearSchemeSelectionIfDiverged()
             generateBarcode()
         }
 
@@ -450,18 +489,36 @@ class GenerateFragment : Fragment() {
         val size = (resources.displayMetrics.density * 48).toInt()
         val innerRadius = (resources.displayMetrics.density * 12).toInt()
         val margin = (resources.displayMetrics.density * 4).toInt()
+        val borderPadding = (resources.displayMetrics.density * 3).toInt()
+        val cornerRadius = resources.displayMetrics.density * 8
 
         for (scheme in schemes) {
-            val view = View(requireContext()).apply {
-                layoutParams = FlexboxLayout.LayoutParams(size, size).apply {
-                    setMargins(margin, margin, margin, margin)
-                }
+            val isSelected = scheme == selectedScheme
+            val schemeView = View(requireContext()).apply {
+                layoutParams = FrameLayout.LayoutParams(size, size)
                 background = createDonutDrawable(scheme, innerRadius)
                 setOnClickListener { applyColorScheme(scheme) }
                 isClickable = true
                 isFocusable = true
             }
-            container.addView(view)
+            val wrapper = FrameLayout(requireContext()).apply {
+                layoutParams = FlexboxLayout.LayoutParams(size + borderPadding * 2, size + borderPadding * 2).apply {
+                    setMargins(margin, margin, margin, margin)
+                }
+                setPadding(borderPadding, borderPadding, borderPadding, borderPadding)
+                background = if (isSelected) createSchemeBorderDrawable(cornerRadius) else null
+                addView(schemeView)
+            }
+            container.addView(wrapper)
+        }
+    }
+
+    private fun createSchemeBorderDrawable(cornerRadius: Float): android.graphics.drawable.Drawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            this.cornerRadius = cornerRadius
+            setStroke((resources.displayMetrics.density * 3).toInt(), Color.parseColor("#FFD700"))
+            setColor(Color.TRANSPARENT)
         }
     }
 
@@ -496,6 +553,7 @@ class GenerateFragment : Fragment() {
     }
 
     private fun applyColorScheme(scheme: AdvancedBarcodeGenerator.StyleConfig) {
+        selectedScheme = scheme
         selectedStyle = scheme
         foregroundImageBitmap = null
         backgroundImageBitmap = null
@@ -539,11 +597,47 @@ class GenerateFragment : Fragment() {
         binding.angleDial.angle = gradientAngle
         binding.seekBarGradientAngle.value = gradientAngle
         binding.tvGradientAngleValue.text = "${gradientAngle.toInt()}°"
+        binding.etGradientAngle.setText(gradientAngle.toInt().toString())
 
         updateGradientControlsVisibility()
         buildGradientStopViews()
         updateGradientPreview()
+        buildSchemeButtons()
         binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+    }
+
+    private fun clearSchemeSelectionIfDiverged() {
+        val scheme = selectedScheme ?: return
+        if (!matchesSelectedScheme(scheme)) {
+            selectedScheme = null
+            buildSchemeButtons()
+        }
+    }
+
+    private fun matchesSelectedScheme(scheme: AdvancedBarcodeGenerator.StyleConfig): Boolean {
+        if (scheme.foregroundColor != selectedStyle.foregroundColor) return false
+        if (scheme.backgroundColor != selectedStyle.backgroundColor) return false
+        if (scheme.moduleShape != moduleShape) return false
+        if ((scheme.moduleFillRatio * 100).roundToInt() != (moduleFillRatio * 100).roundToInt()) return false
+        if (scheme.positionPatternShape != positionPatternShape) return false
+        if (scheme.gradientAngle.roundToInt() != gradientAngle.roundToInt()) return false
+        val schemeGradientEnabled = scheme.gradientStops.size >= 2
+        if (schemeGradientEnabled != gradientEnabled) return false
+        if (schemeGradientEnabled) {
+            return sameGradientStops(scheme.gradientStops, gradientStops)
+        }
+        return true
+    }
+
+    private fun sameGradientStops(a: List<AdvancedBarcodeGenerator.ColorStop>, b: List<AdvancedBarcodeGenerator.ColorStop>): Boolean {
+        if (a.size != b.size) return false
+        val sortedA = a.sortedBy { it.position }
+        val sortedB = b.sortedBy { it.position }
+        for (i in sortedA.indices) {
+            if ((sortedA[i].position * 100).roundToInt() != (sortedB[i].position * 100).roundToInt()) return false
+            if (sortedA[i].color != sortedB[i].color) return false
+        }
+        return true
     }
 
     private fun updateGradientControlsVisibility() {
@@ -583,6 +677,7 @@ class GenerateFragment : Fragment() {
                                 gradientStops[index] = stop.copy(color = color)
                                 buildGradientStopViews()
                                 updateGradientPreview()
+                                clearSchemeSelectionIfDiverged()
                                 generateBarcode()
                             }
                         }
@@ -600,11 +695,13 @@ class GenerateFragment : Fragment() {
                     gradientStops[index] = stop.copy(position = sanitizePosition(value / 100f))
                     gradientStops.sortBy { it.position }
                     updateGradientPreview()
+                    clearSchemeSelectionIfDiverged()
                 }
                 addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
                     override fun onStartTrackingTouch(slider: Slider) {}
                     override fun onStopTrackingTouch(slider: Slider) {
                         buildGradientStopViews()
+                        clearSchemeSelectionIfDiverged()
                         generateBarcode()
                     }
                 })
@@ -623,6 +720,7 @@ class GenerateFragment : Fragment() {
                         buildGradientStopViews()
                         updateGradientPreview()
                         binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+                        clearSchemeSelectionIfDiverged()
                         generateBarcode()
                     }
                 }

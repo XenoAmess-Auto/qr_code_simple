@@ -300,6 +300,8 @@
     <string name="position_pattern_follow">Follow Module</string>
     <string name="gradient">Gradient</string>
     <string name="gradient_angle">Gradient Angle</string>
+    <string name="gradient_angle_input">Angle:</string>
+    <string name="gradient_angle_hint">0-360</string>
     <string name="add_gradient_stop">Add Gradient Stop</string>
     <string name="logo_scale">Logo Scale</string>
     <string name="add_logo">Add Logo</string>

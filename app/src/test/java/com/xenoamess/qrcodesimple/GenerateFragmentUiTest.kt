@@ -146,6 +146,37 @@ class GenerateFragmentUiTest {
     }
 
     @Test
+    fun changeGradientAngleViaTextInput() {
+        typeText("https://example.com")
+        clickGenerate()
+
+        onView(withId(R.id.switchGradient)).perform(scrollTo(), click())
+        onView(withId(R.id.etGradientAngle)).perform(scrollTo(), replaceText("45"), closeSoftKeyboard())
+
+        scenario.onFragment { fragment ->
+            Assert.assertEquals("Gradient angle should be 45", 45f, fragment.gradientAngle, 0.1f)
+        }
+        assertBitmapGenerated()
+    }
+
+    @Test
+    fun selectColorSchemeAndModifyConfigClearsSelection() {
+        typeText("https://example.com")
+
+        // Select the first (CLASSIC) scheme
+        onView(schemeButtonAt(0)).perform(scrollTo(), click())
+        scenario.onFragment { fragment ->
+            Assert.assertNotNull("A scheme should be selected", fragment.selectedScheme)
+        }
+
+        // Change module shape to diverge from CLASSIC
+        onView(withId(R.id.chipModuleCircle)).perform(scrollTo(), click())
+        scenario.onFragment { fragment ->
+            Assert.assertNull("Scheme selection should be cleared after config divergence", fragment.selectedScheme)
+        }
+    }
+
+    @Test
     fun disableGradientHidesGradientControls() {
         typeText("https://example.com")
 
@@ -233,6 +264,20 @@ class GenerateFragmentUiTest {
                 if (container.id != R.id.gradientStopsContainer) return false
                 if (container.indexOfChild(row) != rowIndex) return false
                 return row.indexOfChild(item) == 2
+            }
+        }
+    }
+
+    private fun schemeButtonAt(index: Int): Matcher<View> {
+        return object : BoundedMatcher<View, View>(View::class.java) {
+            override fun describeTo(description: Description) {
+                description.appendText("scheme button wrapper at index $index")
+            }
+
+            override fun matchesSafely(item: View): Boolean {
+                val container = item.parent as? ViewGroup ?: return false
+                if (container.id != R.id.schemeContainer) return false
+                return container.indexOfChild(item) == index
             }
         }
     }

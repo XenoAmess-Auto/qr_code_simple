@@ -212,6 +212,8 @@
     <string name="position_pattern_follow">跟随模块</string>
     <string name="gradient">渐变</string>
     <string name="gradient_angle">渐变角度</string>
+    <string name="gradient_angle_input">角度：</string>
+    <string name="gradient_angle_hint">0-360</string>
     <string name="add_gradient_stop">添加渐变节点</string>
     <string name="logo_scale">Logo 缩放</string>
 
