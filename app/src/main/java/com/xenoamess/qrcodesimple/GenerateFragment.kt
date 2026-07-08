@@ -48,6 +48,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 class GenerateFragment : Fragment() {
 
@@ -342,7 +343,7 @@ class GenerateFragment : Fragment() {
                     val gap = gradientStops[i + 1].position - gradientStops[i].position
                     if (gap > maxGap) {
                         maxGap = gap
-                        insertPos = (gradientStops[i].position + gradientStops[i + 1].position) / 2f
+                        insertPos = sanitizePosition((gradientStops[i].position + gradientStops[i + 1].position) / 2f)
                         startColor = gradientStops[i].color
                         endColor = gradientStops[i + 1].color
                     }
@@ -508,7 +509,7 @@ class GenerateFragment : Fragment() {
         positionPatternShape = scheme.positionPatternShape
         gradientAngle = scheme.gradientAngle
         gradientStops.clear()
-        gradientStops.addAll(scheme.gradientStops)
+        gradientStops.addAll(scheme.gradientStops.map { AdvancedBarcodeGenerator.ColorStop(sanitizePosition(it.position), it.color) })
         gradientEnabled = scheme.gradientStops.size >= 2
 
         updateColorPreviews()
@@ -550,6 +551,10 @@ class GenerateFragment : Fragment() {
         binding.gradientControlsContainer.visibility = if (gradientEnabled) View.VISIBLE else View.GONE
     }
 
+    private fun sanitizePosition(position: Float): Float {
+        return position.coerceIn(0f, 1f).times(100).roundToInt().div(100f)
+    }
+
     private fun buildGradientStopViews() {
         binding.gradientStopsContainer.removeAllViews()
         val density = resources.displayMetrics.density
@@ -589,10 +594,10 @@ class GenerateFragment : Fragment() {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 valueFrom = 0f
                 valueTo = 100f
-                value = stop.position * 100f
+                value = sanitizePosition(stop.position) * 100f
                 stepSize = 1f
                 addOnChangeListener { _, value, _ ->
-                    gradientStops[index] = stop.copy(position = value / 100f)
+                    gradientStops[index] = stop.copy(position = sanitizePosition(value / 100f))
                     gradientStops.sortBy { it.position }
                     updateGradientPreview()
                 }

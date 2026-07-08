@@ -117,6 +117,35 @@ class GenerateFragmentUiTest {
     }
 
     @Test
+    fun repeatedlyAddAndRemoveGradientStopsDoesNotCrash() {
+        typeText("https://example.com")
+        clickGenerate()
+
+        onView(withId(R.id.switchGradient)).perform(scrollTo(), click())
+
+        // Add stops until the button is disabled (max 5)
+        repeat(5) {
+            onView(withId(R.id.btnAddGradientStop)).perform(clickWithoutVisibilityCheck())
+        }
+
+        // Remove all stops except the minimum 2
+        repeat(3) {
+            onView(deleteButtonAtRow(0)).perform(clickWithoutVisibilityCheck())
+        }
+
+        // Add again
+        repeat(2) {
+            onView(withId(R.id.btnAddGradientStop)).perform(clickWithoutVisibilityCheck())
+        }
+
+        // Remove from the end this time
+        onView(deleteButtonAtRow(3)).perform(clickWithoutVisibilityCheck())
+        onView(deleteButtonAtRow(2)).perform(clickWithoutVisibilityCheck())
+
+        assertBitmapGenerated()
+    }
+
+    @Test
     fun disableGradientHidesGradientControls() {
         typeText("https://example.com")
 
@@ -188,6 +217,22 @@ class GenerateFragmentUiTest {
                 if (container.id != R.id.gradientStopsContainer) return false
                 if (container.indexOfChild(row) != rowIndex) return false
                 return row.indexOfChild(item) == 0
+            }
+        }
+    }
+
+    private fun deleteButtonAtRow(rowIndex: Int): Matcher<View> {
+        return object : BoundedMatcher<View, View>(View::class.java) {
+            override fun describeTo(description: Description) {
+                description.appendText("delete button at row $rowIndex in gradientStopsContainer")
+            }
+
+            override fun matchesSafely(item: View): Boolean {
+                val row = item.parent as? ViewGroup ?: return false
+                val container = row.parent as? ViewGroup ?: return false
+                if (container.id != R.id.gradientStopsContainer) return false
+                if (container.indexOfChild(row) != rowIndex) return false
+                return row.indexOfChild(item) == 2
             }
         }
     }
