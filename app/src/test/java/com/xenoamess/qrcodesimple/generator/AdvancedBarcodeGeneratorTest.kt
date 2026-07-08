@@ -126,7 +126,8 @@ class AdvancedBarcodeGeneratorTest {
             AdvancedBarcodeGenerator.ColorSchemes.PURPLE,
             AdvancedBarcodeGenerator.ColorSchemes.ORANGE,
             AdvancedBarcodeGenerator.ColorSchemes.DARK,
-            AdvancedBarcodeGenerator.ColorSchemes.CYAN
+            AdvancedBarcodeGenerator.ColorSchemes.CYAN,
+            AdvancedBarcodeGenerator.ColorSchemes.QQ
         )
 
         for (scheme in schemes) {
@@ -139,15 +140,17 @@ class AdvancedBarcodeGeneratorTest {
     }
 
     @Test
-    fun `generateStyled QR supports all gradient directions`() {
-        for (direction in AdvancedBarcodeGenerator.GradientDirection.entries) {
+    fun `generateStyled QR supports all gradient angles`() {
+        for (angle in listOf(0f, 45f, 90f, 135f, 180f, 225f, 270f, 315f)) {
             val style = AdvancedBarcodeGenerator.StyleConfig(
-                gradientStartColor = Color.parseColor("#1976D2"),
-                gradientEndColor = Color.parseColor("#D32F2F"),
-                gradientDirection = direction
+                gradientStops = listOf(
+                    AdvancedBarcodeGenerator.ColorStop(0f, Color.parseColor("#1976D2")),
+                    AdvancedBarcodeGenerator.ColorStop(1f, Color.parseColor("#D32F2F"))
+                ),
+                gradientAngle = angle
             )
             val bitmap = AdvancedBarcodeGenerator.generateStyled("https://example.com", BarcodeFormat.QR_CODE, 800, style)
-            assertNotNull(bitmap, "Failed to generate QR with gradient direction $direction")
+            assertNotNull(bitmap, "Failed to generate QR with gradient angle $angle")
         }
     }
 
@@ -207,7 +210,8 @@ class AdvancedBarcodeGeneratorTest {
             AdvancedBarcodeGenerator.ColorSchemes.PURPLE,
             AdvancedBarcodeGenerator.ColorSchemes.ORANGE,
             AdvancedBarcodeGenerator.ColorSchemes.DARK,
-            AdvancedBarcodeGenerator.ColorSchemes.CYAN
+            AdvancedBarcodeGenerator.ColorSchemes.CYAN,
+            AdvancedBarcodeGenerator.ColorSchemes.QQ
         )
         for (scheme in schemes) {
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 800, scheme)
@@ -219,14 +223,37 @@ class AdvancedBarcodeGeneratorTest {
     fun `QR Code with gradient scans back`() {
         val content = "https://example.com"
         val style = AdvancedBarcodeGenerator.StyleConfig(
-            gradientStartColor = Color.parseColor("#1976D2"),
-            gradientEndColor = Color.parseColor("#D32F2F"),
-            gradientDirection = AdvancedBarcodeGenerator.GradientDirection.HORIZONTAL
+            gradientStops = listOf(
+                AdvancedBarcodeGenerator.ColorStop(0f, Color.parseColor("#1976D2")),
+                AdvancedBarcodeGenerator.ColorStop(1f, Color.parseColor("#D32F2F"))
+            ),
+            gradientAngle = 0f
         )
         val bitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 800, style)
         assertNotNull(bitmap)
         val results = QRCodeScanner.scanSync(context, bitmap!!)
         assertTrue(results.isNotEmpty(), "QR with gradient should scan back")
+    }
+
+    @Test
+    fun `QR Code with dot modules and concentric circle position patterns scans back`() {
+        val content = "https://example.com"
+        val style = AdvancedBarcodeGenerator.StyleConfig(
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
+            moduleFillRatio = 0.85f,
+            positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE,
+            gradientStops = listOf(
+                AdvancedBarcodeGenerator.ColorStop(0f, Color.parseColor("#00E5FF")),
+                AdvancedBarcodeGenerator.ColorStop(0.5f, Color.parseColor("#2196F3")),
+                AdvancedBarcodeGenerator.ColorStop(1f, Color.parseColor("#9C27B0"))
+            ),
+            gradientAngle = 0f
+        )
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 800, style)
+        assertNotNull(bitmap)
+        val results = QRCodeScanner.scanSync(context, bitmap!!)
+        assertTrue(results.isNotEmpty(), "QR with dot modules and circle position patterns should scan back")
+        assertEquals(content, results.first().text, "Roundtrip content should match")
     }
 
     @Test

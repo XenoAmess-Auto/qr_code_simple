@@ -11,12 +11,28 @@ import android.graphics.Shader
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.sin
 
 /**
  * 高级条码生成器 - 支持样式定制
  * 所有像素操作均使用 Bitmap.setPixel / setPixels，避免 Robolectric 下 Canvas 绘制不可靠的问题。
  */
 object AdvancedBarcodeGenerator {
+
+    enum class ModuleShape { SQUARE, CIRCLE, ROUNDED }
+    enum class PositionPatternShape { SQUARE, CIRCLE, FOLLOW_MODULE }
+    enum class GradientType { LINEAR }
+
+    data class ColorStop(val position: Float, val color: Int)
+
+    data class GradientBounds(
+        val dx: Float,
+        val dy: Float,
+        val min: Float,
+        val max: Float
+    )
 
     data class StyleConfig(
         val foregroundColor: Int = Color.BLACK,
@@ -31,15 +47,14 @@ object AdvancedBarcodeGenerator {
         val cornerRadius: Float = 0f,
         val logoBitmap: Bitmap? = null,
         val logoScale: Float = 0.2f,
-        val gradientStartColor: Int? = null,
-        val gradientEndColor: Int? = null,
-        val gradientDirection: GradientDirection = GradientDirection.HORIZONTAL,
-        val ecLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.H
+        val ecLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.H,
+        val moduleShape: ModuleShape = ModuleShape.SQUARE,
+        val moduleFillRatio: Float = 0.8f,
+        val positionPatternShape: PositionPatternShape = PositionPatternShape.SQUARE,
+        val gradientAngle: Float = 0f,
+        val gradientStops: List<ColorStop> = emptyList(),
+        val gradientType: GradientType = GradientType.LINEAR
     )
-
-    enum class GradientDirection {
-        HORIZONTAL, VERTICAL, DIAGONAL
-    }
 
     fun generateStyled(
         content: String,
@@ -73,15 +88,26 @@ object AdvancedBarcodeGenerator {
 
         val logoRect = computeLogoRect(output, styleConfig)
         val cellSize = size.toFloat() / bitMatrix.width
+        val gradientBounds = computeGradientBounds(output.width, output.height, styleConfig)
+
+        val patternPositions = listOf(
+            Pair(0, 0),
+            Pair(bitMatrix.width - 7, 0),
+            Pair(0, bitMatrix.height - 7)
+        )
+        for ((px, py) in patternPositions) {
+            drawPositionPattern(output, bitMatrix, px, py, cellSize, styleConfig, logoRect, gradientBounds)
+        }
 
         for (x in 0 until bitMatrix.width) {
             for (y in 0 until bitMatrix.height) {
+                if (isPositionPatternCell(x, y, bitMatrix.width, bitMatrix.height)) continue
                 if (bitMatrix.get(x, y)) {
                     val startX = (x * cellSize).toInt()
                     val endX = ((x + 1) * cellSize).toInt().coerceAtMost(size)
                     val startY = (y * cellSize).toInt()
                     val endY = ((y + 1) * cellSize).toInt().coerceAtMost(size)
-                    fillModule(output, startX, endX, startY, endY, styleConfig, logoRect)
+                    fillModule(output, startX, endX, startY, endY, cellSize, x, y, styleConfig, logoRect, gradientBounds)
                 }
             }
         }
@@ -91,6 +117,143 @@ object AdvancedBarcodeGenerator {
         }
 
         return applyOuterCornerRadius(output, styleConfig)
+    }
+
+    private fun isPositionPatternCell(x: Int, y: Int, width: Int, height: Int): Boolean {
+        return (x in 0..6 && y in 0..6) ||
+                (x in (width - 7) until width && y in 0..6) ||
+                (x in 0..6 && y in (height - 7) until height)
+    }
+
+    private fun drawPositionPattern(
+        output: Bitmap,
+        bitMatrix: com.google.zxing.common.BitMatrix,
+        px: Int,
+        py: Int,
+        cellSize: Float,
+        styleConfig: StyleConfig,
+        logoRect: Rect?,
+        gradientBounds: GradientBounds
+    ) {
+        when (styleConfig.positionPatternShape) {
+            PositionPatternShape.SQUARE -> {
+                for (x in 0 until 7) {
+                    for (y in 0 until 7) {
+                        if (bitMatrix.get(px + x, py + y)) {
+                            fillCell(output, px + x, py + y, cellSize, styleConfig, logoRect, gradientBounds)
+                        }
+                    }
+                }
+            }
+            PositionPatternShape.CIRCLE -> {
+                val startX = (px * cellSize).toInt()
+                val endX = ((px + 7) * cellSize).toInt().coerceAtMost(output.width)
+                val startY = (py * cellSize).toInt()
+                val endY = ((py + 7) * cellSize).toInt().coerceAtMost(output.height)
+                val centerX = (px + 3.5f) * cellSize
+                val centerY = (py + 3.5f) * cellSize
+
+                for (x in startX until endX) {
+                    for (y in startY until endY) {
+                        if (logoRect?.contains(x, y) == true) continue
+                        val dist = hypot(x + 0.5f - centerX, y + 0.5f - centerY) / cellSize
+                        when {
+                            dist <= 1.5f -> output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+                            dist <= 2.5f -> output.setPixel(x, y, resolveBackgroundColor(x, y, output.width, output.height, styleConfig))
+                            dist <= 3.5f -> output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+                        }
+                    }
+                }
+            }
+            PositionPatternShape.FOLLOW_MODULE -> {
+                for (x in 0 until 7) {
+                    for (y in 0 until 7) {
+                        if (bitMatrix.get(px + x, py + y)) {
+                            val startX = ((px + x) * cellSize).toInt()
+                            val endX = ((px + x + 1) * cellSize).toInt().coerceAtMost(output.width)
+                            val startY = ((py + y) * cellSize).toInt()
+                            val endY = ((py + y + 1) * cellSize).toInt().coerceAtMost(output.height)
+                            fillModule(output, startX, endX, startY, endY, cellSize, px + x, py + y, styleConfig, logoRect, gradientBounds)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun fillCell(
+        output: Bitmap,
+        cellX: Int,
+        cellY: Int,
+        cellSize: Float,
+        styleConfig: StyleConfig,
+        logoRect: Rect?,
+        gradientBounds: GradientBounds
+    ) {
+        val startX = (cellX * cellSize).toInt()
+        val endX = ((cellX + 1) * cellSize).toInt().coerceAtMost(output.width)
+        val startY = (cellY * cellSize).toInt()
+        val endY = ((cellY + 1) * cellSize).toInt().coerceAtMost(output.height)
+        for (x in startX until endX) {
+            for (y in startY until endY) {
+                if (logoRect?.contains(x, y) == true) continue
+                output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+            }
+        }
+    }
+
+    private fun fillModule(
+        output: Bitmap,
+        startX: Int,
+        endX: Int,
+        startY: Int,
+        endY: Int,
+        cellSize: Float,
+        cellX: Int,
+        cellY: Int,
+        styleConfig: StyleConfig,
+        logoRect: Rect?,
+        gradientBounds: GradientBounds
+    ) {
+        val cx = (cellX + 0.5f) * cellSize
+        val cy = (cellY + 0.5f) * cellSize
+        val radius = cellSize * styleConfig.moduleFillRatio.coerceIn(0.01f, 1f) / 2f
+        val cornerRadius = if (styleConfig.moduleShape == ModuleShape.ROUNDED) radius else 0f
+
+        for (x in startX until endX) {
+            for (y in startY until endY) {
+                if (logoRect?.contains(x, y) == true) continue
+                val inShape = when (styleConfig.moduleShape) {
+                    ModuleShape.SQUARE -> true
+                    ModuleShape.CIRCLE -> hypot(x + 0.5f - cx, y + 0.5f - cy) <= radius
+                    ModuleShape.ROUNDED -> isInsideRoundedRect(
+                        x + 0.5f, y + 0.5f,
+                        startX.toFloat(), startY.toFloat(),
+                        endX.toFloat(), endY.toFloat(), cornerRadius
+                    )
+                }
+                if (inShape) {
+                    output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+                }
+            }
+        }
+    }
+
+    private fun isInsideRoundedRect(
+        px: Float, py: Float,
+        left: Float, top: Float,
+        right: Float, bottom: Float,
+        radius: Float
+    ): Boolean {
+        if (px < left || px > right || py < top || py > bottom) return false
+        val innerLeft = left + radius
+        val innerRight = right - radius
+        val innerTop = top + radius
+        val innerBottom = bottom - radius
+        if (px in innerLeft..innerRight || py in innerTop..innerBottom) return true
+        val cornerX = if (px < innerLeft) innerLeft else innerRight
+        val cornerY = if (py < innerTop) innerTop else innerBottom
+        return hypot(px - cornerX, py - cornerY) <= radius
     }
 
     private fun fillBackground(bitmap: Bitmap, styleConfig: StyleConfig) {
@@ -118,30 +281,6 @@ object AdvancedBarcodeGenerator {
         val bx = (x.toFloat() / width * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
         val by = (y.toFloat() / height * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
         return bitmap.getPixel(bx, by)
-    }
-
-    private fun fillModule(
-        output: Bitmap,
-        startX: Int,
-        endX: Int,
-        startY: Int,
-        endY: Int,
-        styleConfig: StyleConfig,
-        logoRect: Rect?
-    ) {
-        val foregroundBitmap = styleConfig.foregroundBitmap
-        val hasGradient = styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null
-        for (x in startX until endX) {
-            for (y in startY until endY) {
-                if (logoRect?.contains(x, y) == true) continue
-                val color = when {
-                    foregroundBitmap != null -> sampleBitmap(foregroundBitmap, x, y, output.width, output.height)
-                    hasGradient -> resolveGradientColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig)
-                    else -> styleConfig.foregroundColor
-                }
-                output.setPixel(x, y, color)
-            }
-        }
     }
 
     private fun generateGenericWithStyle(
@@ -185,10 +324,7 @@ object AdvancedBarcodeGenerator {
         val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-
-        val foregroundBitmap = styleConfig.foregroundBitmap
-        val backgroundBitmap = styleConfig.backgroundBitmap
-        val hasGradient = styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null
+        val gradientBounds = computeGradientBounds(width, height, styleConfig)
 
         for (i in pixels.indices) {
             val x = i % width
@@ -199,16 +335,13 @@ object AdvancedBarcodeGenerator {
             }
             val gray = (Color.red(pixels[i]) + Color.green(pixels[i]) + Color.blue(pixels[i])) / 3
             val isDark = gray < 128
-            val color = when {
-                isDark && foregroundBitmap != null -> sampleBitmap(foregroundBitmap, x, y, width, height)
-                isDark && hasGradient -> resolveGradientColor(x + 0.5f, y + 0.5f, width, height, styleConfig)
-                isDark -> styleConfig.foregroundColor
-                backgroundBitmap != null -> sampleBitmap(backgroundBitmap, x, y, width, height)
-                else -> styleConfig.backgroundColor
+            val color = if (isDark) {
+                resolveColor(x + 0.5f, y + 0.5f, width, height, styleConfig, gradientBounds)
+            } else {
+                resolveBackgroundColor(x, y, width, height, styleConfig)
             }
             output.setPixel(x, y, color)
         }
-
         return output
     }
 
@@ -220,20 +353,54 @@ object AdvancedBarcodeGenerator {
         }
     }
 
-    private fun resolveGradientColor(cx: Float, cy: Float, width: Int, height: Int, styleConfig: StyleConfig): Int {
-        return if (styleConfig.gradientStartColor != null && styleConfig.gradientEndColor != null) {
-            val fraction = when (styleConfig.gradientDirection) {
-                GradientDirection.HORIZONTAL -> cx / width
-                GradientDirection.VERTICAL -> cy / height
-                GradientDirection.DIAGONAL -> (cx + cy) / (width + height)
-            }
-            interpolateColor(styleConfig.gradientStartColor, styleConfig.gradientEndColor, fraction.coerceIn(0f, 1f))
-        } else {
-            styleConfig.foregroundColor
+    private fun resolveColor(
+        x: Float, y: Float,
+        width: Int, height: Int,
+        styleConfig: StyleConfig,
+        gradientBounds: GradientBounds
+    ): Int {
+        return when {
+            styleConfig.foregroundBitmap != null -> sampleBitmap(styleConfig.foregroundBitmap, x.toInt(), y.toInt(), width, height)
+            styleConfig.gradientStops.size >= 2 -> resolveGradientColor(x, y, styleConfig, gradientBounds)
+            else -> styleConfig.foregroundColor
         }
     }
 
-    private fun interpolateColor(startColor: Int, endColor: Int, fraction: Float): Int {
+    private fun computeGradientBounds(width: Int, height: Int, styleConfig: StyleConfig): GradientBounds {
+        val angleRad = Math.toRadians(styleConfig.gradientAngle.toDouble())
+        val dx = cos(angleRad).toFloat()
+        val dy = sin(angleRad).toFloat()
+        val projections = listOf(
+            0f * dx + 0f * dy,
+            width * dx + 0f * dy,
+            0f * dx + height * dy,
+            width * dx + height * dy
+        )
+        return GradientBounds(dx, dy, projections.minOrNull() ?: 0f, projections.maxOrNull() ?: 1f)
+    }
+
+    private fun gradientFraction(x: Float, y: Float, bounds: GradientBounds): Float {
+        val projection = x * bounds.dx + y * bounds.dy
+        return if (bounds.max == bounds.min) 0f else ((projection - bounds.min) / (bounds.max - bounds.min)).coerceIn(0f, 1f)
+    }
+
+    private fun resolveGradientColor(x: Float, y: Float, styleConfig: StyleConfig, gradientBounds: GradientBounds): Int {
+        val stops = styleConfig.gradientStops.sortedBy { it.position }
+        if (stops.size < 2) return styleConfig.foregroundColor
+        val t = gradientFraction(x, y, gradientBounds)
+        for (i in 0 until stops.size - 1) {
+            if (t <= stops[i + 1].position) {
+                val start = stops[i]
+                val end = stops[i + 1]
+                val segmentT = if (end.position == start.position) 0f else
+                    (t - start.position) / (end.position - start.position)
+                return interpolateColor(start.color, end.color, segmentT.coerceIn(0f, 1f))
+            }
+        }
+        return stops.last().color
+    }
+
+    internal fun interpolateColor(startColor: Int, endColor: Int, fraction: Float): Int {
         val inverse = 1 - fraction
         val a = (Color.alpha(startColor) * inverse + Color.alpha(endColor) * fraction).toInt()
         val r = (Color.red(startColor) * inverse + Color.red(endColor) * fraction).toInt()
@@ -290,5 +457,17 @@ object AdvancedBarcodeGenerator {
         val ORANGE = StyleConfig(foregroundColor = Color.parseColor("#F57C00"), backgroundColor = Color.WHITE)
         val DARK = StyleConfig(foregroundColor = Color.WHITE, backgroundColor = Color.parseColor("#212121"))
         val CYAN = StyleConfig(foregroundColor = Color.parseColor("#00BCD4"), backgroundColor = Color.WHITE)
+        val QQ = StyleConfig(
+            backgroundColor = Color.WHITE,
+            gradientStops = listOf(
+                ColorStop(0f, Color.parseColor("#00E5FF")),
+                ColorStop(0.5f, Color.parseColor("#2196F3")),
+                ColorStop(1f, Color.parseColor("#9C27B0"))
+            ),
+            moduleShape = ModuleShape.CIRCLE,
+            moduleFillRatio = 0.85f,
+            positionPatternShape = PositionPatternShape.CIRCLE,
+            gradientAngle = 0f
+        )
     }
 }

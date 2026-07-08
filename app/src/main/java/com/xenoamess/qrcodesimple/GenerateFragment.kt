@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
@@ -16,9 +17,11 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
@@ -61,6 +64,11 @@ class GenerateFragment : Fragment() {
     private var logoBitmap: Bitmap? = null
     private var foregroundImageBitmap: Bitmap? = null
     private var backgroundImageBitmap: Bitmap? = null
+    private var moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE
+    private var moduleFillRatio = 0.8f
+    private var positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+    private var gradientAngle = 0f
+    private var gradientStops = mutableListOf<AdvancedBarcodeGenerator.ColorStop>()
     private var validationJob: Job? = null
     private var pendingImageType: ImageType? = null
 
@@ -250,7 +258,88 @@ class GenerateFragment : Fragment() {
             override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
         })
 
-        // ... rest unchanged ...
+        // 模块形状
+        binding.chipGroupModuleShape.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (checkedIds.isEmpty()) return@setOnCheckedStateChangeListener
+            moduleShape = when (checkedIds.first()) {
+                R.id.chipModuleSquare -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
+                R.id.chipModuleCircle -> AdvancedBarcodeGenerator.ModuleShape.CIRCLE
+                R.id.chipModuleRounded -> AdvancedBarcodeGenerator.ModuleShape.ROUNDED
+                else -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
+            }
+            generateBarcode()
+        }
+
+        // 点填充比例
+        binding.seekBarModuleFillRatio.addOnChangeListener { _, value, _ ->
+            moduleFillRatio = value / 100f
+            binding.tvModuleFillRatioValue.text = "${value.toInt()}%"
+        }
+        binding.seekBarModuleFillRatio.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
+        })
+
+        // 定位点形状
+        binding.chipGroupPositionPattern.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (checkedIds.isEmpty()) return@setOnCheckedStateChangeListener
+            positionPatternShape = when (checkedIds.first()) {
+                R.id.chipPositionSquare -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+                R.id.chipPositionCircle -> AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
+                R.id.chipPositionFollow -> AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE
+                else -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+            }
+            generateBarcode()
+        }
+
+        // 渐变方向
+        binding.angleDial.onAngleChanged = { degrees ->
+            gradientAngle = degrees
+            binding.seekBarGradientAngle.value = degrees
+            binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
+            generateBarcode()
+        }
+        binding.seekBarGradientAngle.addOnChangeListener { _, value, _ ->
+            gradientAngle = value
+            binding.angleDial.angle = value
+            binding.tvGradientAngleValue.text = "${value.toInt()}°"
+        }
+        binding.seekBarGradientAngle.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
+        })
+
+        // 添加渐变节点
+        binding.btnAddGradientStop.setOnClickListener {
+            if (gradientStops.size >= 5) return@setOnClickListener
+            if (gradientStops.size < 2) {
+                gradientStops.addAll(listOf(
+                    AdvancedBarcodeGenerator.ColorStop(0f, selectedStyle.foregroundColor),
+                    AdvancedBarcodeGenerator.ColorStop(1f, selectedStyle.backgroundColor)
+                ))
+            } else {
+                var maxGap = 0f
+                var insertPos = 0.5f
+                var startColor = selectedStyle.foregroundColor
+                var endColor = selectedStyle.backgroundColor
+                for (i in 0 until gradientStops.size - 1) {
+                    val gap = gradientStops[i + 1].position - gradientStops[i].position
+                    if (gap > maxGap) {
+                        maxGap = gap
+                        insertPos = (gradientStops[i].position + gradientStops[i + 1].position) / 2f
+                        startColor = gradientStops[i].color
+                        endColor = gradientStops[i + 1].color
+                    }
+                }
+                val color = AdvancedBarcodeGenerator.interpolateColor(startColor, endColor, 0.5f)
+                gradientStops.add(AdvancedBarcodeGenerator.ColorStop(insertPos, color))
+                gradientStops.sortBy { it.position }
+            }
+            buildGradientStopViews()
+            updateGradientPreview()
+            binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+            generateBarcode()
+        }
 
         binding.seekBarLogoScale.addOnChangeListener { _, value, _ ->
             logoScale = value / 100f
@@ -310,6 +399,7 @@ class GenerateFragment : Fragment() {
         }
 
         updateColorPreviews()
+        updateStyleControlUIs()
         binding.seekBarLogoScale.value = logoScale * 100f
         binding.tvLogoScaleValue.text = "${(logoScale * 100).toInt()}%"
 
@@ -335,7 +425,8 @@ class GenerateFragment : Fragment() {
             AdvancedBarcodeGenerator.ColorSchemes.PURPLE,
             AdvancedBarcodeGenerator.ColorSchemes.ORANGE,
             AdvancedBarcodeGenerator.ColorSchemes.CYAN,
-            AdvancedBarcodeGenerator.ColorSchemes.DARK
+            AdvancedBarcodeGenerator.ColorSchemes.DARK,
+            AdvancedBarcodeGenerator.ColorSchemes.QQ
         )
         val container = binding.schemeContainer
         container.removeAllViews()
@@ -348,7 +439,7 @@ class GenerateFragment : Fragment() {
                 layoutParams = FlexboxLayout.LayoutParams(size, size).apply {
                     setMargins(margin, margin, margin, margin)
                 }
-                background = createDonutDrawable(scheme.backgroundColor, scheme.foregroundColor, innerRadius)
+                background = createDonutDrawable(scheme, innerRadius)
                 setOnClickListener { applyColorScheme(scheme) }
                 isClickable = true
                 isFocusable = true
@@ -357,20 +448,32 @@ class GenerateFragment : Fragment() {
         }
     }
 
-    private fun createDonutDrawable(bg: Int, fg: Int, innerRadius: Int): android.graphics.drawable.Drawable {
+    private fun createDonutDrawable(scheme: AdvancedBarcodeGenerator.StyleConfig, innerRadius: Int): android.graphics.drawable.Drawable {
         val size = innerRadius * 6
         val corner = (size * 0.2f)
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
 
-        // 外框：背景色填充的圆角矩形
-        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = bg }
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = scheme.backgroundColor }
         canvas.drawRoundRect(0f, 0f, size.toFloat(), size.toFloat(), corner, corner, bgPaint)
 
-        // 中心方块：前景色的圆角矩形
         val innerMargin = size * 0.25f
-        val fgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = fg }
-        canvas.drawRoundRect(innerMargin, innerMargin, size - innerMargin, size - innerMargin, corner * 0.5f, corner * 0.5f, fgPaint)
+        val innerRect = RectF(innerMargin, innerMargin, size - innerMargin, size - innerMargin)
+        if (scheme.gradientStops.size >= 2) {
+            val sorted = scheme.gradientStops.sortedBy { it.position }
+            val gradient = android.graphics.LinearGradient(
+                innerRect.left, (innerRect.top + innerRect.bottom) / 2f,
+                innerRect.right, (innerRect.top + innerRect.bottom) / 2f,
+                sorted.map { it.color }.toIntArray(),
+                sorted.map { it.position }.toFloatArray(),
+                android.graphics.Shader.TileMode.CLAMP
+            )
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { shader = gradient }
+            canvas.drawRoundRect(innerRect, corner * 0.5f, corner * 0.5f, paint)
+        } else {
+            val fgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = scheme.foregroundColor }
+            canvas.drawRoundRect(innerRect, corner * 0.5f, corner * 0.5f, fgPaint)
+        }
 
         return android.graphics.drawable.BitmapDrawable(resources, bmp)
     }
@@ -383,8 +486,140 @@ class GenerateFragment : Fragment() {
         updateImagePreview(binding.viewBgImagePreview, null)
         binding.btnRemoveForegroundImage.visibility = View.GONE
         binding.btnRemoveBackgroundImage.visibility = View.GONE
+
+        moduleShape = scheme.moduleShape
+        moduleFillRatio = scheme.moduleFillRatio
+        positionPatternShape = scheme.positionPatternShape
+        gradientAngle = scheme.gradientAngle
+        gradientStops.clear()
+        gradientStops.addAll(scheme.gradientStops)
+
         updateColorPreviews()
+        updateStyleControlUIs()
         generateBarcode()
+    }
+
+    private fun updateStyleControlUIs() {
+        binding.chipGroupModuleShape.check(
+            when (moduleShape) {
+                AdvancedBarcodeGenerator.ModuleShape.SQUARE -> R.id.chipModuleSquare
+                AdvancedBarcodeGenerator.ModuleShape.CIRCLE -> R.id.chipModuleCircle
+                AdvancedBarcodeGenerator.ModuleShape.ROUNDED -> R.id.chipModuleRounded
+            }
+        )
+        binding.seekBarModuleFillRatio.value = moduleFillRatio * 100f
+        binding.tvModuleFillRatioValue.text = "${(moduleFillRatio * 100).toInt()}%"
+
+        binding.chipGroupPositionPattern.check(
+            when (positionPatternShape) {
+                AdvancedBarcodeGenerator.PositionPatternShape.SQUARE -> R.id.chipPositionSquare
+                AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE -> R.id.chipPositionCircle
+                AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE -> R.id.chipPositionFollow
+            }
+        )
+
+        binding.angleDial.angle = gradientAngle
+        binding.seekBarGradientAngle.value = gradientAngle
+        binding.tvGradientAngleValue.text = "${gradientAngle.toInt()}°"
+
+        buildGradientStopViews()
+        updateGradientPreview()
+        binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+    }
+
+    private fun buildGradientStopViews() {
+        binding.gradientStopsContainer.removeAllViews()
+        val density = resources.displayMetrics.density
+        for ((index, stop) in gradientStops.withIndex()) {
+            val row = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(0, (4 * density).toInt(), 0, (4 * density).toInt()) }
+            }
+
+            val colorView = View(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams((40 * density).toInt(), (40 * density).toInt()).apply {
+                    marginEnd = (8 * density).toInt()
+                }
+                background = ColorDrawable(stop.color)
+                setOnClickListener {
+                    ColorPickerDialog().apply {
+                        setInitialColor(stop.color)
+                        onColorSelected = { color ->
+                            gradientStops[index] = stop.copy(color = color)
+                            buildGradientStopViews()
+                            updateGradientPreview()
+                            generateBarcode()
+                        }
+                    }.show(parentFragmentManager, "gradient_stop_$index")
+                }
+            }
+
+            val slider = Slider(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                valueFrom = 0f
+                valueTo = 100f
+                value = stop.position * 100f
+                stepSize = 1f
+                addOnChangeListener { _, value, _ ->
+                    gradientStops[index] = stop.copy(position = value / 100f)
+                    gradientStops.sortBy { it.position }
+                    updateGradientPreview()
+                }
+                addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                    override fun onStartTrackingTouch(slider: Slider) {}
+                    override fun onStopTrackingTouch(slider: Slider) {
+                        buildGradientStopViews()
+                        generateBarcode()
+                    }
+                })
+            }
+
+            val deleteBtn = MaterialButton(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams((40 * density).toInt(), (40 * density).toInt()).apply {
+                    marginStart = (8 * density).toInt()
+                }
+                text = "×"
+                textSize = 18f
+                isEnabled = gradientStops.size > 2
+                setOnClickListener {
+                    if (gradientStops.size > 2) {
+                        gradientStops.removeAt(index)
+                        buildGradientStopViews()
+                        updateGradientPreview()
+                        binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+                        generateBarcode()
+                    }
+                }
+            }
+
+            row.addView(colorView)
+            row.addView(slider)
+            row.addView(deleteBtn)
+            binding.gradientStopsContainer.addView(row)
+        }
+    }
+
+    private fun updateGradientPreview() {
+        val sorted = gradientStops.sortedBy { it.position }
+        if (sorted.size >= 2) {
+            val colors = sorted.map { it.color }.toIntArray()
+            val positions = sorted.map { it.position }.toFloatArray()
+            val drawable = GradientDrawable().apply {
+                orientation = GradientDrawable.Orientation.LEFT_RIGHT
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    setColors(colors, positions)
+                } else {
+                    setColors(colors)
+                }
+            }
+            binding.viewGradientPreview.background = drawable
+        } else {
+            binding.viewGradientPreview.setBackgroundColor(selectedStyle.foregroundColor)
+        }
     }
 
     private fun updateImagePreview(imageView: android.widget.ImageView, bitmap: Bitmap?) {
@@ -502,7 +737,12 @@ class GenerateFragment : Fragment() {
                 logoBitmap = logoBitmap,
                 logoScale = logoScale,
                 foregroundBitmap = foregroundImageBitmap,
-                backgroundBitmap = backgroundImageBitmap
+                backgroundBitmap = backgroundImageBitmap,
+                moduleShape = moduleShape,
+                moduleFillRatio = moduleFillRatio,
+                positionPatternShape = positionPatternShape,
+                gradientAngle = gradientAngle,
+                gradientStops = gradientStops.toList()
             )
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
             if (bitmap == null) {

@@ -48,9 +48,15 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 ### 生成入口
 所有条码生成统一通过 `BarcodeGenerator.generate(content, config)`。
 样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, size, style)`，`StyleConfig` 字段：
+- `foregroundColor` / `backgroundColor`：前景/背景色，可用 `ColorPickerDialog` 色谱选取。
 - `cornerRadius`（0~1）：整张条码图片**外**圆角，0=直角，1=完全圆形。对所有格式生效（QR / 2D / 1D）。
 - `logoScale`（0~1）：中心 Logo 占条码宽度比例，上限 70%。
-- `foregroundColor` / `backgroundColor`：可用 `ColorPickerDialog` 色谱选取。
+- `moduleShape`：`SQUARE` / `CIRCLE` / `ROUNDED`，仅 QR Code 生效。
+- `moduleFillRatio`（0~1）：QR Code 数据模块填充比例，越小点之间间距越大，圆点/圆角模式生效。
+- `positionPatternShape`：`SQUARE` / `CIRCLE` / `FOLLOW_MODULE`，QR Code 定位点形状；`CIRCLE` 为同心圆环。
+- `gradientAngle`（0°~360°）：任意方向渐变角度。
+- `gradientStops`：最多 5 个渐变节点，支持多色渐变；仅 QR Code 与 1D/2D 前景填充生效。
+- `ecLevel`：QR Code 纠错等级。
 
 ### 扫描入口
 
