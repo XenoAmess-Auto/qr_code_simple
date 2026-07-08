@@ -188,6 +188,12 @@
     <string name="foreground_image">前景图片</string>
     <string name="background_image">背景图片</string>
     <string name="crop_image">裁剪图片</string>
+    <string name="crop_ratio_free">自由</string>
+    <string name="crop_ratio_square">正方形</string>
+    <string name="crop_ratio_4_3">4:3</string>
+    <string name="crop_ratio_3_4">3:4</string>
+    <string name="crop_ratio_16_9">16:9</string>
+    <string name="crop_ratio_9_16">9:16</string>
     <string name="corner_radius">圆角半径</string>
     <string name="corner_radius_hint">为条码图片添加外圆角</string>
     <string name="logo_scale">Logo 缩放</string>
