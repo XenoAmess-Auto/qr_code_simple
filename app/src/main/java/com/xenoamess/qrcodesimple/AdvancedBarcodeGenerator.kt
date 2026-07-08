@@ -89,7 +89,7 @@ object AdvancedBarcodeGenerator {
             drawLogoOnBitmap(output, logo, logoRect)
         }
 
-        return output
+        return applyOuterCornerRadius(output, styleConfig)
     }
 
     private fun fillBackground(bitmap: Bitmap, styleConfig: StyleConfig) {

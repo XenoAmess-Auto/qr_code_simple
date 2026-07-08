@@ -187,6 +187,7 @@
     <string name="custom_image">自定义图片</string>
     <string name="foreground_image">前景图片</string>
     <string name="background_image">背景图片</string>
+    <string name="crop_image">裁剪图片</string>
     <string name="corner_radius">圆角半径</string>
     <string name="corner_radius_hint">为条码图片添加外圆角</string>
     <string name="logo_scale">Logo 缩放</string>

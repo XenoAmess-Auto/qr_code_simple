@@ -26,6 +26,7 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentGenerateBinding
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -52,6 +53,11 @@ class GenerateFragment : Fragment() {
     private var foregroundImageBitmap: Bitmap? = null
     private var backgroundImageBitmap: Bitmap? = null
     private var validationJob: Job? = null
+    private var pendingImageType: ImageType? = null
+
+    private enum class ImageType {
+        FOREGROUND, BACKGROUND
+    }
 
     companion object {
         private const val TAG = "GenerateFragment"
@@ -72,23 +78,69 @@ class GenerateFragment : Fragment() {
     private val pickForegroundImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { loadImage(it, MAX_STYLE_IMAGE_PX) { bitmap ->
-            foregroundImageBitmap = bitmap
-            updateImagePreview(binding.viewFgImagePreview, bitmap)
-            binding.btnRemoveForegroundImage.visibility = View.VISIBLE
-            generateBarcode()
-        } }
+        uri?.let {
+            pendingImageType = ImageType.FOREGROUND
+            launchCrop(it, createCropDestination("fg"))
+        }
     }
 
     private val pickBackgroundImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { loadImage(it, MAX_STYLE_IMAGE_PX) { bitmap ->
-            backgroundImageBitmap = bitmap
-            updateImagePreview(binding.viewBgImagePreview, bitmap)
-            binding.btnRemoveBackgroundImage.visibility = View.VISIBLE
-            generateBarcode()
-        } }
+        uri?.let {
+            pendingImageType = ImageType.BACKGROUND
+            launchCrop(it, createCropDestination("bg"))
+        }
+    }
+
+    private val cropLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val type = pendingImageType ?: return@registerForActivityResult
+        val resultUri = UCrop.getOutput(result.data ?: return@registerForActivityResult)
+        if (result.resultCode == android.app.Activity.RESULT_OK && resultUri != null) {
+            loadImage(resultUri, MAX_STYLE_IMAGE_PX) { bitmap ->
+                when (type) {
+                    ImageType.FOREGROUND -> {
+                        foregroundImageBitmap = bitmap
+                        selectedStyle = selectedStyle.copy(foregroundBitmap = bitmap)
+                        updateImagePreview(binding.viewFgImagePreview, bitmap)
+                        binding.btnRemoveForegroundImage.visibility = View.VISIBLE
+                    }
+                    ImageType.BACKGROUND -> {
+                        backgroundImageBitmap = bitmap
+                        selectedStyle = selectedStyle.copy(backgroundBitmap = bitmap)
+                        updateImagePreview(binding.viewBgImagePreview, bitmap)
+                        binding.btnRemoveBackgroundImage.visibility = View.VISIBLE
+                    }
+                }
+                generateBarcode()
+            }
+        } else {
+            pendingImageType = null
+        }
+    }
+
+    private fun createCropDestination(prefix: String): Uri {
+        val file = File(requireContext().cacheDir, "$prefix-${System.currentTimeMillis()}.jpg")
+        return FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            file
+        )
+    }
+
+    private fun launchCrop(sourceUri: Uri, destinationUri: Uri) {
+        val options = UCrop.Options().apply {
+            setFreeStyleCropEnabled(true)
+            setCompressionQuality(100)
+            setHideBottomControls(false)
+            setToolbarTitle(getString(R.string.crop_image))
+        }
+        val intent = UCrop.of(sourceUri, destinationUri)
+            .withOptions(options)
+            .getIntent(requireContext())
+        cropLauncher.launch(intent)
     }
 
     override fun onCreateView(
@@ -163,7 +215,10 @@ class GenerateFragment : Fragment() {
             ColorPickerDialog().apply {
                 setInitialColor(selectedStyle.foregroundColor)
                 onColorSelected = { color ->
-                    selectedStyle = selectedStyle.copy(foregroundColor = color, foregroundBitmap = null)
+                    selectedStyle = selectedStyle.copy(foregroundColor = color)
+                    foregroundImageBitmap = null
+                    updateImagePreview(binding.viewFgImagePreview, null)
+                    binding.btnRemoveForegroundImage.visibility = View.GONE
                     updateColorPreviews()
                     generateBarcode()
                 }
@@ -173,7 +228,10 @@ class GenerateFragment : Fragment() {
             ColorPickerDialog().apply {
                 setInitialColor(selectedStyle.backgroundColor)
                 onColorSelected = { color ->
-                    selectedStyle = selectedStyle.copy(backgroundColor = color, backgroundBitmap = null)
+                    selectedStyle = selectedStyle.copy(backgroundColor = color)
+                    backgroundImageBitmap = null
+                    updateImagePreview(binding.viewBgImagePreview, null)
+                    binding.btnRemoveBackgroundImage.visibility = View.GONE
                     updateColorPreviews()
                     generateBarcode()
                 }
@@ -218,10 +276,13 @@ class GenerateFragment : Fragment() {
     }
 
     private fun applyColorScheme(scheme: AdvancedBarcodeGenerator.StyleConfig) {
-        selectedStyle = scheme.copy(
-            foregroundBitmap = foregroundImageBitmap,
-            backgroundBitmap = backgroundImageBitmap
-        )
+        selectedStyle = scheme
+        foregroundImageBitmap = null
+        backgroundImageBitmap = null
+        updateImagePreview(binding.viewFgImagePreview, null)
+        updateImagePreview(binding.viewBgImagePreview, null)
+        binding.btnRemoveForegroundImage.visibility = View.GONE
+        binding.btnRemoveBackgroundImage.visibility = View.GONE
         updateColorPreviews()
         generateBarcode()
     }

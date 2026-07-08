@@ -275,6 +275,7 @@
     <string name="custom_image">Custom Image</string>
     <string name="foreground_image">Foreground Image</string>
     <string name="background_image">Background Image</string>
+    <string name="crop_image">Crop Image</string>
     <string name="corner_radius">Corner Radius</string>
     <string name="corner_radius_hint">Rounds the outer corners of the barcode image</string>
     <string name="logo_scale">Logo Scale</string>
