@@ -80,6 +80,7 @@ class GenerateFragment : Fragment() {
         uri?.let { loadImage(it, MAX_LOGO_PX) { bitmap ->
             logoBitmap = bitmap
             updateImagePreview(binding.ivLogoPreview, bitmap)
+            binding.logoScaleSection.visibility = View.VISIBLE
             generateBarcode()
         } }
     }
@@ -320,6 +321,7 @@ class GenerateFragment : Fragment() {
             logoBitmap = null
             binding.ivLogoPreview.setImageBitmap(null)
             binding.ivLogoPreview.visibility = View.GONE
+            binding.logoScaleSection.visibility = View.GONE
             generateBarcode()
         }
     }
@@ -357,27 +359,18 @@ class GenerateFragment : Fragment() {
 
     private fun createDonutDrawable(bg: Int, fg: Int, innerRadius: Int): android.graphics.drawable.Drawable {
         val size = innerRadius * 6
-        val cx = size / 2f
-        val cy = size / 2f
-        val radius = size / 2f
+        val corner = (size * 0.2f)
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
 
-        // 外圈：背景色填充
+        // 外框：背景色填充的圆角矩形
         val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = bg }
-        canvas.drawCircle(cx, cy, radius, bgPaint)
+        canvas.drawRoundRect(0f, 0f, size.toFloat(), size.toFloat(), corner, corner, bgPaint)
 
-        // 中心圆：前景色
+        // 中心方块：前景色的圆角矩形
+        val innerMargin = size * 0.25f
         val fgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = fg }
-        canvas.drawCircle(cx, cy, innerRadius.toFloat(), fgPaint)
-
-        // 圆环边缘线
-        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = 1f
-            color = if (android.graphics.Color.luminance(bg) > 0.5f) Color.argb(40, 0, 0, 0) else Color.argb(40, 255, 255, 255)
-        }
-        canvas.drawCircle(cx, cy, radius - 0.5f, strokePaint)
+        canvas.drawRoundRect(innerMargin, innerMargin, size - innerMargin, size - innerMargin, corner * 0.5f, corner * 0.5f, fgPaint)
 
         return android.graphics.drawable.BitmapDrawable(resources, bmp)
     }
@@ -483,10 +476,7 @@ class GenerateFragment : Fragment() {
     private fun generateBarcode() {
         val ctx = context ?: return
         val content = binding.etContent.text?.toString()?.trim()
-        if (content.isNullOrEmpty()) {
-            Toast.makeText(ctx, getString(R.string.please_enter_content), Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (content.isNullOrEmpty()) return
 
         // 每次重新生成前清除之前的告警/成功标记
         binding.tvGenerationWarning.apply {
@@ -497,7 +487,12 @@ class GenerateFragment : Fragment() {
 
         val validation = BarcodeGenerator.validateContent(content, selectedFormat)
         if (!validation.isValid) {
-            Toast.makeText(ctx, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_LONG).show()
+            binding.tvGenerationWarning.apply {
+                text = validation.errorMessage ?: getString(R.string.invalid_content_for_format)
+                background = resources.getDrawable(R.drawable.bg_warning, null)
+                setTextColor(resources.getColor(R.color.yellow_700, null))
+                visibility = View.VISIBLE
+            }
             return
         }
 
