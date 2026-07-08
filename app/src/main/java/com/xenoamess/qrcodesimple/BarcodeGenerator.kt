@@ -38,7 +38,8 @@ object BarcodeGenerator {
         val width: Int = 600,
         val height: Int = 600,
         val foregroundColor: Int = Color.BLACK,
-        val backgroundColor: Int = Color.WHITE
+        val backgroundColor: Int = Color.WHITE,
+        val ecLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.H
     )
 
     fun generate(content: String, config: BarcodeConfig): Bitmap? {
@@ -117,7 +118,7 @@ object BarcodeGenerator {
 
     private fun generateQRCode(content: String, config: BarcodeConfig): Bitmap {
         val hints = hashMapOf(
-            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H,
+            EncodeHintType.ERROR_CORRECTION to config.ecLevel,
             EncodeHintType.CHARACTER_SET to "UTF-8",
             EncodeHintType.MARGIN to 2
         )

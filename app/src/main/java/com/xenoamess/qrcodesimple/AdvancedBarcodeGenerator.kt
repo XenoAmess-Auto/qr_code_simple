@@ -33,7 +33,8 @@ object AdvancedBarcodeGenerator {
         val logoScale: Float = 0.2f,
         val gradientStartColor: Int? = null,
         val gradientEndColor: Int? = null,
-        val gradientDirection: GradientDirection = GradientDirection.HORIZONTAL
+        val gradientDirection: GradientDirection = GradientDirection.HORIZONTAL,
+        val ecLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.H
     )
 
     enum class GradientDirection {
@@ -59,7 +60,7 @@ object AdvancedBarcodeGenerator {
 
     private fun generateStyledQR(content: String, size: Int, styleConfig: StyleConfig): Bitmap {
         val hints = hashMapOf(
-            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H,
+            EncodeHintType.ERROR_CORRECTION to styleConfig.ecLevel,
             EncodeHintType.CHARACTER_SET to "UTF-8",
             EncodeHintType.MARGIN to 2
         )

@@ -181,6 +181,11 @@
     <!-- Barcode Style -->
     <string name="style">样式</string>
     <string name="color_scheme">配色方案</string>
+    <string name="ec_level">纠错等级</string>
+    <string name="ec_level_l">L</string>
+    <string name="ec_level_m">M</string>
+    <string name="ec_level_q">Q</string>
+    <string name="ec_level_h">H</string>
     <string name="foreground_color">前景色</string>
     <string name="background_color">背景色</string>
     <string name="custom_color">自定义</string>

@@ -4,8 +4,11 @@ import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -21,7 +24,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.flexbox.FlexboxLayout
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.slider.Slider
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
@@ -217,14 +224,21 @@ class GenerateFragment : Fragment() {
     }
 
     private fun setupStyleControls() {
-        binding.btnColorClassic.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.CLASSIC) }
-        binding.btnColorBlue.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.BLUE) }
-        binding.btnColorGreen.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.GREEN) }
-        binding.btnColorRed.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.RED) }
-        binding.btnColorPurple.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.PURPLE) }
-        binding.btnColorOrange.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.ORANGE) }
-        binding.btnColorDark.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.DARK) }
-        binding.btnColorCyan.setOnClickListener { applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.CYAN) }
+        // ECL 纠错等级切换
+        binding.toggleEcLevel.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val ecLevel = when (checkedId) {
+                R.id.btnEcL -> ErrorCorrectionLevel.L
+                R.id.btnEcM -> ErrorCorrectionLevel.M
+                R.id.btnEcQ -> ErrorCorrectionLevel.Q
+                else -> ErrorCorrectionLevel.H
+            }
+            selectedStyle = selectedStyle.copy(ecLevel = ecLevel)
+            generateBarcode()
+        }
+
+        // 双色方案按钮：外圈=背景色，中心圆=前景色
+        buildSchemeButtons()
 
         binding.seekBarCornerRadius.addOnChangeListener { _, value, _ ->
             cornerRadius = value / 100f
@@ -234,6 +248,8 @@ class GenerateFragment : Fragment() {
             override fun onStartTrackingTouch(slider: Slider) {}
             override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
         })
+
+        // ... rest unchanged ...
 
         binding.seekBarLogoScale.addOnChangeListener { _, value, _ ->
             logoScale = value / 100f
@@ -306,6 +322,64 @@ class GenerateFragment : Fragment() {
             binding.ivLogoPreview.visibility = View.GONE
             generateBarcode()
         }
+    }
+
+    private fun buildSchemeButtons() {
+        val schemes = listOf(
+            AdvancedBarcodeGenerator.ColorSchemes.CLASSIC,
+            AdvancedBarcodeGenerator.ColorSchemes.BLUE,
+            AdvancedBarcodeGenerator.ColorSchemes.GREEN,
+            AdvancedBarcodeGenerator.ColorSchemes.RED,
+            AdvancedBarcodeGenerator.ColorSchemes.PURPLE,
+            AdvancedBarcodeGenerator.ColorSchemes.ORANGE,
+            AdvancedBarcodeGenerator.ColorSchemes.CYAN,
+            AdvancedBarcodeGenerator.ColorSchemes.DARK
+        )
+        val container = binding.schemeContainer
+        container.removeAllViews()
+        val size = (resources.displayMetrics.density * 48).toInt()
+        val innerRadius = (resources.displayMetrics.density * 12).toInt()
+        val margin = (resources.displayMetrics.density * 4).toInt()
+
+        for (scheme in schemes) {
+            val view = View(requireContext()).apply {
+                layoutParams = FlexboxLayout.LayoutParams(size, size).apply {
+                    setMargins(margin, margin, margin, margin)
+                }
+                background = createDonutDrawable(scheme.backgroundColor, scheme.foregroundColor, innerRadius)
+                setOnClickListener { applyColorScheme(scheme) }
+                isClickable = true
+                isFocusable = true
+            }
+            container.addView(view)
+        }
+    }
+
+    private fun createDonutDrawable(bg: Int, fg: Int, innerRadius: Int): android.graphics.drawable.Drawable {
+        val size = innerRadius * 6
+        val cx = size / 2f
+        val cy = size / 2f
+        val radius = size / 2f
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+
+        // 外圈：背景色填充
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = bg }
+        canvas.drawCircle(cx, cy, radius, bgPaint)
+
+        // 中心圆：前景色
+        val fgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = fg }
+        canvas.drawCircle(cx, cy, innerRadius.toFloat(), fgPaint)
+
+        // 圆环边缘线
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1f
+            color = if (android.graphics.Color.luminance(bg) > 0.5f) Color.argb(40, 0, 0, 0) else Color.argb(40, 255, 255, 255)
+        }
+        canvas.drawCircle(cx, cy, radius - 0.5f, strokePaint)
+
+        return android.graphics.drawable.BitmapDrawable(resources, bmp)
     }
 
     private fun applyColorScheme(scheme: AdvancedBarcodeGenerator.StyleConfig) {

@@ -71,89 +71,69 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/ec_level"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="4dp" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleEcLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:singleSelection="true"
+                    app:checkedButton="@+id/btnEcH">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEcL"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/ec_level_l"
+                        style="?attr/materialButtonOutlinedStyle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEcM"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/ec_level_m"
+                        style="?attr/materialButtonOutlinedStyle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEcQ"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/ec_level_q"
+                        style="?attr/materialButtonOutlinedStyle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEcH"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/ec_level_h"
+                        style="?attr/materialButtonOutlinedStyle" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="@string/color_scheme"
                     android:textSize="12sp"
                     android:layout_marginBottom="8dp" />
 
-                <GridLayout
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/schemeContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="4"
-                    android:layout_marginBottom="16dp">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorClassic"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="@android:color/black"
-                        android:text="" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorBlue"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#1976D2"
-                        android:text="" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorGreen"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#388E3C"
-                        android:text="" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorRed"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#D32F2F"
-                        android:text="" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorPurple"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#7B1FA2"
-                        android:text="" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorOrange"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#F57C00"
-                        android:text="" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorCyan"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#00BCD4"
-                        android:text="" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnColorDark"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="2dp"
-                        android:backgroundTint="#212121"
-                        android:text="" />
-
-                </GridLayout>
+                    android:layout_marginBottom="16dp"
+                    app:flexWrap="wrap"
+                    app:alignItems="center"
+                    app:alignContent="flex_start"
+                    app:justifyContent="flex_start"
+                    app:flexDirection="row" />
 
                 <TextView
                     android:layout_width="match_parent"

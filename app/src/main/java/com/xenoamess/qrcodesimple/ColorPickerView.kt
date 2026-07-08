@@ -13,7 +13,7 @@ import android.view.MotionEvent
 import android.view.View
 
 /**
- * 色谱式颜色选取器：上方 SV（饱和度/明度）方格 + 下方 Hue 色相条。
+ * 色谱式颜色选取器：上方 SV（饱和度/明度）方格 + 中间 Hue 色相条 + 下方 Alpha 透明度条。
  * 通过 [currentColor] 读取当前选中颜色。
  */
 class ColorPickerView @JvmOverloads constructor(
@@ -24,6 +24,7 @@ class ColorPickerView @JvmOverloads constructor(
 
     private val svPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val huePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val alphaPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val thumbPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = 4f
@@ -37,15 +38,18 @@ class ColorPickerView @JvmOverloads constructor(
 
     private var svBitmap: Bitmap? = null
     private var hueBitmap: Bitmap? = null
+    private var alphaBitmap: Bitmap? = null
 
     private val svRect = RectF()
     private val hueRect = RectF()
-    private val gap = 24f
-    private val hueHeight = 56f
+    private val alphaRect = RectF()
+    private val gap = 16f
+    private val barHeight = 48f
     private val radius = 12f
 
     /** HSV 值：[0]=hue(0..360), [1]=sat(0..1), [2]=val(0..1) */
     private val hsv = floatArrayOf(0f, 1f, 1f)
+    private var currentAlpha: Int = 255
 
     var onColorChanged: ((Int) -> Unit)? = null
 
@@ -54,7 +58,9 @@ class ColorPickerView @JvmOverloads constructor(
 
     fun setColor(color: Int) {
         Color.colorToHSV(color, hsv)
+        currentAlpha = Color.alpha(color)
         rebuildSvBitmap()
+        rebuildAlphaBitmap()
         invalidate()
     }
 
@@ -63,11 +69,13 @@ class ColorPickerView @JvmOverloads constructor(
         val left = 0f
         val top = 0f
         val right = w.toFloat()
-        val svBottom = (h - hueHeight - gap).coerceAtLeast(0f)
+        val svBottom = (h - barHeight * 2 - gap * 2).coerceAtLeast(0f)
         svRect.set(left, top, right, svBottom)
-        hueRect.set(left, svBottom + gap, right, svBottom + gap + hueHeight)
+        hueRect.set(left, svBottom + gap, right, svBottom + gap + barHeight)
+        alphaRect.set(left, hueRect.bottom + gap, right, hueRect.bottom + gap + barHeight)
         rebuildSvBitmap()
         rebuildHueBitmap()
+        rebuildAlphaBitmap()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -88,6 +96,14 @@ class ColorPickerView @JvmOverloads constructor(
         val hx = hueRect.left + (hsv[0] / 360f) * hueRect.width()
         canvas.drawCircle(hx, hueRect.centerY(), 14f, thumbShadowPaint)
         canvas.drawCircle(hx, hueRect.centerY(), 12f, thumbPaint)
+
+        alphaBitmap?.let { bmp ->
+            canvas.drawBitmap(bmp, null, alphaRect, alphaPaint)
+        }
+        // Alpha 选择圈
+        val ax = alphaRect.left + (currentAlpha / 255f) * alphaRect.width()
+        canvas.drawCircle(ax, alphaRect.centerY(), 14f, thumbShadowPaint)
+        canvas.drawCircle(ax, alphaRect.centerY(), 12f, thumbPaint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -107,6 +123,12 @@ class ColorPickerView @JvmOverloads constructor(
                     val h = ((x - hueRect.left) / hueRect.width()).coerceIn(0f, 1f) * 360f
                     hsv[0] = h
                     rebuildSvBitmap()
+                    rebuildAlphaBitmap()
+                    updateColor()
+                    invalidate()
+                    return true
+                } else if (alphaRect.contains(x, y)) {
+                    currentAlpha = ((x - alphaRect.left) / alphaRect.width() * 255f).coerceIn(0f, 255f).toInt()
                     updateColor()
                     invalidate()
                     return true
@@ -117,7 +139,7 @@ class ColorPickerView @JvmOverloads constructor(
     }
 
     private fun updateColor() {
-        currentColor = Color.HSVToColor(hsv)
+        currentColor = Color.HSVToColor(currentAlpha, hsv)
         onColorChanged?.invoke(currentColor)
     }
 
@@ -130,8 +152,6 @@ class ColorPickerView @JvmOverloads constructor(
         val hueRgb = Color.HSVToColor(floatArrayOf(hsv[0], 1f, 1f))
         val white = Color.WHITE
         val black = Color.BLACK
-        // 逐列画白→纯色渐变（饱和度），再逐行叠透明黑（明度）
-        // 用纯色填充+两层渐变更直观：先画白→纯色横渐变，再画上→下透明黑纵渐变
         val canvas = Canvas(bmp)
         val satShader = LinearGradient(0f, 0f, w.toFloat(), 0f, white, hueRgb, Shader.TileMode.CLAMP)
         val satPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { shader = satShader }
@@ -159,6 +179,22 @@ class ColorPickerView @JvmOverloads constructor(
         canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), paint)
         hueBitmap?.recycle()
         hueBitmap = bmp
+    }
+
+    private fun rebuildAlphaBitmap() {
+        if (alphaRect.width() <= 0) return
+        val w = alphaRect.width().toInt()
+        val h = alphaRect.height().toInt()
+        if (w <= 0 || h <= 0) return
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        val pureColor = Color.HSVToColor(hsv)
+        val transparent = pureColor and 0x00FFFFFF
+        val shader = LinearGradient(0f, 0f, w.toFloat(), 0f, transparent, pureColor, Shader.TileMode.CLAMP)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).also { it.shader = shader }
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), paint)
+        alphaBitmap?.recycle()
+        alphaBitmap = bmp
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
