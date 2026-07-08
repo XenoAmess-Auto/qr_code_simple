@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
@@ -13,6 +14,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.min
 import kotlin.math.sin
 
 /**
@@ -76,8 +78,7 @@ object AdvancedBarcodeGenerator {
     private fun generateStyledQR(content: String, size: Int, styleConfig: StyleConfig): Bitmap {
         val hints = hashMapOf(
             EncodeHintType.ERROR_CORRECTION to styleConfig.ecLevel,
-            EncodeHintType.CHARACTER_SET to "UTF-8",
-            EncodeHintType.MARGIN to 2
+            EncodeHintType.CHARACTER_SET to "UTF-8"
         )
 
         val writer = com.google.zxing.qrcode.QRCodeWriter()
@@ -87,27 +88,28 @@ object AdvancedBarcodeGenerator {
         fillBackground(output, styleConfig)
 
         val logoRect = computeLogoRect(output, styleConfig)
-        val cellSize = size.toFloat() / bitMatrix.width
+        val moduleLayout = computeModuleLayout(bitMatrix, size)
         val gradientBounds = computeGradientBounds(output.width, output.height, styleConfig)
 
+        // 定位图案
         val patternPositions = listOf(
             Pair(0, 0),
-            Pair(bitMatrix.width - 7, 0),
-            Pair(0, bitMatrix.height - 7)
+            Pair(moduleLayout.qrDimension - 7, 0),
+            Pair(0, moduleLayout.qrDimension - 7)
         )
         for ((px, py) in patternPositions) {
-            drawPositionPattern(output, bitMatrix, px, py, cellSize, styleConfig, logoRect, gradientBounds)
+            drawPositionPattern(output, px, py, moduleLayout, styleConfig, logoRect, gradientBounds)
         }
 
-        for (x in 0 until bitMatrix.width) {
-            for (y in 0 until bitMatrix.height) {
-                if (isPositionPatternCell(x, y, bitMatrix.width, bitMatrix.height)) continue
-                if (bitMatrix.get(x, y)) {
-                    val startX = (x * cellSize).toInt()
-                    val endX = ((x + 1) * cellSize).toInt().coerceAtMost(size)
-                    val startY = (y * cellSize).toInt()
-                    val endY = ((y + 1) * cellSize).toInt().coerceAtMost(size)
-                    fillModule(output, startX, endX, startY, endY, cellSize, x, y, styleConfig, logoRect, gradientBounds)
+        // 数据模块
+        for (mx in 0 until moduleLayout.qrDimension) {
+            for (my in 0 until moduleLayout.qrDimension) {
+                if (isPositionPatternCell(mx, my, moduleLayout.qrDimension)) continue
+                if (bitMatrix.get(
+                        moduleLayout.leftPadding + (mx * moduleLayout.moduleSize).toInt(),
+                        moduleLayout.topPadding + (my * moduleLayout.moduleSize).toInt()
+                    )) {
+                    drawModule(output, mx, my, moduleLayout, styleConfig, logoRect, gradientBounds)
                 }
             }
         }
@@ -119,18 +121,63 @@ object AdvancedBarcodeGenerator {
         return applyOuterCornerRadius(output, styleConfig)
     }
 
-    private fun isPositionPatternCell(x: Int, y: Int, width: Int, height: Int): Boolean {
-        return (x in 0..6 && y in 0..6) ||
-                (x in (width - 7) until width && y in 0..6) ||
-                (x in 0..6 && y in (height - 7) until height)
+    private data class ModuleLayout(
+        val moduleSize: Float,
+        val leftPadding: Int,
+        val topPadding: Int,
+        val qrDimension: Int
+    )
+
+    private fun computeModuleLayout(bitMatrix: com.google.zxing.common.BitMatrix, outputSize: Int): ModuleLayout {
+        // 找到第一个包含黑点的行，该行第一个连续黑区就是定位图案外环，宽度 = 7 * moduleSize
+        var firstBlackRow = -1
+        for (y in 0 until bitMatrix.height) {
+            for (x in 0 until bitMatrix.width) {
+                if (bitMatrix.get(x, y)) {
+                    firstBlackRow = y
+                    break
+                }
+            }
+            if (firstBlackRow != -1) break
+        }
+
+        var startX = -1
+        var endX = -1
+        if (firstBlackRow != -1) {
+            for (x in 0 until bitMatrix.width) {
+                if (bitMatrix.get(x, firstBlackRow)) {
+                    if (startX == -1) startX = x
+                } else {
+                    if (startX != -1) {
+                        endX = x
+                        break
+                    }
+                }
+            }
+        }
+
+        val moduleSize = if (startX != -1 && endX != -1 && endX > startX) {
+            (endX - startX) / 7f
+        } else {
+            outputSize.toFloat() / bitMatrix.width
+        }
+        val leftPadding = if (startX != -1) startX else 0
+        val topPadding = if (firstBlackRow != -1) firstBlackRow else 0
+        val qrDimension = ((bitMatrix.width - 2 * leftPadding) / moduleSize).toInt()
+        return ModuleLayout(moduleSize, leftPadding, topPadding, qrDimension.coerceAtLeast(1))
+    }
+
+    private fun isPositionPatternCell(mx: Int, my: Int, qrDimension: Int): Boolean {
+        return (mx in 0..6 && my in 0..6) ||
+                (mx in (qrDimension - 7) until qrDimension && my in 0..6) ||
+                (mx in 0..6 && my in (qrDimension - 7) until qrDimension)
     }
 
     private fun drawPositionPattern(
         output: Bitmap,
-        bitMatrix: com.google.zxing.common.BitMatrix,
         px: Int,
         py: Int,
-        cellSize: Float,
+        layout: ModuleLayout,
         styleConfig: StyleConfig,
         logoRect: Rect?,
         gradientBounds: GradientBounds
@@ -139,24 +186,24 @@ object AdvancedBarcodeGenerator {
             PositionPatternShape.SQUARE -> {
                 for (x in 0 until 7) {
                     for (y in 0 until 7) {
-                        if (bitMatrix.get(px + x, py + y)) {
-                            fillCell(output, px + x, py + y, cellSize, styleConfig, logoRect, gradientBounds)
+                        if (isPositionPatternDark(x, y)) {
+                            drawModule(output, px + x, py + y, layout, styleConfig, logoRect, gradientBounds)
                         }
                     }
                 }
             }
             PositionPatternShape.CIRCLE -> {
-                val startX = (px * cellSize).toInt()
-                val endX = ((px + 7) * cellSize).toInt().coerceAtMost(output.width)
-                val startY = (py * cellSize).toInt()
-                val endY = ((py + 7) * cellSize).toInt().coerceAtMost(output.height)
-                val centerX = (px + 3.5f) * cellSize
-                val centerY = (py + 3.5f) * cellSize
+                val startX = layout.leftPadding + (px * layout.moduleSize).toInt()
+                val endX = (layout.leftPadding + ((px + 7) * layout.moduleSize)).toInt().coerceAtMost(output.width)
+                val startY = layout.topPadding + (py * layout.moduleSize).toInt()
+                val endY = (layout.topPadding + ((py + 7) * layout.moduleSize)).toInt().coerceAtMost(output.height)
+                val centerX = layout.leftPadding + (px + 3.5f) * layout.moduleSize
+                val centerY = layout.topPadding + (py + 3.5f) * layout.moduleSize
 
                 for (x in startX until endX) {
                     for (y in startY until endY) {
                         if (logoRect?.contains(x, y) == true) continue
-                        val dist = hypot(x + 0.5f - centerX, y + 0.5f - centerY) / cellSize
+                        val dist = hypot(x + 0.5f - centerX, y + 0.5f - centerY) / layout.moduleSize
                         when {
                             dist <= 1.5f -> output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
                             dist <= 2.5f -> output.setPixel(x, y, resolveBackgroundColor(x, y, output.width, output.height, styleConfig))
@@ -168,12 +215,8 @@ object AdvancedBarcodeGenerator {
             PositionPatternShape.FOLLOW_MODULE -> {
                 for (x in 0 until 7) {
                     for (y in 0 until 7) {
-                        if (bitMatrix.get(px + x, py + y)) {
-                            val startX = ((px + x) * cellSize).toInt()
-                            val endX = ((px + x + 1) * cellSize).toInt().coerceAtMost(output.width)
-                            val startY = ((py + y) * cellSize).toInt()
-                            val endY = ((py + y + 1) * cellSize).toInt().coerceAtMost(output.height)
-                            fillModule(output, startX, endX, startY, endY, cellSize, px + x, py + y, styleConfig, logoRect, gradientBounds)
+                        if (isPositionPatternDark(x, y)) {
+                            drawModule(output, px + x, py + y, layout, styleConfig, logoRect, gradientBounds)
                         }
                     }
                 }
@@ -181,43 +224,26 @@ object AdvancedBarcodeGenerator {
         }
     }
 
-    private fun fillCell(
-        output: Bitmap,
-        cellX: Int,
-        cellY: Int,
-        cellSize: Float,
-        styleConfig: StyleConfig,
-        logoRect: Rect?,
-        gradientBounds: GradientBounds
-    ) {
-        val startX = (cellX * cellSize).toInt()
-        val endX = ((cellX + 1) * cellSize).toInt().coerceAtMost(output.width)
-        val startY = (cellY * cellSize).toInt()
-        val endY = ((cellY + 1) * cellSize).toInt().coerceAtMost(output.height)
-        for (x in startX until endX) {
-            for (y in startY until endY) {
-                if (logoRect?.contains(x, y) == true) continue
-                output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
-            }
-        }
+    private fun isPositionPatternDark(x: Int, y: Int): Boolean {
+        return (x == 0 || x == 6 || y == 0 || y == 6) || (x in 2..4 && y in 2..4)
     }
 
-    private fun fillModule(
+    private fun drawModule(
         output: Bitmap,
-        startX: Int,
-        endX: Int,
-        startY: Int,
-        endY: Int,
-        cellSize: Float,
-        cellX: Int,
-        cellY: Int,
+        mx: Int,
+        my: Int,
+        layout: ModuleLayout,
         styleConfig: StyleConfig,
         logoRect: Rect?,
         gradientBounds: GradientBounds
     ) {
-        val cx = (cellX + 0.5f) * cellSize
-        val cy = (cellY + 0.5f) * cellSize
-        val radius = cellSize * styleConfig.moduleFillRatio.coerceIn(0.01f, 1f) / 2f
+        val startX = layout.leftPadding + (mx * layout.moduleSize).toInt()
+        val endX = (layout.leftPadding + ((mx + 1) * layout.moduleSize)).toInt().coerceAtMost(output.width)
+        val startY = layout.topPadding + (my * layout.moduleSize).toInt()
+        val endY = (layout.topPadding + ((my + 1) * layout.moduleSize)).toInt().coerceAtMost(output.height)
+        val cx = layout.leftPadding + (mx + 0.5f) * layout.moduleSize
+        val cy = layout.topPadding + (my + 0.5f) * layout.moduleSize
+        val radius = layout.moduleSize * styleConfig.moduleFillRatio.coerceIn(0.01f, 1f) / 2f
         val cornerRadius = if (styleConfig.moduleShape == ModuleShape.ROUNDED) radius else 0f
 
         for (x in startX until endX) {
@@ -313,7 +339,7 @@ object AdvancedBarcodeGenerator {
     private fun applyOuterCornerRadius(bitmap: Bitmap, styleConfig: StyleConfig): Bitmap {
         val ratio = styleConfig.cornerRadius.coerceIn(0f, 1f)
         if (ratio <= 0f) return bitmap
-        val maxRadius = minOf(bitmap.width, bitmap.height) / 2f
+        val maxRadius = min(bitmap.width, bitmap.height) / 2f
         val radiusPx = ratio * maxRadius
         return addRoundedCorners(bitmap, radiusPx)
     }

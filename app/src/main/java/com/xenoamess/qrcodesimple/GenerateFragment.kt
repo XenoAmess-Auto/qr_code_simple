@@ -53,7 +53,7 @@ class GenerateFragment : Fragment() {
 
     private var _binding: FragmentGenerateBinding? = null
     private val binding get() = _binding!!
-    private var currentBitmap: Bitmap? = null
+    internal var currentBitmap: Bitmap? = null
     private lateinit var historyRepository: HistoryRepository
     private var lastGeneratedContent: String? = null
     private var lastGeneratedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
@@ -69,6 +69,7 @@ class GenerateFragment : Fragment() {
     private var positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
     private var gradientAngle = 0f
     private var gradientStops = mutableListOf<AdvancedBarcodeGenerator.ColorStop>()
+    private var gradientEnabled = false
     private var validationJob: Job? = null
     private var pendingImageType: ImageType? = null
 
@@ -292,6 +293,21 @@ class GenerateFragment : Fragment() {
             generateBarcode()
         }
 
+        // 渐变开关
+        binding.switchGradient.setOnCheckedChangeListener { _, isChecked ->
+            gradientEnabled = isChecked
+            if (isChecked && gradientStops.size < 2) {
+                gradientStops.addAll(listOf(
+                    AdvancedBarcodeGenerator.ColorStop(0f, selectedStyle.foregroundColor),
+                    AdvancedBarcodeGenerator.ColorStop(1f, selectedStyle.backgroundColor)
+                ))
+            }
+            updateGradientControlsVisibility()
+            buildGradientStopViews()
+            updateGradientPreview()
+            generateBarcode()
+        }
+
         // 渐变方向
         binding.angleDial.onAngleChanged = { degrees ->
             gradientAngle = degrees
@@ -493,6 +509,7 @@ class GenerateFragment : Fragment() {
         gradientAngle = scheme.gradientAngle
         gradientStops.clear()
         gradientStops.addAll(scheme.gradientStops)
+        gradientEnabled = scheme.gradientStops.size >= 2
 
         updateColorPreviews()
         updateStyleControlUIs()
@@ -522,9 +539,15 @@ class GenerateFragment : Fragment() {
         binding.seekBarGradientAngle.value = gradientAngle
         binding.tvGradientAngleValue.text = "${gradientAngle.toInt()}°"
 
+        updateGradientControlsVisibility()
         buildGradientStopViews()
         updateGradientPreview()
         binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+    }
+
+    private fun updateGradientControlsVisibility() {
+        binding.switchGradient.isChecked = gradientEnabled
+        binding.gradientControlsContainer.visibility = if (gradientEnabled) View.VISIBLE else View.GONE
     }
 
     private fun buildGradientStopViews() {
@@ -546,15 +569,19 @@ class GenerateFragment : Fragment() {
                 }
                 background = ColorDrawable(stop.color)
                 setOnClickListener {
+                    if (!isAdded) return@setOnClickListener
+                    val tag = "gradient_stop_${index}_${System.currentTimeMillis()}"
                     ColorPickerDialog().apply {
                         setInitialColor(stop.color)
                         onColorSelected = { color ->
-                            gradientStops[index] = stop.copy(color = color)
-                            buildGradientStopViews()
-                            updateGradientPreview()
-                            generateBarcode()
+                            if (index < gradientStops.size) {
+                                gradientStops[index] = stop.copy(color = color)
+                                buildGradientStopViews()
+                                updateGradientPreview()
+                                generateBarcode()
+                            }
                         }
-                    }.show(parentFragmentManager, "gradient_stop_$index")
+                    }.show(parentFragmentManager, tag)
                 }
             }
 
@@ -606,15 +633,9 @@ class GenerateFragment : Fragment() {
     private fun updateGradientPreview() {
         val sorted = gradientStops.sortedBy { it.position }
         if (sorted.size >= 2) {
-            val colors = sorted.map { it.color }.toIntArray()
-            val positions = sorted.map { it.position }.toFloatArray()
             val drawable = GradientDrawable().apply {
                 orientation = GradientDrawable.Orientation.LEFT_RIGHT
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    setColors(colors, positions)
-                } else {
-                    setColors(colors)
-                }
+                colors = sorted.map { it.color }.toIntArray()
             }
             binding.viewGradientPreview.background = drawable
         } else {
@@ -742,7 +763,7 @@ class GenerateFragment : Fragment() {
                 moduleFillRatio = moduleFillRatio,
                 positionPatternShape = positionPatternShape,
                 gradientAngle = gradientAngle,
-                gradientStops = gradientStops.toList()
+                gradientStops = if (gradientEnabled) gradientStops.toList() else emptyList()
             )
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
             if (bitmap == null) {

@@ -257,6 +257,72 @@ class AdvancedBarcodeGeneratorTest {
     }
 
     @Test
+    fun `QR Code module shape changes bitmap appearance`() {
+        val content = "https://example.com"
+        val squareStyle = AdvancedBarcodeGenerator.StyleConfig(
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE,
+            moduleFillRatio = 1f
+        )
+        val circleStyle = AdvancedBarcodeGenerator.StyleConfig(
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
+            moduleFillRatio = 0.6f
+        )
+        val square = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, squareStyle)
+        val circle = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, circleStyle)
+        assertNotNull(square)
+        assertNotNull(circle)
+        var diff = 0
+        for (x in 0 until 200) {
+            for (y in 0 until 200) {
+                if (square!!.getPixel(x, y) != circle!!.getPixel(x, y)) diff++
+            }
+        }
+        assertTrue(diff > 100, "Circle modules should produce visibly different bitmap")
+    }
+
+    @Test
+    fun `QR Code position pattern shape changes bitmap appearance`() {
+        val content = "https://example.com"
+        val square = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, AdvancedBarcodeGenerator.StyleConfig(
+            positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+        ))
+        val circle = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, AdvancedBarcodeGenerator.StyleConfig(
+            positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
+        ))
+        assertNotNull(square)
+        assertNotNull(circle)
+        var diff = 0
+        for (x in 0 until 200) {
+            for (y in 0 until 200) {
+                if (square!!.getPixel(x, y) != circle!!.getPixel(x, y)) diff++
+            }
+        }
+        assertTrue(diff > 100, "Circle position patterns should produce visibly different bitmap")
+    }
+
+    @Test
+    fun `QR Code module fill ratio changes bitmap appearance`() {
+        val content = "https://example.com"
+        val small = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, AdvancedBarcodeGenerator.StyleConfig(
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
+            moduleFillRatio = 0.4f
+        ))
+        val large = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, AdvancedBarcodeGenerator.StyleConfig(
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
+            moduleFillRatio = 0.9f
+        ))
+        assertNotNull(small)
+        assertNotNull(large)
+        var diff = 0
+        for (x in 0 until 200) {
+            for (y in 0 until 200) {
+                if (small!!.getPixel(x, y) != large!!.getPixel(x, y)) diff++
+            }
+        }
+        assertTrue(diff > 100, "Different fill ratios should produce visibly different bitmap")
+    }
+
+    @Test
     fun `QR Code with logo scans back`() {
         val content = "https://example.com"
         val logo = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
