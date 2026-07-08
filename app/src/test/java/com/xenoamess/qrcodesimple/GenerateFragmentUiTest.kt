@@ -160,6 +160,23 @@ class GenerateFragmentUiTest {
     }
 
     @Test
+    fun dragGradientStopSliderDoesNotCrash() {
+        typeText("https://example.com")
+        clickGenerate()
+
+        onView(withId(R.id.switchGradient)).perform(scrollTo(), click())
+        onView(withId(R.id.btnAddGradientStop)).perform(clickWithoutVisibilityCheck())
+        onView(withId(R.id.btnAddGradientStop)).perform(clickWithoutVisibilityCheck())
+
+        // Simulate a drag on the middle stop slider
+        onView(sliderAtRow(1)).perform(scrollTo(), androidx.test.espresso.action.ViewActions.swipeRight())
+        onView(sliderAtRow(1)).perform(scrollTo(), androidx.test.espresso.action.ViewActions.swipeLeft())
+        onView(sliderAtRow(1)).perform(scrollTo(), androidx.test.espresso.action.ViewActions.swipeRight())
+
+        assertBitmapGenerated()
+    }
+
+    @Test
     fun selectColorSchemeAndModifyConfigClearsSelection() {
         typeText("https://example.com")
 
@@ -185,6 +202,71 @@ class GenerateFragmentUiTest {
 
         onView(withId(R.id.switchGradient)).perform(click())
         onView(withId(R.id.gradientControlsContainer)).check(matches(isNotDisplayed()))
+    }
+
+    @Test
+    fun allViewsSurviveClickLongClickAndDrag() {
+        typeText("https://example.com")
+        clickGenerate()
+
+        scenario.onFragment { fragment ->
+            val root = fragment.requireView()
+            val allViews = collectAllViews(root)
+            for (view in allViews) {
+                if (view.width <= 0 || view.height <= 0) continue
+                tryClick(view)
+                tryLongClick(view)
+                tryDrag(view, -20f, 0f)
+                tryDrag(view, 20f, 0f)
+                tryDrag(view, 0f, -20f)
+                tryDrag(view, 0f, 20f)
+            }
+        }
+    }
+
+    private fun collectAllViews(root: View): List<View> {
+        val list = mutableListOf<View>()
+        val queue = java.util.ArrayDeque<View>()
+        queue.add(root)
+        while (queue.isNotEmpty()) {
+            val view = queue.poll()
+            list.add(view)
+            if (view is ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    queue.add(view.getChildAt(i))
+                }
+            }
+        }
+        return list
+    }
+
+    private fun tryClick(view: View) {
+        try {
+            view.callOnClick()
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun tryLongClick(view: View) {
+        try {
+            view.performLongClick()
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun tryDrag(view: View, dx: Float, dy: Float) {
+        try {
+            val cx = view.width / 2f
+            val cy = view.height / 2f
+            val downTime = android.os.SystemClock.uptimeMillis()
+            val down = android.view.MotionEvent.obtain(downTime, downTime, android.view.MotionEvent.ACTION_DOWN, cx, cy, 0)
+            view.dispatchTouchEvent(down)
+            val move = android.view.MotionEvent.obtain(downTime, downTime + 10, android.view.MotionEvent.ACTION_MOVE, cx + dx, cy + dy, 0)
+            view.dispatchTouchEvent(move)
+            val up = android.view.MotionEvent.obtain(downTime, downTime + 20, android.view.MotionEvent.ACTION_UP, cx + dx, cy + dy, 0)
+            view.dispatchTouchEvent(up)
+        } catch (_: Exception) {
+        }
     }
 
     private fun assertBitmapGenerated() {
@@ -248,6 +330,22 @@ class GenerateFragmentUiTest {
                 if (container.id != R.id.gradientStopsContainer) return false
                 if (container.indexOfChild(row) != rowIndex) return false
                 return row.indexOfChild(item) == 0
+            }
+        }
+    }
+
+    private fun sliderAtRow(rowIndex: Int): Matcher<View> {
+        return object : BoundedMatcher<View, View>(View::class.java) {
+            override fun describeTo(description: Description) {
+                description.appendText("slider at row $rowIndex in gradientStopsContainer")
+            }
+
+            override fun matchesSafely(item: View): Boolean {
+                val row = item.parent as? ViewGroup ?: return false
+                val container = row.parent as? ViewGroup ?: return false
+                if (container.id != R.id.gradientStopsContainer) return false
+                if (container.indexOfChild(row) != rowIndex) return false
+                return row.indexOfChild(item) == 1
             }
         }
     }

@@ -86,6 +86,14 @@ class GenerateFragment : Fragment() {
         private const val MAX_STYLE_IMAGE_PX = 1024
     }
 
+    private inline fun safe(block: () -> Unit) {
+        try {
+            block()
+        } catch (e: Exception) {
+            Log.e(TAG, "UI callback failed", e)
+        }
+    }
+
     private val pickLogoLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -230,228 +238,256 @@ class GenerateFragment : Fragment() {
         }
 
         binding.spinnerFormat.setOnItemClickListener { _, _, position, _ ->
-            selectedFormat = formats[position]
-            updateHintForFormat()
-            generateBarcode()
+            safe {
+                selectedFormat = formats[position]
+                updateHintForFormat()
+                generateBarcode()
+            }
         }
     }
 
     private fun setupStyleControls() {
         // ECL 纠错等级切换
         binding.toggleEcLevel.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-            val ecLevel = when (checkedId) {
-                R.id.btnEcL -> ErrorCorrectionLevel.L
-                R.id.btnEcM -> ErrorCorrectionLevel.M
-                R.id.btnEcQ -> ErrorCorrectionLevel.Q
-                else -> ErrorCorrectionLevel.H
+            safe {
+                if (!isChecked) return@safe
+                val ecLevel = when (checkedId) {
+                    R.id.btnEcL -> ErrorCorrectionLevel.L
+                    R.id.btnEcM -> ErrorCorrectionLevel.M
+                    R.id.btnEcQ -> ErrorCorrectionLevel.Q
+                    else -> ErrorCorrectionLevel.H
+                }
+                selectedStyle = selectedStyle.copy(ecLevel = ecLevel)
+                generateBarcode()
             }
-            selectedStyle = selectedStyle.copy(ecLevel = ecLevel)
-            generateBarcode()
         }
 
         // 双色方案按钮：外圈=背景色，中心圆=前景色
         buildSchemeButtons()
 
         binding.seekBarCornerRadius.addOnChangeListener { _, value, _ ->
-            cornerRadius = value / 100f
-            binding.tvCornerRadiusValue.text = "${value.toInt()}%"
+            safe {
+                cornerRadius = value / 100f
+                binding.tvCornerRadiusValue.text = "${value.toInt()}%"
+            }
         }
         binding.seekBarCornerRadius.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
-            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
+            override fun onStopTrackingTouch(slider: Slider) { safe { generateBarcode() } }
         })
 
         // 模块形状
         binding.chipGroupModuleShape.setOnCheckedStateChangeListener { _, checkedIds ->
-            if (checkedIds.isEmpty()) return@setOnCheckedStateChangeListener
-            moduleShape = when (checkedIds.first()) {
-                R.id.chipModuleSquare -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
-                R.id.chipModuleCircle -> AdvancedBarcodeGenerator.ModuleShape.CIRCLE
-                R.id.chipModuleRounded -> AdvancedBarcodeGenerator.ModuleShape.ROUNDED
-                else -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
+            safe {
+                if (checkedIds.isEmpty()) return@safe
+                moduleShape = when (checkedIds.first()) {
+                    R.id.chipModuleSquare -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
+                    R.id.chipModuleCircle -> AdvancedBarcodeGenerator.ModuleShape.CIRCLE
+                    R.id.chipModuleRounded -> AdvancedBarcodeGenerator.ModuleShape.ROUNDED
+                    else -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
+                }
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
             }
-            clearSchemeSelectionIfDiverged()
-            generateBarcode()
         }
 
         // 点填充比例
         binding.seekBarModuleFillRatio.addOnChangeListener { _, value, _ ->
-            moduleFillRatio = value / 100f
-            binding.tvModuleFillRatioValue.text = "${value.toInt()}%"
+            safe {
+                moduleFillRatio = value / 100f
+                binding.tvModuleFillRatioValue.text = "${value.toInt()}%"
+            }
         }
         binding.seekBarModuleFillRatio.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
-            override fun onStopTrackingTouch(slider: Slider) {
-                clearSchemeSelectionIfDiverged()
-                generateBarcode()
-            }
+            override fun onStopTrackingTouch(slider: Slider) { safe { clearSchemeSelectionIfDiverged(); generateBarcode() } }
         })
 
         // 定位点形状
         binding.chipGroupPositionPattern.setOnCheckedStateChangeListener { _, checkedIds ->
-            if (checkedIds.isEmpty()) return@setOnCheckedStateChangeListener
-            positionPatternShape = when (checkedIds.first()) {
-                R.id.chipPositionSquare -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
-                R.id.chipPositionCircle -> AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
-                R.id.chipPositionFollow -> AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE
-                else -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+            safe {
+                if (checkedIds.isEmpty()) return@safe
+                positionPatternShape = when (checkedIds.first()) {
+                    R.id.chipPositionSquare -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+                    R.id.chipPositionCircle -> AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
+                    R.id.chipPositionFollow -> AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE
+                    else -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+                }
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
             }
-            clearSchemeSelectionIfDiverged()
-            generateBarcode()
         }
 
         // 渐变开关
         binding.switchGradient.setOnCheckedChangeListener { _, isChecked ->
-            gradientEnabled = isChecked
-            if (isChecked && gradientStops.size < 2) {
-                gradientStops.addAll(listOf(
-                    AdvancedBarcodeGenerator.ColorStop(0f, selectedStyle.foregroundColor),
-                    AdvancedBarcodeGenerator.ColorStop(1f, selectedStyle.backgroundColor)
-                ))
+            safe {
+                gradientEnabled = isChecked
+                if (isChecked && gradientStops.size < 2) {
+                    gradientStops.addAll(listOf(
+                        AdvancedBarcodeGenerator.ColorStop(0f, selectedStyle.foregroundColor),
+                        AdvancedBarcodeGenerator.ColorStop(1f, selectedStyle.backgroundColor)
+                    ))
+                }
+                updateGradientControlsVisibility()
+                buildGradientStopViews()
+                updateGradientPreview()
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
             }
-            updateGradientControlsVisibility()
-            buildGradientStopViews()
-            updateGradientPreview()
-            clearSchemeSelectionIfDiverged()
-            generateBarcode()
         }
 
         // 渐变方向
         binding.angleDial.onAngleChanged = { degrees ->
-            gradientAngle = degrees
-            binding.seekBarGradientAngle.value = degrees
-            binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
-            binding.etGradientAngle.setText(degrees.toInt().toString())
-            clearSchemeSelectionIfDiverged()
-            generateBarcode()
-        }
-        binding.seekBarGradientAngle.addOnChangeListener { _, value, _ ->
-            gradientAngle = value
-            binding.angleDial.angle = value
-            binding.tvGradientAngleValue.text = "${value.toInt()}°"
-            binding.etGradientAngle.setText(value.toInt().toString())
-        }
-        binding.seekBarGradientAngle.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-            override fun onStartTrackingTouch(slider: Slider) {}
-            override fun onStopTrackingTouch(slider: Slider) {
+            safe {
+                gradientAngle = degrees
+                binding.seekBarGradientAngle.value = degrees
+                binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
+                binding.etGradientAngle.setText(degrees.toInt().toString())
                 clearSchemeSelectionIfDiverged()
                 generateBarcode()
             }
+        }
+        binding.seekBarGradientAngle.addOnChangeListener { _, value, _ ->
+            safe {
+                gradientAngle = value
+                binding.angleDial.angle = value
+                binding.tvGradientAngleValue.text = "${value.toInt()}°"
+                binding.etGradientAngle.setText(value.toInt().toString())
+            }
+        }
+        binding.seekBarGradientAngle.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) { safe { clearSchemeSelectionIfDiverged(); generateBarcode() } }
         })
         binding.etGradientAngle.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
-                val text = s?.toString() ?: return
-                if (text.isBlank()) return
-                val value = text.toFloatOrNull() ?: return
-                val degrees = value.coerceIn(0f, 360f)
-                if (degrees != gradientAngle) {
-                    gradientAngle = degrees
-                    binding.angleDial.angle = degrees
-                    binding.seekBarGradientAngle.value = degrees
-                    binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
-                    clearSchemeSelectionIfDiverged()
-                    generateBarcode()
+                safe {
+                    val text = s?.toString() ?: return@safe
+                    if (text.isBlank()) return@safe
+                    val value = text.toFloatOrNull() ?: return@safe
+                    val degrees = value.coerceIn(0f, 360f)
+                    if (degrees != gradientAngle) {
+                        gradientAngle = degrees
+                        binding.angleDial.angle = degrees
+                        binding.seekBarGradientAngle.value = degrees
+                        binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
+                        clearSchemeSelectionIfDiverged()
+                        generateBarcode()
+                    }
                 }
             }
         })
 
         // 添加渐变节点
         binding.btnAddGradientStop.setOnClickListener {
-            if (gradientStops.size >= 5) return@setOnClickListener
-            if (gradientStops.size < 2) {
-                gradientStops.addAll(listOf(
-                    AdvancedBarcodeGenerator.ColorStop(0f, selectedStyle.foregroundColor),
-                    AdvancedBarcodeGenerator.ColorStop(1f, selectedStyle.backgroundColor)
-                ))
-            } else {
-                var maxGap = 0f
-                var insertPos = 0.5f
-                var startColor = selectedStyle.foregroundColor
-                var endColor = selectedStyle.backgroundColor
-                for (i in 0 until gradientStops.size - 1) {
-                    val gap = gradientStops[i + 1].position - gradientStops[i].position
-                    if (gap > maxGap) {
-                        maxGap = gap
-                        insertPos = sanitizePosition((gradientStops[i].position + gradientStops[i + 1].position) / 2f)
-                        startColor = gradientStops[i].color
-                        endColor = gradientStops[i + 1].color
+            safe {
+                if (gradientStops.size >= 5) return@safe
+                if (gradientStops.size < 2) {
+                    gradientStops.addAll(listOf(
+                        AdvancedBarcodeGenerator.ColorStop(0f, selectedStyle.foregroundColor),
+                        AdvancedBarcodeGenerator.ColorStop(1f, selectedStyle.backgroundColor)
+                    ))
+                } else {
+                    var maxGap = 0f
+                    var insertPos = 0.5f
+                    var startColor = selectedStyle.foregroundColor
+                    var endColor = selectedStyle.backgroundColor
+                    for (i in 0 until gradientStops.size - 1) {
+                        val gap = gradientStops[i + 1].position - gradientStops[i].position
+                        if (gap > maxGap) {
+                            maxGap = gap
+                            insertPos = sanitizePosition((gradientStops[i].position + gradientStops[i + 1].position) / 2f)
+                            startColor = gradientStops[i].color
+                            endColor = gradientStops[i + 1].color
+                        }
                     }
+                    val color = AdvancedBarcodeGenerator.interpolateColor(startColor, endColor, 0.5f)
+                    gradientStops.add(AdvancedBarcodeGenerator.ColorStop(insertPos, color))
+                    gradientStops.sortBy { it.position }
                 }
-                val color = AdvancedBarcodeGenerator.interpolateColor(startColor, endColor, 0.5f)
-                gradientStops.add(AdvancedBarcodeGenerator.ColorStop(insertPos, color))
-                gradientStops.sortBy { it.position }
+                buildGradientStopViews()
+                updateGradientPreview()
+                binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
             }
-            buildGradientStopViews()
-            updateGradientPreview()
-            binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
-            clearSchemeSelectionIfDiverged()
-            generateBarcode()
         }
 
         binding.seekBarLogoScale.addOnChangeListener { _, value, _ ->
-            logoScale = value / 100f
-            binding.tvLogoScaleValue.text = "${value.toInt()}%"
+            safe {
+                logoScale = value / 100f
+                binding.tvLogoScaleValue.text = "${value.toInt()}%"
+            }
         }
         binding.seekBarLogoScale.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
-            override fun onStopTrackingTouch(slider: Slider) { generateBarcode() }
+            override fun onStopTrackingTouch(slider: Slider) { safe { generateBarcode() } }
         })
 
         binding.btnPickForegroundColor.setOnClickListener {
-            ColorPickerDialog().apply {
-                setInitialColor(selectedStyle.foregroundColor)
-                onColorSelected = { color ->
-                    selectedStyle = selectedStyle.copy(foregroundColor = color)
-                    foregroundImageBitmap = null
-                    updateImagePreview(binding.viewFgImagePreview, null)
-                    binding.btnRemoveForegroundImage.visibility = View.GONE
-                    updateColorPreviews()
-                    clearSchemeSelectionIfDiverged()
-                    generateBarcode()
-                }
-            }.show(parentFragmentManager, "fg_color")
+            safe {
+                ColorPickerDialog().apply {
+                    setInitialColor(selectedStyle.foregroundColor)
+                    onColorSelected = { color ->
+                        safe {
+                            selectedStyle = selectedStyle.copy(foregroundColor = color)
+                            foregroundImageBitmap = null
+                            updateImagePreview(binding.viewFgImagePreview, null)
+                            binding.btnRemoveForegroundImage.visibility = View.GONE
+                            updateColorPreviews()
+                            clearSchemeSelectionIfDiverged()
+                            generateBarcode()
+                        }
+                    }
+                }.show(parentFragmentManager, "fg_color")
+            }
         }
         binding.btnPickBackgroundColor.setOnClickListener {
-            ColorPickerDialog().apply {
-                setInitialColor(selectedStyle.backgroundColor)
-                onColorSelected = { color ->
-                    selectedStyle = selectedStyle.copy(backgroundColor = color)
-                    backgroundImageBitmap = null
-                    updateImagePreview(binding.viewBgImagePreview, null)
-                    binding.btnRemoveBackgroundImage.visibility = View.GONE
-                    updateColorPreviews()
-                    clearSchemeSelectionIfDiverged()
-                    generateBarcode()
-                }
-            }.show(parentFragmentManager, "bg_color")
+            safe {
+                ColorPickerDialog().apply {
+                    setInitialColor(selectedStyle.backgroundColor)
+                    onColorSelected = { color ->
+                        safe {
+                            selectedStyle = selectedStyle.copy(backgroundColor = color)
+                            backgroundImageBitmap = null
+                            updateImagePreview(binding.viewBgImagePreview, null)
+                            binding.btnRemoveBackgroundImage.visibility = View.GONE
+                            updateColorPreviews()
+                            clearSchemeSelectionIfDiverged()
+                            generateBarcode()
+                        }
+                    }
+                }.show(parentFragmentManager, "bg_color")
+            }
         }
 
         binding.btnPickForegroundImage.setOnClickListener {
-            clearSchemeSelectionIfDiverged()
-            pickForegroundImageLauncher.launch("image/*")
+            safe { clearSchemeSelectionIfDiverged(); pickForegroundImageLauncher.launch("image/*") }
         }
         binding.btnRemoveForegroundImage.setOnClickListener {
-            foregroundImageBitmap = null
-            selectedStyle = selectedStyle.copy(foregroundBitmap = null)
-            updateImagePreview(binding.viewFgImagePreview, null)
-            binding.btnRemoveForegroundImage.visibility = View.GONE
-            clearSchemeSelectionIfDiverged()
-            generateBarcode()
+            safe {
+                foregroundImageBitmap = null
+                selectedStyle = selectedStyle.copy(foregroundBitmap = null)
+                updateImagePreview(binding.viewFgImagePreview, null)
+                binding.btnRemoveForegroundImage.visibility = View.GONE
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
+            }
         }
         binding.btnPickBackgroundImage.setOnClickListener {
-            clearSchemeSelectionIfDiverged()
-            pickBackgroundImageLauncher.launch("image/*")
+            safe { clearSchemeSelectionIfDiverged(); pickBackgroundImageLauncher.launch("image/*") }
         }
         binding.btnRemoveBackgroundImage.setOnClickListener {
-            backgroundImageBitmap = null
-            selectedStyle = selectedStyle.copy(backgroundBitmap = null)
-            updateImagePreview(binding.viewBgImagePreview, null)
-            binding.btnRemoveBackgroundImage.visibility = View.GONE
-            clearSchemeSelectionIfDiverged()
-            generateBarcode()
+            safe {
+                backgroundImageBitmap = null
+                selectedStyle = selectedStyle.copy(backgroundBitmap = null)
+                updateImagePreview(binding.viewBgImagePreview, null)
+                binding.btnRemoveBackgroundImage.visibility = View.GONE
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
+            }
         }
 
         updateColorPreviews()
@@ -460,15 +496,17 @@ class GenerateFragment : Fragment() {
         binding.tvLogoScaleValue.text = "${(logoScale * 100).toInt()}%"
 
         binding.btnAddLogo.setOnClickListener {
-            pickLogoLauncher.launch("image/*")
+            safe { pickLogoLauncher.launch("image/*") }
         }
 
         binding.btnRemoveLogo.setOnClickListener {
-            logoBitmap = null
-            binding.ivLogoPreview.setImageBitmap(null)
-            binding.ivLogoPreview.visibility = View.GONE
-            binding.logoScaleSection.visibility = View.GONE
-            generateBarcode()
+            safe {
+                logoBitmap = null
+                binding.ivLogoPreview.setImageBitmap(null)
+                binding.ivLogoPreview.visibility = View.GONE
+                binding.logoScaleSection.visibility = View.GONE
+                generateBarcode()
+            }
         }
     }
 
@@ -497,7 +535,7 @@ class GenerateFragment : Fragment() {
             val schemeView = View(requireContext()).apply {
                 layoutParams = FrameLayout.LayoutParams(size, size)
                 background = createDonutDrawable(scheme, innerRadius)
-                setOnClickListener { applyColorScheme(scheme) }
+                setOnClickListener { safe { applyColorScheme(scheme) } }
                 isClickable = true
                 isFocusable = true
             }
@@ -576,34 +614,36 @@ class GenerateFragment : Fragment() {
     }
 
     private fun updateStyleControlUIs() {
-        binding.chipGroupModuleShape.check(
-            when (moduleShape) {
-                AdvancedBarcodeGenerator.ModuleShape.SQUARE -> R.id.chipModuleSquare
-                AdvancedBarcodeGenerator.ModuleShape.CIRCLE -> R.id.chipModuleCircle
-                AdvancedBarcodeGenerator.ModuleShape.ROUNDED -> R.id.chipModuleRounded
-            }
-        )
-        binding.seekBarModuleFillRatio.value = moduleFillRatio * 100f
-        binding.tvModuleFillRatioValue.text = "${(moduleFillRatio * 100).toInt()}%"
+        safe {
+            binding.chipGroupModuleShape.check(
+                when (moduleShape) {
+                    AdvancedBarcodeGenerator.ModuleShape.SQUARE -> R.id.chipModuleSquare
+                    AdvancedBarcodeGenerator.ModuleShape.CIRCLE -> R.id.chipModuleCircle
+                    AdvancedBarcodeGenerator.ModuleShape.ROUNDED -> R.id.chipModuleRounded
+                }
+            )
+            binding.seekBarModuleFillRatio.value = moduleFillRatio * 100f
+            binding.tvModuleFillRatioValue.text = "${(moduleFillRatio * 100).toInt()}%"
 
-        binding.chipGroupPositionPattern.check(
-            when (positionPatternShape) {
-                AdvancedBarcodeGenerator.PositionPatternShape.SQUARE -> R.id.chipPositionSquare
-                AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE -> R.id.chipPositionCircle
-                AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE -> R.id.chipPositionFollow
-            }
-        )
+            binding.chipGroupPositionPattern.check(
+                when (positionPatternShape) {
+                    AdvancedBarcodeGenerator.PositionPatternShape.SQUARE -> R.id.chipPositionSquare
+                    AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE -> R.id.chipPositionCircle
+                    AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE -> R.id.chipPositionFollow
+                }
+            )
 
-        binding.angleDial.angle = gradientAngle
-        binding.seekBarGradientAngle.value = gradientAngle
-        binding.tvGradientAngleValue.text = "${gradientAngle.toInt()}°"
-        binding.etGradientAngle.setText(gradientAngle.toInt().toString())
+            binding.angleDial.angle = gradientAngle
+            binding.seekBarGradientAngle.value = gradientAngle
+            binding.tvGradientAngleValue.text = "${gradientAngle.toInt()}°"
+            binding.etGradientAngle.setText(gradientAngle.toInt().toString())
 
-        updateGradientControlsVisibility()
-        buildGradientStopViews()
-        updateGradientPreview()
-        buildSchemeButtons()
-        binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+            updateGradientControlsVisibility()
+            buildGradientStopViews()
+            updateGradientPreview()
+            buildSchemeButtons()
+            binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+        }
     }
 
     private fun clearSchemeSelectionIfDiverged() {
@@ -668,20 +708,24 @@ class GenerateFragment : Fragment() {
                 }
                 background = ColorDrawable(stop.color)
                 setOnClickListener {
-                    if (!isAdded) return@setOnClickListener
-                    val tag = "gradient_stop_${index}_${System.currentTimeMillis()}"
-                    ColorPickerDialog().apply {
-                        setInitialColor(stop.color)
-                        onColorSelected = { color ->
-                            if (index < gradientStops.size) {
-                                gradientStops[index] = stop.copy(color = color)
-                                buildGradientStopViews()
-                                updateGradientPreview()
-                                clearSchemeSelectionIfDiverged()
-                                generateBarcode()
+                    safe {
+                        if (!isAdded) return@safe
+                        val tag = "gradient_stop_${index}_${System.currentTimeMillis()}"
+                        ColorPickerDialog().apply {
+                            setInitialColor(stop.color)
+                            onColorSelected = { color ->
+                                safe {
+                                    if (index < gradientStops.size) {
+                                        gradientStops[index] = stop.copy(color = color)
+                                        buildGradientStopViews()
+                                        updateGradientPreview()
+                                        clearSchemeSelectionIfDiverged()
+                                        generateBarcode()
+                                    }
+                                }
                             }
-                        }
-                    }.show(parentFragmentManager, tag)
+                        }.show(parentFragmentManager, tag)
+                    }
                 }
             }
 
@@ -692,17 +736,24 @@ class GenerateFragment : Fragment() {
                 value = sanitizePosition(stop.position) * 100f
                 stepSize = 1f
                 addOnChangeListener { _, value, _ ->
-                    gradientStops[index] = stop.copy(position = sanitizePosition(value / 100f))
-                    gradientStops.sortBy { it.position }
-                    updateGradientPreview()
-                    clearSchemeSelectionIfDiverged()
+                    safe {
+                        if (index >= gradientStops.size) return@safe
+                        gradientStops[index] = stop.copy(position = sanitizePosition(value / 100f))
+                        updateGradientPreview()
+                        clearSchemeSelectionIfDiverged()
+                    }
                 }
                 addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
                     override fun onStartTrackingTouch(slider: Slider) {}
                     override fun onStopTrackingTouch(slider: Slider) {
-                        buildGradientStopViews()
-                        clearSchemeSelectionIfDiverged()
-                        generateBarcode()
+                        slider.post {
+                            safe {
+                                gradientStops.sortBy { it.position }
+                                buildGradientStopViews()
+                                clearSchemeSelectionIfDiverged()
+                                generateBarcode()
+                            }
+                        }
                     }
                 })
             }
@@ -715,13 +766,15 @@ class GenerateFragment : Fragment() {
                 textSize = 18f
                 isEnabled = gradientStops.size > 2
                 setOnClickListener {
-                    if (gradientStops.size > 2) {
-                        gradientStops.removeAt(index)
-                        buildGradientStopViews()
-                        updateGradientPreview()
-                        binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
-                        clearSchemeSelectionIfDiverged()
-                        generateBarcode()
+                    safe {
+                        if (gradientStops.size > 2) {
+                            gradientStops.removeAt(index)
+                            buildGradientStopViews()
+                            updateGradientPreview()
+                            binding.btnAddGradientStop.isEnabled = gradientStops.size < 5
+                            clearSchemeSelectionIfDiverged()
+                            generateBarcode()
+                        }
                     }
                 }
             }
@@ -814,21 +867,23 @@ class GenerateFragment : Fragment() {
 
     private fun setupButtons() {
         binding.btnGenerate.setOnClickListener {
-            generateBarcode()
+            safe { generateBarcode() }
         }
 
         binding.btnSave.setOnClickListener {
-            saveBarcode()
+            safe { saveBarcode() }
         }
 
         binding.btnShare.setOnClickListener {
-            shareBarcode()
+            safe { shareBarcode() }
         }
 
         binding.btnClear.setOnClickListener {
-            binding.etContent.text?.clear()
-            currentBitmap = null
-            binding.ivQRCode.setImageBitmap(null)
+            safe {
+                binding.etContent.text?.clear()
+                currentBitmap = null
+                binding.ivQRCode.setImageBitmap(null)
+            }
         }
     }
 

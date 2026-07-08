@@ -249,20 +249,54 @@ object AdvancedBarcodeGenerator {
         for (x in startX until endX) {
             for (y in startY until endY) {
                 if (logoRect?.contains(x, y) == true) continue
-                val inShape = when (styleConfig.moduleShape) {
-                    ModuleShape.SQUARE -> true
-                    ModuleShape.CIRCLE -> hypot(x + 0.5f - cx, y + 0.5f - cy) <= radius
-                    ModuleShape.ROUNDED -> isInsideRoundedRect(
-                        x + 0.5f, y + 0.5f,
-                        startX.toFloat(), startY.toFloat(),
-                        endX.toFloat(), endY.toFloat(), cornerRadius
-                    )
-                }
-                if (inShape) {
-                    output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+                val px = x + 0.5f
+                val py = y + 0.5f
+                when (styleConfig.moduleShape) {
+                    ModuleShape.SQUARE -> {
+                        output.setPixel(x, y, resolveColor(px, py, output.width, output.height, styleConfig, gradientBounds))
+                    }
+                    ModuleShape.CIRCLE -> {
+                        val dist = hypot(px - cx, py - cy)
+                        val coverage = circleCoverage(dist, radius)
+                        if (coverage > 0f) {
+                            val fg = resolveColor(px, py, output.width, output.height, styleConfig, gradientBounds)
+                            val color = if (coverage >= 1f) {
+                                fg
+                            } else {
+                                val bg = resolveBackgroundColor(x, y, output.width, output.height, styleConfig)
+                                blendColors(fg, bg, coverage)
+                            }
+                            output.setPixel(x, y, color)
+                        }
+                    }
+                    ModuleShape.ROUNDED -> {
+                        if (isInsideRoundedRect(px, py, startX.toFloat(), startY.toFloat(), endX.toFloat(), endY.toFloat(), cornerRadius)) {
+                            output.setPixel(x, y, resolveColor(px, py, output.width, output.height, styleConfig, gradientBounds))
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private fun circleCoverage(dist: Float, radius: Float): Float {
+        val inner = radius - 0.5f
+        val outer = radius + 0.5f
+        return when {
+            dist <= inner -> 1f
+            dist >= outer -> 0f
+            else -> (outer - dist) / (outer - inner)
+        }
+    }
+
+    private fun blendColors(fg: Int, bg: Int, fgRatio: Float): Int {
+        val ratio = fgRatio.coerceIn(0f, 1f)
+        val inv = 1 - ratio
+        val a = (Color.alpha(fg) * ratio + Color.alpha(bg) * inv).toInt()
+        val r = (Color.red(fg) * ratio + Color.red(bg) * inv).toInt()
+        val g = (Color.green(fg) * ratio + Color.green(bg) * inv).toInt()
+        val b = (Color.blue(fg) * ratio + Color.blue(bg) * inv).toInt()
+        return Color.argb(a, r, g, b)
     }
 
     private fun isInsideRoundedRect(
