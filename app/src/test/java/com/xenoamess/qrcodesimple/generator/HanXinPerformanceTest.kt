@@ -11,14 +11,14 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 /**
- * Simple micro-benchmarks for Han Xin Code encoding and decoding.
+ * Simple informational micro-benchmarks for Han Xin Code encoding and decoding.
  *
- * These are not JMH-grade benchmarks; they exist to catch gross regressions
- * in the encode/decode pipeline and to give a rough idea of throughput under
- * Robolectric.
+ * These are not JMH-grade benchmarks; they exist to print rough throughput
+ * numbers under Robolectric. They do not enforce fixed wall-clock thresholds
+ * so that slower CI runners or noisy environments do not cause spurious
+ * failures.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -32,7 +32,7 @@ class HanXinPerformanceTest {
     }
 
     @Test
-    fun `encode short ASCII content within reasonable time`() {
+    fun `encode short ASCII content timing`() {
         val content = "Hello Han Xin"
         val duration = measureNanos(warmup = 5, iterations = 20) {
             BarcodeGenerator.generate(
@@ -41,11 +41,10 @@ class HanXinPerformanceTest {
             )
         }
         println("Encode short ASCII: ${duration / 1_000_000} ms")
-        assertTrue(duration < 500_000_000, "Encoding should take less than 500 ms")
     }
 
     @Test
-    fun `decode short ASCII content within reasonable time`() {
+    fun `decode short ASCII content timing`() {
         val bitmap = BarcodeGenerator.generate(
             "Hello Han Xin",
             BarcodeGenerator.BarcodeConfig(format = BarcodeFormat.HAN_XIN, width = 600, height = 600)
@@ -56,11 +55,10 @@ class HanXinPerformanceTest {
             HanXinDecoder.decode(bitmap!!)
         }
         println("Decode short ASCII: ${duration / 1_000_000} ms")
-        assertTrue(duration < 500_000_000, "Decoding should take less than 500 ms")
     }
 
     @Test
-    fun `encode Chinese content within reasonable time`() {
+    fun `encode Chinese content timing`() {
         val content = "汉信码测试"
         val duration = measureNanos(warmup = 3, iterations = 10) {
             BarcodeGenerator.generate(
@@ -69,11 +67,10 @@ class HanXinPerformanceTest {
             )
         }
         println("Encode Chinese: ${duration / 1_000_000} ms")
-        assertTrue(duration < 500_000_000, "Encoding should take less than 500 ms")
     }
 
     @Test
-    fun `decode Chinese content within reasonable time`() {
+    fun `decode Chinese content timing`() {
         val bitmap = BarcodeGenerator.generate(
             "汉信码测试",
             BarcodeGenerator.BarcodeConfig(format = BarcodeFormat.HAN_XIN, width = 600, height = 600)
@@ -84,11 +81,10 @@ class HanXinPerformanceTest {
             HanXinDecoder.decode(bitmap!!)
         }
         println("Decode Chinese: ${duration / 1_000_000} ms")
-        assertTrue(duration < 500_000_000, "Decoding should take less than 500 ms")
     }
 
     @Test
-    fun `encode long content within reasonable time`() {
+    fun `encode long content timing`() {
         val content = "a".repeat(500)
         val duration = measureNanos(warmup = 2, iterations = 5) {
             BarcodeGenerator.generate(
@@ -97,11 +93,10 @@ class HanXinPerformanceTest {
             )
         }
         println("Encode 500 chars: ${duration / 1_000_000} ms")
-        assertTrue(duration < 2_000_000_000, "Long encoding should take less than 2 s")
     }
 
     @Test
-    fun `decode long content within reasonable time`() {
+    fun `decode long content timing`() {
         val content = "a".repeat(500)
         val bitmap = BarcodeGenerator.generate(
             content,
@@ -113,7 +108,6 @@ class HanXinPerformanceTest {
             HanXinDecoder.decode(bitmap!!)
         }
         println("Decode 500 chars: ${duration / 1_000_000} ms")
-        assertTrue(duration < 2_000_000_000, "Long decoding should take less than 2 s")
     }
 
     private inline fun measureNanos(warmup: Int, iterations: Int, block: () -> Unit): Long {

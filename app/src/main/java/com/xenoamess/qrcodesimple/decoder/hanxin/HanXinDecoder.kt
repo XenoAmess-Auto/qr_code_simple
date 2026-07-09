@@ -608,11 +608,12 @@ object HanXinDecoder {
 
         val rs4 = HanXinEncoder.ReedSolomon(0x13, 4)
         rs4.initCode(4, 11)
-        if (!rs4.checkSyndromes(cw, 3, 4)) return null
+        val corrected = cw.copyOf()
+        if (!rsDecode(rs4, corrected, 3, 4)) return null
 
-        val version = ((cw[0] shl 4) or cw[1]) - 20
-        val eccLevel = (cw[2] shr 2) + 1
-        val mask = cw[2] and 0x03
+        val version = ((corrected[0] shl 4) or corrected[1]) - 20
+        val eccLevel = (corrected[2] shr 2) + 1
+        val mask = corrected[2] and 0x03
 
         if (version !in 1..84 || eccLevel !in 1..4 || mask !in 0..3) return null
         return Triple(version, eccLevel, mask)
@@ -895,13 +896,9 @@ object HanXinDecoder {
     }
 
     private fun parseFourByte(reader: BitReader, output: MutableList<Int>): Boolean {
-        while (reader.remaining() >= 25) {
-            val mode = reader.read(4)
-            if (mode != 7) {
-                reader.advance(-4)
-                return true
-            }
+        while (reader.remaining() >= 21) {
             val value = reader.read(21)
+            if (value == 0x1FFFFF) return true
             val first = value / 0x3138 + 0x81
             var rem = value % 0x3138
             val second = rem / 0x04EC + 0x30

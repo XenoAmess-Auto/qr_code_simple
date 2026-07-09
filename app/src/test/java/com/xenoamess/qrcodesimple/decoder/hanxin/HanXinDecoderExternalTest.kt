@@ -9,6 +9,7 @@ import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.fail
 
 /**
  * Decode real-world Han Xin Code images from `app/src/test/resources/hanxin/`.
@@ -20,8 +21,9 @@ import kotlin.test.assertNull
  * decoder returns null for that image (used for samples that are not valid Han
  * Xin symbols).
  *
- * If no expectations are configured, the suite passes vacuously so that the
- * build does not break when the directory only contains the README.
+ * The test fails if the resource directory, the expectations file, or the
+ * expectations list is missing, so that adding a sample without updating the
+ * expectations file is caught immediately.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -29,11 +31,14 @@ class HanXinDecoderExternalTest {
 
     @Test
     fun decodeExternalImages() {
-        val loader = javaClass.classLoader ?: return
-        val dirUrl = loader.getResource("hanxin") ?: return
+        val loader = javaClass.classLoader ?: fail("ClassLoader not available")
+        val dirUrl = loader.getResource("hanxin")
+            ?: fail("hanxin/ resource directory not found; add it under app/src/test/resources")
         val dir = File(dirUrl.toURI())
         val expectationsFile = File(dir, "expected-results.txt")
-        if (!expectationsFile.exists()) return
+        if (!expectationsFile.exists()) {
+            fail("expected-results.txt not found in hanxin/; create it to list sample images and expected texts")
+        }
 
         val entries = expectationsFile.readLines()
             .map { it.trim() }
@@ -47,7 +52,9 @@ class HanXinDecoderExternalTest {
                 file to text
             }
 
-        if (entries.isEmpty()) return
+        if (entries.isEmpty()) {
+            fail("expected-results.txt exists but contains no valid entries")
+        }
 
         var checked = 0
         for ((fileName, expectedText) in entries) {

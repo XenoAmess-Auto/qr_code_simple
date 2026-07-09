@@ -104,6 +104,30 @@ class HanXinDecoderInternalTest {
     }
 
     @Test
+    fun `decode at maximum correction budget`() {
+        val content = "HX"
+        val encoded = HanXinEncoder.encode(
+            content,
+            width = 230,
+            height = 230,
+            requestedEccLevel = 1,
+            requestedVersion = 1
+        )!!
+        val size = encoded.version * 2 + 21
+        val bitmap = encoded.bitmap.copy(encoded.bitmap.config ?: Bitmap.Config.ARGB_8888, true)
+
+        // Version-1 L1 has one RS block with 4 ECC symbols, so it can correct
+        // up to 2 corrupted codewords. Flip two data modules in different
+        // codewords and verify the decoder recovers.
+        flipModule(bitmap, 11, 11, size)
+        flipModule(bitmap, 12, 12, size)
+
+        val result = HanXinDecoder.decode(bitmap)
+        assertNotNull(result, "Should decode at maximum correction budget")
+        assertEquals(content, result.text)
+    }
+
+    @Test
     fun `decode fails when errors exceed correction capability`() {
         val content = "HX"
         val encoded = HanXinEncoder.encode(
@@ -116,9 +140,9 @@ class HanXinDecoderInternalTest {
         val size = encoded.version * 2 + 21
         val bitmap = encoded.bitmap.copy(encoded.bitmap.config ?: Bitmap.Config.ARGB_8888, true)
 
-        // Corrupt a large central data region. For version-1 L1 the total
-        // correction budget is 88 byte errors, so 100+ flipped modules should
-        // exceed the capability.
+        // Corrupt a large central data region. For version-1 L1 the RS block has
+        // 4 ECC symbols, so it can correct at most 2 codeword errors; this far
+        // exceeds the capability.
         for (mx in 2 until size - 2) {
             for (my in 9 until 15) {
                 flipModule(bitmap, mx, my, size)

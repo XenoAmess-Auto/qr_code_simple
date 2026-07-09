@@ -2,6 +2,9 @@ package com.xenoamess.qrcodesimple.decoder.hanxin
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import java.nio.CharBuffer
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.CodingErrorAction
 import java.nio.charset.Charset
 import kotlin.math.min
 
@@ -511,6 +514,7 @@ object HanXinEncoder {
         requestedVersion: Int = 0,
         requestedMask: Int = -1
     ): EncodeResult? {
+        if (content.isEmpty()) return null
         return try {
             val (ddata, eci) = convertInput(content)
             val modes = chooseModes(ddata)
@@ -577,55 +581,51 @@ object HanXinEncoder {
     // -------------------------------------------------------------------------
 
     private fun convertInput(content: String): Pair<IntArray, Int> {
-        // Try GB18030 first; if the whole string is representable, use ECI 32.
-        val bytes = try {
+        // Try GB18030 first; only use it if the content round-trips exactly.
+        // Otherwise fall back to UTF-8 with ECI 26. This prevents replacement
+        // characters (e.g. '?') from silently corrupting unsupported characters.
+        val gbBytes = try {
             content.toByteArray(GB18030)
         } catch (e: Exception) {
-            content.toByteArray(Charsets.UTF_8)
+            null
         }
 
-        // Check whether the byte sequence is valid GB18030.
-        var validGb = true
-        val result = mutableListOf<Int>()
-        var i = 0
-        while (i < bytes.size) {
-            val b = bytes[i].toInt() and 0xFF
-            if (b <= 0x7F) {
-                result.add(b)
-                i++
-            } else if (b in 0x81..0xFE && i + 1 < bytes.size) {
-                val b2 = bytes[i + 1].toInt() and 0xFF
-                if (b2 in 0x30..0x39) {
-                    // 4-byte sequence
-                    if (i + 3 < bytes.size) {
-                        val b3 = bytes[i + 2].toInt() and 0xFF
-                        val b4 = bytes[i + 3].toInt() and 0xFF
-                        if (b3 in 0x81..0xFE && b4 in 0x30..0x39) {
-                            result.add((b shl 8) or b2)
-                            result.add((b3 shl 8) or b4)
-                            i += 4
+        if (gbBytes != null && String(gbBytes, GB18030) == content) {
+            val result = mutableListOf<Int>()
+            var i = 0
+            while (i < gbBytes.size) {
+                val b = gbBytes[i].toInt() and 0xFF
+                if (b <= 0x7F) {
+                    result.add(b)
+                    i++
+                } else if (b in 0x81..0xFE && i + 1 < gbBytes.size) {
+                    val b2 = gbBytes[i + 1].toInt() and 0xFF
+                    if (b2 in 0x30..0x39) {
+                        // 4-byte sequence
+                        if (i + 3 < gbBytes.size) {
+                            val b3 = gbBytes[i + 2].toInt() and 0xFF
+                            val b4 = gbBytes[i + 3].toInt() and 0xFF
+                            if (b3 in 0x81..0xFE && b4 in 0x30..0x39) {
+                                result.add((b shl 8) or b2)
+                                result.add((b3 shl 8) or b4)
+                                i += 4
+                            } else {
+                                throw IllegalArgumentException("Invalid GB18030 4-byte sequence")
+                            }
                         } else {
-                            validGb = false
-                            break
+                            throw IllegalArgumentException("Truncated GB18030 4-byte sequence")
                         }
+                    } else if ((b2 in 0x40..0x7E) || (b2 in 0x80..0xFE)) {
+                        result.add((b shl 8) or b2)
+                        i += 2
                     } else {
-                        validGb = false
-                        break
+                        throw IllegalArgumentException("Invalid GB18030 2-byte sequence")
                     }
-                } else if ((b2 in 0x40..0x7E) || (b2 in 0x80..0xFE)) {
-                    result.add((b shl 8) or b2)
-                    i += 2
                 } else {
-                    validGb = false
-                    break
+                    throw IllegalArgumentException("Invalid GB18030 byte: $b")
                 }
-            } else {
-                validGb = false
-                break
             }
-        }
 
-        if (validGb) {
             // Zint does not write an ECI header for GB18030 data either; match
             // its behaviour so generated symbols are byte-for-byte compatible.
             return Pair(result.toIntArray(), 0)
@@ -919,6 +919,7 @@ object HanXinEncoder {
             't' -> 6
             '1', '2' -> 12
             'd' -> 15
+            'f' -> 21
             else -> 0
         }
     }
@@ -1120,6 +1121,8 @@ object HanXinEncoder {
             binary.append(glyph, 21)
             i += 2
         }
+        // Terminator for four-byte mode: 21 bits all set to 1.
+        binary.append(0x1FFFFF, 21)
     }
 
     // -------------------------------------------------------------------------

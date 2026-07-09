@@ -176,7 +176,6 @@ class HanXinEncoderTest {
     fun `Reed-Solomon GF 2^4 generator roots`() {
         val rs4 = HanXinEncoder.ReedSolomon(0x13, 4)
         rs4.initCode(4, 1)
-        println("generator=${rs4.generator.toList()}")
         val alphaTo = intArrayOf(1, 2, 4, 8, 3, 6, 12, 11, 5, 10, 7, 14, 15, 13, 9)
         val indexOf = IntArray(16) { -1 }
         for (i in alphaTo.indices) indexOf[alphaTo[i]] = i
@@ -188,8 +187,7 @@ class HanXinEncoderTest {
                 val exp = (indexOf[gen[j]] + r * j) % 15
                 sum = sum xor alphaTo[exp]
             }
-            println("g(alpha^$r)=$sum")
+            assertEquals(0, sum, "Generator polynomial should have root alpha^$r")
         }
-        assertTrue(true)
     }
 }

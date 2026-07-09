@@ -173,6 +173,12 @@ class BarcodeGenerationRoundtripTest {
     fun `roundtrip Han Xin Code Chinese`() = roundtrip(BarcodeFormat.HAN_XIN, "汉信码")
 
     @Test
+    fun `hanXin roundtrip through scanner pipeline`() = roundtrip(
+        BarcodeFormat.HAN_XIN,
+        "HanXin2024-汉信码"
+    )
+
+    @Test
     fun `generate Code 39 Extended`() = generateOnly(BarcodeFormat.CODE_39_EXTENDED, "ABC-123")
 
     @Test
