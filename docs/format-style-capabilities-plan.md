@@ -6,7 +6,7 @@
 
 ## 背景
 
-`StyleConfig` 中的 `moduleShape`、`moduleFillRatio`、`positionPatternShape` 以及 `ecLevel` 当前只对 QR Code 真正生效。生成其他格式时，`GenerateFragment` 仍把这些参数传给生成器，但生成器忽略它们，导致用户设置无效。需要按格式定义能力表，隐藏不支持的控件，并保证未生效的配置不写入历史。
+`StyleConfig` 中的 `moduleShape`、`moduleFillRatio`、`positionPatternShape` 以及 `ecLevel` 现在按格式生效。生成非 QR 格式时，`AdvancedBarcodeGenerator` 会基于各格式产生的模块/条码布局进行样式渲染；不同格式的回扫能力差异较大，需按格式记录能力表。
 
 ## 能力表
 
@@ -18,7 +18,7 @@
 | logo | 开 | 全部格式支持 |
 | cornerRadius | 开 | 全部格式开放 |
 | ecLevel | 关 | 仅下方列出的格式支持 |
-| moduleShape / moduleFillRatio / positionPatternShape | 关 | 仅 QR Code 真正渲染生效；其他格式不生效但不破坏回扫 |
+| moduleShape / moduleFillRatio / positionPatternShape | 关 | 所有可扫描格式都会渲染；回扫能力按格式/组合而定，详情见 `style-roundtrip-matrix.md` |
 
 ### 各格式 EC 支持
 

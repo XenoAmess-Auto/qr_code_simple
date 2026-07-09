@@ -8,7 +8,7 @@
 
 - 清洗（sanitize）将提前到 UI/历史调用方，生成器本身不再主动清洗。
 - 测试里强制绕过清洗，使用原始样式配置。
-- 对非 QR 格式，这三个配置当前不会被渲染使用，因此输出等同于默认样式；本测试同样要记录这些格式在原始配置下是否仍然能回扫。
+- `moduleShape`、`moduleFillRatio`、`positionPatternShape` 现在会对所有非 QR 的可扫描格式进行渲染；不同格式的可扫描性因此发生变化。本测试记录这些组合在原始配置下的真实回扫情况。
 
 ## 测试维度
 
@@ -57,13 +57,13 @@
 | 格式 | 可扫描 | 组合数 | 生成成功 | 回扫通过组合 | 备注 |
 |---|---|---|---|---|---|
 | AUSTRALIA_POST | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| AZTEC | true | 27 | 27 / 27 | 27 / 27 |  |
+| AZTEC | true | 27 | 27 / 27 | 6 / 27 |  |
 | AZTEC_RUNE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CHANNEL_CODE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CODABAR | true | 27 | 27 / 27 | 27 / 27 |  |
 | CODABLOCK_F | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CODE_11 | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| CODE_128 | true | 27 | 27 / 27 | 27 / 27 |  |
+| CODE_128 | true | 27 | 27 / 27 | 9 / 27 |  |
 | CODE_16K | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CODE_2_OF_5_DATALOGIC | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CODE_2_OF_5_DEUTSCHE_POST_IDENTCODE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
@@ -73,58 +73,61 @@
 | CODE_2_OF_5_MATRIX | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CODE_2_OF_5_STANDARD | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CODE_32 | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| CODE_39 | true | 27 | 27 / 27 | 27 / 27 |  |
+| CODE_39 | true | 27 | 27 / 27 | 9 / 27 |  |
 | CODE_39_EXTENDED | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | CODE_49 | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| CODE_93 | true | 27 | 27 / 27 | 27 / 27 |  |
+| CODE_93 | true | 27 | 27 / 27 | 9 / 27 |  |
 | CODE_ONE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | COMPOSITE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | DATA_BAR_LIMITED | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| DATA_MATRIX | true | 27 | 27 / 27 | 27 / 27 |  |
+| DATA_MATRIX | true | 27 | 27 / 27 | 10 / 27 |  |
 | DPD_CODE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| EAN_13 | true | 27 | 27 / 27 | 27 / 27 |  |
-| EAN_8 | true | 27 | 27 / 27 | 27 / 27 |  |
+| EAN_13 | true | 27 | 27 / 27 | 9 / 27 |  |
+| EAN_8 | true | 27 | 27 / 27 | 9 / 27 |  |
 | EAN_UPC_ADD_ON | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | GRID_MATRIX | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| HAN_XIN | true | 27 | 27 / 27 | 27 / 27 |  |
-| ITF | true | 27 | 27 / 27 | 27 / 27 |  |
+| HAN_XIN | true | 27 | 27 / 27 | 22 / 27 |  |
+| ITF | true | 27 | 27 / 27 | 15 / 27 |  |
 | ITF_14 | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | JAPAN_POST | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | KIX_CODE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | KOREA_POST | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | LOGMARS | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | MAXICODE | true | 27 | 27 / 27 | 27 / 27 |  |
-| MICRO_QR | true | 27 | 27 / 27 | 27 / 27 |  |
-| MSI_PLESSEY | true | 27 | 27 / 27 | 27 / 27 |  |
+| MICRO_QR | true | 27 | 27 / 27 | 7 / 27 |  |
+| MSI_PLESSEY | true | 27 | 27 / 27 | 9 / 27 |  |
 | NVE_18 | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | PDF417 | true | 27 | 27 / 27 | 27 / 27 |  |
-| PHARMACODE | true | 27 | 27 / 27 | 27 / 27 |  |
+| PHARMACODE | true | 27 | 27 / 27 | 9 / 27 |  |
 | PHARMACODE_2_TRACK | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | PHARMAZENTRALNUMMER | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | PLESSEY | true | 27 | 27 / 27 | 27 / 27 |  |
 | POSTNET | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | QR_CODE | true | 27 | 27 / 27 | 15 / 27 |  |
 | ROYAL_MAIL_4_STATE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| RSS_14 | true | 27 | 27 / 27 | 27 / 27 |  |
-| RSS_EXPANDED | true | 27 | 27 / 27 | 27 / 27 |  |
-| SWISS_QR_CODE | true | 27 | 27 / 27 | 27 / 27 |  |
-| TELEPEN | true | 27 | 27 / 27 | 27 / 27 |  |
+| RSS_14 | true | 27 | 27 / 27 | 4 / 27 |  |
+| RSS_EXPANDED | true | 27 | 27 / 27 | 4 / 27 |  |
+| SWISS_QR_CODE | true | 27 | 27 / 27 | 17 / 27 |  |
+| TELEPEN | true | 27 | 27 / 27 | 9 / 27 |  |
 | TELEPEN_NUMERIC | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
-| UPC_A | true | 27 | 27 / 27 | 27 / 27 |  |
-| UPC_E | true | 27 | 27 / 27 | 27 / 27 |  |
+| UPC_A | true | 27 | 27 / 27 | 9 / 27 |  |
+| UPC_E | true | 27 | 27 / 27 | 9 / 27 |  |
 | UPC_EAN_EXTENSION | true | 27 | 27 / 27 | 27 / 27 |  |
-| UPN_QR_CODE | true | 27 | 27 / 27 | 27 / 27 |  |
+| UPN_QR_CODE | true | 27 | 27 / 27 | 12 / 27 |  |
 | USPS_ONE_CODE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 | USPS_PACKAGE | false | 27 | 27 / 27 | 0 / 27 | 仅生成 |
 
 ### 关键结论
 
-- **所有 56 种格式（排除 UNKNOWN）在 27 种原始样式组合下均能成功生成**，无崩溃。
-- **所有非 QR 的可扫描格式（AZTEC、PDF417、DATA_MATRIX、EAN-13、CODE-128 等）27 种组合全部回扫通过**，因为 `moduleShape` / `moduleFillRatio` / `positionPatternShape` 对非 QR 格式不生效，输出等同于默认样式。
-- **QR Code 受这三个配置影响，27 种组合中 15 种通过、12 种失败**。
-- **QR Code 能回扫的规律**：
-  - `moduleShape = SQUARE` 时，任意 `moduleFillRatio` 和 `positionPatternShape` 均可回扫（9/9 通过）。
-  - `moduleShape = CIRCLE` 或 `ROUNDED` 时，仅当 `positionPatternShape = CIRCLE` 可回扫（6/18 通过）；`positionPatternShape = SQUARE` 或 `FOLLOW_MODULE` 全部失败。
+- 所有 56 种格式（排除 UNKNOWN）在 27 种原始样式组合下均能成功生成，无崩溃。
+- 1D 条码（CODABAR 除外）在 `moduleFillRatio = 1.0` 时基本可回扫；当 `moduleFillRatio < 1.0` 时，条宽被压缩，回扫失败。
+- 2D 矩阵码中：
+  - PDF417、MaxiCode、Plessey 对三种样式最鲁棒，27 种组合全部回扫通过。
+  - Data Matrix、Aztec、Micro QR、Swiss QR Code、UPN QR Code 在 `moduleShape = SQUARE` 且 `moduleFillRatio >= 0.8` 时大部分可回扫，CIRCLE/ROUNDED 配合小填充比容易失败。
+  - Han Xin Code 表现较好，SQUARE 与多数 CIRCLE/ROUNDED 组合可回扫。
+- RSS-14 / RSS Expanded 受布局缩放影响，仅部分组合（主要是 SQUARE + fillRatio 1.0）可回扫。
+- QR Code 仍只推荐 `moduleShape = SQUARE`（任意填充、任意定位点），或 `moduleShape = CIRCLE/ROUNDED` 且 `positionPatternShape = CIRCLE`。
+- UPC/EAN Extension 走 Fallback 渲染，27 种组合全部回扫通过，但样式本身不生效。
 
 ### QR Code 明细
 
@@ -161,4 +164,9 @@
 ### 推荐配置
 
 - **QR Code 稳定可用**：`moduleShape = SQUARE`（任意填充、任意定位点）；或 `moduleShape = CIRCLE/ROUNDED` 且 `positionPatternShape = CIRCLE`。
-- **其他所有格式**：三个配置不生效，但也不会破坏回扫，可放心保留原始配置；若需严格限制 UI 展示，建议按 `FormatStyleCapabilities` 清洗后使用。
+- **PDF417 / MaxiCode / Plessey**：任意三样式组合均可回扫。
+- **1D 条码（EAN/UPC/CODE-128/CODE-39/CODE-93/ITF/MSI/Pharmacode/Telepen）**：仅当 `moduleFillRatio = 1.0` 时稳定回扫，可搭配任意 `moduleShape` / `positionPatternShape`。
+- **CODABAR**：所有组合均可回扫。
+- **Data Matrix / Aztec / Han Xin / Micro QR / Swiss QR / UPN QR**：优先使用 `moduleShape = SQUARE`，`moduleFillRatio` 从 0.8 起；CIRCLE/ROUNDED 需谨慎。
+- **RSS-14 / RSS Expanded**：优先使用 `moduleShape = SQUARE`，`moduleFillRatio = 1.0`。
+- **UPC/EAN Extension**：样式不生效，任意组合均可回扫。

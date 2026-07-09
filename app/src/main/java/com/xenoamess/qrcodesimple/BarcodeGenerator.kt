@@ -20,6 +20,7 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat as AppBarcodeFormat
 import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinEncoder
 import uk.org.okapibarcode.backend.*
 import uk.org.okapibarcode.graphics.TextAlignment
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 
@@ -93,6 +94,51 @@ object BarcodeGenerator {
     }
 
     fun generate(content: String, config: BarcodeConfig): Bitmap? {
+        return generateBitmapOnly(content, config)
+    }
+
+    fun generateWithLayout(content: String, config: BarcodeConfig): BarcodeResult? {
+        return try {
+            when (config.format) {
+                AppBarcodeFormat.QR_CODE -> generateQRCodeWithLayout(content, config)
+                AppBarcodeFormat.DATA_MATRIX -> generateDataMatrixWithLayout(content, config)
+                AppBarcodeFormat.AZTEC -> generateAztecWithLayout(content, config)
+                AppBarcodeFormat.PDF417 -> generatePDF417WithLayout(content, config)
+                AppBarcodeFormat.CODE_128,
+                AppBarcodeFormat.CODE_39,
+                AppBarcodeFormat.CODE_93,
+                AppBarcodeFormat.EAN_13,
+                AppBarcodeFormat.EAN_8,
+                AppBarcodeFormat.UPC_A,
+                AppBarcodeFormat.UPC_E,
+                AppBarcodeFormat.CODABAR,
+                AppBarcodeFormat.ITF -> generateLinearBarcodeWithLayout(content, config)
+                AppBarcodeFormat.UPC_EAN_EXTENSION -> generateUpcEanExtensionWithLayout(content, config)
+                AppBarcodeFormat.RSS_14 -> generateRss14WithLayout(content, config)
+                AppBarcodeFormat.RSS_EXPANDED -> generateRssExpandedWithLayout(content, config)
+                AppBarcodeFormat.MAXICODE -> generateMaxiCodeWithLayout(content, config)
+                AppBarcodeFormat.MICRO_QR -> generateMicroQrWithLayout(content, config)
+                AppBarcodeFormat.PHARMACODE -> generatePharmacodeWithLayout(content, config)
+                AppBarcodeFormat.PLESSEY -> generatePlesseyWithLayout(content, config)
+                AppBarcodeFormat.MSI_PLESSEY -> generateMsiPlesseyWithLayout(content, config)
+                AppBarcodeFormat.TELEPEN -> generateTelepenWithLayout(content, config)
+                AppBarcodeFormat.HAN_XIN -> generateHanXinWithLayout(content, config)
+                AppBarcodeFormat.SWISS_QR_CODE -> generateSwissQrCodeWithLayout(content, config)
+                AppBarcodeFormat.UPN_QR_CODE -> generateUpnQrCodeWithLayout(content, config)
+                AppBarcodeFormat.GRID_MATRIX -> generateGridMatrixWithLayout(content, config)
+                else -> {
+                    val bitmap = generateBitmapOnly(content, config)
+                        ?: throw IllegalStateException("Failed to generate ${config.format}")
+                    BarcodeResult(bitmap, BarcodeLayout.Fallback(bitmap))
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun generateBitmapOnly(content: String, config: BarcodeConfig): Bitmap? {
         return try {
             when (config.format) {
                 AppBarcodeFormat.QR_CODE -> generateQRCode(content, config)
@@ -164,6 +210,706 @@ object BarcodeGenerator {
         }
     }
 
+    // ==================== 结构化布局生成 ====================
+
+    private fun generateQRCodeWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val bitmap = generateQRCode(content, config)
+        return BarcodeResult(bitmap, BarcodeLayout.Fallback(bitmap))
+    }
+
+    private fun generateDataMatrixWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        return if (content.all { it.code in 0..127 }) {
+            val hints = hashMapOf(EncodeHintType.CHARACTER_SET to "UTF-8")
+            val writer = MultiFormatWriter()
+            val bitMatrix = writer.encode(content, BarcodeFormat.DATA_MATRIX, 1, 1, hints)
+            val bitmap = createPaddedBitmap(bitMatrix, config)
+            BarcodeResult(bitmap, buildGridLayout(bitMatrix, AppBarcodeFormat.DATA_MATRIX, padding = 1))
+        } else {
+            val symbol = DataMatrix().apply {
+                setEciMode(26)
+                setContent(content)
+            }
+            val bitmap = symbolToBitmap(symbol, config)
+            val bitMatrix = symbolRectanglesToBitMatrix(symbol)
+            BarcodeResult(bitmap, buildGridLayout(bitMatrix, AppBarcodeFormat.DATA_MATRIX, padding = 1))
+        }
+    }
+
+    private fun generateAztecWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val hints = hashMapOf(
+            EncodeHintType.CHARACTER_SET to "UTF-8",
+            EncodeHintType.ERROR_CORRECTION to resolveErrorCorrectionLevel(config.format, config.ecLevel)
+        )
+        val writer = MultiFormatWriter()
+        val bitMatrix = writer.encode(content, BarcodeFormat.AZTEC, 1, 1, hints)
+        val bitmap = createPaddedBitmap(bitMatrix, config)
+        return BarcodeResult(bitmap, buildGridLayout(bitMatrix, AppBarcodeFormat.AZTEC, padding = 1))
+    }
+
+    private fun generatePDF417WithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val hints = hashMapOf(
+            EncodeHintType.ERROR_CORRECTION to (resolveErrorCorrectionLevel(config.format, config.ecLevel) ?: 2),
+            EncodeHintType.CHARACTER_SET to "UTF-8"
+        )
+        val writer = MultiFormatWriter()
+        val bitMatrix = writer.encode(content, BarcodeFormat.PDF_417, 1, 1, hints)
+        val bitmap = createPaddedBitmap(bitMatrix, config)
+        return BarcodeResult(bitmap, buildGridLayout(bitMatrix, AppBarcodeFormat.PDF417, padding = 1))
+    }
+
+    private fun generateLinearBarcodeWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val (bitmap, bitMatrix) = when (config.format) {
+            AppBarcodeFormat.CODE_128 -> createZXingLinearRaw(content, BarcodeFormat.CODE_128, config)
+            AppBarcodeFormat.CODE_39 -> createZXingLinearRaw(content, BarcodeFormat.CODE_39, config)
+            AppBarcodeFormat.CODE_93 -> createZXingLinearRaw(content, BarcodeFormat.CODE_93, config)
+            AppBarcodeFormat.EAN_13 -> createZXingLinearRaw(content, BarcodeFormat.EAN_13, config)
+            AppBarcodeFormat.EAN_8 -> createZXingLinearRaw(content, BarcodeFormat.EAN_8, config)
+            AppBarcodeFormat.UPC_A -> createZXingLinearRaw(content, BarcodeFormat.UPC_A, config)
+            AppBarcodeFormat.UPC_E -> createZXingLinearRaw(content, BarcodeFormat.UPC_E, config)
+            AppBarcodeFormat.CODABAR -> createZXingLinearRaw(content, BarcodeFormat.CODABAR, config)
+            AppBarcodeFormat.ITF -> createZXingLinearRaw(content, BarcodeFormat.ITF, config)
+            else -> createZXingLinearRaw(content, BarcodeFormat.CODE_128, config)
+        }
+        return BarcodeResult(bitmap, buildLinearLayoutFromBitMatrix(bitMatrix, config.format))
+    }
+
+    private fun generateUpcEanExtensionWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val resultBitmap = generateUpcEanExtension(content, config)
+        return BarcodeResult(resultBitmap, BarcodeLayout.Fallback(resultBitmap))
+    }
+
+    private fun buildUpcEanExtensionLayout(content: String, config: BarcodeConfig): BarcodeLayout.LinearLayout {
+        val digits = content.filter { it.isDigit() }
+        val pattern = buildUpcEanExtensionPattern(digits)
+        val moduleWidth = 4
+        val quietZone = moduleWidth * 10
+        val rightQuietZone = moduleWidth * 10
+        val barcodeHeight = config.height / 3
+        val barcodeWidth = pattern.length * moduleWidth
+        val bitmapWidth = barcodeWidth + rightQuietZone
+        val runs = mutableListOf<BarcodeLayout.LinearLayout.BarRun>()
+        var x = quietZone
+        var isBar = true
+        for (bit in pattern) {
+            val w = moduleWidth
+            if (isBar && bit == '1') {
+                val isGuard = x == quietZone
+                runs.add(
+                    BarcodeLayout.LinearLayout.BarRun(
+                        left = x,
+                        top = 0,
+                        right = x + w,
+                        bottom = barcodeHeight,
+                        kind = if (isGuard) BarcodeLayout.LinearLayout.BarRun.Kind.GUARD else BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+                    )
+                )
+            }
+            x += w
+            isBar = !isBar
+        }
+        return BarcodeLayout.LinearLayout(runs, moduleWidth, width = bitmapWidth, height = barcodeHeight)
+    }
+
+    private fun buildUpcEanExtensionPattern(digits: String): String {
+        val lPatterns = arrayOf(
+            "0001101", "0011001", "0010011", "0111101", "0100011",
+            "0110001", "0101111", "0111011", "0110111", "0001011"
+        )
+        val gPatterns = arrayOf(
+            "0100111", "0110011", "0011011", "0100001", "0011101",
+            "0111001", "0000101", "0010001", "0001001", "0010111"
+        )
+        val ean5Parity = intArrayOf(24, 20, 18, 17, 12, 6, 3, 10, 9, 5)
+        val bits = StringBuilder()
+        bits.append("1011")
+        if (digits.length == 5) {
+            val d = digits.map { it.digitToInt() }
+            var check = 0
+            for (i in 0 until 5) check += (if (i % 2 == 0) 3 else 9) * d[i]
+            check %= 10
+            val parity = ean5Parity[check]
+            for (i in 0 until 5) {
+                val useG = ((parity shr (4 - i)) and 1) == 1
+                val pattern = if (useG) gPatterns[d[i]] else lPatterns[d[i]]
+                bits.append(pattern)
+                if (i < 4) bits.append("01")
+            }
+        } else {
+            val d = digits.map { it.digitToInt() }
+            val check = d[0] * 10 + d[1]
+            val parity = when (check % 4) {
+                0 -> "LL"
+                1 -> "LG"
+                2 -> "GL"
+                else -> "GG"
+            }
+            for (i in 0 until 2) {
+                val pattern = if (parity[i] == 'L') lPatterns[d[i]] else gPatterns[d[i]]
+                bits.append(pattern)
+                if (i < 1) bits.append("01")
+            }
+        }
+        return bits.toString()
+    }
+
+    private fun generateRss14WithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val symbol = DataBar14().apply { setContent(content) }
+        val bitmap = symbolToBitmap(symbol, config)
+        return BarcodeResult(bitmap, symbolRectanglesToLinearLayout(symbol, AppBarcodeFormat.RSS_14))
+    }
+
+    private fun generateRssExpandedWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val symbol = DataBarExpanded().apply {
+            dataType = Symbol.DataType.GS1
+            setContent(content.replace("(", "[").replace(")", "]"))
+        }
+        val bitmap = symbolToBitmap(symbol, config)
+        return BarcodeResult(bitmap, symbolRectanglesToLinearLayout(symbol, AppBarcodeFormat.RSS_EXPANDED))
+    }
+
+    private fun generateMaxiCodeWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val symbol = MaxiCode().apply { setContent(content) }
+        val bitmap = symbolToBitmap(symbol, config)
+        val hexagons = symbol.hexagons.map { hex ->
+            val vertices = List(6) { i -> hex.getX(i).toFloat() to hex.getY(i).toFloat() }
+            val cx = vertices.map { it.first }.average().toFloat()
+            val cy = vertices.map { it.second }.average().toFloat()
+            val size = vertices.map { hypot(it.first - cx, it.second - cy) }.average().toFloat()
+            BarcodeLayout.MaxiCodeLayout.Hexagon(x = cx, y = cy, size = size)
+        }
+        val targets = symbol.target.map { circle ->
+            BarcodeLayout.MaxiCodeLayout.Target(
+                cx = circle.centreX.toFloat(),
+                cy = circle.centreY.toFloat(),
+                radius = circle.radius.toFloat()
+            )
+        }
+        return BarcodeResult(bitmap, BarcodeLayout.MaxiCodeLayout(hexagons, targets))
+    }
+
+    private fun generateMicroQrWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        fun tryEncode(ecLevel: MicroQrCode.ErrorLevel?): MicroQrCode? {
+            val encoder = MicroQrCodeEncoder()
+            if (ecLevel != null) encoder.setError(ecLevel)
+            return try {
+                encoder.addAutomatic(content)
+                encoder.fixate()
+            } catch (e: Exception) {
+                null
+            }
+        }
+        val preferredEcLevel = resolveErrorCorrectionLevel(config.format, config.ecLevel) as? MicroQrCode.ErrorLevel
+        val qr = tryEncode(preferredEcLevel) ?: tryEncode(null)
+            ?: throw IllegalArgumentException("Failed to generate Micro QR for content: $content")
+
+        val gray: GrayU8 = MicroQrCodeGenerator.renderImage(4, 0, qr)
+        val bitMatrix = GrayU8ToBitMatrix(gray)
+        val bitmap = generateMicroQr(content, config)
+        return BarcodeResult(bitmap, buildGridLayout(bitMatrix, AppBarcodeFormat.MICRO_QR, moduleSize = 1, padding = 1))
+    }
+
+    private fun GrayU8ToBitMatrix(gray: GrayU8): BitMatrix {
+        val width = gray.width
+        val height = gray.height
+        val bitMatrix = BitMatrix(width, height)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                if (gray.get(x, y) == 0) {
+                    bitMatrix.set(x, y)
+                }
+            }
+        }
+        return bitMatrix
+    }
+
+    private fun generatePharmacodeWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val bitmap = generatePharmacode(content, config)
+        val value = content.toInt()
+        val digitToSymbol = mapOf(
+            0 to listOf(1, 2),
+            1 to listOf(2, 2),
+            2 to listOf(1, 1),
+            3 to listOf(2, 1)
+        )
+        val bars = mutableListOf<Int>()
+        var v = value
+        while (v > 0) {
+            val digit = v % 4
+            v /= 4
+            bars.addAll(digitToSymbol[digit]!!)
+        }
+        bars.add(1)
+        return BarcodeResult(bitmap, buildLinearLayoutFromBars(bars, config, guardBarIndices = setOf(bars.size - 1)))
+    }
+
+    private fun generatePlesseyWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val bitmap = generatePlessey(content, config)
+        val upper = content.uppercase()
+        val start = "1101"
+        val stop = "1101"
+        val digitToBits = mapOf(
+            '0' to "0000", '1' to "0001", '2' to "0010", '3' to "0011",
+            '4' to "0100", '5' to "0101", '6' to "0110", '7' to "0111",
+            '8' to "1000", '9' to "1001", 'A' to "1010", 'B' to "1011",
+            'C' to "1100", 'D' to "1101", 'E' to "1110", 'F' to "1111"
+        )
+        val bits = StringBuilder()
+        bits.append(start)
+        for (ch in upper) bits.append(digitToBits[ch])
+        val crc = calculatePlesseyCrc(upper)
+        val crcLow = (crc and 0x0F).toString(16).uppercase()[0]
+        val crcHigh = ((crc shr 4) and 0x0F).toString(16).uppercase()[0]
+        bits.append(digitToBits[crcLow])
+        bits.append(digitToBits[crcHigh])
+        bits.append(stop)
+        val bars = mutableListOf<Int>()
+        for (bit in bits.toString()) {
+            if (bit == '0') {
+                bars.add(1)
+                bars.add(1)
+            } else {
+                bars.add(2)
+                bars.add(1)
+            }
+        }
+        val guardCount = 8
+        return BarcodeResult(bitmap, buildLinearLayoutFromBars(bars, config, guardBarIndices = (0 until guardCount).toSet() + (bars.size - guardCount until bars.size).toSet()))
+    }
+
+    private fun generateMsiPlesseyWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val bitmap = generateMsiPlessey(content, config)
+        val digitPatterns = mapOf(
+            '0' to "12121212", '1' to "12121221", '2' to "12122112", '3' to "12122121",
+            '4' to "12211212", '5' to "12211221", '6' to "12212112", '7' to "12212121",
+            '8' to "21121212", '9' to "21121221"
+        )
+        val dataWithCheck = content + calculateMod10(content)
+        val pattern = StringBuilder()
+        pattern.append("21")
+        for (ch in dataWithCheck) pattern.append(digitPatterns[ch])
+        pattern.append("121")
+        val bars = mutableListOf<Int>()
+        for (c in pattern.toString()) bars.add(c - '0')
+        return BarcodeResult(bitmap, buildLinearLayoutFromBars(bars, config, guardBarIndices = (0 until 2).toSet() + (bars.size - 3 until bars.size).toSet()))
+    }
+
+    private fun generateTelepenWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val bitmap = generateTelepen(content, config)
+        val telepenTable = arrayOf(
+            "313111113111", "311311113111", "313111111311", "311311111311",
+            "313131113111", "311331113111", "313131111311", "311331111311",
+            "313111131111", "311311131111", "313111133111", "311311133111",
+            "313131131111", "311331131111", "313131133111", "311331133111",
+            "313113113111", "311313113111", "313113111311", "311313111311",
+            "313133113111", "311333113111", "313133111311", "311333111311",
+            "313113131111", "311313131111", "313113133111", "311313133111",
+            "313133131111", "311333131111", "313133133111", "311333133111",
+            "313111113131", "311311113131", "313111111331", "311311111331",
+            "313131113131", "311331113131", "313131111331", "311331111331",
+            "313111131131", "311311131131", "313111133131", "311311133131",
+            "313131131131", "311331131131", "313131133131", "311331133131",
+            "313113113131", "311313113131", "313113111331", "311313111331",
+            "313133113131", "311333113131", "313133111331", "311333111331",
+            "313113131131", "311313131131", "313113133131", "311313133131",
+            "313133131131", "311333131131", "313133133131", "311333133131",
+            "313111113113", "311311113113", "313111111313", "311311111313",
+            "313131113113", "311331113113", "313131111313", "311331111313",
+            "313111131113", "311311131113", "313111133113", "311311133113",
+            "313131131113", "311331131113", "313131133113", "311331133113",
+            "313113113113", "311313113113", "313113111313", "311313111313",
+            "313133113113", "311333113113", "313133111313", "311333111313",
+            "313113131113", "311313131113", "313113133113", "311313133113",
+            "313133131113", "311333131113", "313133133113", "311333133113",
+            "313131313111", "311331313111", "313131311311", "311331311311",
+            "313131331111", "311331331111", "313131333111", "311331333111",
+            "313131313131", "311331313131", "313131311331", "311331311331",
+            "313131331131", "311331331131", "313131333131", "311331333131",
+            "313131313113", "311331313113", "313131311313", "311331311313",
+            "313131331113", "311331331113", "313131333113", "311331333113",
+            "313131313311", "311331313311", "313131313331", "311331313331"
+        )
+        var sum = 0
+        val bars = mutableListOf<Int>()
+        bars.addAll(telepenTable['_'.code].map { it - '0' })
+        sum += '_'.code
+        for (ch in content) {
+            val code = ch.code
+            require(code in 0..127) { "Telepen supports ASCII 0-127" }
+            bars.addAll(telepenTable[code].map { it - '0' })
+            sum += code
+        }
+        val check = if (sum % 127 == 0) 0 else 127 - (sum % 127)
+        bars.addAll(telepenTable[check].map { it - '0' })
+        bars.addAll(telepenTable['z'.code].map { it - '0' })
+        bars.add(1)
+        val guardCount = 12
+        return BarcodeResult(bitmap, buildLinearLayoutFromBars(bars, config, guardBarIndices = (0 until guardCount).toSet() + (bars.size - guardCount - 1 until bars.size - 1).toSet()))
+    }
+
+    private fun generateHanXinWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val result = HanXinEncoder.encode(
+            content = content,
+            width = config.width,
+            height = config.height,
+            foreground = config.foregroundColor,
+            background = config.backgroundColor,
+            requestedEccLevel = resolveErrorCorrectionLevel(config.format, config.ecLevel) as? Int ?: 0
+        ) ?: throw IllegalArgumentException("Failed to generate Han Xin Code")
+        val size = result.size
+        val grid = result.grid
+        val bitMatrix = HanXinGridToBitMatrix(grid, size)
+        return BarcodeResult(result.bitmap, buildGridLayout(bitMatrix, AppBarcodeFormat.HAN_XIN, moduleSize = 1, padding = 0))
+    }
+
+    private fun HanXinGridToBitMatrix(grid: IntArray, size: Int): BitMatrix {
+        val bitMatrix = BitMatrix(size, size)
+        for (y in 0 until size) {
+            for (x in 0 until size) {
+                val value = grid[y * size + x]
+                if ((value and 1) == 1) {
+                    bitMatrix.set(x, y)
+                }
+            }
+        }
+        return bitMatrix
+    }
+
+    private fun generateSwissQrCodeWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        return generateOkapiQrWithLayout<SwissQrCode>(content, config, AppBarcodeFormat.SWISS_QR_CODE)
+    }
+
+    private fun generateUpnQrCodeWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        return generateOkapiQrWithLayout<UpnQr>(content, config, AppBarcodeFormat.UPN_QR_CODE)
+    }
+
+    private fun generateGridMatrixWithLayout(content: String, config: BarcodeConfig): BarcodeResult {
+        val symbol = GridMatrix().apply {
+            val ecLevel = resolveErrorCorrectionLevel(config.format, config.ecLevel)
+            if (ecLevel is Int) setPreferredEccLevel(ecLevel)
+            setContent(content)
+        }
+        val bitmap = symbolToBitmap(symbol, config)
+        val bitMatrix = okapiQrCodeToBitMatrix(symbol) ?: symbolRectanglesToBitMatrix(symbol)
+        return BarcodeResult(bitmap, buildGridLayout(bitMatrix, AppBarcodeFormat.GRID_MATRIX, moduleSize = 1, padding = 1))
+    }
+
+    private inline fun <reified T : Symbol> generateOkapiQrWithLayout(
+        content: String,
+        config: BarcodeConfig,
+        format: AppBarcodeFormat
+    ): BarcodeResult {
+        val symbol = T::class.java.getDeclaredConstructor().newInstance().apply { setContent(content) }
+        val bitmap = symbolToBitmap(symbol, config)
+        val bitMatrix = okapiQrCodeToBitMatrix(symbol) ?: symbolRectanglesToBitMatrix(symbol)
+        return BarcodeResult(bitmap, buildGridLayout(bitMatrix, format, moduleSize = 1, padding = 1))
+    }
+
+    private fun okapiQrCodeToBitMatrix(symbol: Symbol): BitMatrix? {
+        return try {
+            val patternField = Symbol::class.java.getDeclaredField("pattern")
+            patternField.isAccessible = true
+            val pattern = patternField.get(symbol) as? IntArray ?: return null
+
+            val rowHeightField = Symbol::class.java.getDeclaredField("rowHeight")
+            rowHeightField.isAccessible = true
+            val rowHeight = rowHeightField.get(symbol) as? IntArray ?: return null
+
+            val rowCountField = Symbol::class.java.getDeclaredField("rowCount")
+            rowCountField.isAccessible = true
+            val rowCount = rowCountField.getInt(symbol)
+
+            val width = symbol.width
+            val height = symbol.height
+            val bitMatrix = BitMatrix(width, height)
+            var y = 0
+            for (row in 0 until rowCount) {
+                repeat(rowHeight[row]) {
+                    for (x in 0 until width) {
+                        if (pattern[x + row * width] == 1) {
+                            bitMatrix.set(x, y)
+                        }
+                    }
+                    y++
+                }
+            }
+            bitMatrix
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun symbolRectanglesToBitMatrix(symbol: Symbol): BitMatrix {
+        val bitMatrix = BitMatrix(symbol.width, symbol.height)
+        for (rect in symbol.rectangles) {
+            val x0 = rect.x.toInt()
+            val y0 = rect.y.toInt()
+            val w = rect.width.toInt()
+            val h = rect.height.toInt()
+            for (x in x0 until x0 + w) {
+                for (y in y0 until y0 + h) {
+                    bitMatrix.set(x, y)
+                }
+            }
+        }
+        return bitMatrix
+    }
+
+    private fun symbolRectanglesToLinearLayout(symbol: Symbol, format: AppBarcodeFormat): BarcodeLayout.LinearLayout {
+        val scale = 8
+        val quietZone = scale * 5
+        val runs = symbol.rectangles.map { rect ->
+            val left = rect.x.toInt() * scale + quietZone
+            val right = (rect.x + rect.width).toInt() * scale + quietZone
+            val top = rect.y.toInt() * scale
+            val bottom = (rect.y + rect.height).toInt() * scale
+            val isGuard = when (format) {
+                AppBarcodeFormat.RSS_14,
+                AppBarcodeFormat.RSS_EXPANDED -> rect.x <= 2 || rect.x + rect.width >= symbol.width - 2
+                else -> false
+            }
+            BarcodeLayout.LinearLayout.BarRun(
+                left = left,
+                top = top,
+                right = right,
+                bottom = bottom,
+                kind = if (isGuard) BarcodeLayout.LinearLayout.BarRun.Kind.GUARD else BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+            )
+        }
+        return BarcodeLayout.LinearLayout(
+            runs,
+            moduleWidth = scale,
+            width = symbol.width * scale + quietZone * 2,
+            height = symbol.height * scale
+        )
+    }
+
+    private fun buildLinearLayoutFromBitMatrix(
+        bitMatrix: BitMatrix,
+        format: AppBarcodeFormat
+    ): BarcodeLayout.LinearLayout {
+        val runs = mutableListOf<BarcodeLayout.LinearLayout.BarRun>()
+        var inBar = false
+        var startX = 0
+        var firstDark = -1
+        var lastDark = -1
+        for (x in 0 until bitMatrix.width) {
+            if (bitMatrix.get(x, 0)) {
+                if (firstDark == -1) firstDark = x
+                lastDark = x
+            }
+        }
+        for (x in 0 until bitMatrix.width) {
+            val dark = bitMatrix.get(x, 0)
+            if (dark && !inBar) {
+                startX = x
+                inBar = true
+            } else if (!dark && inBar) {
+                runs.add(
+                    BarcodeLayout.LinearLayout.BarRun(
+                        left = startX,
+                        top = 0,
+                        right = x,
+                        bottom = bitMatrix.height,
+                        kind = barKindForZXing1D(format, startX, x, firstDark, lastDark)
+                    )
+                )
+                inBar = false
+            }
+        }
+        if (inBar) {
+            runs.add(
+                BarcodeLayout.LinearLayout.BarRun(
+                    left = startX,
+                    top = 0,
+                    right = bitMatrix.width,
+                    bottom = bitMatrix.height,
+                    kind = barKindForZXing1D(format, startX, bitMatrix.width, firstDark, lastDark)
+                )
+            )
+        }
+        val quietZone = 40
+        val shiftedRuns = runs.map { run ->
+            run.copy(left = run.left + quietZone, right = run.right + quietZone)
+        }
+        return BarcodeLayout.LinearLayout(
+            shiftedRuns,
+            moduleWidth = 1,
+            width = bitMatrix.width + quietZone * 2,
+            height = bitMatrix.height
+        )
+    }
+
+    private fun barKindForZXing1D(
+        format: AppBarcodeFormat,
+        startX: Int,
+        endX: Int,
+        firstDark: Int,
+        lastDark: Int
+    ): BarcodeLayout.LinearLayout.BarRun.Kind {
+        if (firstDark < 0 || lastDark <= firstDark) return BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+        val dataWidth = lastDark - firstDark + 1
+        return when (format) {
+            AppBarcodeFormat.EAN_13, AppBarcodeFormat.UPC_A -> {
+                if (dataWidth < 90) return BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+                val leftGuard = firstDark + 3
+                val centerStart = firstDark + 45
+                val centerEnd = firstDark + 50
+                val rightGuardStart = firstDark + 92
+                val rightGuardEnd = firstDark + 95
+                if ((startX < leftGuard && endX > firstDark) ||
+                    (startX < centerEnd && endX > centerStart) ||
+                    (startX < rightGuardEnd && endX > rightGuardStart)
+                ) BarcodeLayout.LinearLayout.BarRun.Kind.GUARD else BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+            }
+            AppBarcodeFormat.EAN_8 -> {
+                if (dataWidth < 60) return BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+                val leftGuard = firstDark + 3
+                val centerStart = firstDark + 31
+                val centerEnd = firstDark + 36
+                val rightGuardStart = firstDark + 64
+                val rightGuardEnd = firstDark + 67
+                if ((startX < leftGuard && endX > firstDark) ||
+                    (startX < centerEnd && endX > centerStart) ||
+                    (startX < rightGuardEnd && endX > rightGuardStart)
+                ) BarcodeLayout.LinearLayout.BarRun.Kind.GUARD else BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+            }
+            AppBarcodeFormat.UPC_E -> {
+                if (dataWidth < 45) return BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+                val leftGuard = firstDark + 3
+                val rightGuardStart = firstDark + 45
+                val rightGuardEnd = firstDark + 51
+                if ((startX < leftGuard && endX > firstDark) ||
+                    (startX < rightGuardEnd && endX > rightGuardStart)
+                ) BarcodeLayout.LinearLayout.BarRun.Kind.GUARD else BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+            }
+            else -> BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+        }
+    }
+
+    private fun buildLinearLayoutFromBars(
+        bars: List<Int>,
+        config: BarcodeConfig,
+        moduleWidth: Int = 4,
+        guardBarIndices: Set<Int> = emptySet(),
+        rightQuietZone: Int = moduleWidth * 10
+    ): BarcodeLayout.LinearLayout {
+        val quietZone = moduleWidth * 10
+        val barcodeWidth = bars.sum() * moduleWidth
+        val bitmapWidth = barcodeWidth + quietZone + rightQuietZone
+        val barcodeHeight = config.height / 3
+        val runs = mutableListOf<BarcodeLayout.LinearLayout.BarRun>()
+        var x = quietZone
+        var isBar = true
+        bars.forEachIndexed { index, width ->
+            val w = width * moduleWidth
+            if (isBar) {
+                runs.add(
+                    BarcodeLayout.LinearLayout.BarRun(
+                        left = x,
+                        top = 0,
+                        right = x + w,
+                        bottom = barcodeHeight,
+                        kind = if (index in guardBarIndices) BarcodeLayout.LinearLayout.BarRun.Kind.GUARD else BarcodeLayout.LinearLayout.BarRun.Kind.DATA
+                    )
+                )
+            }
+            x += w
+            isBar = !isBar
+        }
+        return BarcodeLayout.LinearLayout(runs, moduleWidth, width = bitmapWidth, height = barcodeHeight)
+    }
+
+    private fun buildGridLayout(
+        bitMatrix: BitMatrix,
+        format: AppBarcodeFormat,
+        moduleSize: Int = 1,
+        padding: Int = 0
+    ): BarcodeLayout.GridLayout {
+        val positionPatterns = when (format) {
+            AppBarcodeFormat.DATA_MATRIX -> detectDataMatrixPositionPatterns(bitMatrix)
+            AppBarcodeFormat.AZTEC -> detectAztecPositionPatterns(bitMatrix)
+            AppBarcodeFormat.PDF417 -> detectPDF417PositionPatterns(bitMatrix)
+            AppBarcodeFormat.MICRO_QR -> detectMicroQrPositionPatterns(bitMatrix)
+            AppBarcodeFormat.HAN_XIN -> detectHanXinPositionPatterns(bitMatrix)
+            AppBarcodeFormat.SWISS_QR_CODE,
+            AppBarcodeFormat.UPN_QR_CODE -> detectQrPositionPatterns(bitMatrix)
+            AppBarcodeFormat.GRID_MATRIX -> detectGridMatrixPositionPatterns(bitMatrix)
+            else -> emptyList()
+        }
+        return BarcodeLayout.GridLayout(bitMatrix, moduleSize, positionPatterns, padding = padding)
+    }
+
+    private fun detectQrPositionPatterns(bitMatrix: BitMatrix): List<Rect> {
+        val size = bitMatrix.width
+        return listOf(
+            Rect(0, 0, 7, 7),
+            Rect(size - 7, 0, size, 7),
+            Rect(0, size - 7, 7, size)
+        )
+    }
+
+    private fun detectDataMatrixPositionPatterns(bitMatrix: BitMatrix): List<Rect> {
+        val size = bitMatrix.width
+        return listOf(
+            Rect(0, 0, 1, size - 1),
+            Rect(0, size - 1, size, size),
+            Rect(0, 0, size, 1),
+            Rect(size - 1, 0, size, size)
+        )
+    }
+
+    private fun detectAztecPositionPatterns(bitMatrix: BitMatrix): List<Rect> {
+        val size = bitMatrix.width
+        val center = size / 2
+        val patternSize = when {
+            size <= 19 -> 9
+            size <= 27 -> 13
+            size <= 39 -> 17
+            else -> 21
+        }
+        val half = patternSize / 2
+        return listOf(Rect(center - half, center - half, center + half + 1, center + half + 1))
+    }
+
+    private fun detectPDF417PositionPatterns(bitMatrix: BitMatrix): List<Rect> {
+        val width = bitMatrix.width
+        val startWidth = (width * 0.12).toInt().coerceAtLeast(2)
+        val endWidth = (width * 0.08).toInt().coerceAtLeast(2)
+        return listOf(
+            Rect(0, 0, startWidth, bitMatrix.height),
+            Rect(width - endWidth, 0, width, bitMatrix.height)
+        )
+    }
+
+    private fun detectMicroQrPositionPatterns(bitMatrix: BitMatrix): List<Rect> {
+        val size = bitMatrix.width
+        return listOf(
+            Rect(0, 0, 7, 7),
+            Rect(size - 7, 0, size, 7),
+            Rect(0, size - 7, 7, size)
+        )
+    }
+
+    private fun detectHanXinPositionPatterns(bitMatrix: BitMatrix): List<Rect> {
+        val size = bitMatrix.width
+        return listOf(
+            Rect(0, 0, 7, 7),
+            Rect(size - 7, 0, size, 7),
+            Rect(0, size - 7, 7, size),
+            Rect(size - 7, size - 7, size, size)
+        )
+    }
+
+    private fun detectGridMatrixPositionPatterns(bitMatrix: BitMatrix): List<Rect> {
+        val size = bitMatrix.width
+        return listOf(
+            Rect(0, 0, 5, 5),
+            Rect(size - 5, 0, size, 5),
+            Rect(0, size - 5, 5, size),
+            Rect(size - 5, size - 5, size, size)
+        )
+    }
+
     // ==================== ZXing 生成的格式 ====================
 
     private fun generateQRCode(content: String, config: BarcodeConfig): Bitmap {
@@ -227,10 +973,18 @@ object BarcodeGenerator {
         zxingFormat: BarcodeFormat,
         config: BarcodeConfig
     ): Bitmap {
+        return createZXingLinearRaw(content, zxingFormat, config).first
+    }
+
+    private fun createZXingLinearRaw(
+        content: String,
+        zxingFormat: BarcodeFormat,
+        config: BarcodeConfig
+    ): Pair<Bitmap, BitMatrix> {
         val hints = hashMapOf(EncodeHintType.CHARACTER_SET to "UTF-8")
         val writer = MultiFormatWriter()
         val bitMatrix = writer.encode(content, zxingFormat, config.width, config.height / 3, hints)
-        return createLinearBarcodeBitmap(bitMatrix, config, content)
+        return createLinearBarcodeBitmap(bitMatrix, config, content) to bitMatrix
     }
 
     // ==================== OkapiBarcode 生成的格式 ====================

@@ -52,7 +52,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 - 生成器本身不清洗 `StyleConfig`，传入什么就用什么；调用方（`GenerateFragment`、历史页面）在生成前调用 `AdvancedBarcodeGenerator.sanitize(style, format)` 清洗。
 - `GenerateFragment` 根据当前格式能力表隐藏不支持的控件，不做提示。
-- 各格式的实际样式能力见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)，其中包含 `moduleShape` / `moduleFillRatio` / `positionPatternShape` 在 QR Code 下的真实回扫通过率。
+- 各格式的实际样式能力见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)，其中包含 `moduleShape` / `moduleFillRatio` / `positionPatternShape` 对所有可扫描格式的真实回扫通过率。
 
 `StyleConfig` 字段及能力表：
 - `foregroundColor` / `backgroundColor`：所有格式。
@@ -60,7 +60,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - `logoScale` / `logoBitmap`：所有格式。
 - `gradientAngle` / `gradientStops` / `gradientType`：所有格式。
 - `foregroundBitmap` / `backgroundBitmap`：所有格式。
-- `moduleShape` / `moduleFillRatio` / `positionPatternShape`：仅 QR Code 真正渲染生效；其他格式不生效但不破坏回扫。
+- `moduleShape` / `moduleFillRatio` / `positionPatternShape`：按格式生效。所有可扫描的 1D/2D 格式都会渲染，但不同组合的回扫能力差异较大；具体见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)。仅生成格式（`isScannable = false`）不生效，仅走默认渲染。
 - `ecLevel`：QR Code 直接生效；Aztec / PDF417 / Han Xin / Micro QR / Grid Matrix 经映射后生效；其他格式不生效。
 
 `ecLevel` 映射：
@@ -107,7 +107,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | 文件 | 说明 |
 |------|------|
 | `BarcodeGenerator.kt` | 条码生成器主入口（ZXing / 自定义 / BoofCV / HanXin / OkapiBarcode 路由） |
-| `AdvancedBarcodeGenerator.kt` | 带样式的高级生成器 |
+| `AdvancedBarcodeGenerator.kt` | 带样式的高级生成器（含 `FormatStyleCapabilities` 与 `sanitize`） |
 | `SvgQRCodeGenerator.kt` | 全格式 SVG 导出（ZXing 路径 + bitmap 回退） |
 | `QRCodeScanner.kt` | 多引擎扫描器 |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
@@ -123,7 +123,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `data/BarcodeFormat.kt` | 应用内条码格式枚举（含 `isScannable`） |
 | `AppLockManager.kt` | 应用锁（PIN / 生物识别） |
 | `GenerateFragment.kt` | 生成界面 Fragment |
-| `AdvancedBarcodeGenerator.kt` | 带样式的条码生成（颜色、外圆角、模块圆角、Logo） |
+| `BarcodeLayout.kt` | 统一布局抽象（Grid、Linear、MaxiCode、Fallback）供样式渲染器使用 |
 | `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条） |
 | `ColorPickerDialog.kt` | 颜色选取对话框（含 hex 输入） |
 | `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel） |

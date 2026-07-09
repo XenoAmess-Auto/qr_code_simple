@@ -65,7 +65,7 @@ class GenerateFragment : Fragment() {
     private var foregroundImageBitmap: Bitmap? = null
     private var backgroundImageBitmap: Bitmap? = null
     private var moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE
-    private var moduleFillRatio = 0.8f
+    private var moduleFillRatio = 1.0f
     private var positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
     internal var gradientAngle = 0f
     private var gradientStops = mutableListOf<AdvancedBarcodeGenerator.ColorStop>()

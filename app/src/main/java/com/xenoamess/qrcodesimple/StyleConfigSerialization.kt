@@ -65,7 +65,7 @@ fun styleConfigFromJson(jsonString: String): AdvancedBarcodeGenerator.StyleConfi
             logoScale = json.optDouble("logoScale", 0.2).toFloat(),
             ecLevel = ErrorCorrectionLevel.valueOf(json.optString("ecLevel", "H")),
             moduleShape = ModuleShape.valueOf(json.optString("moduleShape", "SQUARE")),
-            moduleFillRatio = json.optDouble("moduleFillRatio", 0.8).toFloat(),
+            moduleFillRatio = json.optDouble("moduleFillRatio", 1.0).toFloat(),
             positionPatternShape = PositionPatternShape.valueOf(json.optString("positionPatternShape", "SQUARE")),
             gradientAngle = json.optDouble("gradientAngle", 0.0).toFloat(),
             gradientType = GradientType.valueOf(json.optString("gradientType", "LINEAR")),

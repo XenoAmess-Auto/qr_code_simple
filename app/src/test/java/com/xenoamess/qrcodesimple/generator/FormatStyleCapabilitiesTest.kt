@@ -61,7 +61,7 @@ class FormatStyleCapabilitiesTest {
     }
 
     @Test
-    fun `sanitize resets QR-only fields for non-QR formats`() {
+    fun `sanitize resets QR-only fields for unsupported formats`() {
         val style = AdvancedBarcodeGenerator.StyleConfig(
             foregroundColor = Color.RED,
             cornerRadius = 0.3f,
@@ -70,12 +70,12 @@ class FormatStyleCapabilitiesTest {
             moduleFillRatio = 0.5f,
             positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
         )
-        val sanitized = AdvancedBarcodeGenerator.sanitize(style, BarcodeFormat.CODE_128)
+        val sanitized = AdvancedBarcodeGenerator.sanitize(style, BarcodeFormat.AZTEC_RUNE)
         assertEquals(Color.RED, sanitized.foregroundColor)
         assertEquals(0.3f, sanitized.cornerRadius)
         assertEquals(ErrorCorrectionLevel.H, sanitized.ecLevel)
         assertEquals(AdvancedBarcodeGenerator.ModuleShape.SQUARE, sanitized.moduleShape)
-        assertEquals(0.8f, sanitized.moduleFillRatio)
+        assertEquals(1.0f, sanitized.moduleFillRatio)
         assertEquals(AdvancedBarcodeGenerator.PositionPatternShape.SQUARE, sanitized.positionPatternShape)
     }
 
@@ -95,7 +95,7 @@ class FormatStyleCapabilitiesTest {
     }
 
     @Test
-    fun `generate ignores module shape for non-QR format`() {
+    fun `generate applies module shape for 1D format`() {
         val content = "CODE128"
         val circle = AdvancedBarcodeGenerator.StyleConfig(
             moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
@@ -110,8 +110,8 @@ class FormatStyleCapabilitiesTest {
         assertNotNull(circleBitmap)
         assertNotNull(squareBitmap)
         assertTrue(
-            !bitmapsAreDifferent(circleBitmap!!, squareBitmap!!),
-            "Non-QR format should ignore module shape and fill ratio"
+            bitmapsAreDifferent(circleBitmap!!, squareBitmap!!),
+            "1D format should apply module shape and fill ratio"
         )
     }
 
@@ -274,27 +274,45 @@ class FormatStyleCapabilitiesTest {
     }
 
     @Test
-    fun `QR-only styles are sanitized for non-QR formats and roundtrip`() {
-        val style = AdvancedBarcodeGenerator.StyleConfig(
-            moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
-            moduleFillRatio = 0.5f,
-            positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE,
-            ecLevel = ErrorCorrectionLevel.H
-        )
+    fun `default style roundtrips for all scannable non-QR formats`() {
         for (format in BarcodeFormat.entries.filter {
             it.isScannable && it != BarcodeFormat.QR_CODE
         }) {
             val content = BarcodeFormatTestFixtures.validContent(format)
-            val sanitized = AdvancedBarcodeGenerator.sanitize(style, format)
-            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, sanitized)
-            assertNotNull(bitmap, "Should generate $format with sanitized QR-only style")
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, AdvancedBarcodeGenerator.StyleConfig())
+            assertNotNull(bitmap, "Should generate $format with default style")
             val results = QRCodeScanner.scanSync(context, bitmap!!)
-            assertTrue(results.isNotEmpty(), "Should scan back $format with sanitized QR-only style")
+            assertTrue(results.isNotEmpty(), "Should scan back $format with default style")
             assertEquals(
                 BarcodeFormatTestFixtures.expectedRoundtripText(format, content),
                 actualRoundtripText(format, results),
-                "Roundtrip content should match for $format with sanitized QR-only style"
+                "Roundtrip content should match for $format with default style"
             )
         }
+    }
+
+    @Test
+    fun `module shape changes bitmap appearance for 2D format`() {
+        val content = BarcodeFormatTestFixtures.validContent(BarcodeFormat.AZTEC)
+        val square = AdvancedBarcodeGenerator.generateStyled(
+            content, BarcodeFormat.AZTEC, 800,
+            AdvancedBarcodeGenerator.StyleConfig(
+                moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE,
+                moduleFillRatio = 1.0f
+            )
+        )
+        val circle = AdvancedBarcodeGenerator.generateStyled(
+            content, BarcodeFormat.AZTEC, 800,
+            AdvancedBarcodeGenerator.StyleConfig(
+                moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
+                moduleFillRatio = 0.5f
+            )
+        )
+        assertNotNull(square)
+        assertNotNull(circle)
+        assertTrue(
+            bitmapsAreDifferent(square!!, circle!!),
+            "2D format should change appearance with module shape"
+        )
     }
 }

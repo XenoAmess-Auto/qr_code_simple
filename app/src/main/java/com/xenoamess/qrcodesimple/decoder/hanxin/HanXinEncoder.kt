@@ -502,7 +502,9 @@ object HanXinEncoder {
         val bitmap: Bitmap,
         val version: Int,
         val eccLevel: Int,
-        val mask: Int
+        val mask: Int,
+        val grid: IntArray = intArrayOf(),
+        val size: Int = 0
     )
 
     /**
@@ -578,7 +580,7 @@ object HanXinEncoder {
             val mask = applyBitmask(grid, size, version, eccLevel, requestedMask)
 
             val bitmap = renderBitmap(grid, size, width, height, foreground, background)
-            EncodeResult(bitmap, version, eccLevel, mask)
+            EncodeResult(bitmap, version, eccLevel, mask, grid, size)
         } catch (e: Exception) {
             null
         }
