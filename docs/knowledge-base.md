@@ -48,10 +48,11 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 ### 生成入口
 
 所有条码生成统一通过 `BarcodeGenerator.generate(content, config)`。
-样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, size, style, capabilities?)`：
+样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, size, style)`：
 
-- `capabilities` 由 `FormatStyleCapabilities.forFormat(format)` 决定。生成时会按能力表清洗 `StyleConfig`：不支持的字段回退为默认值，原配置保留在 UI 中。
+- 生成器本身不清洗 `StyleConfig`，传入什么就用什么；调用方（`GenerateFragment`、历史页面）在生成前调用 `AdvancedBarcodeGenerator.sanitize(style, format)` 清洗。
 - `GenerateFragment` 根据当前格式能力表隐藏不支持的控件，不做提示。
+- 各格式的实际样式能力见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)，其中包含 `moduleShape` / `moduleFillRatio` / `positionPatternShape` 在 QR Code 下的真实回扫通过率。
 
 `StyleConfig` 字段及能力表：
 - `foregroundColor` / `backgroundColor`：所有格式。
@@ -59,7 +60,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - `logoScale` / `logoBitmap`：所有格式。
 - `gradientAngle` / `gradientStops` / `gradientType`：所有格式。
 - `foregroundBitmap` / `backgroundBitmap`：所有格式。
-- `moduleShape` / `moduleFillRatio` / `positionPatternShape`：仅 QR Code。
+- `moduleShape` / `moduleFillRatio` / `positionPatternShape`：仅 QR Code 真正渲染生效；其他格式不生效但不破坏回扫。
 - `ecLevel`：QR Code 直接生效；Aztec / PDF417 / Han Xin / Micro QR / Grid Matrix 经映射后生效；其他格式不生效。
 
 `ecLevel` 映射：
