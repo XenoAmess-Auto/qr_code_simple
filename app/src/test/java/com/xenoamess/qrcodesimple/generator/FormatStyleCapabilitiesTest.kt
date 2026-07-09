@@ -4,8 +4,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.test.core.app.ApplicationProvider
+import com.google.zxing.ResultMetadataType
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.AdvancedBarcodeGenerator
+import com.xenoamess.qrcodesimple.QRCodeScanner
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import org.junit.Before
 import org.junit.Test
@@ -190,5 +192,108 @@ class FormatStyleCapabilitiesTest {
         assertNotNull(low)
         assertNotNull(high)
         assertTrue(bitmapsAreDifferent(low!!, high!!), "Grid Matrix bitmaps should differ by EC level")
+    }
+
+    private fun actualRoundtripText(format: BarcodeFormat, results: List<QRCodeScanner.ScanResult>): String? {
+        val first = results.firstOrNull() ?: return null
+        return when (format) {
+            BarcodeFormat.UPC_EAN_EXTENSION -> {
+                results.firstOrNull { it.format == com.google.zxing.BarcodeFormat.UPC_EAN_EXTENSION }?.text
+                    ?: first.resultMetadata?.get(ResultMetadataType.UPC_EAN_EXTENSION) as? String
+            }
+            else -> first.text
+        }
+    }
+
+    @Test
+    fun `EC level roundtrip for supported formats`() {
+        val formats = listOf(
+            BarcodeFormat.QR_CODE,
+            BarcodeFormat.AZTEC,
+            BarcodeFormat.PDF417,
+            BarcodeFormat.HAN_XIN,
+            BarcodeFormat.MICRO_QR
+        )
+        val contents = mapOf(
+            BarcodeFormat.QR_CODE to "https://example.com",
+            BarcodeFormat.AZTEC to "Aztec Test",
+            BarcodeFormat.PDF417 to "PDF417 roundtrip test content",
+            BarcodeFormat.HAN_XIN to "汉信码",
+            BarcodeFormat.MICRO_QR to "MicroQR"
+        )
+        for (format in formats) {
+            val content = contents[format] ?: continue
+            for (ecLevel in listOf(
+                ErrorCorrectionLevel.L,
+                ErrorCorrectionLevel.M,
+                ErrorCorrectionLevel.Q,
+                ErrorCorrectionLevel.H
+            )) {
+                val style = AdvancedBarcodeGenerator.StyleConfig(ecLevel = ecLevel)
+                val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, style)
+                assertNotNull(bitmap, "Should generate $format with EC $ecLevel")
+                val results = QRCodeScanner.scanSync(context, bitmap!!)
+                assertTrue(results.isNotEmpty(), "Should scan back $format with EC $ecLevel")
+                assertEquals(
+                    content,
+                    actualRoundtripText(format, results),
+                    "Roundtrip content should match for $format with EC $ecLevel"
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `QR-only styles roundtrip for QR Code`() {
+        val content = "https://example.com"
+        val styles = listOf(
+            AdvancedBarcodeGenerator.StyleConfig(
+                moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
+                moduleFillRatio = 0.85f,
+                positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
+            ),
+            AdvancedBarcodeGenerator.StyleConfig(
+                moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE,
+                moduleFillRatio = 1.0f,
+                positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+            )
+        )
+        for (style in styles) {
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(
+                content, BarcodeFormat.QR_CODE, 800, style
+            )
+            assertNotNull(bitmap, "Should generate QR with $style")
+            val results = QRCodeScanner.scanSync(context, bitmap!!)
+            assertTrue(results.isNotEmpty(), "Should scan back QR with $style")
+            assertEquals(
+                content,
+                actualRoundtripText(BarcodeFormat.QR_CODE, results),
+                "Roundtrip content should match for QR with $style"
+            )
+        }
+    }
+
+    @Test
+    fun `QR-only styles are sanitized for non-QR formats and roundtrip`() {
+        val style = AdvancedBarcodeGenerator.StyleConfig(
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.CIRCLE,
+            moduleFillRatio = 0.5f,
+            positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE,
+            ecLevel = ErrorCorrectionLevel.H
+        )
+        for (format in BarcodeFormat.entries.filter {
+            it.isScannable && it != BarcodeFormat.QR_CODE
+        }) {
+            val content = BarcodeFormatTestFixtures.validContent(format)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, style)
+            assertNotNull(bitmap, "Should generate $format with sanitized QR-only style")
+            val results = QRCodeScanner.scanSync(context, bitmap!!)
+            assertTrue(results.isNotEmpty(), "Should scan back $format with sanitized QR-only style")
+            assertEquals(
+                BarcodeFormatTestFixtures.expectedRoundtripText(format, content),
+                actualRoundtripText(format, results),
+                "Roundtrip content should match for $format with sanitized QR-only style"
+            )
+        }
     }
 }
