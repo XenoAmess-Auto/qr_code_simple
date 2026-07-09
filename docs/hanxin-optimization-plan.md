@@ -1,6 +1,6 @@
 # HanXin 编解码器专项优化计划
 
-> 状态：Phase 1、Phase 2 与 Phase 3 已完成，全部测试通过。Phase 4 尚未开始。
+> 状态：Phase 1–4 全部完成，已提交并推送。
 >
 > 目标：先补齐测试用例，再对 `HanXinEncoder` 和 `HanXinDecoder` 进行性能与鲁棒性优化，同时不降低扫描成功率。
 >
@@ -215,6 +215,21 @@ JAVA_HOME=.../jdk-21 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests
 | 版本估计窗口漏掉真实版本 | 保留全扫描 fallback |
 | 透视回退瘦身导致畸变图失败 | 外部图片测试 + robustness 测试必须继续通过 |
 | 性能测试阈值 flake | 改为信息性输出，不 gate build |
+
+### 4.4 完成记录
+
+- Phase 4 已完成并提交。
+- 全量单测通过（不含本地扩展 UI 测试）：`JAVA_HOME=/home/xenoamess/.jdks/jdk-21.0.7+6 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests`。
+- `HanXinPerformanceTest` 优化后 Robolectric 参考耗时（本地机）：
+  - Encode short ASCII: 3 ms
+  - Decode short ASCII: 4 ms
+  - Encode Chinese: 2 ms
+  - Decode Chinese: 4 ms
+  - Encode 500 chars: 7 ms
+  - Decode 500 chars: 7 ms
+- `BarcodeGenerationRoundtripTest` 中 Han Xin 回环测试通过。
+- `QRCodeScanner.scanSync` 对 Han Xin 的识别率通过外部样本验证。
+- 备注：`validateByReencoding` 未完全移除；仅移除其中的字节错误计数（由 RS 纠错数量检查替代），并增加 syndrome 快速校验。完全移除会导致外部非汉信码样本出现误识别，故保留文本回环校验作为安全网。
 
 ---
 
