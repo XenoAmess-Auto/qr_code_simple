@@ -25,7 +25,9 @@ class HanXinDecoderFailureTest {
     @Test
     fun decodeRandomNoiseBitmap_returnsNull() {
         val bitmap = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
-        val random = Random(42)
+        val seed = System.currentTimeMillis()
+        println("decodeRandomNoiseBitmap_returnsNull random seed = $seed")
+        val random = Random(seed)
         for (x in 0 until bitmap.width) {
             for (y in 0 until bitmap.height) {
                 bitmap.setPixel(x, y, if (random.nextBoolean()) Color.BLACK else Color.WHITE)

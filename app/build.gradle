@@ -4,6 +4,21 @@ plugins {
     id 'kotlin-kapt'
 }
 
+/**
+ * Global test logger that prints START/END markers for every unit test.
+ * Useful for identifying which test hangs in CI.
+ */
+class GlobalTestLogger implements org.gradle.api.tasks.testing.TestListener {
+    void beforeSuite(org.gradle.api.tasks.testing.TestDescriptor suite) {}
+    void afterSuite(org.gradle.api.tasks.testing.TestDescriptor suite, org.gradle.api.tasks.testing.TestResult result) {}
+    void beforeTest(org.gradle.api.tasks.testing.TestDescriptor testDescriptor) {
+        println("START TEST: ${testDescriptor.className} > ${testDescriptor.name}")
+    }
+    void afterTest(org.gradle.api.tasks.testing.TestDescriptor testDescriptor, org.gradle.api.tasks.testing.TestResult result) {
+        println("END TEST: ${testDescriptor.className} > ${testDescriptor.name} (${result.resultType})")
+    }
+}
+
 static def getGitHash() {
     try {
         def process = "git rev-parse --short=8 HEAD".execute()
@@ -71,6 +86,7 @@ android {
                         excludeTestsMatching '*GenerateFragmentExtendedUiTest*'
                     }
                 }
+                it.addTestListener(new GlobalTestLogger())
             }
         }
     }
