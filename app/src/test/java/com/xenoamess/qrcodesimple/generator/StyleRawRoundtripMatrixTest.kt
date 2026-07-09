@@ -11,6 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 import kotlin.test.assertNotNull
 
 /**
@@ -123,17 +124,31 @@ class StyleRawRoundtripMatrixTest {
         }
     }
 
+    private val matrixOutputFile = File("/tmp/style-raw-roundtrip-matrix-output.md")
+
+    private fun printlnToFile(line: String) {
+        println(line)
+        matrixOutputFile.appendText("$line\n")
+    }
+
+    private fun clearOutputFile() {
+        matrixOutputFile.writeText("")
+    }
+
     private fun printSummary(results: List<MatrixResult>) {
-        println("\n## 样式回扫摸底矩阵 - 汇总\n")
-        println("| 格式 | 可扫描 | 组合数 | 生成成功 | 回扫通过组合 | 备注 |")
-        println("|---|---|---|---|---|---|")
+        clearOutputFile()
+        printlnToFile("")
+        printlnToFile("## 样式回扫摸底矩阵 - 汇总")
+        printlnToFile("")
+        printlnToFile("| 格式 | 可扫描 | 组合数 | 生成成功 | 回扫通过组合 | 备注 |")
+        printlnToFile("|---|---|---|---|---|---|")
         val byFormat = results.groupBy { it.format }
         for (format in byFormat.keys.sortedBy { it.name }) {
             val combos = byFormat[format]!!
             val generateSuccess = combos.count { it.generateSuccess }
             val scanPass = combos.count { it.scanPassCount > 0 }
             val notes = if (!format.isScannable) "仅生成" else ""
-            println(
+            printlnToFile(
                 "| ${format.name} | ${format.isScannable} | ${combos.size} | " +
                         "$generateSuccess / ${combos.size} | $scanPass / ${combos.size} | $notes |"
             )
@@ -141,16 +156,18 @@ class StyleRawRoundtripMatrixTest {
     }
 
     private fun printDetailed(results: List<MatrixResult>) {
-        println("\n## 样式回扫摸底矩阵 - 明细\n")
-        println(
+        printlnToFile("")
+        printlnToFile("## 样式回扫摸底矩阵 - 明细")
+        printlnToFile("")
+        printlnToFile(
             "| 格式 | moduleShape | moduleFillRatio | positionPatternShape | " +
                     "生成成功 | 回扫通过次数/5 | 通过 | 错误 |"
         )
-        println("|---|---|---|---|---|---|---|---|")
+        printlnToFile("|---|---|---|---|---|---|---|---|")
         for (r in results) {
             val pass = if (r.format.isScannable) (if (r.scanPassCount > 0) "是" else "否") else "-"
             val scanRate = if (r.format.isScannable) "${r.scanPassCount}/${r.runs}" else "-"
-            println(
+            printlnToFile(
                 "| ${r.format.name} | ${r.moduleShape} | ${r.moduleFillRatio} | ${r.positionPatternShape} | " +
                         "${if (r.generateSuccess) "是" else "否"} | $scanRate | $pass | ${r.error ?: ""} |"
             )

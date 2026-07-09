@@ -93,7 +93,7 @@
 | KIX_CODE | false | 54 | 54 / 54 | 0 / 54 | 仅生成 |
 | KOREA_POST | false | 54 | 54 / 54 | 0 / 54 | 仅生成 |
 | LOGMARS | false | 54 | 54 / 54 | 0 / 54 | 仅生成 |
-| MAXICODE | true | 54 | 54 / 54 | 54 / 54 |  |
+| MAXICODE | true | 54 | 54 / 54 | 45 / 54 |  |
 | MICRO_QR | true | 54 | 54 / 54 | 14 / 54 |  |
 | MSI_PLESSEY | true | 54 | 54 / 54 | 9 / 54 |  |
 | NVE_18 | false | 54 | 54 / 54 | 0 / 54 | 仅生成 |
@@ -112,7 +112,8 @@
 | TELEPEN_NUMERIC | false | 54 | 54 / 54 | 0 / 54 | 仅生成 |
 | UPC_A | true | 54 | 54 / 54 | 33 / 54 |  |
 | UPC_E | true | 54 | 54 / 54 | 33 / 54 |  |
-| UPC_EAN_EXTENSION | true | 54 | 54 / 54 | 54 / 54 |  |
+| UPC_EAN_EXTENSION | true | 54 | 54 / 54 | 24 / 54 |  |
+| UPN_QR_CODE | true | 54 | 54 / 54 | 28 / 54 |  |
 | USPS_ONE_CODE | false | 54 | 54 / 54 | 0 / 54 | 仅生成 |
 | USPS_PACKAGE | false | 54 | 54 / 54 | 0 / 54 | 仅生成 |
 
@@ -120,7 +121,7 @@
 ### 关键结论
 
 - 所有 56 种格式（排除 UNKNOWN）在 54 种原始样式组合下均能成功生成，无崩溃。
-- 全组合鲁棒格式（54/54 通过）：CODABAR、PDF417、MaxiCode、Plessey、UPC/EAN Extension。
+- 全组合鲁棒格式（54/54 通过）：CODABAR、PDF417、Plessey。
 - 1D 条码：
   - CODABAR 任意样式组合均可回扫。
   - EAN-13/8、UPC-A/E 在 `moduleShape = DEFAULT/ROUNDED` 且 `moduleFillRatio >= 0.85` 时基本通过，但 `moduleFillRatio = 0.85` 时个别定位点组合会失败；`moduleShape = CIRCLE` 需 `moduleFillRatio >= 0.9`。
@@ -130,13 +131,13 @@
   - Pharmacode 在 `moduleShape = DEFAULT/ROUNDED` 需 `moduleFillRatio >= 0.95` 才能全定位点组合通过；CIRCLE 同样需 `moduleFillRatio >= 0.95`。
   - MSI Plessey、Telepen 仅在 `moduleFillRatio = 1.0` 时通过。
 - 2D 矩阵码：
-  - PDF417、MaxiCode、Plessey 最鲁棒，所有样式组合均可回扫。
+  - PDF417、Plessey 最鲁棒，所有样式组合均可回扫。MaxiCode 经兜底后处理后仍有 45/54 组合可回扫。
   - QR Code：仅 `moduleShape = DEFAULT`（任意填充、任意定位点）或 `moduleShape = CIRCLE/ROUNDED` 且 `positionPatternShape = CIRCLE`。
   - Data Matrix / Aztec / Micro QR：优先使用 `moduleShape = DEFAULT`，`moduleFillRatio` 从 0.5 起大部分可回扫；CIRCLE/ROUNDED 基本不可回扫。
   - Han Xin Code 表现最好，DEFAULT 全组合通过，多数 CIRCLE/ROUNDED 组合也能回扫。
   - Swiss QR Code / UPN QR Code：DEFAULT 在 `moduleFillRatio >= 0.95` 基本全通过，CIRCLE/ROUNDED 仅部分组合通过。
 - RSS-14 / RSS Expanded 受布局缩放影响，仅 `moduleShape = DEFAULT/ROUNDED` 且 `moduleFillRatio = 1.0` 时少数组合可回扫。
-- UPC/EAN Extension 走 Fallback 渲染，现在 `moduleShape` / `moduleFillRatio` 会生效；`positionPatternShape` 因无定位图案而不生效。默认样式仍可回扫。
+- UPC/EAN Extension 走 Fallback 渲染，现在 `moduleShape` / `moduleFillRatio` 会生效，共 24/54 组合可回扫；`positionPatternShape` 因无定位图案而不生效。
 
 ### QR Code 明细
 
@@ -200,8 +201,9 @@
 ### 推荐配置
 
 - **QR Code 稳定可用**：`moduleShape = DEFAULT`（任意填充、任意定位点）；或 `moduleShape = CIRCLE/ROUNDED` 且 `positionPatternShape = CIRCLE`。
-- **PDF417 / MaxiCode / Plessey / CODABAR**：任意三样式组合均可回扫。
-- **UPC/EAN Extension**：默认样式可回扫；非默认 `moduleShape` / `moduleFillRatio` 会改变外观，回扫稳定性需具体验证。
+- **PDF417 / Plessey / CODABAR**：任意三样式组合均可回扫。
+- **MaxiCode**：兜底后大部分样式组合可回扫（45/54），非默认样式会改变外观。
+- **UPC/EAN Extension**：默认样式可回扫；非默认 `moduleShape` / `moduleFillRatio` 下共 24/54 组合可回扫，回扫稳定性需具体验证。
 - **EAN-13 / EAN-8 / UPC-A / UPC-E**：推荐 `moduleShape = DEFAULT/ROUNDED`，`moduleFillRatio >= 0.9`；`moduleShape = CIRCLE` 时 `moduleFillRatio >= 0.9`。
 - **ITF**：推荐 `moduleShape = DEFAULT/ROUNDED`，`moduleFillRatio >= 0.8`；`moduleShape = CIRCLE` 时 `moduleFillRatio >= 0.9`。
 - **CODE-128 / CODE-93**：推荐 `moduleShape = DEFAULT/ROUNDED`，`moduleFillRatio >= 0.9`；CIRCLE 时建议 `moduleFillRatio = 1.0`。
