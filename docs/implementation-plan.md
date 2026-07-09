@@ -120,6 +120,17 @@
 
 ---
 
-## 已知跳过项
+## 后续计划
 
-- **TFLite 二维码增强**：`qr_enhance_model.tflite` 模型文件缺失，且开源社区无专门的开源二维码增强 TFLite 模型。本次不做处理，保留现有传统图像增强（`QRCodeRestorationManager`）作为 fallback。
+| # | 任务 | 目标文件 | 关键改动 | 验收标准 |
+|---|------|----------|----------|----------|
+| 7.1 | 测试日志定位 CI 卡死 | `app/build.gradle`、`HanXinDecoderFailureTest.kt` | 添加 Gradle `TestListener` 打印所有测试 START/END；随机噪声测试打印当次随机种子 | CI 日志中最后一条 `START TEST` 即为卡死测试，且可用种子复现噪声 |
+| 7.2 | JUnit 5 迁移 | `app/build.gradle`、全部 `*Test.kt` | 切换到 JUnit 5 Platform + Vintage Engine 运行旧测试；新测试逐步用 Jupiter | `./gradlew :app:testDebugUnitTest` 全部通过 | 详见 `docs/junit5-migration-plan.md` |
+| 7.3 | Dependabot JUnit 升级行为确认 | `.github/dependabot.yml` | 已确认 `junit:junit` 最新版为 4.13.2；JUnit 5 是不同 artifact，Dependabot 不会自动跨 artifact 迁移 | 无改动 |
+
+### 7.1 CI 卡死定位说明
+
+- 当前 CI 运行 `HanXinDecoderExternalTest` 后无输出直到 30 分钟超时，疑似卡死在 `HanXinDecoderFailureTest` 的 `decodeRandomNoiseBitmap_returnsNull`。
+- 该测试把 200×200 随机噪声图传给 `HanXinDecoder.decode()`，会触发 `decodePerspective` 透视回退，在资源受限的 CI 环境可能长时间运行或死循环。
+- 新增全局测试日志后，后续 CI 日志里最后一条 `START TEST` 即可定位卡死用例；打印种子后可用该种子本地复现完全相同的噪声图。
+
