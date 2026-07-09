@@ -2,6 +2,7 @@ package com.xenoamess.qrcodesimple
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -17,8 +19,25 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var tabButtons: List<Button>
 
+    private var pendingGenerateContent: String? = null
+    private var pendingGenerateFormat: String? = null
+    private var pendingGenerateStyleJson: String? = null
+
     companion object {
         private const val REQUEST_PERMISSIONS = 100
+        private const val EXTRA_GENERATE_CONTENT = "generate_content"
+        private const val EXTRA_GENERATE_FORMAT = "generate_format"
+        private const val EXTRA_GENERATE_STYLE_JSON = "generate_style_json"
+
+        fun navigateToGenerate(context: Context, content: String, format: String? = null, styleJson: String? = null) {
+            val intent = Intent(context, MainActivity::class.java).apply {
+                putExtra(EXTRA_GENERATE_CONTENT, content)
+                putExtra(EXTRA_GENERATE_FORMAT, format)
+                putExtra(EXTRA_GENERATE_STYLE_JSON, styleJson)
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            context.startActivity(intent)
+        }
     }
 
     override fun attachBaseContext(newBase: Context) {
@@ -39,6 +58,49 @@ class MainActivity : AppCompatActivity() {
 
         // 处理快捷方式跳转
         handleShortcutIntent()
+
+        // 处理从详情页跳转回生成页的参数
+        handleGenerateIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleGenerateIntent(intent)
+    }
+
+    private fun handleGenerateIntent(intent: Intent?) {
+        val content = intent?.getStringExtra(EXTRA_GENERATE_CONTENT) ?: return
+        val format = intent.getStringExtra(EXTRA_GENERATE_FORMAT)
+        val styleJson = intent.getStringExtra(EXTRA_GENERATE_STYLE_JSON)
+
+        // 切换到生成 tab
+        if (::binding.isInitialized) {
+            binding.viewPager.setCurrentItem(2, true)
+        }
+
+        // 如果 GenerateFragment 已创建，直接加载；否则暂存待 fragment 创建后读取
+        val fragment = supportFragmentManager.findFragmentByTag("f2") as? GenerateFragment
+        if (fragment != null && fragment.isAdded) {
+            fragment.loadFromHistory(content, format?.let { BarcodeFormat.fromString(it) }, styleJson)
+        } else {
+            pendingGenerateContent = content
+            pendingGenerateFormat = format
+            pendingGenerateStyleJson = styleJson
+        }
+    }
+
+    private fun navigateToGenerateTab() {
+        binding.viewPager.setCurrentItem(2, true)
+    }
+
+    internal fun consumePendingGenerate(): Triple<String?, String?, String?> {
+        val content = pendingGenerateContent
+        val format = pendingGenerateFormat
+        val styleJson = pendingGenerateStyleJson
+        pendingGenerateContent = null
+        pendingGenerateFormat = null
+        pendingGenerateStyleJson = null
+        return Triple(content, format, styleJson)
     }
 
     private fun handleShortcutIntent() {

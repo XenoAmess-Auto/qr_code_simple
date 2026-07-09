@@ -69,6 +69,7 @@
     <string name="share_all_qr_code_content">Share all QR Code content</string>
     <string name="qr_code_for">QR Code for: %1$s</string>
     <string name="share_qr_code">Share QR Code</string>
+    <string name="generate_with_custom_style">Generate with Custom Style</string>
 
     <!-- Video Scan -->
     <string name="invalid_video_duration">Invalid video duration</string>

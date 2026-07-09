@@ -16,7 +16,7 @@ import net.sqlcipher.database.SupportFactory
 /**
  * Room 数据库（支持加密）
  */
-@Database(entities = [HistoryItem::class], version = 3, exportSchema = false)
+@Database(entities = [HistoryItem::class], version = 4, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -60,7 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "qr_code_history_db_encrypted"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .fallbackToDestructiveMigration(true)
 
             // Robolectric does not provide native SQLCipher support; run unencrypted in unit tests.
@@ -155,9 +155,18 @@ abstract class AppDatabase : RoomDatabase() {
                 .joinToString("")
         }
 
-        /**
-         * 数据库迁移：从版本1（未加密）到版本2（加密）
-         */
+    /**
+     * 数据库迁移：从版本3到版本4，添加生成样式参数字段
+     */
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE history ADD COLUMN styleJson TEXT")
+        }
+    }
+
+    /**
+     * 数据库迁移：从版本1（未加密）到版本2（加密）
+     */
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // 表结构没有变化，只是切换到加密数据库

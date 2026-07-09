@@ -6,7 +6,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
@@ -21,20 +20,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.widget.Button
+import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentHistoryBinding
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.util.EnumMap
 
 class HistoryFragment : Fragment() {
 
@@ -139,7 +135,7 @@ class HistoryFragment : Fragment() {
             onItemClick = { item -> openHistoryDetail(item) },
             onEdit = { item -> showEditDialog(item) },
             onShare = { item -> shareContent(item.content) },
-            onShareQR = { item -> shareQRCode(item.content) },
+            onShareQR = { item -> shareQRCode(item) },
             onDelete = { item -> deleteItem(item) },
             onFavorite = { item -> toggleFavorite(item) },
             onAddNote = { item -> showAddNoteDialog(item) }
@@ -342,11 +338,17 @@ class HistoryFragment : Fragment() {
         startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
     }
 
-    private fun shareQRCode(content: String) {
+    private fun shareQRCode(item: HistoryItem) {
         lifecycleScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.Default) {
-                    generateQRCode(content, 1024)
+                    val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
+                    val style = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
+                    AdvancedBarcodeGenerator.generateStyled(item.content, format, 1024, style)
+                }
+                if (bitmap == null) {
+                    Toast.makeText(requireContext(), "Failed to generate barcode", Toast.LENGTH_SHORT).show()
+                    return@launch
                 }
 
                 val cachePath = File(requireContext().cacheDir, "images")
@@ -365,7 +367,7 @@ class HistoryFragment : Fragment() {
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "image/png"
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_TEXT, getString(R.string.qr_code_for, content))
+                    putExtra(Intent.EXTRA_TEXT, getString(R.string.qr_code_for, item.content))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
 
@@ -387,28 +389,6 @@ class HistoryFragment : Fragment() {
                 Toast.makeText(requireContext(), "Failed to generate QR: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun generateQRCode(content: String, size: Int): Bitmap {
-        val hints = EnumMap<EncodeHintType, Any>(EncodeHintType::class.java).apply {
-            put(EncodeHintType.CHARACTER_SET, "UTF-8")
-            put(EncodeHintType.MARGIN, 2)
-        }
-
-        val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size, hints)
-
-        val width = bitMatrix.width
-        val height = bitMatrix.height
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
-            }
-        }
-
-        return bitmap
     }
 
     private fun deleteItem(item: HistoryItem) {

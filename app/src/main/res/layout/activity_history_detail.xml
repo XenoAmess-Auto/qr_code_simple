@@ -113,5 +113,12 @@
             android:layout_marginTop="8dp"
             android:text="@string/edit_tags" />
 
+        <Button
+            android:id="@+id/btnOpenGenerate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/generate_with_custom_style" />
+
     </LinearLayout>
 </ScrollView>

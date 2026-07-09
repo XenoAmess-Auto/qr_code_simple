@@ -57,8 +57,6 @@ class GenerateFragment : Fragment() {
     private val binding get() = _binding!!
     internal var currentBitmap: Bitmap? = null
     private lateinit var historyRepository: HistoryRepository
-    private var lastGeneratedContent: String? = null
-    private var lastGeneratedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
     private var cornerRadius = 0f
@@ -75,6 +73,7 @@ class GenerateFragment : Fragment() {
     internal var selectedScheme: AdvancedBarcodeGenerator.StyleConfig? = null
     private var validationJob: Job? = null
     private var pendingImageType: ImageType? = null
+    private var updatingAngleFromCode = false
 
     private enum class ImageType {
         FOREGROUND, BACKGROUND
@@ -221,6 +220,15 @@ class GenerateFragment : Fragment() {
         setupFormatSelector()
         setupStyleControls()
         setupButtons()
+
+        // 处理从历史详情页跳转回生成页的参数
+        val activity = requireActivity() as? MainActivity
+        if (activity != null) {
+            val (content, format, styleJson) = activity.consumePendingGenerate()
+            if (!content.isNullOrEmpty()) {
+                loadFromHistory(content, format?.let { BarcodeFormat.fromString(it) }, styleJson)
+            }
+        }
     }
 
     private fun setupFormatSelector() {
@@ -342,17 +350,18 @@ class GenerateFragment : Fragment() {
                 gradientAngle = degrees
                 binding.seekBarGradientAngle.value = degrees
                 binding.tvGradientAngleValue.text = "${degrees.toInt()}°"
-                binding.etGradientAngle.setText(degrees.toInt().toString())
+                setGradientAngleEditText(degrees)
                 clearSchemeSelectionIfDiverged()
                 generateBarcode()
             }
         }
-        binding.seekBarGradientAngle.addOnChangeListener { _, value, _ ->
+        binding.seekBarGradientAngle.addOnChangeListener { _, value, fromUser ->
+            if (!fromUser) return@addOnChangeListener
             safe {
                 gradientAngle = value
                 binding.angleDial.angle = value
                 binding.tvGradientAngleValue.text = "${value.toInt()}°"
-                binding.etGradientAngle.setText(value.toInt().toString())
+                setGradientAngleEditText(value)
             }
         }
         binding.seekBarGradientAngle.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
@@ -363,6 +372,7 @@ class GenerateFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
+                if (updatingAngleFromCode) return
                 safe {
                     val text = s?.toString() ?: return@safe
                     if (text.isBlank()) return@safe
@@ -590,6 +600,57 @@ class GenerateFragment : Fragment() {
         return android.graphics.drawable.BitmapDrawable(resources, bmp)
     }
 
+    private fun applyStyleConfig(style: AdvancedBarcodeGenerator.StyleConfig) {
+        selectedStyle = style
+        selectedScheme = null
+        foregroundImageBitmap = null
+        backgroundImageBitmap = null
+        logoBitmap = null
+        cornerRadius = style.cornerRadius
+        logoScale = style.logoScale
+        moduleShape = style.moduleShape
+        moduleFillRatio = style.moduleFillRatio
+        positionPatternShape = style.positionPatternShape
+        gradientAngle = style.gradientAngle
+        gradientStops.clear()
+        gradientStops.addAll(style.gradientStops.map { AdvancedBarcodeGenerator.ColorStop(sanitizePosition(it.position), it.color) })
+        gradientEnabled = style.gradientStops.size >= 2
+
+        updateImagePreview(binding.viewFgImagePreview, null)
+        updateImagePreview(binding.viewBgImagePreview, null)
+        updateImagePreview(binding.ivLogoPreview, null)
+        binding.btnRemoveForegroundImage.visibility = View.GONE
+        binding.btnRemoveBackgroundImage.visibility = View.GONE
+        binding.logoScaleSection.visibility = View.GONE
+
+        updateColorPreviews()
+        updateStyleControlUIs()
+        binding.seekBarLogoScale.value = logoScale * 100f
+        binding.tvLogoScaleValue.text = "${(logoScale * 100).toInt()}%"
+        updateHintForFormat()
+    }
+
+    fun loadFromHistory(content: String?, format: BarcodeFormat?, styleJson: String?) {
+        if (content.isNullOrEmpty() || !isAdded) return
+        binding.etContent.setText(content)
+        binding.etContent.setSelection(binding.etContent.text?.length ?: 0)
+        format?.let {
+            selectedFormat = it
+            val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
+            val position = formats.indexOf(it)
+            if (position >= 0) {
+                binding.spinnerFormat.setText(formats[position].displayName, false)
+            }
+        }
+        val style = styleJson?.let { styleConfigFromJson(it) }
+        if (style != null) {
+            applyStyleConfig(style)
+        } else {
+            applyColorScheme(AdvancedBarcodeGenerator.ColorSchemes.CLASSIC)
+        }
+        generateBarcode()
+    }
+
     private fun applyColorScheme(scheme: AdvancedBarcodeGenerator.StyleConfig) {
         selectedScheme = scheme
         selectedStyle = scheme
@@ -611,6 +672,13 @@ class GenerateFragment : Fragment() {
         updateColorPreviews()
         updateStyleControlUIs()
         generateBarcode()
+    }
+
+    private fun setGradientAngleEditText(value: Float) {
+        updatingAngleFromCode = true
+        binding.etGradientAngle.setText(value.toInt().toString())
+        binding.etGradientAngle.setSelection(binding.etGradientAngle.text?.length ?: 0)
+        updatingAngleFromCode = false
     }
 
     private fun updateStyleControlUIs() {
@@ -636,7 +704,7 @@ class GenerateFragment : Fragment() {
             binding.angleDial.angle = gradientAngle
             binding.seekBarGradientAngle.value = gradientAngle
             binding.tvGradientAngleValue.text = "${gradientAngle.toInt()}°"
-            binding.etGradientAngle.setText(gradientAngle.toInt().toString())
+            setGradientAngleEditText(gradientAngle)
 
             updateGradientControlsVisibility()
             buildGradientStopViews()
@@ -887,6 +955,35 @@ class GenerateFragment : Fragment() {
         }
     }
 
+    private fun buildCurrentStyleConfig(): AdvancedBarcodeGenerator.StyleConfig {
+        return selectedStyle.copy(
+            cornerRadius = cornerRadius,
+            logoBitmap = logoBitmap,
+            logoScale = logoScale,
+            foregroundBitmap = foregroundImageBitmap,
+            backgroundBitmap = backgroundImageBitmap,
+            moduleShape = moduleShape,
+            moduleFillRatio = moduleFillRatio,
+            positionPatternShape = positionPatternShape,
+            gradientAngle = gradientAngle,
+            gradientStops = if (gradientEnabled) gradientStops.toList() else emptyList()
+        )
+    }
+
+    private fun recordHistory() {
+        val content = binding.etContent.text?.toString()?.trim() ?: return
+        if (content.isEmpty()) return
+        val style = buildCurrentStyleConfig()
+        val styleJson = style.toJson()
+        lifecycleScope.launch {
+            try {
+                historyRepository.insertGenerate(content, selectedFormat.toHistoryType(), selectedFormat.name, styleJson)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save history", e)
+            }
+        }
+    }
+
     private fun generateBarcode() {
         val ctx = context ?: return
         val content = binding.etContent.text?.toString()?.trim()
@@ -911,18 +1008,7 @@ class GenerateFragment : Fragment() {
         }
 
         try {
-            val style = selectedStyle.copy(
-                cornerRadius = cornerRadius,
-                logoBitmap = logoBitmap,
-                logoScale = logoScale,
-                foregroundBitmap = foregroundImageBitmap,
-                backgroundBitmap = backgroundImageBitmap,
-                moduleShape = moduleShape,
-                moduleFillRatio = moduleFillRatio,
-                positionPatternShape = positionPatternShape,
-                gradientAngle = gradientAngle,
-                gradientStops = if (gradientEnabled) gradientStops.toList() else emptyList()
-            )
+            val style = buildCurrentStyleConfig()
             val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
             if (bitmap == null) {
                 Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
@@ -941,17 +1027,7 @@ class GenerateFragment : Fragment() {
                 }
             }
 
-            if (content != lastGeneratedContent || selectedFormat != lastGeneratedFormat) {
-                lastGeneratedContent = content
-                lastGeneratedFormat = selectedFormat
-                lifecycleScope.launch {
-                    try {
-                        historyRepository.insertGenerate(content, selectedFormat.toHistoryType(), selectedFormat.name)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to save history", e)
-                    }
-                }
-            }
+            recordHistory()
         } catch (e: Exception) {
             Log.e(TAG, "generateBarcode failed", e)
             Toast.makeText(ctx, getString(R.string.failed_to_generate, e.message), Toast.LENGTH_SHORT).show()
@@ -960,11 +1036,15 @@ class GenerateFragment : Fragment() {
 
     private fun saveBarcode() {
         val ctx = context ?: return
+        if (currentBitmap == null) {
+            generateBarcode()
+        }
         val bitmap = currentBitmap
         if (bitmap == null) {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
+        recordHistory()
 
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val prefix = selectedFormat.name.lowercase().replace("_", "")
@@ -1000,11 +1080,15 @@ class GenerateFragment : Fragment() {
 
     private fun shareBarcode() {
         val ctx = context ?: return
+        if (currentBitmap == null) {
+            generateBarcode()
+        }
         val bitmap = currentBitmap
         if (bitmap == null) {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
+        recordHistory()
 
         try {
             val cachePath = File(ctx.cacheDir, "images")

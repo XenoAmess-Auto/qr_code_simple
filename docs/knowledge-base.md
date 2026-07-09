@@ -64,8 +64,12 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 图片扫描：`QRCodeScanner.scanAsFlow(context, bitmap, config)`，6 个引擎并行执行，任一引擎识别到结果即通过 `Flow` 分批 emit；ResultActivity 收集到首个结果即展示页面，后续结果动态追加。图片扫描使用 `IMAGE_SCAN_CONFIG`（总超时 120s / 单引擎 60s），实时扫描使用 `CAMERA_SCAN_CONFIG`（总超时 15s / 单引擎 5s）。
 
 ### 历史记录
-- `HistoryRepository.insertGenerate(content, type, barcodeFormat)` 保存生成记录。
-- `HistoryItem.barcodeFormat` 字段保存格式名称字符串。
+- `HistoryRepository.insertGenerate(content, type, barcodeFormat, styleJson)` 保存生成记录。
+- `HistoryItem.barcodeFormat` 字段保存格式名称字符串；`HistoryItem.styleJson` 字段保存生成样式参数 JSON（不含图片）。
+- 按 `content` 去重：同一文本生成时更新已有记录（最新参数/格式/时间），不新增多条。
+- 生成、保存、分享按钮均会触发历史记录写入/更新。
+- 历史列表的二维码分享使用原始 `barcodeFormat` 和 `styleJson` 重新生成图片，保持与生成时一致。
+- 历史详情页提供“自定义样式生成”按钮，可将文本带入 `GenerateFragment` 重新选择样式。
 
 ## 5. 扫描引擎
 

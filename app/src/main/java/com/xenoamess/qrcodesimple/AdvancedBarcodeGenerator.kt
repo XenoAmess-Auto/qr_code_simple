@@ -527,7 +527,7 @@ object AdvancedBarcodeGenerator {
             moduleShape = ModuleShape.CIRCLE,
             moduleFillRatio = 0.85f,
             positionPatternShape = PositionPatternShape.CIRCLE,
-            gradientAngle = 0f
+            gradientAngle = 45f
         )
     }
 }

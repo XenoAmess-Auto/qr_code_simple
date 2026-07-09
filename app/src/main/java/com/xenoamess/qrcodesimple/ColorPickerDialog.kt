@@ -157,9 +157,26 @@ class ColorPickerDialog : DialogFragment() {
     }
 
     private fun updateRgbaFields(etR: EditText, etG: EditText, etB: EditText, etA: EditText, color: Int) {
-        etR.setText(Color.red(color).toString())
-        etG.setText(Color.green(color).toString())
-        etB.setText(Color.blue(color).toString())
-        etA.setText(Color.alpha(color).toString())
+        if (etR.hasFocus()) {
+            // 保留用户正在输入的字段，只移动光标到末尾避免跳回开头
+            etR.setSelection(etR.text?.length ?: 0)
+        } else {
+            etR.setText(Color.red(color).toString())
+        }
+        if (etG.hasFocus()) {
+            etG.setSelection(etG.text?.length ?: 0)
+        } else {
+            etG.setText(Color.green(color).toString())
+        }
+        if (etB.hasFocus()) {
+            etB.setSelection(etB.text?.length ?: 0)
+        } else {
+            etB.setText(Color.blue(color).toString())
+        }
+        if (etA.hasFocus()) {
+            etA.setSelection(etA.text?.length ?: 0)
+        } else {
+            etA.setText(Color.alpha(color).toString())
+        }
     }
 }

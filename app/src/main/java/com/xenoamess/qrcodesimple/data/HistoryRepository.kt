@@ -40,14 +40,24 @@ class HistoryRepository(private val context: Context) {
         }
     }
     
-    suspend fun insertGenerate(content: String, type: HistoryType = HistoryType.QR_CODE, barcodeFormat: String? = null) {
+    suspend fun insertGenerate(content: String, type: HistoryType = HistoryType.QR_CODE, barcodeFormat: String? = null, styleJson: String? = null) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
-        
-        // 检查是否已存在
+
+        // 按 content 去重：存在则更新为最新参数和时间，不存在则插入
         val existing = historyDao.findByContent(content)
-        if (existing == null) {
-            historyDao.insert(HistoryItem(content = content, type = type, isGenerated = true, barcodeFormat = barcodeFormat))
+        if (existing != null) {
+            historyDao.update(
+                existing.copy(
+                    type = type,
+                    barcodeFormat = barcodeFormat,
+                    styleJson = styleJson,
+                    timestamp = System.currentTimeMillis(),
+                    isGenerated = true
+                )
+            )
+        } else {
+            historyDao.insert(HistoryItem(content = content, type = type, isGenerated = true, barcodeFormat = barcodeFormat, styleJson = styleJson))
         }
     }
     

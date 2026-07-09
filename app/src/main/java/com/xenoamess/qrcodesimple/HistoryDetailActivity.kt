@@ -105,12 +105,10 @@ class HistoryDetailActivity : AppCompatActivity() {
             binding.tvNotes.visibility = android.view.View.GONE
         }
 
-        // 条码图片
+        // 条码图片：使用历史记录的格式和样式参数重新生成
         val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
-        val bitmap = BarcodeGenerator.generate(
-            item.content,
-            BarcodeGenerator.BarcodeConfig(format = format, width = 600, height = 600)
-        )
+        val style = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(item.content, format, 600, style)
         bitmap?.let { binding.ivBarcode.setImageBitmap(it) }
 
         // 按钮
@@ -124,6 +122,7 @@ class HistoryDetailActivity : AppCompatActivity() {
         }
         binding.btnToggleFavorite.setOnClickListener { toggleFavorite(item) }
         binding.btnEditTags.setOnClickListener { showEditTagsDialog(item) }
+        binding.btnOpenGenerate.setOnClickListener { openGeneratePage(item) }
     }
 
     private fun showEditTagsDialog(item: HistoryItem) {
@@ -144,6 +143,10 @@ class HistoryDetailActivity : AppCompatActivity() {
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .show()
+    }
+
+    private fun openGeneratePage(item: HistoryItem) {
+        MainActivity.navigateToGenerate(this, item.content, null, null)
     }
 
     private fun formatHistoryType(type: HistoryType): String {

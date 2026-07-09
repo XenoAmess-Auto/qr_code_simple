@@ -63,6 +63,7 @@
     <string name="share_all_qr_code_content">分享所有二维码内容</string>
     <string name="qr_code_for">二维码内容：%1$s</string>
     <string name="share_qr_code">分享二维码</string>
+    <string name="generate_with_custom_style">自定义样式生成</string>
 
     <!-- Video Scan -->
     <string name="invalid_video_duration">无效的视频时长</string>

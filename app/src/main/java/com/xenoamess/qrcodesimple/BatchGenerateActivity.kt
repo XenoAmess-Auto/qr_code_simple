@@ -111,6 +111,7 @@ class BatchGenerateActivity : AppCompatActivity() {
             if (result.items.isNotEmpty()) {
                 val previewText = result.items.joinToString("\n") { it.content }
                 binding.etContent.setText(previewText)
+                binding.etContent.setSelection(binding.etContent.text?.length ?: 0)
                 Toast.makeText(
                     this@BatchGenerateActivity,
                     "Imported ${result.items.size} items",
