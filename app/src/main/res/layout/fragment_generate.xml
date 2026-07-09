@@ -69,6 +69,7 @@
                     android:layout_marginBottom="12dp" />
 
                 <TextView
+                    android:id="@+id/tvEcLevelLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/ec_level"
@@ -270,6 +271,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/tvModuleShapeLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/module_shape"
@@ -308,6 +310,7 @@
                 </com.google.android.material.chip.ChipGroup>
 
                 <TextView
+                    android:id="@+id/tvModuleFillRatioLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/module_fill_ratio"
@@ -340,6 +343,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/tvPositionPatternShapeLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/position_pattern_shape"

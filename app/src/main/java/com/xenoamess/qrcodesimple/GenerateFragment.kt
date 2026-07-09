@@ -249,9 +249,12 @@ class GenerateFragment : Fragment() {
             safe {
                 selectedFormat = formats[position]
                 updateHintForFormat()
+                updateStyleControlsVisibility()
                 generateBarcode()
             }
         }
+
+        updateStyleControlsVisibility()
     }
 
     private fun setupStyleControls() {
@@ -641,6 +644,7 @@ class GenerateFragment : Fragment() {
             if (position >= 0) {
                 binding.spinnerFormat.setText(formats[position].displayName, false)
             }
+            updateStyleControlsVisibility()
         }
         val style = styleJson?.let { styleConfigFromJson(it) }
         if (style != null) {
@@ -892,6 +896,27 @@ class GenerateFragment : Fragment() {
         binding.tilContent.hint = getString(hintRes)
     }
 
+    private fun updateStyleControlsVisibility() {
+        val capabilities = AdvancedBarcodeGenerator.FormatStyleCapabilities.forFormat(selectedFormat)
+
+        val ecVisibility = if (capabilities.ecLevel) View.VISIBLE else View.GONE
+        binding.tvEcLevelLabel.visibility = ecVisibility
+        binding.toggleEcLevel.visibility = ecVisibility
+
+        val moduleShapeVisibility = if (capabilities.moduleShape) View.VISIBLE else View.GONE
+        binding.tvModuleShapeLabel.visibility = moduleShapeVisibility
+        binding.chipGroupModuleShape.visibility = moduleShapeVisibility
+
+        val moduleFillRatioVisibility = if (capabilities.moduleFillRatio) View.VISIBLE else View.GONE
+        binding.tvModuleFillRatioLabel.visibility = moduleFillRatioVisibility
+        binding.seekBarModuleFillRatio.visibility = moduleFillRatioVisibility
+        binding.tvModuleFillRatioValue.visibility = moduleFillRatioVisibility
+
+        val positionPatternVisibility = if (capabilities.positionPatternShape) View.VISIBLE else View.GONE
+        binding.tvPositionPatternShapeLabel.visibility = positionPatternVisibility
+        binding.chipGroupPositionPattern.visibility = positionPatternVisibility
+    }
+
     private fun loadImage(uri: Uri, maxPx: Int, onLoaded: (Bitmap) -> Unit) {
         val ctx = context ?: return
         lifecycleScope.launch {
@@ -974,7 +999,8 @@ class GenerateFragment : Fragment() {
         val content = binding.etContent.text?.toString()?.trim() ?: return
         if (content.isEmpty()) return
         val style = buildCurrentStyleConfig()
-        val styleJson = style.toJson()
+        val sanitizedStyle = AdvancedBarcodeGenerator.sanitize(style, selectedFormat)
+        val styleJson = sanitizedStyle.toJson()
         lifecycleScope.launch {
             try {
                 historyRepository.insertGenerate(content, selectedFormat.toHistoryType(), selectedFormat.name, styleJson)
@@ -1009,7 +1035,9 @@ class GenerateFragment : Fragment() {
 
         try {
             val style = buildCurrentStyleConfig()
-            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, style)
+            val capabilities = AdvancedBarcodeGenerator.FormatStyleCapabilities.forFormat(selectedFormat)
+            val sanitizedStyle = AdvancedBarcodeGenerator.sanitize(style, selectedFormat)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, sanitizedStyle, capabilities)
             if (bitmap == null) {
                 Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return

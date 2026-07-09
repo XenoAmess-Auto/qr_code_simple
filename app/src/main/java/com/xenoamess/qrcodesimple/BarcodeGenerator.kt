@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.Rect
 import android.graphics.RectF
+import boofcv.alg.fiducial.microqr.MicroQrCode
 import boofcv.alg.fiducial.microqr.MicroQrCodeEncoder
 import boofcv.alg.fiducial.microqr.MicroQrCodeGenerator
 import boofcv.struct.image.GrayU8
@@ -41,6 +42,55 @@ object BarcodeGenerator {
         val backgroundColor: Int = Color.WHITE,
         val ecLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.H
     )
+
+    /**
+     * 将 UI 层使用的 [ErrorCorrectionLevel] 映射为各格式底层需要的 EC 参数。
+     * 返回 `null` 表示该格式不暴露可配置的 EC 等级。
+     */
+    private fun resolveErrorCorrectionLevel(
+        format: AppBarcodeFormat,
+        ecLevel: ErrorCorrectionLevel
+    ): Any? {
+        return when (format) {
+            AppBarcodeFormat.QR_CODE -> ecLevel
+            AppBarcodeFormat.AZTEC -> when (ecLevel) {
+                ErrorCorrectionLevel.L -> 25
+                ErrorCorrectionLevel.M -> 40
+                ErrorCorrectionLevel.Q -> 55
+                ErrorCorrectionLevel.H -> 70
+                else -> 33
+            }
+            AppBarcodeFormat.PDF417 -> when (ecLevel) {
+                ErrorCorrectionLevel.L -> 2
+                ErrorCorrectionLevel.M -> 4
+                ErrorCorrectionLevel.Q -> 6
+                ErrorCorrectionLevel.H -> 8
+                else -> 2
+            }
+            AppBarcodeFormat.HAN_XIN -> when (ecLevel) {
+                ErrorCorrectionLevel.L -> 1
+                ErrorCorrectionLevel.M -> 2
+                ErrorCorrectionLevel.Q -> 3
+                ErrorCorrectionLevel.H -> 4
+                else -> 1
+            }
+            AppBarcodeFormat.MICRO_QR -> when (ecLevel) {
+                ErrorCorrectionLevel.L -> MicroQrCode.ErrorLevel.L
+                ErrorCorrectionLevel.M -> MicroQrCode.ErrorLevel.M
+                ErrorCorrectionLevel.Q -> MicroQrCode.ErrorLevel.Q
+                ErrorCorrectionLevel.H -> MicroQrCode.ErrorLevel.Q
+                else -> MicroQrCode.ErrorLevel.M
+            }
+            AppBarcodeFormat.GRID_MATRIX -> when (ecLevel) {
+                ErrorCorrectionLevel.L -> 1
+                ErrorCorrectionLevel.M -> 2
+                ErrorCorrectionLevel.Q -> 3
+                ErrorCorrectionLevel.H -> 5
+                else -> 1
+            }
+            else -> null
+        }
+    }
 
     fun generate(content: String, config: BarcodeConfig): Bitmap? {
         return try {
@@ -128,7 +178,10 @@ object BarcodeGenerator {
     }
 
     private fun generateAztec(content: String, config: BarcodeConfig): Bitmap {
-        val hints = hashMapOf(EncodeHintType.CHARACTER_SET to "UTF-8")
+        val hints = hashMapOf(
+            EncodeHintType.CHARACTER_SET to "UTF-8",
+            EncodeHintType.ERROR_CORRECTION to resolveErrorCorrectionLevel(config.format, config.ecLevel)
+        )
         val writer = MultiFormatWriter()
         val bitMatrix = writer.encode(content, BarcodeFormat.AZTEC, config.width, config.height, hints)
         return createPaddedBitmap(bitMatrix, config)
@@ -136,7 +189,7 @@ object BarcodeGenerator {
 
     private fun generatePDF417(content: String, config: BarcodeConfig): Bitmap {
         val hints = hashMapOf(
-            EncodeHintType.ERROR_CORRECTION to 2,
+            EncodeHintType.ERROR_CORRECTION to (resolveErrorCorrectionLevel(config.format, config.ecLevel) ?: 2),
             EncodeHintType.CHARACTER_SET to "UTF-8"
         )
         val writer = MultiFormatWriter()
@@ -263,7 +316,10 @@ object BarcodeGenerator {
     }
 
     private fun generateGridMatrix(content: String, config: BarcodeConfig): Bitmap {
-        return generateOkapi<GridMatrix>(content, config)
+        return generateOkapi<GridMatrix>(content, config) {
+            val ecLevel = resolveErrorCorrectionLevel(config.format, config.ecLevel)
+            if (ecLevel is Int) setPreferredEccLevel(ecLevel)
+        }
     }
 
     private fun generateCode39Extended(content: String, config: BarcodeConfig): Bitmap {
@@ -499,9 +555,23 @@ object BarcodeGenerator {
     // ==================== BoofCV 生成的格式 ====================
 
     private fun generateMicroQr(content: String, config: BarcodeConfig): Bitmap {
-        val encoder = MicroQrCodeEncoder()
-        encoder.addAutomatic(content)
-        val qr = encoder.fixate()
+        fun tryEncode(ecLevel: MicroQrCode.ErrorLevel?): MicroQrCode? {
+            val encoder = MicroQrCodeEncoder()
+            if (ecLevel != null) {
+                encoder.setError(ecLevel)
+            }
+            return try {
+                encoder.addAutomatic(content)
+                encoder.fixate()
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        val preferredEcLevel = resolveErrorCorrectionLevel(config.format, config.ecLevel) as? MicroQrCode.ErrorLevel
+        val qr = tryEncode(preferredEcLevel) ?: tryEncode(null)
+            ?: throw IllegalArgumentException("Failed to generate Micro QR for content: $content")
+
         val gray: GrayU8 = MicroQrCodeGenerator.renderImage(4, 0, qr)
         val quietZone = 40
         val paddedWidth = gray.width + quietZone * 2
@@ -648,7 +718,8 @@ object BarcodeGenerator {
             width = config.width,
             height = config.height,
             foreground = config.foregroundColor,
-            background = config.backgroundColor
+            background = config.backgroundColor,
+            requestedEccLevel = resolveErrorCorrectionLevel(config.format, config.ecLevel) as? Int ?: 0
         )
         return result?.bitmap ?: throw IllegalArgumentException("Failed to generate Han Xin Code")
     }

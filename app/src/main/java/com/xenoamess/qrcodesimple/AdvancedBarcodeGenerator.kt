@@ -58,21 +58,95 @@ object AdvancedBarcodeGenerator {
         val gradientType: GradientType = GradientType.LINEAR
     )
 
+    /**
+     * 描述某种条码格式支持哪些样式配置项。
+     */
+    data class FormatStyleCapabilities(
+        val foregroundColor: Boolean = true,
+        val backgroundColor: Boolean = true,
+        val foregroundBitmap: Boolean = true,
+        val backgroundBitmap: Boolean = true,
+        val gradient: Boolean = true,
+        val logo: Boolean = true,
+        val cornerRadius: Boolean = true,
+        val ecLevel: Boolean = false,
+        val moduleShape: Boolean = false,
+        val moduleFillRatio: Boolean = false,
+        val positionPatternShape: Boolean = false
+    ) {
+        companion object {
+            val DEFAULT = FormatStyleCapabilities()
+
+            val QR_CODE = FormatStyleCapabilities(
+                ecLevel = true,
+                moduleShape = true,
+                moduleFillRatio = true,
+                positionPatternShape = true
+            )
+
+            val EC_SUPPORTED = FormatStyleCapabilities(ecLevel = true)
+
+            fun forFormat(format: BarcodeFormat): FormatStyleCapabilities = when (format) {
+                BarcodeFormat.QR_CODE -> QR_CODE
+                BarcodeFormat.AZTEC,
+                BarcodeFormat.PDF417,
+                BarcodeFormat.HAN_XIN,
+                BarcodeFormat.MICRO_QR,
+                BarcodeFormat.GRID_MATRIX -> EC_SUPPORTED
+                else -> DEFAULT
+            }
+        }
+    }
+
     fun generateStyled(
         content: String,
         format: BarcodeFormat = BarcodeFormat.QR_CODE,
         size: Int = 800,
-        style: StyleConfig = StyleConfig()
+        style: StyleConfig = StyleConfig(),
+        capabilities: FormatStyleCapabilities? = null
     ): Bitmap? {
+        val caps = capabilities ?: FormatStyleCapabilities.forFormat(format)
+        val sanitizedStyle = style.sanitized(caps)
         return try {
             when (format) {
-                BarcodeFormat.QR_CODE -> generateStyledQR(content, size, style)
-                else -> generateGenericWithStyle(content, format, size, style)
+                BarcodeFormat.QR_CODE -> generateStyledQR(content, size, sanitizedStyle)
+                else -> generateGenericWithStyle(content, format, size, sanitizedStyle)
             }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
+    }
+
+    /**
+     * 根据指定格式清洗 [StyleConfig]，不支持的字段回退为默认值。
+     * 原配置保留不变，返回新的清洗后实例。
+     */
+    fun sanitize(style: StyleConfig, format: BarcodeFormat): StyleConfig {
+        return style.sanitized(FormatStyleCapabilities.forFormat(format))
+    }
+
+    /**
+     * 根据 [FormatStyleCapabilities] 清洗 [StyleConfig]，不支持的字段回退为默认值。
+     * 原配置保留不变，返回新的清洗后实例。
+     */
+    private fun StyleConfig.sanitized(capabilities: FormatStyleCapabilities): StyleConfig {
+        return copy(
+            foregroundColor = if (capabilities.foregroundColor) foregroundColor else Color.BLACK,
+            backgroundColor = if (capabilities.backgroundColor) backgroundColor else Color.WHITE,
+            foregroundBitmap = if (capabilities.foregroundBitmap) foregroundBitmap else null,
+            backgroundBitmap = if (capabilities.backgroundBitmap) backgroundBitmap else null,
+            cornerRadius = if (capabilities.cornerRadius) cornerRadius else 0f,
+            logoBitmap = if (capabilities.logo) logoBitmap else null,
+            logoScale = if (capabilities.logo) logoScale else 0.2f,
+            ecLevel = if (capabilities.ecLevel) ecLevel else ErrorCorrectionLevel.H,
+            moduleShape = if (capabilities.moduleShape) moduleShape else ModuleShape.SQUARE,
+            moduleFillRatio = if (capabilities.moduleFillRatio) moduleFillRatio else 0.8f,
+            positionPatternShape = if (capabilities.positionPatternShape) positionPatternShape else PositionPatternShape.SQUARE,
+            gradientAngle = if (capabilities.gradient) gradientAngle else 0f,
+            gradientStops = if (capabilities.gradient) gradientStops else emptyList(),
+            gradientType = if (capabilities.gradient) gradientType else GradientType.LINEAR
+        )
     }
 
     private fun generateStyledQR(content: String, size: Int, styleConfig: StyleConfig): Bitmap {
@@ -354,7 +428,8 @@ object AdvancedBarcodeGenerator {
             width = size,
             height = size,
             foregroundColor = Color.BLACK,
-            backgroundColor = Color.WHITE
+            backgroundColor = Color.WHITE,
+            ecLevel = styleConfig.ecLevel
         )
 
         val original = BarcodeGenerator.generate(content, config)

@@ -46,17 +46,34 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 历史类型：`com.xenoamess.qrcodesimple.data.HistoryType`
 
 ### 生成入口
+
 所有条码生成统一通过 `BarcodeGenerator.generate(content, config)`。
-样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, size, style)`，`StyleConfig` 字段：
-- `foregroundColor` / `backgroundColor`：前景/背景色，可用 `ColorPickerDialog` 色谱选取。
-- `cornerRadius`（0~1）：整张条码图片**外**圆角，0=直角，1=完全圆形。对所有格式生效（QR / 2D / 1D）。
-- `logoScale`（0~1）：中心 Logo 占条码宽度比例，上限 70%。
-- `moduleShape`：`SQUARE` / `CIRCLE` / `ROUNDED`，仅 QR Code 生效。
-- `moduleFillRatio`（0~1）：QR Code 数据模块填充比例，越小点之间间距越大，圆点/圆角模式生效。
-- `positionPatternShape`：`SQUARE` / `CIRCLE` / `FOLLOW_MODULE`，QR Code 定位点形状；`CIRCLE` 为同心圆环。
-- `gradientAngle`（0°~360°）：任意方向渐变角度。
-- `gradientStops`：最多 5 个渐变节点，支持多色渐变；仅 QR Code 与 1D/2D 前景填充生效。
-- `ecLevel`：QR Code 纠错等级。
+样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, size, style, capabilities?)`：
+
+- `capabilities` 由 `FormatStyleCapabilities.forFormat(format)` 决定。生成时会按能力表清洗 `StyleConfig`：不支持的字段回退为默认值，原配置保留在 UI 中。
+- `GenerateFragment` 根据当前格式能力表隐藏不支持的控件，不做提示。
+
+`StyleConfig` 字段及能力表：
+- `foregroundColor` / `backgroundColor`：所有格式。
+- `cornerRadius`（0~1）：所有格式开放。
+- `logoScale` / `logoBitmap`：所有格式。
+- `gradientAngle` / `gradientStops` / `gradientType`：所有格式。
+- `foregroundBitmap` / `backgroundBitmap`：所有格式。
+- `moduleShape` / `moduleFillRatio` / `positionPatternShape`：仅 QR Code。
+- `ecLevel`：QR Code 直接生效；Aztec / PDF417 / Han Xin / Micro QR / Grid Matrix 经映射后生效；其他格式不生效。
+
+`ecLevel` 映射：
+
+| 格式 | L | M | Q | H |
+|---|---|---|---|---|
+| QR Code | L | M | Q | H |
+| Aztec | 25% | 40% | 55% | 70% |
+| PDF417 | 2 | 4 | 6 | 8 |
+| Han Xin | 1 | 2 | 3 | 4 |
+| Micro QR | L | M | Q | H→Q |
+| Grid Matrix | 1 | 2 | 3 | 5 |
+
+生成历史保存前也会按能力表清洗，保证历史记录只包含实际生效的样式参数。
 
 ### 扫描入口
 
