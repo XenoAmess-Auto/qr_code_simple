@@ -1,6 +1,6 @@
 # HanXin 编解码器专项优化计划
 
-> 状态：Phase 1 已完成，全部测试通过。Phase 2 尚未开始。
+> 状态：Phase 1 与 Phase 2 已完成，全部测试通过。Phase 3 尚未开始。
 >
 > 目标：先补齐测试用例，再对 `HanXinEncoder` 和 `HanXinDecoder` 进行性能与鲁棒性优化，同时不降低扫描成功率。
 >
@@ -152,6 +152,12 @@ JAVA_HOME=.../jdk-21 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests
 
 5. **清理 `convertInput()` 和 `chooseModes()`**
    - 一次编码、直接 `IntArray`、primitive 前驱数组
+
+### 2.5 完成记录
+
+- Phase 2 已完成并提交。
+- 主要改动：`ReedSolomon` 增加 `initCodeCached` 缓存生成多项式；编码器复用 `rs8`/`rs4` 单例；掩码评估跳过 function info 重算；`renderBitmap` 改用 `setPixels`；`evaluate` 去掉 `copyOfRange`；`convertInput` 与 `chooseModes` 减少临时分配。
+- 全量单测通过命令：`JAVA_HOME=/home/xenoamess/.jdks/jdk-21.0.7+6 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests`。
 
 ---
 

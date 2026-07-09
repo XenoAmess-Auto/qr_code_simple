@@ -41,6 +41,14 @@ object HanXinEncoder {
 
     private val MODE_CHARS = charArrayOf('n', 't', 'b', '1', '2', 'd', 'f')
 
+    // Mode-switch DP costs in 1/6 bits.
+    private val HEAD_COSTS = intArrayOf(24, 24, 102, 24, 24, 24, 0)
+    private val EOD_COSTS = intArrayOf(60, 36, 0, 72, 72, 90, 0)
+
+    // Reusable Reed-Solomon engines. The log/antilog tables are built once.
+    private val rs8 = ReedSolomon(0x163, 8)
+    private val rs4 = ReedSolomon(0x13, 4)
+
     // Table B.1 - total codewords per version
     internal val TOTAL_CODEWORDS = intArrayOf(
         25, 37, 50, 54, 69, 84, 100, 117, 136, 155,
@@ -591,12 +599,14 @@ object HanXinEncoder {
         }
 
         if (gbBytes != null && String(gbBytes, GB18030) == content) {
-            val result = mutableListOf<Int>()
+            val maxOutput = gbBytes.size
+            val result = IntArray(maxOutput)
+            var count = 0
             var i = 0
             while (i < gbBytes.size) {
                 val b = gbBytes[i].toInt() and 0xFF
                 if (b <= 0x7F) {
-                    result.add(b)
+                    result[count++] = b
                     i++
                 } else if (b in 0x81..0xFE && i + 1 < gbBytes.size) {
                     val b2 = gbBytes[i + 1].toInt() and 0xFF
@@ -606,8 +616,8 @@ object HanXinEncoder {
                             val b3 = gbBytes[i + 2].toInt() and 0xFF
                             val b4 = gbBytes[i + 3].toInt() and 0xFF
                             if (b3 in 0x81..0xFE && b4 in 0x30..0x39) {
-                                result.add((b shl 8) or b2)
-                                result.add((b3 shl 8) or b4)
+                                result[count++] = (b shl 8) or b2
+                                result[count++] = (b3 shl 8) or b4
                                 i += 4
                             } else {
                                 throw IllegalArgumentException("Invalid GB18030 4-byte sequence")
@@ -616,7 +626,7 @@ object HanXinEncoder {
                             throw IllegalArgumentException("Truncated GB18030 4-byte sequence")
                         }
                     } else if ((b2 in 0x40..0x7E) || (b2 in 0x80..0xFE)) {
-                        result.add((b shl 8) or b2)
+                        result[count++] = (b shl 8) or b2
                         i += 2
                     } else {
                         throw IllegalArgumentException("Invalid GB18030 2-byte sequence")
@@ -628,12 +638,13 @@ object HanXinEncoder {
 
             // Zint does not write an ECI header for GB18030 data either; match
             // its behaviour so generated symbols are byte-for-byte compatible.
-            return Pair(result.toIntArray(), 0)
+            return Pair(result.copyOf(count), 0)
         }
 
         // Fallback: encode as UTF-8 bytes and use ECI 26 (UTF-8).
         val utf8 = content.toByteArray(Charsets.UTF_8)
-        return Pair(utf8.map { it.toInt() and 0xFF }.toIntArray(), 26)
+        val utf8Result = IntArray(utf8.size) { utf8[it].toInt() and 0xFF }
+        return Pair(utf8Result, 26)
     }
 
     // -------------------------------------------------------------------------
@@ -644,13 +655,13 @@ object HanXinEncoder {
         val length = ddata.size
         if (length == 0) return CharArray(0)
 
-        val charModes = Array(length) { CharArray(MODE_COUNT) { '\u0000' } }
+        // Flattened backtracking table: one entry per (position, mode).
+        val charModes = CharArray(length * MODE_COUNT) { '\u0000' }
         val prevCosts = IntArray(MODE_COUNT)
         val curCosts = IntArray(MODE_COUNT)
 
         // Initial mode costs (head costs) in 1/6 bits
-        val headCosts = intArrayOf(24, 24, 102, 24, 24, 24, 0)
-        headCosts.copyInto(prevCosts)
+        HEAD_COSTS.copyInto(prevCosts)
 
         var numericEnd = 0
         var numericCost = 0
@@ -660,14 +671,17 @@ object HanXinEncoder {
 
         for (i in 0 until length) {
             curCosts.fill(0)
-            charModes[i].fill('\u0000')
+            val modeOffset = i * MODE_COUNT
+            for (j in 0 until MODE_COUNT) {
+                charModes[modeOffset + j] = '\u0000'
+            }
 
             val inNumeric = isInNumeric(ddata, length, i, numericEnd, numericCost)
             if (inNumeric.first) {
                 numericEnd = inNumeric.second
                 numericCost = inNumeric.third
                 curCosts[MODE_N] = prevCosts[MODE_N] + numericCost
-                charModes[i][MODE_N] = 'n'
+                charModes[modeOffset + MODE_N] = 'n'
             }
 
             val text1 = lookupText1(ddata[i]) != -1
@@ -679,39 +693,38 @@ object HanXinEncoder {
                 } else {
                     curCosts[MODE_T] = prevCosts[MODE_T] + 36 // char only
                 }
-                charModes[i][MODE_T] = 't'
+                charModes[modeOffset + MODE_T] = 't'
             } else {
                 textSubmode = 1
             }
 
             // Binary mode can encode anything
             curCosts[MODE_B] = prevCosts[MODE_B] + if (ddata[i] > 0xFF) 96 else 48
-            charModes[i][MODE_B] = 'b'
+            charModes[modeOffset + MODE_B] = 'b'
 
             val inFourByte = isInFourByte(ddata, length, i, fourByteEnd, fourByteCost)
             if (inFourByte.first) {
                 fourByteEnd = inFourByte.second
                 fourByteCost = inFourByte.third
                 curCosts[MODE_F] = prevCosts[MODE_F] + fourByteCost
-                charModes[i][MODE_F] = 'f'
+                charModes[modeOffset + MODE_F] = 'f'
             } else if (isDoubleByte(ddata[i])) {
                 curCosts[MODE_D] = prevCosts[MODE_D] + 90
-                charModes[i][MODE_D] = 'd'
+                charModes[modeOffset + MODE_D] = 'd'
                 if (isRegion1(ddata[i])) {
                     curCosts[MODE_1] = prevCosts[MODE_1] + 72
-                    charModes[i][MODE_1] = '1'
+                    charModes[modeOffset + MODE_1] = '1'
                 } else if (isRegion2(ddata[i])) {
                     curCosts[MODE_2] = prevCosts[MODE_2] + 72
-                    charModes[i][MODE_2] = '2'
+                    charModes[modeOffset + MODE_2] = '2'
                 }
             }
 
             // End-of-data costs on the last character
             if (i == length - 1) {
-                val eodCosts = intArrayOf(60, 36, 0, 72, 72, 90, 0)
                 for (j in 0 until MODE_COUNT) {
-                    if (charModes[i][j] != '\u0000') {
-                        curCosts[j] += eodCosts[j]
+                    if (charModes[modeOffset + j] != '\u0000') {
+                        curCosts[j] += EOD_COSTS[j]
                     }
                 }
             }
@@ -719,11 +732,11 @@ object HanXinEncoder {
             // Consider switching to a new mode at this position
             for (j in 0 until MODE_COUNT) {
                 for (k in 0 until MODE_COUNT) {
-                    if (j != k && charModes[i][k] != '\u0000') {
+                    if (j != k && charModes[modeOffset + k] != '\u0000') {
                         val newCost = curCosts[k] + switchCost(k, j)
-                        if (charModes[i][j] == '\u0000' || newCost < curCosts[j]) {
+                        if (charModes[modeOffset + j] == '\u0000' || newCost < curCosts[j]) {
                             curCosts[j] = newCost
-                            charModes[i][j] = MODE_CHARS[k]
+                            charModes[modeOffset + j] = MODE_CHARS[k]
                         }
                     }
                 }
@@ -746,7 +759,7 @@ object HanXinEncoder {
         val modes = CharArray(length)
         for (i in length - 1 downTo 0) {
             val idx = MODE_CHARS.indexOf(curMode)
-            curMode = charModes[i][idx]
+            curMode = charModes[i * MODE_COUNT + idx]
             modes[i] = curMode
         }
         return modes
@@ -1156,7 +1169,6 @@ object HanXinEncoder {
         version: Int,
         eccLevel: Int
     ) {
-        val rs8 = ReedSolomon(0x163, 8)
         val tablePos = (version - 1) * 36 + (eccLevel - 1) * 9
         var inputPos = 0
         var outputPos = 0
@@ -1167,7 +1179,7 @@ object HanXinEncoder {
             val eccLength = RS_TABLE_D1[tablePos + group * 3 + 2]
             if (batchSize == 0) continue
 
-            rs8.initCode(eccLength, 1)
+            rs8.initCodeCached(eccLength, 1)
             val dataBlock = IntArray(dataLength)
             val eccBlock = IntArray(eccLength)
 
@@ -1409,22 +1421,21 @@ object HanXinEncoder {
         if (requestedMask in 0..3) {
             bestPattern = requestedMask
         } else {
-            // Pattern 0
-            for (k in 0 until sizeSquared) local[k] = grid[k] and 0x0F
-            setFunctionInfo(local, size, version, eccLevel, 0)
+            // Evaluate each mask pattern without writing function info; the
+            // function info is fixed and should not influence mask selection.
             val penalties = IntArray(4)
-            penalties[0] = evaluate(local, size)
-            bestPattern = (0 until 4).minByOrNull { pattern ->
-                if (pattern == 0) penalties[0] else {
+            for (pattern in 0 until 4) {
+                if (pattern == 0) {
+                    for (k in 0 until sizeSquared) local[k] = grid[k] and 0x0F
+                } else {
                     val bit = 1 shl pattern
                     for (k in 0 until sizeSquared) {
                         local[k] = if ((mask[k] and bit) != 0) grid[k] xor 0x01 else grid[k] and 0x0F
                     }
-                    setFunctionInfo(local, size, version, eccLevel, pattern)
-                    penalties[pattern] = evaluate(local, size)
-                    penalties[pattern]
                 }
-            } ?: 0
+                penalties[pattern] = evaluate(local, size)
+            }
+            bestPattern = penalties.indices.minByOrNull { penalties[it] } ?: 0
         }
 
         if (bestPattern != 0) {
@@ -1454,8 +1465,7 @@ object HanXinEncoder {
             fiCw[i] = cw
         }
 
-        val rs4 = ReedSolomon(0x13, 4)
-        rs4.initCode(4, 1)
+        rs4.initCodeCached(4, 1)
         val fiEcc = IntArray(4)
         rs4.encode(fiCw, 3, fiEcc)
         for (v in fiEcc) fi.append(v, 4)
@@ -1479,6 +1489,13 @@ object HanXinEncoder {
                 grid[(size - 1 - 8) * size + (8 - i)] = 0x01
             }
         }
+    }
+
+    private fun matchesPattern(local: IntArray, offset: Int, pattern: IntArray): Boolean {
+        for (i in 0 until 7) {
+            if (local[offset + i] != pattern[i]) return false
+        }
+        return true
     }
 
     private fun evaluate(local: IntArray, size: Int): Int {
@@ -1534,8 +1551,7 @@ object HanXinEncoder {
             val r = y * size
             var x = 0
             while (x <= size - 7) {
-                val slice = local.copyOfRange(r + x, r + x + 7)
-                if (slice.contentEquals(h1010111) || slice.contentEquals(h1110101)) {
+                if (matchesPattern(local, r + x, h1010111) || matchesPattern(local, r + x, h1110101)) {
                     var beforeCount = 0
                     var b = x - 1
                     while (b >= x - 3) {
@@ -1619,16 +1635,28 @@ object HanXinEncoder {
         val moduleWidth = width / size
         val moduleHeight = height / size
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val mx = x / moduleWidth
-                val my = y / moduleHeight
-                val dark = if (mx in 0 until size && my in 0 until size) {
-                    (grid[my * size + mx] and 1) == 1
-                } else false
-                bitmap.setPixel(x, y, if (dark) foreground else background)
+        if (moduleWidth <= 0 || moduleHeight <= 0) {
+            return bitmap
+        }
+
+        val pixels = IntArray(width * height) { background }
+        for (my in 0 until size) {
+            val yStart = my * moduleHeight
+            val yEnd = (my + 1) * moduleHeight
+            for (mx in 0 until size) {
+                if ((grid[my * size + mx] and 1) == 1) {
+                    val xStart = mx * moduleWidth
+                    val xEnd = (mx + 1) * moduleWidth
+                    for (y in yStart until yEnd) {
+                        val rowOffset = y * width
+                        for (x in xStart until xEnd) {
+                            pixels[rowOffset + x] = foreground
+                        }
+                    }
+                }
             }
         }
+        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
         return bitmap
     }
 
@@ -1682,6 +1710,7 @@ object HanXinEncoder {
             private set
         private var generatorRev: IntArray = intArrayOf()
         private var firstRoot = 1
+        private val generatorCache = HashMap<Long, Pair<IntArray, IntArray>>()
 
         init {
             initField()
@@ -1733,6 +1762,26 @@ object HanXinEncoder {
                 } else 0
             }
             generatorRev = IntArray(numEcc + 1) { generator[numEcc - it] }
+        }
+
+        /**
+         * Initialise the generator polynomial for the given parameters, caching
+         * the result so that repeated calls with the same [numEcc] and
+         * [firstRoot] avoid recomputation.
+         */
+        fun initCodeCached(numEcc: Int, firstRoot: Int) {
+            synchronized(this) {
+                val key = (numEcc.toLong() shl 32) or (firstRoot.toLong() and 0xFFFFFFFFL)
+                val cached = generatorCache[key]
+                if (cached != null) {
+                    generator = cached.first.copyOf()
+                    generatorRev = cached.second.copyOf()
+                    this.firstRoot = firstRoot
+                    return
+                }
+                initCode(numEcc, firstRoot)
+                generatorCache[key] = generator.copyOf() to generatorRev.copyOf()
+            }
         }
 
         fun encode(data: IntArray, dataLength: Int, ecc: IntArray) {

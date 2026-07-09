@@ -20,6 +20,8 @@ object HanXinDecoder {
     private val FINDER_BR = intArrayOf(0x75, 0x75, 0x75, 0x05, 0x7D, 0x01, 0x7F)
 
     private val GB18030 = Charset.forName("GB18030")
+    private val rs4 = HanXinEncoder.ReedSolomon(0x13, 4)
+    private val rs8 = HanXinEncoder.ReedSolomon(0x163, 8)
 
     data class DecodeResult(
         val text: String,
@@ -523,7 +525,6 @@ object HanXinDecoder {
         val output = IntArray(dataCodewords) { 0 }
         var inputPos = 0
         var outputPos = 0
-        val rs8 = HanXinEncoder.ReedSolomon(0x163, 8)
 
         for (group in 0 until 3) {
             val batchSize = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3]
@@ -531,7 +532,7 @@ object HanXinDecoder {
             val eccLength = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3 + 2]
             if (batchSize == 0) continue
 
-            rs8.initCode(eccLength, 255 - eccLength)
+            rs8.initCodeCached(eccLength, 255 - eccLength)
             repeat(batchSize) {
                 val block = IntArray(dataLength + eccLength) { i ->
                     fullStream[inputPos + i]
@@ -606,8 +607,7 @@ object HanXinDecoder {
             cw[i] = value
         }
 
-        val rs4 = HanXinEncoder.ReedSolomon(0x13, 4)
-        rs4.initCode(4, 11)
+        rs4.initCodeCached(4, 11)
         val corrected = cw.copyOf()
         if (!rsDecode(rs4, corrected, 3, 4)) return null
 
