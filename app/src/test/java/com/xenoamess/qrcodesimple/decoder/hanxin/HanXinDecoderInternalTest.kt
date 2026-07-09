@@ -6,7 +6,9 @@ import androidx.test.core.app.ApplicationProvider
 import com.xenoamess.qrcodesimple.BarcodeGenerator
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.Timeout
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -19,6 +21,10 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class HanXinDecoderInternalTest {
+
+    @JvmField
+    @Rule
+    val timeout: Timeout = Timeout.seconds(30)
 
     private lateinit var context: Context
 

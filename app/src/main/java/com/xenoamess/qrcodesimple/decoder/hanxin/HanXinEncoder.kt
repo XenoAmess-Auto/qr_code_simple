@@ -568,7 +568,6 @@ object HanXinEncoder {
             val bitmap = renderBitmap(grid, size, width, height, foreground, background)
             EncodeResult(bitmap, version, eccLevel, mask)
         } catch (e: Exception) {
-            e.printStackTrace()
             null
         }
     }

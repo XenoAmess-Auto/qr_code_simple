@@ -43,6 +43,10 @@ object HanXinDecoder {
         if (axisAligned != null) {
             val result = decodeGrid(axisAligned.first, axisAligned.second)
             if (result != null) return result
+            // The symbol is already aligned enough to extract a grid; perspective
+            // correction will not help when decoding fails due to data errors
+            // exceeding the correction capability.
+            return null
         }
 
         // Fallback: correct moderate perspective distortion.
