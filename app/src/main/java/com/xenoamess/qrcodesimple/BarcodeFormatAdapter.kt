@@ -12,7 +12,7 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 class BarcodeFormatAdapter(
     context: Context,
     private val formats: List<BarcodeFormat>
-) : ArrayAdapter<BarcodeFormat>(context, android.R.layout.simple_dropdown_item_1line, formats) {
+) : ArrayAdapter<BarcodeFormat>(context, android.R.layout.simple_dropdown_item_1line, ArrayList(formats)) {
 
     private val localizedNames = formats.associateWith { it.localizedName(context) }
     private val layoutInflater = LayoutInflater.from(context)
@@ -22,7 +22,7 @@ class BarcodeFormatAdapter(
             val query = constraint?.toString()?.trim() ?: ""
             val lower = query.lowercase()
             val results = if (lower.isEmpty()) {
-                formats
+                formats.toList()
             } else {
                 formats.filter { format ->
                     localizedNames[format]!!.lowercase().contains(lower) ||

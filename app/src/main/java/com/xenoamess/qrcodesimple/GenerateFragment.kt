@@ -25,6 +25,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.core.view.doOnAttach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.flexbox.FlexboxLayout
@@ -56,7 +57,7 @@ class GenerateFragment : Fragment() {
     private val binding get() = _binding!!
     internal var currentBitmap: Bitmap? = null
     private lateinit var historyRepository: HistoryRepository
-    private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
+    internal var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
     private var cornerRadius = 0f
     private var logoScale = 0.2f
@@ -238,26 +239,30 @@ class GenerateFragment : Fragment() {
         binding.spinnerFormat.setAdapter(adapter)
         binding.spinnerFormat.threshold = 0
 
-        binding.spinnerFormat.setOnFocusChangeListener { _, hasFocus ->
-            safe {
-                if (hasFocus) {
-                    pendingFormatBeforeFocus = selectedFormat
-                    binding.spinnerFormat.setText("", false)
-                    adapter.resetFilter()
-                    binding.spinnerFormat.showDropDown()
-                } else {
-                    val text = binding.spinnerFormat.text?.toString()?.trim() ?: ""
-                    val matched = formats.find {
-                        it.localizedName(requireContext()).equals(text, ignoreCase = true) ||
-                            it.name.equals(text, ignoreCase = true)
+        binding.spinnerFormat.doOnAttach {
+            val existingFocusListener = binding.spinnerFormat.onFocusChangeListener
+            binding.spinnerFormat.setOnFocusChangeListener { v, hasFocus ->
+                existingFocusListener?.onFocusChange(v, hasFocus)
+                safe {
+                    if (hasFocus) {
+                        pendingFormatBeforeFocus = selectedFormat
+                        binding.spinnerFormat.setText("", false)
+                        adapter.resetFilter()
+                        binding.spinnerFormat.showDropDown()
+                    } else {
+                        val text = binding.spinnerFormat.text?.toString()?.trim() ?: ""
+                        val matched = formats.find {
+                            it.localizedName(requireContext()).equals(text, ignoreCase = true) ||
+                                it.name.equals(text, ignoreCase = true)
+                        }
+                        selectedFormat = matched ?: pendingFormatBeforeFocus ?: selectedFormat
+                        pendingFormatBeforeFocus = null
+                        binding.spinnerFormat.setText(selectedFormat.localizedName(requireContext()), false)
+                        adapter.resetFilter()
+                        updateHintForFormat()
+                        updateStyleControlsVisibility()
+                        generateBarcode()
                     }
-                    selectedFormat = matched ?: pendingFormatBeforeFocus ?: selectedFormat
-                    pendingFormatBeforeFocus = null
-                    binding.spinnerFormat.setText(selectedFormat.localizedName(requireContext()), false)
-                    adapter.resetFilter()
-                    updateHintForFormat()
-                    updateStyleControlsVisibility()
-                    generateBarcode()
                 }
             }
         }
