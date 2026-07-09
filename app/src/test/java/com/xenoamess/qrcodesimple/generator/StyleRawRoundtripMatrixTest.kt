@@ -50,7 +50,7 @@ class StyleRawRoundtripMatrixTest {
             val expected = BarcodeFormatTestFixtures.expectedRoundtripText(format, content)
 
             for (shape in AdvancedBarcodeGenerator.ModuleShape.entries) {
-                for (ratio in listOf(0.5f, 0.8f, 1.0f)) {
+                for (ratio in listOf(0.5f, 0.8f, 0.85f, 0.9f, 0.95f, 1.0f)) {
                     for (pattern in AdvancedBarcodeGenerator.PositionPatternShape.entries) {
                         val style = AdvancedBarcodeGenerator.StyleConfig(
                             moduleShape = shape,
