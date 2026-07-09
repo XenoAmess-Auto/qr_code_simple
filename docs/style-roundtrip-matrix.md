@@ -48,7 +48,7 @@
 
 ## 执行结果
 
-执行时间：2026-07-09  
+执行时间：2026-07-10  
 命令：`JAVA_HOME=/home/xenoamess/.jdks/jdk-21.0.7+6 ./gradlew :app:testDebugUnitTest --tests "*StyleRawRoundtripMatrixTest*"`  
 每个组合跑 5 次，原始样式不清洗。
 
