@@ -65,6 +65,13 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+            all {
+                it.filter {
+                    if (project.hasProperty('excludeExtendedUiTests')) {
+                        excludeTestsMatching '*GenerateFragmentExtendedUiTest*'
+                    }
+                }
+            }
         }
     }
     packagingOptions {

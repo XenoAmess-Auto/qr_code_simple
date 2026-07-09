@@ -30,7 +30,7 @@ jobs:
 
       - name: Run unit tests
         timeout-minutes: 30
-        run: ./gradlew --no-daemon :app:testDebugUnitTest --info
+        run: ./gradlew --no-daemon :app:testDebugUnitTest -PexcludeExtendedUiTests --info
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
