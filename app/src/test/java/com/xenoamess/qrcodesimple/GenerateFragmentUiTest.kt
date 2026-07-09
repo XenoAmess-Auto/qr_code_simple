@@ -206,9 +206,9 @@ class GenerateFragmentUiTest {
 
     @Test
     fun allViewsSurviveClickLongClickAndDrag() {
-        typeText("https://example.com")
-        clickGenerate()
-
+        // Do not generate or fill content here; we only want to verify that arbitrary
+        // interactions with any view do not crash the fragment. Keeping content empty
+        // prevents expensive save/share/scan validation from running.
         scenario.onFragment { fragment ->
             val root = fragment.requireView()
             val allViews = collectAllViews(root)

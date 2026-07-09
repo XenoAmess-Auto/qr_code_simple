@@ -29,7 +29,8 @@ jobs:
         run: ./gradlew :app:assembleDebug
 
       - name: Run unit tests
-        run: ./gradlew :app:testDebugUnitTest
+        timeout-minutes: 30
+        run: ./gradlew --no-daemon :app:testDebugUnitTest --info
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
