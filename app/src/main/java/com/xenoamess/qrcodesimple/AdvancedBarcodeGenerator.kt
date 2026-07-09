@@ -365,7 +365,9 @@ object AdvancedBarcodeGenerator {
                 val py = y + 0.5f
                 when (styleConfig.moduleShape) {
                     ModuleShape.DEFAULT -> {
-                        output.setPixel(x, y, resolveColor(px, py, output.width, output.height, styleConfig, gradientBounds))
+                        if (px in (cx - radius)..(cx + radius) && py in (cy - radius)..(cy + radius)) {
+                            output.setPixel(x, y, resolveColor(px, py, output.width, output.height, styleConfig, gradientBounds))
+                        }
                     }
                     ModuleShape.CIRCLE -> {
                         val dist = hypot(px - cx, py - cy)
@@ -829,6 +831,8 @@ object AdvancedBarcodeGenerator {
         val cx = (left + right) / 2f
         val cy = (top + bottom) / 2f
         val radius = minOf(moduleWidth, moduleHeight) * fillRatio / 2f
+        val effectiveHalfWidth = moduleWidth * fillRatio / 2f
+        val effectiveHalfHeight = moduleHeight * fillRatio / 2f
         val cornerRadius = if (shape == ModuleShape.ROUNDED) radius else 0f
 
         for (x in left until right) {
@@ -837,7 +841,10 @@ object AdvancedBarcodeGenerator {
                 val px = x + 0.5f
                 val py = y + 0.5f
                 val inside = when (shape) {
-                    ModuleShape.DEFAULT -> true
+                    ModuleShape.DEFAULT -> {
+                        px in (cx - effectiveHalfWidth)..(cx + effectiveHalfWidth) &&
+                        py in (cy - effectiveHalfHeight)..(cy + effectiveHalfHeight)
+                    }
                     ModuleShape.CIRCLE -> hypot(px - cx, py - cy) <= radius
                     ModuleShape.ROUNDED -> isInsideRoundedRect(
                         px, py, left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), cornerRadius

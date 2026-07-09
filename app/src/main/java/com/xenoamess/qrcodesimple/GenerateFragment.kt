@@ -20,7 +20,6 @@ import android.view.LayoutInflater
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -231,29 +230,52 @@ class GenerateFragment : Fragment() {
         }
     }
 
+    private var pendingFormatBeforeFocus: BarcodeFormat? = null
+
     private fun setupFormatSelector() {
         val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            formats.map { it.displayName }
-        )
+        val adapter = BarcodeFormatAdapter(requireContext(), formats)
         binding.spinnerFormat.setAdapter(adapter)
+        binding.spinnerFormat.threshold = 0
 
-        val initialPosition = formats.indexOf(selectedFormat)
-        if (initialPosition >= 0) {
-            binding.spinnerFormat.setText(formats[initialPosition].displayName, false)
+        binding.spinnerFormat.setOnFocusChangeListener { _, hasFocus ->
+            safe {
+                if (hasFocus) {
+                    pendingFormatBeforeFocus = selectedFormat
+                    binding.spinnerFormat.setText("", false)
+                    adapter.resetFilter()
+                    binding.spinnerFormat.showDropDown()
+                } else {
+                    val text = binding.spinnerFormat.text?.toString()?.trim() ?: ""
+                    val matched = formats.find {
+                        it.localizedName(requireContext()).equals(text, ignoreCase = true) ||
+                            it.name.equals(text, ignoreCase = true)
+                    }
+                    selectedFormat = matched ?: pendingFormatBeforeFocus ?: selectedFormat
+                    pendingFormatBeforeFocus = null
+                    binding.spinnerFormat.setText(selectedFormat.localizedName(requireContext()), false)
+                    adapter.resetFilter()
+                    updateHintForFormat()
+                    updateStyleControlsVisibility()
+                    generateBarcode()
+                }
+            }
         }
 
         binding.spinnerFormat.setOnItemClickListener { _, _, position, _ ->
             safe {
-                selectedFormat = formats[position]
+                val format = adapter.getItem(position) ?: return@safe
+                selectedFormat = format
+                pendingFormatBeforeFocus = null
+                binding.spinnerFormat.setText(format.localizedName(requireContext()), false)
+                adapter.resetFilter()
                 updateHintForFormat()
                 updateStyleControlsVisibility()
                 generateBarcode()
             }
         }
 
+        binding.spinnerFormat.setText(selectedFormat.localizedName(requireContext()), false)
         updateStyleControlsVisibility()
     }
 
@@ -642,7 +664,7 @@ class GenerateFragment : Fragment() {
             val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
             val position = formats.indexOf(it)
             if (position >= 0) {
-                binding.spinnerFormat.setText(formats[position].displayName, false)
+                binding.spinnerFormat.setText(it.localizedName(requireContext()), false)
             }
             updateStyleControlsVisibility()
         }
