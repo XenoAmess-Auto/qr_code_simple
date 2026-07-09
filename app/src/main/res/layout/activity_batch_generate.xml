@@ -6,19 +6,20 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Barcode Format"
-        android:textSize="14sp"
-        android:textColor="?attr/colorPrimary"
-        android:layout_marginBottom="4dp" />
+        android:hint="@string/select_barcode_format"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_marginBottom="16dp">
 
-    <Spinner
-        android:id="@+id/spinnerFormat"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp" />
+        <AutoCompleteTextView
+            android:id="@+id/spinnerFormat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text|textNoSuggestions" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:layout_width="match_parent"

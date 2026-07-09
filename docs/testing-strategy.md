@@ -124,7 +124,22 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 > 编码器默认行为与 Zint 2.15.0 对齐：GB18030 可编码内容不写入 ECI 头，
 > Reed-Solomon 使用 LFSR 编码并将 ECC 逆序输出，解码器按对应的互反根校验。
 
-## 6. 运行测试
+## 6. UI 与 Adapter 测试
+
+除生成/扫描回环测试外，所有用户可见的 UI 页面、Fragment、Activity、Adapter 和自定义 View 都需要通过 Robolectric + Espresso 进行交互测试。
+
+重点覆盖：
+
+- 下拉框与筛选：编辑输入、过滤、选择、非法输入回退。
+- 列表与 RecyclerView：item 绑定、空状态、多选、删除、复制、分享。
+- 搜索与标签：搜索文本变化、筛选 chip、tag chip 点击过滤。
+- 对话框与设置：确认/取消、开关状态、外部链接 intent。
+- 自定义 View：触摸事件、颜色/角度变化、回调。
+- 导航：tab 切换、ViewPager2 联动、deep-link/shortcut。
+
+所有页面和测试批次的具体计划见 `docs/ui-testing-plan.md`。
+
+## 7. 运行测试
 
 ```bash
 ./gradlew :app:testDebugUnitTest
@@ -132,7 +147,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `assembleDebug` 和 `testDebugUnitTest`。
 
-## 7. 注意事项
+## 8. 注意事项
 
 - ML Kit 在 Robolectric 环境下可能无法初始化，因此 roundtrip 测试主要依赖 ZXing、BoofCV 和自定义解码器。
 - 对于仅 ZXing 能扫描的格式（RSS、MaxiCode），确保生成图像质量足够高。

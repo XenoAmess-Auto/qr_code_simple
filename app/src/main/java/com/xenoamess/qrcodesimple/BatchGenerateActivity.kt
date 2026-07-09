@@ -6,11 +6,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.doOnAttach
 import androidx.lifecycle.lifecycleScope
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ActivityBatchGenerateBinding
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 class BatchGenerateActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBatchGenerateBinding
-    private var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
+    internal var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
 
     private val pickFileLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -44,26 +44,50 @@ class BatchGenerateActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.batch_generate)
 
-        setupFormatSpinner()
+        setupFormatSelector()
         setupButtons()
     }
 
-    private fun setupFormatSpinner() {
-        val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            formats.map { it.displayName }
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerFormat.adapter = adapter
+    private var pendingFormatBeforeFocus: BarcodeFormat? = null
 
-        binding.spinnerFormat.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                selectedFormat = formats[position]
+    private fun setupFormatSelector() {
+        val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
+        val adapter = BarcodeFormatAdapter(this, formats)
+        binding.spinnerFormat.setAdapter(adapter)
+        binding.spinnerFormat.threshold = 0
+
+        binding.spinnerFormat.doOnAttach {
+            val existingFocusListener = binding.spinnerFormat.onFocusChangeListener
+            binding.spinnerFormat.setOnFocusChangeListener { v, hasFocus ->
+                existingFocusListener?.onFocusChange(v, hasFocus)
+                if (hasFocus) {
+                    pendingFormatBeforeFocus = selectedFormat
+                    binding.spinnerFormat.setText("", false)
+                    adapter.resetFilter()
+                    binding.spinnerFormat.showDropDown()
+                } else {
+                    val text = binding.spinnerFormat.text?.toString()?.trim() ?: ""
+                    val matched = formats.find {
+                        it.localizedName(this@BatchGenerateActivity).equals(text, ignoreCase = true) ||
+                            it.name.equals(text, ignoreCase = true)
+                    }
+                    selectedFormat = matched ?: pendingFormatBeforeFocus ?: selectedFormat
+                    pendingFormatBeforeFocus = null
+                    binding.spinnerFormat.setText(selectedFormat.localizedName(this@BatchGenerateActivity), false)
+                    adapter.resetFilter()
+                }
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+
+        binding.spinnerFormat.setOnItemClickListener { _, _, position, _ ->
+            val format = adapter.getItem(position) ?: return@setOnItemClickListener
+            selectedFormat = format
+            pendingFormatBeforeFocus = null
+            binding.spinnerFormat.setText(format.localizedName(this), false)
+            adapter.resetFilter()
+        }
+
+        binding.spinnerFormat.setText(selectedFormat.localizedName(this), false)
     }
 
     private fun setupButtons() {

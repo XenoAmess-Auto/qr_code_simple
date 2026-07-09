@@ -26,6 +26,7 @@ import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,6 +42,7 @@ class HistoryFragment : Fragment() {
     private var currentFilter = FilterType.ALL
     private var currentSearchQuery = ""
     private var currentTag: String? = null
+    private var loadHistoryJob: Job? = null
 
     enum class FilterType {
         ALL, SCANNED, GENERATED, FAVORITE
@@ -242,7 +244,8 @@ class HistoryFragment : Fragment() {
     }
 
     private fun loadHistory() {
-        lifecycleScope.launch {
+        loadHistoryJob?.cancel()
+        loadHistoryJob = lifecycleScope.launch {
             try {
                 val flow = when {
                     currentTag != null -> repository.getHistoryByTag(currentTag!!)

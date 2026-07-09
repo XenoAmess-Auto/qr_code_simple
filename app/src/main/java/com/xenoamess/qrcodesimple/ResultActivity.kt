@@ -8,27 +8,20 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.flexbox.FlexboxLayout
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.ActivityResultBinding
-import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
+import com.xenoamess.qrcodesimple.ui.result.QRResult
+import com.xenoamess.qrcodesimple.ui.result.QRResultAdapter
 import kotlinx.coroutines.Dispatchers
-import android.widget.LinearLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
@@ -48,12 +41,6 @@ class ResultActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_BITMAP_URI = "bitmap_uri"
     }
-
-    data class QRResult(
-        val text: String,
-        var isSelected: Boolean = false,
-        val library: QRCodeScanner.Library? = null
-    )
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
@@ -92,10 +79,15 @@ class ResultActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         adapter = QRResultAdapter(
             results,
-            contentActionHandler,
             onItemChecked = { position, isSelected ->
                 results[position].isSelected = isSelected
                 updateSelectionCount()
+            },
+            contentActionHandler = contentActionHandler,
+            lifecycleScope = lifecycleScope,
+            onEdit = { position, newText ->
+                results[position] = results[position].copy(text = newText)
+                adapter.notifyItemChanged(position)
             }
         )
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
@@ -354,152 +346,4 @@ class ResultActivity : AppCompatActivity() {
         return true
     }
 
-    inner class QRResultAdapter(
-        private val items: List<QRResult>,
-        private val actionHandler: ContentActionHandler,
-        private val onItemChecked: (Int, Boolean) -> Unit
-    ) : RecyclerView.Adapter<QRResultAdapter.ViewHolder>() {
-
-        inner class ViewHolder(val binding: ItemQrResultBinding) :
-            RecyclerView.ViewHolder(binding.root)
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ItemQrResultBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            )
-            return ViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = items[position]
-            holder.binding.apply {
-                // 显示内容和使用库的信息
-                val libPrefix = item.library?.let { "[${it.name}] " } ?: ""
-                tvResult.text = "$libPrefix${item.text}"
-
-                // 显示内容类型标签和图标
-                val contentTypeLabel = actionHandler.getContentTypeLabel(item.text)
-                tvTypeLabel.text = contentTypeLabel
-                ivTypeIcon.setImageResource(actionHandler.getContentTypeIcon(item.text))
-
-                // 显示/隐藏类型标签（纯文本不显示）
-                if (contentTypeLabel == getString(R.string.content_type_text)) {
-                    tvTypeLabel.visibility = View.GONE
-                } else {
-                    tvTypeLabel.visibility = View.VISIBLE
-                }
-
-                checkbox.isChecked = item.isSelected
-
-                checkbox.setOnCheckedChangeListener { _, isChecked ->
-                    onItemChecked(position, isChecked)
-                }
-
-                root.setOnClickListener {
-                    checkbox.isChecked = !checkbox.isChecked
-                }
-
-                // 安全检测（异步）
-                checkSecurityAsync(item.text, this)
-
-                btnCopy.setOnClickListener {
-                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("QR Code", item.text))
-                    Toast.makeText(this@ResultActivity, getString(R.string.copied), Toast.LENGTH_SHORT).show()
-                }
-
-                btnShare.setOnClickListener {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, item.text)
-                    }
-                    startActivity(Intent.createChooser(intent, getString(R.string.share)))
-                }
-
-                btnEdit.setOnClickListener {
-                    showEditDialog(position, item.text)
-                }
-
-                // 添加智能操作按钮
-                setupSmartActions(layoutSmartActions, item.text)
-            }
-        }
-
-        private fun checkSecurityAsync(content: String, binding: ItemQrResultBinding) {
-            // 只有 URL 类型才检测
-            if (!content.startsWith("http://") && !content.startsWith("https://")) {
-                binding.layoutSecurityIndicator.visibility = View.GONE
-                return
-            }
-
-            binding.layoutSecurityIndicator.visibility = View.VISIBLE
-            binding.tvSecurityStatus.text = getString(R.string.checking_security)
-            binding.ivSecurityIcon.setColorFilter(android.graphics.Color.GRAY)
-
-            lifecycleScope.launch {
-                val result = SecurityManager.checkUrl(content)
-
-                binding.tvSecurityStatus.text = result.message
-                binding.tvSecurityStatus.setTextColor(
-                    SecurityManager.getRiskColor(result.riskLevel)
-                )
-                binding.ivSecurityIcon.setColorFilter(
-                    SecurityManager.getRiskColor(result.riskLevel)
-                )
-
-                // 高风险时添加点击提示
-                if (result.riskLevel == SecurityManager.RiskLevel.HIGH ||
-                    result.riskLevel == SecurityManager.RiskLevel.MEDIUM) {
-                    binding.layoutSecurityIndicator.setOnClickListener {
-                        AlertDialog.Builder(this@ResultActivity)
-                            .setTitle(result.message)
-                            .setMessage(result.details + "\n\n" + SecurityManager.getSecurityTip(result))
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show()
-                    }
-                }
-            }
-        }
-
-        private fun setupSmartActions(container: FlexboxLayout, content: String) {
-            container.removeAllViews()
-
-            val actions = actionHandler.getActionButtons(content)
-            if (actions.isEmpty()) {
-                container.visibility = View.GONE
-                return
-            }
-
-            container.visibility = View.VISIBLE
-
-            actions.forEach { action ->
-                val button = Button(container.context, null, android.R.attr.borderlessButtonStyle).apply {
-                    text = action.text
-                    setCompoundDrawablesWithIntrinsicBounds(action.iconResId, 0, 0, 0)
-                    compoundDrawablePadding = 8
-                    setPadding(24, 12, 24, 12)
-                    setOnClickListener { action.onClick() }
-                }
-                container.addView(button)
-            }
-        }
-
-        override fun getItemCount() = items.size
-
-        private fun showEditDialog(position: Int, currentText: String) {
-            val editText = android.widget.EditText(this@ResultActivity).apply {
-                setText(currentText)
-            }
-
-            AlertDialog.Builder(this@ResultActivity)
-                .setTitle(getString(R.string.edit_qr_code_content))
-                .setView(editText)
-                .setPositiveButton(getString(R.string.save_action)) { _, _ ->
-                    results[position] = results[position].copy(text = editText.text.toString())
-                    notifyItemChanged(position)
-                }
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show()
-        }
-    }
 }

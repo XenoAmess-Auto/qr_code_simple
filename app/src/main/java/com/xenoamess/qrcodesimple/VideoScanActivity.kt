@@ -8,19 +8,17 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.databinding.ActivityVideoScanBinding
-import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
+import com.xenoamess.qrcodesimple.ui.result.QRResult
+import com.xenoamess.qrcodesimple.ui.result.QRResultAdapter
 import java.util.LinkedHashSet
 
 class VideoScanActivity : AppCompatActivity() {
@@ -39,13 +37,6 @@ class VideoScanActivity : AppCompatActivity() {
         // 提取帧的间隔（毫秒）
         private const val FRAME_INTERVAL_MS = 500L
     }
-
-    data class QRResult(
-        val text: String,
-        var isSelected: Boolean = false,
-        val library: QRCodeScanner.Library? = null,
-        val format: com.google.zxing.BarcodeFormat = com.google.zxing.BarcodeFormat.QR_CODE
-    )
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
@@ -76,10 +67,17 @@ class VideoScanActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = QRResultAdapter(results) { position, isSelected ->
-            results[position].isSelected = isSelected
-            updateSelectionCount()
-        }
+        adapter = QRResultAdapter(
+            results,
+            onItemChecked = { position, isSelected ->
+                results[position].isSelected = isSelected
+                updateSelectionCount()
+            },
+            onEdit = { position, newText ->
+                results[position] = results[position].copy(text = newText)
+                adapter.notifyItemChanged(position)
+            }
+        )
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
     }
@@ -363,71 +361,4 @@ class VideoScanActivity : AppCompatActivity() {
         processingThread?.interrupt()
     }
 
-    inner class QRResultAdapter(
-        private val items: List<QRResult>,
-        private val onItemChecked: (Int, Boolean) -> Unit
-    ) : RecyclerView.Adapter<QRResultAdapter.ViewHolder>() {
-
-        inner class ViewHolder(val binding: ItemQrResultBinding) :
-            RecyclerView.ViewHolder(binding.root)
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ItemQrResultBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            )
-            return ViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = items[position]
-            holder.binding.apply {
-                tvResult.text = item.text
-                checkbox.isChecked = item.isSelected
-
-                checkbox.setOnCheckedChangeListener { _, isChecked ->
-                    onItemChecked(position, isChecked)
-                }
-
-                root.setOnClickListener {
-                    checkbox.isChecked = !checkbox.isChecked
-                }
-
-                btnCopy.setOnClickListener {
-                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("QR Code", item.text))
-                    Toast.makeText(this@VideoScanActivity, getString(R.string.copied), Toast.LENGTH_SHORT).show()
-                }
-
-                btnShare.setOnClickListener {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, item.text)
-                    }
-                    startActivity(Intent.createChooser(intent, getString(R.string.share)))
-                }
-
-                btnEdit.setOnClickListener {
-                    showEditDialog(position, item.text)
-                }
-            }
-        }
-
-        override fun getItemCount() = items.size
-
-        private fun showEditDialog(position: Int, currentText: String) {
-            val editText = android.widget.EditText(this@VideoScanActivity).apply {
-                setText(currentText)
-            }
-
-            AlertDialog.Builder(this@VideoScanActivity)
-                .setTitle(getString(R.string.edit_qr_code_content))
-                .setView(editText)
-                .setPositiveButton(getString(R.string.save_action)) { _, _ ->
-                    results[position] = results[position].copy(text = editText.text.toString())
-                    notifyItemChanged(position)
-                }
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show()
-        }
-    }
 }

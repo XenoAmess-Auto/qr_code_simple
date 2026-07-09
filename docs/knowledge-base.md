@@ -130,6 +130,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel） |
 | `ContinuousScanActivity.kt` | 连续扫描 Activity |
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
+| `docs/ui-testing-plan.md` | 全页面 UI/Adapter 测试补全计划 |
 | `.github/workflows/build.yml` | CI 工作流（build + unit tests） |
 
 ## 6.5 生成实现细节
