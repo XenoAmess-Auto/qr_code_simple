@@ -1,6 +1,6 @@
 # HanXin 编解码器专项优化计划
 
-> 状态：Phase 1 与 Phase 2 已完成，全部测试通过。Phase 3 尚未开始。
+> 状态：Phase 1、Phase 2 与 Phase 3 已完成，全部测试通过。Phase 4 尚未开始。
 >
 > 目标：先补齐测试用例，再对 `HanXinEncoder` 和 `HanXinDecoder` 进行性能与鲁棒性优化，同时不降低扫描成功率。
 >
@@ -182,6 +182,16 @@ JAVA_HOME=.../jdk-21 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests
 5. **内存和采样细节**
    - `sampleGrid`/`rotateGrid` buffer 复用、按需旋转
    - `binarize` 单通道化
+
+### 3.5 完成记录
+
+- Phase 3 已完成并提交。
+- 主要改动：
+  - `extractGrid` 先尝试按图像尺寸估算的版本窗口，失败再全量扫描。
+  - `correctErrors` 增加纠错数量检查；`decodeGrid` 增加 syndrome 快速校验并简化 `validateByReencoding`。
+  - `detectCorners` 改为沿四个对角方向扫描极值点，去掉全图暗像素凸包。
+  - `tryExtractGrid` 跳过 0 度旋转的拷贝；`warpPerspective` 直接返回 `Array<IntArray>`。
+- 全量单测通过命令：`JAVA_HOME=/home/xenoamess/.jdks/jdk-21.0.7+6 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests`。
 
 ---
 

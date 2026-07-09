@@ -160,8 +160,7 @@ object HanXinDecoder {
             )
             val h = computeHomography(scaled, dst)
             val hInv = inverse3x3(h)
-            val warped = warpPerspective(binary, width, height, hInv, warpSize)
-            val warpedBinary = Array(warpSize) { y -> IntArray(warpSize) { x -> warped[y * warpSize + x] } }
+            val warpedBinary = warpPerspective(binary, width, height, hInv, warpSize)
             val extracted = extractGrid(warpedBinary, warpSize, warpSize)
             if (extracted != null) {
                 val result = decodeGrid(extracted.first, extracted.second)
@@ -173,80 +172,48 @@ object HanXinDecoder {
 
     /**
      * Detect the four outer corners of a perspective-distorted Han Xin symbol.
-     * Uses the convex hull of dark pixels and selects the farthest hull point in
-     * each quadrant around the centroid.
+     * Instead of building a full convex hull over all dark pixels, track the
+     * extreme points in the four diagonal directions. This is O(W·H) with O(1)
+     * extra memory.
      */
     private fun detectCorners(binary: Array<IntArray>, width: Int, height: Int): Array<Point>? {
-        val darkPixels = mutableListOf<Point>()
+        var tlX = -1; var tlY = -1
+        var trX = -1; var trY = -1
+        var brX = -1; var brY = -1
+        var blX = -1; var blY = -1
+        var darkCount = 0
+
         for (y in 0 until height) {
             for (x in 0 until width) {
-                if (binary[y][x] == 1) darkPixels.add(Point(x.toDouble(), y.toDouble()))
+                if (binary[y][x] == 1) {
+                    darkCount++
+                    val sum = x + y
+                    val diff = x - y
+                    if (tlX == -1 || sum < tlX + tlY) {
+                        tlX = x; tlY = y
+                    }
+                    if (trX == -1 || diff > trX - trY) {
+                        trX = x; trY = y
+                    }
+                    if (brX == -1 || sum > brX + brY) {
+                        brX = x; brY = y
+                    }
+                    if (blX == -1 || diff < blX - blY) {
+                        blX = x; blY = y
+                    }
+                }
             }
         }
-        if (darkPixels.size < 4) return null
 
-        val hull = convexHull(darkPixels)
-        if (hull.size < 4) return null
+        if (darkCount < 4) return null
+        if (tlX == -1 || trX == -1 || brX == -1 || blX == -1) return null
 
-        val centroid = Point(
-            hull.sumOf { it.x } / hull.size,
-            hull.sumOf { it.y } / hull.size
+        return arrayOf(
+            Point(tlX.toDouble(), tlY.toDouble()),
+            Point(trX.toDouble(), trY.toDouble()),
+            Point(brX.toDouble(), brY.toDouble()),
+            Point(blX.toDouble(), blY.toDouble())
         )
-
-        val quadrantPoints = Array(4) { mutableListOf<Point>() }
-        for (p in hull) {
-            val angle = kotlin.math.atan2(p.y - centroid.y, p.x - centroid.x)
-            val quadrant = ((angle + kotlin.math.PI) / (kotlin.math.PI / 2)).toInt() % 4
-            quadrantPoints[quadrant].add(p)
-        }
-        if (quadrantPoints.any { it.isEmpty() }) return null
-
-        val corners = quadrantPoints.map { list ->
-            list.maxByOrNull {
-                val dx = it.x - centroid.x
-                val dy = it.y - centroid.y
-                dx * dx + dy * dy
-            }!!
-        }.toTypedArray()
-
-        return sortCorners(corners)
-    }
-
-    private fun convexHull(points: List<Point>): List<Point> {
-        if (points.size <= 3) return points
-        val sorted = points.sortedWith(compareBy({ it.x }, { it.y }))
-        val lower = mutableListOf<Point>()
-        for (p in sorted) {
-            while (lower.size >= 2 && cross(lower[lower.size - 2], lower.last(), p) <= 0) {
-                lower.removeAt(lower.size - 1)
-            }
-            lower.add(p)
-        }
-        val upper = mutableListOf<Point>()
-        for (i in sorted.size - 1 downTo 0) {
-            val p = sorted[i]
-            while (upper.size >= 2 && cross(upper[upper.size - 2], upper.last(), p) <= 0) {
-                upper.removeAt(upper.size - 1)
-            }
-            upper.add(p)
-        }
-        lower.removeAt(lower.size - 1)
-        upper.removeAt(upper.size - 1)
-        return lower + upper
-    }
-
-    private fun cross(o: Point, a: Point, b: Point): Double {
-        return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
-    }
-
-    private fun sortCorners(corners: Array<Point>): Array<Point> {
-        val centroid = Point(
-            corners.sumOf { it.x } / corners.size,
-            corners.sumOf { it.y } / corners.size
-        )
-        return corners.sortedBy {
-            kotlin.math.atan2(it.y - centroid.y, it.x - centroid.x)
-        }.toTypedArray()
     }
 
     private fun computeHomography(src: Array<Point>, dst: Array<Point>): DoubleArray {
@@ -326,8 +293,8 @@ object HanXinDecoder {
         height: Int,
         hInv: DoubleArray,
         outSize: Int
-    ): IntArray {
-        val grid = IntArray(outSize * outSize)
+    ): Array<IntArray> {
+        val result = Array(outSize) { IntArray(outSize) }
         for (y in 0 until outSize) {
             for (x in 0 until outSize) {
                 val wx = hInv[0] * x + hInv[1] * y + hInv[2]
@@ -335,10 +302,10 @@ object HanXinDecoder {
                 val ww = hInv[6] * x + hInv[7] * y + hInv[8]
                 val sx = (wx / ww).toInt()
                 val sy = (wy / ww).toInt()
-                grid[y * outSize + x] = if (sy in 0 until height && sx in 0 until width) binary[sy][sx] else 0
+                result[y][x] = if (sy in 0 until height && sx in 0 until width) binary[sy][sx] else 0
             }
         }
-        return grid
+        return result
     }
 
     // -------------------------------------------------------------------------
@@ -346,20 +313,40 @@ object HanXinDecoder {
     // -------------------------------------------------------------------------
 
     private fun extractGrid(binary: Array<IntArray>, width: Int, height: Int): Pair<IntArray, Int>? {
-        // The symbol may be rotated. Try each valid Han Xin size, sample with
-        // integer module dimensions, and then try all four rotations until the
-        // canonical finder patterns match.
+        val minDim = minOf(width, height)
+        // Estimate a likely module size (pixels per module) and try the
+        // corresponding Han Xin size first. Fall back to a full scan if the
+        // estimate window misses.
+        val estimatedSize = ((minDim / 8) or 1).coerceIn(23, 189)
+        val windowStart = maxOf(23, estimatedSize - 4)
+        val windowEnd = minOf(189, estimatedSize + 4)
+
+        for (size in windowStart..windowEnd step 2) {
+            tryExtractGrid(binary, width, height, size)?.let { return it }
+        }
+
         for (size in 23..189 step 2) {
-            val moduleW = width / size
-            val moduleH = height / size
-            if (moduleW < 2 || moduleH < 2) continue
-            val sampled = sampleGrid(binary, width, height, size, moduleW, moduleH)
-            for (rotation in 0 until 4) {
-                val grid = rotateGrid(sampled, size, rotation)
-                if (verifyFinders(grid, size)) {
-                    return grid to size
-                }
-            }
+            if (size in windowStart..windowEnd) continue
+            tryExtractGrid(binary, width, height, size)?.let { return it }
+        }
+        return null
+    }
+
+    private fun tryExtractGrid(
+        binary: Array<IntArray>,
+        width: Int,
+        height: Int,
+        size: Int
+    ): Pair<IntArray, Int>? {
+        val moduleW = width / size
+        val moduleH = height / size
+        if (moduleW < 2 || moduleH < 2) return null
+        val sampled = sampleGrid(binary, width, height, size, moduleW, moduleH)
+        // Rotation 0 is the sampled grid itself; avoid copying it.
+        if (verifyFinders(sampled, size)) return sampled to size
+        for (rotation in 1 until 4) {
+            val grid = rotateGrid(sampled, size, rotation)
+            if (verifyFinders(grid, size)) return grid to size
         }
         return null
     }
@@ -484,15 +471,8 @@ object HanXinDecoder {
         // Fast path for clean generated symbols: no errors to correct.
         val direct = fullStream.copyOf(dataCodewords)
         val directText = parseDataStream(direct, dataCodewords)
-        if (directText != null && validateByReencoding(
-                directText,
-                direct,
-                fullStream,
-                size,
-                version,
-                eccLevel,
-                mask
-            )
+        if (directText != null && checkSyndromes(fullStream, version, eccLevel) &&
+            validateByReencoding(directText, direct, size, version, eccLevel, mask)
         ) {
             return DecodeResult(directText, version, eccLevel, mask)
         }
@@ -502,9 +482,7 @@ object HanXinDecoder {
             ?: return null
         val text = parseDataStream(corrected, dataCodewords) ?: return null
 
-        // Verify that the corrected text re-encodes to the same data codewords
-        // and that the raw symbol is within the RS correction budget.
-        if (!validateByReencoding(text, corrected, fullStream, size, version, eccLevel, mask)) {
+        if (!validateByReencoding(text, corrected, size, version, eccLevel, mask)) {
             return null
         }
 
@@ -539,7 +517,8 @@ object HanXinDecoder {
                 }
                 inputPos += dataLength + eccLength
 
-                if (!rsDecode(rs8, block, dataLength, eccLength)) return null
+                val correctedCount = rsDecode(rs8, block, dataLength, eccLength)
+                if (correctedCount < 0 || correctedCount > eccLength / 2) return null
 
                 for (i in 0 until dataLength) {
                     if (outputPos >= dataCodewords) return null
@@ -551,32 +530,61 @@ object HanXinDecoder {
     }
 
     /**
-     * Decode a Reed-Solomon block in place. Returns true on success.
-     * Uses the Berlekamp-Massey algorithm and Chien search.
+     * Verify that the [fullStream] has zero Reed-Solomon syndromes for every
+     * block. This is a fast replacement for re-encoding the decoded text.
+     */
+    private fun checkSyndromes(
+        fullStream: IntArray,
+        version: Int,
+        eccLevel: Int
+    ): Boolean {
+        val tablePos = (version - 1) * 36 + (eccLevel - 1) * 9
+        var inputPos = 0
+        for (group in 0 until 3) {
+            val batchSize = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3]
+            val dataLength = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3 + 1]
+            val eccLength = HanXinEncoder.RS_TABLE_D1[tablePos + group * 3 + 2]
+            if (batchSize == 0) continue
+
+            rs8.initCodeCached(eccLength, 255 - eccLength)
+            repeat(batchSize) {
+                val block = fullStream.copyOfRange(inputPos, inputPos + dataLength + eccLength)
+                inputPos += dataLength + eccLength
+                if (!rs8.checkSyndromes(block, dataLength, eccLength)) return false
+            }
+        }
+        return true
+    }
+
+    /**
+     * Decode a Reed-Solomon block in place. Returns the number of corrected
+     * symbols, or -1 if decoding fails. Uses the Berlekamp-Massey algorithm and
+     * Chien search. The number of corrections is bounded by eccLength/2; callers
+     * should reject results that exceed this budget to avoid miscorrections.
      */
     private fun rsDecode(
         rs: HanXinEncoder.ReedSolomon,
         block: IntArray,
         dataLength: Int,
         eccLength: Int
-    ): Boolean {
+    ): Int {
         val totalLength = dataLength + eccLength
         val syndromes = rs.calculateSyndromes(block, totalLength, eccLength)
-        if (syndromes.all { it == 0 }) return true
+        if (syndromes.all { it == 0 }) return 0
 
         val (sigma, omega) = rs.berlekampMassey(syndromes, eccLength)
         val errorLocations = rs.chienSearch(sigma, totalLength)
-        if (errorLocations.isEmpty()) return false
+        if (errorLocations.isEmpty()) return -1
 
         for (loc in errorLocations) {
             val pos = loc
-            if (pos < 0 || pos >= totalLength) return false
+            if (pos < 0 || pos >= totalLength) return -1
             val err = rs.forney(sigma, omega, loc)
             block[pos] = block[pos] xor err
         }
 
         val recalculated = rs.calculateSyndromes(block, totalLength, eccLength)
-        return recalculated.all { it == 0 }
+        return if (recalculated.all { it == 0 }) errorLocations.size else -1
     }
 
     // -------------------------------------------------------------------------
@@ -609,7 +617,8 @@ object HanXinDecoder {
 
         rs4.initCodeCached(4, 11)
         val corrected = cw.copyOf()
-        if (!rsDecode(rs4, corrected, 3, 4)) return null
+        val correctedCount = rsDecode(rs4, corrected, 3, 4)
+        if (correctedCount < 0 || correctedCount > 2) return null
 
         val version = ((corrected[0] shl 4) or corrected[1]) - 20
         val eccLevel = (corrected[2] shr 2) + 1
@@ -933,17 +942,27 @@ object HanXinDecoder {
         }
     }
 
+    private fun convertOutput(bytes: List<Int>, eci: Int): String? {
+        val charset = when (eci) {
+            0, 32 -> GB18030
+            26 -> Charsets.UTF_8
+            else -> GB18030
+        }
+        return try {
+            String(bytes.map { it.toByte() }.toByteArray(), charset)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     /**
      * Re-encode [text] with the same parameters and compare the resulting data
-     * codewords to [correctedData]. Also count how many full-stream bytes differ
-     * between the raw symbol and the re-encoded symbol; reject if the count
-     * exceeds the RS correction budget. This guards against Reed-Solomon
-     * miscorrections when the error count exceeds the code's capability.
+     * codewords to [correctedData]. This guards against Reed-Solomon
+     * miscorrections that produce valid-looking codewords from unrelated symbols.
      */
     private fun validateByReencoding(
         text: String,
         correctedData: IntArray,
-        rawFullStream: IntArray,
         size: Int,
         version: Int,
         eccLevel: Int,
@@ -962,18 +981,7 @@ object HanXinDecoder {
         }
         val expectedFullStream = extractFullStream(encoded.bitmap, size, mask)
             ?: return false
-        if (!correctedData.contentEquals(expectedFullStream.copyOf(correctedData.size))) {
-            return false
-        }
-        val totalCodewords = HanXinEncoder.TOTAL_CODEWORDS[version - 1]
-        val dataCodewords = HanXinEncoder.DATA_CODEWORDS[eccLevel - 1][version - 1]
-        val eccCodewords = totalCodewords - dataCodewords
-        val correctionBudget = eccCodewords / 2
-        var byteErrors = 0
-        for (i in rawFullStream.indices) {
-            if (rawFullStream[i] != expectedFullStream[i]) byteErrors++
-        }
-        return byteErrors <= correctionBudget
+        return correctedData.contentEquals(expectedFullStream.copyOf(correctedData.size))
     }
 
     private fun extractFullStream(bitmap: Bitmap, size: Int, mask: Int): IntArray? {
@@ -1000,18 +1008,5 @@ object HanXinDecoder {
             }
         }
         return grid
-    }
-
-    private fun convertOutput(bytes: List<Int>, eci: Int): String? {
-        val charset = when (eci) {
-            0, 32 -> GB18030
-            26 -> Charsets.UTF_8
-            else -> GB18030
-        }
-        return try {
-            String(bytes.map { it.toByte() }.toByteArray(), charset)
-        } catch (e: Exception) {
-            null
-        }
     }
 }
