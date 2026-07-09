@@ -102,15 +102,12 @@ object AdvancedBarcodeGenerator {
         content: String,
         format: BarcodeFormat = BarcodeFormat.QR_CODE,
         size: Int = 800,
-        style: StyleConfig = StyleConfig(),
-        capabilities: FormatStyleCapabilities? = null
+        style: StyleConfig = StyleConfig()
     ): Bitmap? {
-        val caps = capabilities ?: FormatStyleCapabilities.forFormat(format)
-        val sanitizedStyle = style.sanitized(caps)
         return try {
             when (format) {
-                BarcodeFormat.QR_CODE -> generateStyledQR(content, size, sanitizedStyle)
-                else -> generateGenericWithStyle(content, format, size, sanitizedStyle)
+                BarcodeFormat.QR_CODE -> generateStyledQR(content, size, style)
+                else -> generateGenericWithStyle(content, format, size, style)
             }
         } catch (e: Exception) {
             e.printStackTrace()

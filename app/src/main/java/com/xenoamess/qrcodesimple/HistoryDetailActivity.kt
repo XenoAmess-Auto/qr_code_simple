@@ -107,7 +107,8 @@ class HistoryDetailActivity : AppCompatActivity() {
 
         // 条码图片：使用历史记录的格式和样式参数重新生成
         val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
-        val style = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
+        val rawStyle = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
+        val style = AdvancedBarcodeGenerator.sanitize(rawStyle, format)
         val bitmap = AdvancedBarcodeGenerator.generateStyled(item.content, format, 600, style)
         bitmap?.let { binding.ivBarcode.setImageBitmap(it) }
 

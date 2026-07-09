@@ -343,7 +343,8 @@ class HistoryFragment : Fragment() {
             try {
                 val bitmap = withContext(Dispatchers.Default) {
                     val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
-                    val style = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
+                    val rawStyle = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
+                    val style = AdvancedBarcodeGenerator.sanitize(rawStyle, format)
                     AdvancedBarcodeGenerator.generateStyled(item.content, format, 1024, style)
                 }
                 if (bitmap == null) {

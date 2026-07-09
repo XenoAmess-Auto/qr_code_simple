@@ -285,7 +285,8 @@ class FormatStyleCapabilitiesTest {
             it.isScannable && it != BarcodeFormat.QR_CODE
         }) {
             val content = BarcodeFormatTestFixtures.validContent(format)
-            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, style)
+            val sanitized = AdvancedBarcodeGenerator.sanitize(style, format)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, format, 800, sanitized)
             assertNotNull(bitmap, "Should generate $format with sanitized QR-only style")
             val results = QRCodeScanner.scanSync(context, bitmap!!)
             assertTrue(results.isNotEmpty(), "Should scan back $format with sanitized QR-only style")

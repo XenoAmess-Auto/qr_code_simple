@@ -1035,9 +1035,8 @@ class GenerateFragment : Fragment() {
 
         try {
             val style = buildCurrentStyleConfig()
-            val capabilities = AdvancedBarcodeGenerator.FormatStyleCapabilities.forFormat(selectedFormat)
             val sanitizedStyle = AdvancedBarcodeGenerator.sanitize(style, selectedFormat)
-            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, sanitizedStyle, capabilities)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, sanitizedStyle)
             if (bitmap == null) {
                 Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return
