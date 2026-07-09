@@ -44,6 +44,7 @@ object HistoryBackupManager {
                 put("isFavorite", item.isFavorite)
                 put("notes", item.notes ?: JSONObject.NULL)
                 put("tags", item.tags ?: JSONObject.NULL)
+                put("styleJson", item.styleJson ?: JSONObject.NULL)
             }
             jsonArray.put(jsonObject)
         }
@@ -86,14 +87,15 @@ object HistoryBackupManager {
                     barcodeFormat = itemObject.optString("barcodeFormat").takeIf { it != "null" },
                     isFavorite = itemObject.optBoolean("isFavorite", false),
                     notes = itemObject.optString("notes").takeIf { it != "null" },
-                    tags = itemObject.optString("tags").takeIf { it != "null" }
+                    tags = itemObject.optString("tags").takeIf { it != "null" },
+                    styleJson = itemObject.optString("styleJson").takeIf { it != "null" }
                 )
 
                 try {
-                    repository.insert(item)
+                    repository.importHistoryItem(item)
                     importedCount++
                 } catch (e: Exception) {
-                    // 忽略重复项错误
+                    // 忽略无法导入的项
                 }
             }
 
@@ -111,7 +113,7 @@ object HistoryBackupManager {
         val items = repository.allHistory.first()
 
         val csvBuilder = StringBuilder()
-        csvBuilder.appendLine("content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags")
+        csvBuilder.appendLine("content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags,styleJson")
 
         items.forEach { item ->
             val line = buildString {
@@ -130,6 +132,8 @@ object HistoryBackupManager {
                 append(escapeCsv(item.notes ?: ""))
                 append(",")
                 append(escapeCsv(item.tags ?: ""))
+                append(",")
+                append(escapeCsv(item.styleJson ?: ""))
             }
             csvBuilder.appendLine(line)
         }
@@ -166,14 +170,15 @@ object HistoryBackupManager {
                             barcodeFormat = parts.getOrNull(4)?.takeIf { it.isNotBlank() },
                             isFavorite = parts.getOrNull(5)?.toBoolean() ?: false,
                             notes = parts.getOrNull(6)?.takeIf { it.isNotBlank() },
-                            tags = parts.getOrNull(7)?.takeIf { it.isNotBlank() }
+                            tags = parts.getOrNull(7)?.takeIf { it.isNotBlank() },
+                            styleJson = parts.getOrNull(8)?.takeIf { it.isNotBlank() }
                         )
 
                         try {
-                            repository.insert(item)
+                            repository.importHistoryItem(item)
                             importedCount++
                         } catch (e: Exception) {
-                            // 忽略重复项
+                            // 忽略无法导入的项
                         }
                     }
                 } catch (e: Exception) {

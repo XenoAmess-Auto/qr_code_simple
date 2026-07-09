@@ -32,10 +32,17 @@ class HistoryRepository(private val context: Context) {
     suspend fun insertScan(content: String, type: HistoryType = HistoryType.QR_CODE) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
-        
-        // 检查是否已存在
-        val existing = historyDao.findByContent(content)
-        if (existing == null) {
+
+        // 扫描记录按 content + isGenerated=false 独立去重
+        val existing = historyDao.findByContentAndGenerated(content, isGenerated = false)
+        if (existing != null) {
+            historyDao.update(
+                existing.copy(
+                    type = type,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+        } else {
             historyDao.insert(HistoryItem(content = content, type = type, isGenerated = false))
         }
     }
@@ -44,20 +51,42 @@ class HistoryRepository(private val context: Context) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
 
-        // 按 content 去重：存在则更新为最新参数和时间，不存在则插入
-        val existing = historyDao.findByContent(content)
+        // 生成记录按 content + isGenerated=true 独立去重
+        val existing = historyDao.findByContentAndGenerated(content, isGenerated = true)
         if (existing != null) {
             historyDao.update(
                 existing.copy(
                     type = type,
                     barcodeFormat = barcodeFormat,
                     styleJson = styleJson,
-                    timestamp = System.currentTimeMillis(),
-                    isGenerated = true
+                    timestamp = System.currentTimeMillis()
                 )
             )
         } else {
             historyDao.insert(HistoryItem(content = content, type = type, isGenerated = true, barcodeFormat = barcodeFormat, styleJson = styleJson))
+        }
+    }
+    
+    suspend fun importHistoryItem(item: HistoryItem) {
+        // 隐私模式下不保存
+        if (isPrivacyMode()) return
+
+        // 按 content + isGenerated 独立去重，避免备份导入产生重复记录
+        val existing = historyDao.findByContentAndGenerated(item.content, item.isGenerated)
+        if (existing != null) {
+            historyDao.update(
+                existing.copy(
+                    type = item.type,
+                    timestamp = item.timestamp,
+                    barcodeFormat = item.barcodeFormat,
+                    styleJson = item.styleJson,
+                    isFavorite = item.isFavorite,
+                    notes = item.notes,
+                    tags = item.tags
+                )
+            )
+        } else {
+            historyDao.insert(item)
         }
     }
     

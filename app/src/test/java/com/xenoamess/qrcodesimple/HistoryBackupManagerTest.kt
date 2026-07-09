@@ -86,6 +86,55 @@ class HistoryBackupManagerTest {
     }
 
     @Test
+    fun `import from json merges duplicate content`() = runBlocking {
+        repository.insert(
+            HistoryItem(
+                content = "duplicate content",
+                type = HistoryType.QR_CODE,
+                isGenerated = true,
+                barcodeFormat = "QR_CODE",
+                notes = "old note",
+                tags = "old"
+            )
+        )
+
+        val json = """
+            {
+              "version": 1,
+              "count": 1,
+              "items": [
+                {
+                  "id": 1,
+                  "content": "duplicate content",
+                  "type": "BARCODE",
+                  "timestamp": 1234567890,
+                  "isGenerated": true,
+                  "barcodeFormat": "CODE_128",
+                  "isFavorite": true,
+                  "notes": "new note",
+                  "tags": "new",
+                  "styleJson": "{}"
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val result = HistoryBackupManager.importFromJson(context, json)
+        assertTrue(result.success)
+        assertEquals(1, result.count)
+
+        val items = repository.allHistory.first()
+        assertEquals(1, items.size)
+        assertEquals("duplicate content", items[0].content)
+        assertEquals(HistoryType.BARCODE, items[0].type)
+        assertEquals("CODE_128", items[0].barcodeFormat)
+        assertEquals("{}", items[0].styleJson)
+        assertEquals("new note", items[0].notes)
+        assertEquals("new", items[0].tags)
+        assertEquals(true, items[0].isFavorite)
+    }
+
+    @Test
     fun `export to csv contains headers and fields`() = runBlocking {
         repository.insert(
             HistoryItem(
@@ -99,7 +148,7 @@ class HistoryBackupManagerTest {
         )
 
         val csv = HistoryBackupManager.exportToCsv(context)
-        assertTrue(csv.contains("content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags"))
+        assertTrue(csv.contains("content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags,styleJson"))
         assertTrue(csv.contains("csv content"))
         assertTrue(csv.contains("CODE_128"))
     }
@@ -107,7 +156,7 @@ class HistoryBackupManagerTest {
     @Test
     fun `import from csv restores items`() = runBlocking {
         val csv = """
-            content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags
+            content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags,styleJson
             "csv,content",BARCODE,1234567890,false,CODE_128,false,,"tag1,tag2"
         """.trimIndent()
 
@@ -119,6 +168,40 @@ class HistoryBackupManagerTest {
         assertEquals(1, items.size)
         assertEquals("csv,content", items[0].content)
         assertEquals("tag1,tag2", items[0].tags)
+    }
+
+    @Test
+    fun `import from csv merges duplicate content`() = runBlocking {
+        repository.insert(
+            HistoryItem(
+                content = "csv,content",
+                type = HistoryType.BARCODE,
+                isGenerated = false,
+                barcodeFormat = "CODE_128",
+                notes = "old note",
+                tags = "old"
+            )
+        )
+
+        val csv = """
+            content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags,styleJson
+            "csv,content",QR_CODE,1234567891,false,EAN_13,true,"new note","new","{}"
+        """.trimIndent()
+
+        val result = HistoryBackupManager.importFromCsv(context, csv)
+        assertTrue(result.success)
+        assertEquals(1, result.count)
+
+        val items = repository.allHistory.first()
+        assertEquals(1, items.size)
+        assertEquals("csv,content", items[0].content)
+        assertEquals(HistoryType.QR_CODE, items[0].type)
+        assertEquals(false, items[0].isGenerated)
+        assertEquals("EAN_13", items[0].barcodeFormat)
+        assertEquals("{}", items[0].styleJson)
+        assertEquals("new note", items[0].notes)
+        assertEquals("new", items[0].tags)
+        assertEquals(true, items[0].isFavorite)
     }
 
     @Test

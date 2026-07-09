@@ -36,6 +36,9 @@ interface HistoryDao {
     @Query("SELECT * FROM history WHERE content = :content LIMIT 1")
     suspend fun findByContent(content: String): HistoryItem?
 
+    @Query("SELECT * FROM history WHERE content = :content AND isGenerated = :isGenerated LIMIT 1")
+    suspend fun findByContentAndGenerated(content: String, isGenerated: Boolean): HistoryItem?
+
     @Query("SELECT * FROM history WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): HistoryItem?
 
