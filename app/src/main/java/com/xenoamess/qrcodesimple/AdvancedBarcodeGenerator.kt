@@ -23,8 +23,8 @@ import kotlin.math.sin
  */
 object AdvancedBarcodeGenerator {
 
-    enum class ModuleShape { SQUARE, CIRCLE, ROUNDED }
-    enum class PositionPatternShape { SQUARE, CIRCLE, FOLLOW_MODULE }
+    enum class ModuleShape { DEFAULT, CIRCLE, ROUNDED }
+    enum class PositionPatternShape { DEFAULT, CIRCLE, FOLLOW_MODULE }
     enum class GradientType { LINEAR }
 
     data class ColorStop(val position: Float, val color: Int)
@@ -50,9 +50,9 @@ object AdvancedBarcodeGenerator {
         val logoBitmap: Bitmap? = null,
         val logoScale: Float = 0.2f,
         val ecLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.H,
-        val moduleShape: ModuleShape = ModuleShape.SQUARE,
+        val moduleShape: ModuleShape = ModuleShape.DEFAULT,
         val moduleFillRatio: Float = 1.0f,
-        val positionPatternShape: PositionPatternShape = PositionPatternShape.SQUARE,
+        val positionPatternShape: PositionPatternShape = PositionPatternShape.DEFAULT,
         val gradientAngle: Float = 0f,
         val gradientStops: List<ColorStop> = emptyList(),
         val gradientType: GradientType = GradientType.LINEAR
@@ -70,8 +70,8 @@ object AdvancedBarcodeGenerator {
         val logo: Boolean = true,
         val cornerRadius: Boolean = true,
         val ecLevel: Boolean = false,
-        val moduleShape: Boolean = false,
-        val moduleFillRatio: Boolean = false,
+        val moduleShape: Boolean = true,
+        val moduleFillRatio: Boolean = true,
         val positionPatternShape: Boolean = false
     ) {
         companion object {
@@ -88,16 +88,38 @@ object AdvancedBarcodeGenerator {
 
             fun forFormat(format: BarcodeFormat): FormatStyleCapabilities = when (format) {
                 BarcodeFormat.QR_CODE -> QR_CODE
-                BarcodeFormat.GRID_MATRIX -> EC_SUPPORTED
-                BarcodeFormat.DATA_MATRIX,
                 BarcodeFormat.AZTEC,
                 BarcodeFormat.PDF417,
-                BarcodeFormat.MAXICODE,
                 BarcodeFormat.MICRO_QR,
-                BarcodeFormat.HAN_XIN,
+                BarcodeFormat.HAN_XIN -> FormatStyleCapabilities(
+                    ecLevel = true,
+                    moduleShape = true,
+                    moduleFillRatio = true,
+                    positionPatternShape = true
+                )
+                BarcodeFormat.GRID_MATRIX -> FormatStyleCapabilities(
+                    ecLevel = true,
+                    moduleShape = true,
+                    moduleFillRatio = true,
+                    positionPatternShape = true
+                )
+                BarcodeFormat.DATA_MATRIX,
                 BarcodeFormat.SWISS_QR_CODE,
                 BarcodeFormat.UPN_QR_CODE -> FormatStyleCapabilities(
-                    ecLevel = true,
+                    moduleShape = true,
+                    moduleFillRatio = true,
+                    positionPatternShape = true
+                )
+                BarcodeFormat.EAN_13,
+                BarcodeFormat.EAN_8,
+                BarcodeFormat.UPC_A,
+                BarcodeFormat.UPC_E,
+                BarcodeFormat.RSS_14,
+                BarcodeFormat.RSS_EXPANDED,
+                BarcodeFormat.PHARMACODE,
+                BarcodeFormat.PLESSEY,
+                BarcodeFormat.MSI_PLESSEY,
+                BarcodeFormat.TELEPEN -> FormatStyleCapabilities(
                     moduleShape = true,
                     moduleFillRatio = true,
                     positionPatternShape = true
@@ -105,21 +127,12 @@ object AdvancedBarcodeGenerator {
                 BarcodeFormat.CODE_128,
                 BarcodeFormat.CODE_39,
                 BarcodeFormat.CODE_93,
-                BarcodeFormat.EAN_13,
-                BarcodeFormat.EAN_8,
-                BarcodeFormat.UPC_A,
-                BarcodeFormat.UPC_E,
                 BarcodeFormat.CODABAR,
                 BarcodeFormat.ITF,
-                BarcodeFormat.PHARMACODE,
-                BarcodeFormat.PLESSEY,
-                BarcodeFormat.MSI_PLESSEY,
-                BarcodeFormat.TELEPEN,
-                BarcodeFormat.RSS_14,
-                BarcodeFormat.RSS_EXPANDED -> FormatStyleCapabilities(
+                BarcodeFormat.MAXICODE -> FormatStyleCapabilities(
                     moduleShape = true,
                     moduleFillRatio = true,
-                    positionPatternShape = true
+                    positionPatternShape = false
                 )
                 else -> DEFAULT
             }
@@ -165,9 +178,9 @@ object AdvancedBarcodeGenerator {
             logoBitmap = if (capabilities.logo) logoBitmap else null,
             logoScale = if (capabilities.logo) logoScale else 0.2f,
             ecLevel = if (capabilities.ecLevel) ecLevel else ErrorCorrectionLevel.H,
-            moduleShape = if (capabilities.moduleShape) moduleShape else ModuleShape.SQUARE,
+            moduleShape = if (capabilities.moduleShape) moduleShape else ModuleShape.DEFAULT,
             moduleFillRatio = if (capabilities.moduleFillRatio) moduleFillRatio else 1.0f,
-            positionPatternShape = if (capabilities.positionPatternShape) positionPatternShape else PositionPatternShape.SQUARE,
+            positionPatternShape = if (capabilities.positionPatternShape) positionPatternShape else PositionPatternShape.DEFAULT,
             gradientAngle = if (capabilities.gradient) gradientAngle else 0f,
             gradientStops = if (capabilities.gradient) gradientStops else emptyList(),
             gradientType = if (capabilities.gradient) gradientType else GradientType.LINEAR
@@ -282,7 +295,7 @@ object AdvancedBarcodeGenerator {
         gradientBounds: GradientBounds
     ) {
         when (styleConfig.positionPatternShape) {
-            PositionPatternShape.SQUARE -> {
+            PositionPatternShape.DEFAULT -> {
                 for (x in 0 until 7) {
                     for (y in 0 until 7) {
                         if (isPositionPatternDark(x, y)) {
@@ -351,7 +364,7 @@ object AdvancedBarcodeGenerator {
                 val px = x + 0.5f
                 val py = y + 0.5f
                 when (styleConfig.moduleShape) {
-                    ModuleShape.SQUARE -> {
+                    ModuleShape.DEFAULT -> {
                         output.setPixel(x, y, resolveColor(px, py, output.width, output.height, styleConfig, gradientBounds))
                     }
                     ModuleShape.CIRCLE -> {
@@ -485,13 +498,238 @@ object AdvancedBarcodeGenerator {
         styleConfig: StyleConfig,
         logoRect: Rect?
     ) {
+        renderStyledFromRawBitmap(output, raw, styleConfig, logoRect)
+    }
+
+    private fun renderStyledFromRawBitmap(
+        output: Bitmap,
+        raw: Bitmap,
+        styleConfig: StyleConfig,
+        logoRect: Rect?
+    ) {
         val scaled = scaleToFit(raw, output.width)
-        val styled = applyStyle(scaled, styleConfig, logoRect)
-        val left = (output.width - styled.width) / 2
-        val top = (output.height - styled.height) / 2
-        drawBitmapOnto(output, styled, left, top)
-        styled.recycle()
-        scaled.recycle()
+        val mask = binarize(scaled)
+        val shapedMask = applyShapeAndFillToMask(mask, scaled.width, scaled.height, styleConfig)
+        val left = (output.width - scaled.width) / 2
+        val top = (output.height - scaled.height) / 2
+        fillBackground(output, styleConfig)
+        val gradientBounds = computeGradientBounds(output.width, output.height, styleConfig)
+        applyMaskToOutput(output, shapedMask, scaled.width, scaled.height, left, top, styleConfig, logoRect, gradientBounds)
+        if (scaled !== raw) scaled.recycle()
+    }
+
+    private fun binarize(bitmap: Bitmap): BooleanArray {
+        val width = bitmap.width
+        val height = bitmap.height
+        val mask = BooleanArray(width * height)
+        val pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        for (i in pixels.indices) {
+            val color = pixels[i]
+            if (Color.alpha(color) < 128) {
+                mask[i] = false
+                continue
+            }
+            val gray = (Color.red(color) + Color.green(color) + Color.blue(color)) / 3
+            mask[i] = gray < 128
+        }
+        return mask
+    }
+
+    private data class ComponentInfo(
+        var minX: Int,
+        var maxX: Int,
+        var minY: Int,
+        var maxY: Int,
+        var area: Int
+    )
+
+    private fun labelConnectedComponents(
+        mask: BooleanArray,
+        width: Int,
+        height: Int
+    ): Pair<IntArray, List<ComponentInfo>> {
+        val labels = IntArray(mask.size)
+        val components = mutableListOf<ComponentInfo>()
+        val stack = IntArray(mask.size)
+        var stackSize = 0
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val idx = x + y * width
+                if (!mask[idx] || labels[idx] != 0) continue
+
+                val label = components.size + 1
+                labels[idx] = label
+                var minX = x
+                var maxX = x
+                var minY = y
+                var maxY = y
+                var area = 1
+                stackSize = 0
+                stack[stackSize++] = idx
+
+                while (stackSize > 0) {
+                    val cur = stack[--stackSize]
+                    val cx = cur % width
+                    val cy = cur / width
+
+                    if (cx > 0) {
+                        val left = cur - 1
+                        if (mask[left] && labels[left] == 0) {
+                            labels[left] = label
+                            area++
+                            if (cx - 1 < minX) minX = cx - 1
+                            stack[stackSize++] = left
+                        }
+                    }
+                    if (cx + 1 < width) {
+                        val right = cur + 1
+                        if (mask[right] && labels[right] == 0) {
+                            labels[right] = label
+                            area++
+                            if (cx + 1 > maxX) maxX = cx + 1
+                            stack[stackSize++] = right
+                        }
+                    }
+                    if (cy > 0) {
+                        val up = cur - width
+                        if (mask[up] && labels[up] == 0) {
+                            labels[up] = label
+                            area++
+                            if (cy - 1 < minY) minY = cy - 1
+                            stack[stackSize++] = up
+                        }
+                    }
+                    if (cy + 1 < height) {
+                        val down = cur + width
+                        if (mask[down] && labels[down] == 0) {
+                            labels[down] = label
+                            area++
+                            if (cy + 1 > maxY) maxY = cy + 1
+                            stack[stackSize++] = down
+                        }
+                    }
+                }
+
+                components.add(ComponentInfo(minX, maxX, minY, maxY, area))
+            }
+        }
+        return labels to components
+    }
+
+    private fun applyShapeAndFillToMask(
+        mask: BooleanArray,
+        width: Int,
+        height: Int,
+        styleConfig: StyleConfig
+    ): BooleanArray {
+        val shape = styleConfig.moduleShape
+        val fillScale = styleConfig.moduleFillRatio.coerceIn(0.01f, 1f)
+        if (shape == ModuleShape.DEFAULT && fillScale >= 1.0f) return mask
+
+        val (labels, components) = labelConnectedComponents(mask, width, height)
+        val newMask = BooleanArray(mask.size)
+
+        for ((labelIndex, info) in components.withIndex()) {
+            val label = labelIndex + 1
+            val left = info.minX
+            val top = info.minY
+            val right = info.maxX
+            val bottom = info.maxY
+            val w = right - left + 1
+            val h = bottom - top + 1
+            val cx = (left + right) / 2f
+            val cy = (top + bottom) / 2f
+            val minDim = minOf(w, h)
+            val maxDim = maxOf(w, h)
+            val isBar = maxDim > minDim * 2.5f
+
+            for (y in top..bottom) {
+                for (x in left..right) {
+                    val idx = x + y * width
+                    if (labels[idx] != label) continue
+                    val px = x + 0.5f
+                    val py = y + 0.5f
+                    val keep = when (shape) {
+                        ModuleShape.DEFAULT -> {
+                            if (isBar) {
+                                if (w == minDim) {
+                                    val scaledMin = minDim * fillScale
+                                    px in (cx - scaledMin / 2)..(cx + scaledMin / 2)
+                                } else {
+                                    val scaledMin = minDim * fillScale
+                                    py in (cy - scaledMin / 2)..(cy + scaledMin / 2)
+                                }
+                            } else {
+                                val scaledW = w * fillScale
+                                val scaledH = h * fillScale
+                                px in (cx - scaledW / 2)..(cx + scaledW / 2) &&
+                                py in (cy - scaledH / 2)..(cy + scaledH / 2)
+                            }
+                        }
+                        ModuleShape.CIRCLE -> {
+                            val radius = minDim * fillScale / 2
+                            hypot(px - cx, py - cy) <= radius
+                        }
+                        ModuleShape.ROUNDED -> {
+                            if (isBar) {
+                                if (w == minDim) {
+                                    val scaledMin = minDim * fillScale
+                                    val l = cx - scaledMin / 2
+                                    val t = top.toFloat()
+                                    val r = cx + scaledMin / 2
+                                    val b = bottom + 1f
+                                    isInsideRoundedRect(px, py, l, t, r, b, scaledMin / 2)
+                                } else {
+                                    val scaledMin = minDim * fillScale
+                                    val l = left.toFloat()
+                                    val t = cy - scaledMin / 2
+                                    val r = right + 1f
+                                    val b = cy + scaledMin / 2
+                                    isInsideRoundedRect(px, py, l, t, r, b, scaledMin / 2)
+                                }
+                            } else {
+                                val scaledW = w * fillScale
+                                val scaledH = h * fillScale
+                                val l = cx - scaledW / 2
+                                val t = cy - scaledH / 2
+                                val r = cx + scaledW / 2
+                                val b = cy + scaledH / 2
+                                isInsideRoundedRect(px, py, l, t, r, b, minOf(scaledW, scaledH) / 2)
+                            }
+                        }
+                    }
+                    newMask[idx] = keep
+                }
+            }
+        }
+        return newMask
+    }
+
+    private fun applyMaskToOutput(
+        output: Bitmap,
+        mask: BooleanArray,
+        maskWidth: Int,
+        maskHeight: Int,
+        offsetX: Int,
+        offsetY: Int,
+        styleConfig: StyleConfig,
+        logoRect: Rect?,
+        gradientBounds: GradientBounds
+    ) {
+        for (y in 0 until maskHeight) {
+            val outY = offsetY + y
+            if (outY < 0 || outY >= output.height) continue
+            for (x in 0 until maskWidth) {
+                val outX = offsetX + x
+                if (outX < 0 || outX >= output.width) continue
+                if (logoRect?.contains(outX, outY) == true) continue
+                if (mask[x + y * maskWidth]) {
+                    output.setPixel(outX, outY, resolveColor(outX + 0.5f, outY + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+                }
+            }
+        }
     }
 
     private fun scaleToFit(source: Bitmap, size: Int): Bitmap {
@@ -578,7 +816,7 @@ object AdvancedBarcodeGenerator {
     ) {
         val shape = if (isPosition) {
             when (styleConfig.positionPatternShape) {
-                PositionPatternShape.SQUARE -> ModuleShape.SQUARE
+                PositionPatternShape.DEFAULT -> ModuleShape.DEFAULT
                 PositionPatternShape.CIRCLE -> ModuleShape.CIRCLE
                 PositionPatternShape.FOLLOW_MODULE -> styleConfig.moduleShape
             }
@@ -599,7 +837,7 @@ object AdvancedBarcodeGenerator {
                 val px = x + 0.5f
                 val py = y + 0.5f
                 val inside = when (shape) {
-                    ModuleShape.SQUARE -> true
+                    ModuleShape.DEFAULT -> true
                     ModuleShape.CIRCLE -> hypot(px - cx, py - cy) <= radius
                     ModuleShape.ROUNDED -> isInsideRoundedRect(
                         px, py, left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), cornerRadius
@@ -641,7 +879,7 @@ object AdvancedBarcodeGenerator {
     ) {
         val shape = if (isGuard) {
             when (styleConfig.positionPatternShape) {
-                PositionPatternShape.SQUARE -> ModuleShape.SQUARE
+                PositionPatternShape.DEFAULT -> ModuleShape.DEFAULT
                 PositionPatternShape.CIRCLE -> ModuleShape.CIRCLE
                 PositionPatternShape.FOLLOW_MODULE -> styleConfig.moduleShape
             }
@@ -666,7 +904,7 @@ object AdvancedBarcodeGenerator {
                 val px = x + 0.5f
                 val py = y + 0.5f
                 val inside = when (shape) {
-                    ModuleShape.SQUARE -> true
+                    ModuleShape.DEFAULT -> true
                     ModuleShape.CIRCLE -> {
                         val dx = px - cx
                         val dy = (py - cy).coerceIn(-barHeight / 2f, barHeight / 2f)
@@ -691,23 +929,37 @@ object AdvancedBarcodeGenerator {
         gradientBounds: GradientBounds
     ) {
         val (scale, offsetX, offsetY) = computeLayoutScale(layout, output.width)
+        val rawMask = renderMaxiCodeMask(output.width, output.height, layout, scale, offsetX, offsetY)
+        renderStyledFromRawBitmap(output, rawMask, styleConfig, logoRect)
+        rawMask.recycle()
+    }
+
+    private fun renderMaxiCodeMask(
+        width: Int,
+        height: Int,
+        layout: BarcodeLayout.MaxiCodeLayout,
+        scale: Float,
+        offsetX: Float,
+        offsetY: Float
+    ): Bitmap {
+        val mask = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        mask.eraseColor(Color.WHITE)
 
         for (target in layout.targets) {
             val cx = offsetX + target.cx * scale
             val cy = offsetY + target.cy * scale
             val radius = target.radius * scale
             val minX = (cx - radius).toInt().coerceAtLeast(0)
-            val maxX = (cx + radius).toInt().coerceAtMost(output.width - 1)
+            val maxX = (cx + radius).toInt().coerceAtMost(width - 1)
             val minY = (cy - radius).toInt().coerceAtLeast(0)
-            val maxY = (cy + radius).toInt().coerceAtMost(output.height - 1)
+            val maxY = (cy + radius).toInt().coerceAtMost(height - 1)
             val r2 = radius * radius
             for (y in minY..maxY) {
                 for (x in minX..maxX) {
-                    if (logoRect?.contains(x, y) == true) continue
                     val dx = x + 0.5f - cx
                     val dy = y + 0.5f - cy
                     if (dx * dx + dy * dy <= r2) {
-                        output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+                        mask.setPixel(x, y, Color.BLACK)
                     }
                 }
             }
@@ -721,18 +973,18 @@ object AdvancedBarcodeGenerator {
                 hx to hy
             }
             val minX = vertices.minOf { it.first }.toInt().coerceAtLeast(0)
-            val maxX = vertices.maxOf { it.first }.toInt().coerceAtMost(output.width - 1)
+            val maxX = vertices.maxOf { it.first }.toInt().coerceAtMost(width - 1)
             val minY = vertices.minOf { it.second }.toInt().coerceAtLeast(0)
-            val maxY = vertices.maxOf { it.second }.toInt().coerceAtMost(output.height - 1)
+            val maxY = vertices.maxOf { it.second }.toInt().coerceAtMost(height - 1)
             for (y in minY..maxY) {
                 for (x in minX..maxX) {
-                    if (logoRect?.contains(x, y) == true) continue
                     if (pointInPolygon(x + 0.5f, y + 0.5f, vertices)) {
-                        output.setPixel(x, y, resolveColor(x + 0.5f, y + 0.5f, output.width, output.height, styleConfig, gradientBounds))
+                        mask.setPixel(x, y, Color.BLACK)
                     }
                 }
             }
         }
+        return mask
     }
 
     private fun pointInPolygon(x: Float, y: Float, vertices: List<Pair<Float, Float>>): Boolean {
@@ -757,33 +1009,6 @@ object AdvancedBarcodeGenerator {
         val maxRadius = min(bitmap.width, bitmap.height) / 2f
         val radiusPx = ratio * maxRadius
         return addRoundedCorners(bitmap, radiusPx)
-    }
-
-    private fun applyStyle(bitmap: Bitmap, styleConfig: StyleConfig, logoRect: Rect?): Bitmap {
-        val width = bitmap.width
-        val height = bitmap.height
-        val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        val gradientBounds = computeGradientBounds(width, height, styleConfig)
-
-        for (i in pixels.indices) {
-            val x = i % width
-            val y = i / width
-            if (logoRect?.contains(x, y) == true) {
-                output.setPixel(x, y, resolveBackgroundColor(x, y, width, height, styleConfig))
-                continue
-            }
-            val gray = (Color.red(pixels[i]) + Color.green(pixels[i]) + Color.blue(pixels[i])) / 3
-            val isDark = gray < 128
-            val color = if (isDark) {
-                resolveColor(x + 0.5f, y + 0.5f, width, height, styleConfig, gradientBounds)
-            } else {
-                resolveBackgroundColor(x, y, width, height, styleConfig)
-            }
-            output.setPixel(x, y, color)
-        }
-        return output
     }
 
     private fun resolveBackgroundColor(x: Int, y: Int, width: Int, height: Int, styleConfig: StyleConfig): Int {

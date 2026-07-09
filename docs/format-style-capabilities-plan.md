@@ -17,8 +17,9 @@
 | gradient | 开 | 全部格式支持 |
 | logo | 开 | 全部格式支持 |
 | cornerRadius | 开 | 全部格式开放 |
-| ecLevel | 关 | 仅下方列出的格式支持 |
-| moduleShape / moduleFillRatio / positionPatternShape | 关 | 所有可扫描格式都会渲染；回扫能力按格式/组合而定，详情见 `style-roundtrip-matrix.md` |
+| ecLevel | 关 | 仅 QR / Aztec / PDF417 / Han Xin / Micro QR / Grid Matrix 支持；MaxiCode 不支持 |
+| moduleShape / moduleFillRatio | 开 | 所有格式都生效；Fallback 格式和 MaxiCode 走兜底图片后处理 |
+| positionPatternShape | 按格式 | 仅对有定位图案或 Guard 的格式开启；详情见 `style-roundtrip-matrix.md` |
 
 ### 各格式 EC 支持
 
@@ -30,6 +31,7 @@
 | Han Xin | 是 | 1 / 2 / 3 / 4 |
 | Micro QR | 是 | L / M / Q / H→Q（BoofCV 无 H） |
 | Grid Matrix | 是 | 1 / 2 / 3 / 5（最高 50%） |
+| MaxiCode | 否 | 隐藏 EC 控件 |
 | 其他 | 否 | 隐藏 EC 控件，内部默认 H 但不生效 |
 
 ## 实施结果
@@ -55,7 +57,7 @@
 5. **测试**
    - 清洗逻辑：`FormatStyleCapabilitiesTest` 直接调用 `sanitize` 验证。
    - EC 映射：Aztec / PDF417 / Han Xin / Micro QR / Grid Matrix 不同等级产生不同条码。
-   - 样式回扫摸底：新增 `StyleRawRoundtripMatrixTest`，27 组合 × 全格式 × 5 次，结果写入 `docs/style-roundtrip-matrix.md`。
+   - 样式回扫摸底：新增 `StyleRawRoundtripMatrixTest`，54 组合 × 全格式 × 5 次，结果写入 `docs/style-roundtrip-matrix.md`。
 
 6. **文档**
    - `docs/knowledge-base.md` 样式配置部分已更新。

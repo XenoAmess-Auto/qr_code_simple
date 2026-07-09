@@ -60,8 +60,9 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - `logoScale` / `logoBitmap`：所有格式。
 - `gradientAngle` / `gradientStops` / `gradientType`：所有格式。
 - `foregroundBitmap` / `backgroundBitmap`：所有格式。
-- `moduleShape` / `moduleFillRatio` / `positionPatternShape`：按格式生效。所有可扫描的 1D/2D 格式都会渲染，但不同组合的回扫能力差异较大；具体见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)。仅生成格式（`isScannable = false`）不生效，仅走默认渲染。
-- `ecLevel`：QR Code 直接生效；Aztec / PDF417 / Han Xin / Micro QR / Grid Matrix 经映射后生效；其他格式不生效。
+- `moduleShape` / `moduleFillRatio`：对所有格式生效。有结构化布局的格式走原生渲染，仅生成格式和 MaxiCode 走兜底图片后处理（连通域 + 腐蚀/形状）。不同组合的回扫能力差异较大；具体见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)。
+- `positionPatternShape`：只对有定位图案或 Guard 的格式生效。详情见 `style-roundtrip-matrix.md`。
+- `ecLevel`：QR Code 直接生效；Aztec / PDF417 / Han Xin / Micro QR / Grid Matrix 经映射后生效；MaxiCode 及其他格式不生效。
 
 `ecLevel` 映射：
 

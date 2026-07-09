@@ -291,12 +291,12 @@
     <string name="corner_radius">Corner Radius</string>
     <string name="corner_radius_hint">Rounds the outer corners of the barcode image</string>
     <string name="module_shape">Module Shape</string>
-    <string name="module_shape_square">Square</string>
+    <string name="module_shape_square">Default</string>
     <string name="module_shape_circle">Circle</string>
     <string name="module_shape_rounded">Rounded</string>
     <string name="module_fill_ratio">Module Fill Ratio</string>
     <string name="position_pattern_shape">Position Pattern Shape</string>
-    <string name="position_pattern_square">Square</string>
+    <string name="position_pattern_square">Default</string>
     <string name="position_pattern_circle">Circle</string>
     <string name="position_pattern_follow">Follow Module</string>
     <string name="gradient">Gradient</string>

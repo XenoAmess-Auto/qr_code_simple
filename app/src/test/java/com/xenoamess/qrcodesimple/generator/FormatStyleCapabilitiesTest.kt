@@ -9,6 +9,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.AdvancedBarcodeGenerator
 import com.xenoamess.qrcodesimple.QRCodeScanner
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
+import com.xenoamess.qrcodesimple.styleConfigFromJson
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -61,7 +62,7 @@ class FormatStyleCapabilitiesTest {
     }
 
     @Test
-    fun `sanitize resets QR-only fields for unsupported formats`() {
+    fun `sanitize resets unsupported fields but preserves module style for fallback formats`() {
         val style = AdvancedBarcodeGenerator.StyleConfig(
             foregroundColor = Color.RED,
             cornerRadius = 0.3f,
@@ -74,9 +75,9 @@ class FormatStyleCapabilitiesTest {
         assertEquals(Color.RED, sanitized.foregroundColor)
         assertEquals(0.3f, sanitized.cornerRadius)
         assertEquals(ErrorCorrectionLevel.H, sanitized.ecLevel)
-        assertEquals(AdvancedBarcodeGenerator.ModuleShape.SQUARE, sanitized.moduleShape)
-        assertEquals(1.0f, sanitized.moduleFillRatio)
-        assertEquals(AdvancedBarcodeGenerator.PositionPatternShape.SQUARE, sanitized.positionPatternShape)
+        assertEquals(AdvancedBarcodeGenerator.ModuleShape.CIRCLE, sanitized.moduleShape)
+        assertEquals(0.5f, sanitized.moduleFillRatio)
+        assertEquals(AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT, sanitized.positionPatternShape)
     }
 
     @Test
@@ -102,7 +103,7 @@ class FormatStyleCapabilitiesTest {
             moduleFillRatio = 0.5f
         )
         val square = AdvancedBarcodeGenerator.StyleConfig(
-            moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE,
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.DEFAULT,
             moduleFillRatio = 1.0f
         )
         val circleBitmap = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.CODE_128, 800, circle)
@@ -253,9 +254,9 @@ class FormatStyleCapabilitiesTest {
                 positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
             ),
             AdvancedBarcodeGenerator.StyleConfig(
-                moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE,
+                moduleShape = AdvancedBarcodeGenerator.ModuleShape.DEFAULT,
                 moduleFillRatio = 1.0f,
-                positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+                positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT
             )
         )
         for (style in styles) {
@@ -297,7 +298,7 @@ class FormatStyleCapabilitiesTest {
         val square = AdvancedBarcodeGenerator.generateStyled(
             content, BarcodeFormat.AZTEC, 800,
             AdvancedBarcodeGenerator.StyleConfig(
-                moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE,
+                moduleShape = AdvancedBarcodeGenerator.ModuleShape.DEFAULT,
                 moduleFillRatio = 1.0f
             )
         )
@@ -314,5 +315,29 @@ class FormatStyleCapabilitiesTest {
             bitmapsAreDifferent(square!!, circle!!),
             "2D format should change appearance with module shape"
         )
+    }
+
+    @Test
+    fun `old JSON SQUARE shape values migrate to DEFAULT`() {
+        val oldJson = """{
+            "moduleShape": "SQUARE",
+            "positionPatternShape": "SQUARE"
+        }"""
+        val style = styleConfigFromJson(oldJson)
+        assertNotNull(style)
+        assertEquals(AdvancedBarcodeGenerator.ModuleShape.DEFAULT, style!!.moduleShape)
+        assertEquals(AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT, style.positionPatternShape)
+    }
+
+    @Test
+    fun `new JSON DEFAULT shape values parse correctly`() {
+        val newJson = """{
+            "moduleShape": "DEFAULT",
+            "positionPatternShape": "DEFAULT"
+        }"""
+        val style = styleConfigFromJson(newJson)
+        assertNotNull(style)
+        assertEquals(AdvancedBarcodeGenerator.ModuleShape.DEFAULT, style!!.moduleShape)
+        assertEquals(AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT, style.positionPatternShape)
     }
 }

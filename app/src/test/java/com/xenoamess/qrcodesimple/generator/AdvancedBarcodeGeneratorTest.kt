@@ -260,7 +260,7 @@ class AdvancedBarcodeGeneratorTest {
     fun `QR Code module shape changes bitmap appearance`() {
         val content = "https://example.com"
         val squareStyle = AdvancedBarcodeGenerator.StyleConfig(
-            moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE,
+            moduleShape = AdvancedBarcodeGenerator.ModuleShape.DEFAULT,
             moduleFillRatio = 1f
         )
         val circleStyle = AdvancedBarcodeGenerator.StyleConfig(
@@ -284,7 +284,7 @@ class AdvancedBarcodeGeneratorTest {
     fun `QR Code position pattern shape changes bitmap appearance`() {
         val content = "https://example.com"
         val square = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, AdvancedBarcodeGenerator.StyleConfig(
-            positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+            positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT
         ))
         val circle = AdvancedBarcodeGenerator.generateStyled(content, BarcodeFormat.QR_CODE, 200, AdvancedBarcodeGenerator.StyleConfig(
             positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE

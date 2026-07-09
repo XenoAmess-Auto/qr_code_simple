@@ -64,9 +64,9 @@ class GenerateFragment : Fragment() {
     private var logoBitmap: Bitmap? = null
     private var foregroundImageBitmap: Bitmap? = null
     private var backgroundImageBitmap: Bitmap? = null
-    private var moduleShape = AdvancedBarcodeGenerator.ModuleShape.SQUARE
+    private var moduleShape = AdvancedBarcodeGenerator.ModuleShape.DEFAULT
     private var moduleFillRatio = 1.0f
-    private var positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+    private var positionPatternShape = AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT
     internal var gradientAngle = 0f
     private var gradientStops = mutableListOf<AdvancedBarcodeGenerator.ColorStop>()
     private var gradientEnabled = false
@@ -292,10 +292,10 @@ class GenerateFragment : Fragment() {
             safe {
                 if (checkedIds.isEmpty()) return@safe
                 moduleShape = when (checkedIds.first()) {
-                    R.id.chipModuleSquare -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
+                    R.id.chipModuleSquare -> AdvancedBarcodeGenerator.ModuleShape.DEFAULT
                     R.id.chipModuleCircle -> AdvancedBarcodeGenerator.ModuleShape.CIRCLE
                     R.id.chipModuleRounded -> AdvancedBarcodeGenerator.ModuleShape.ROUNDED
-                    else -> AdvancedBarcodeGenerator.ModuleShape.SQUARE
+                    else -> AdvancedBarcodeGenerator.ModuleShape.DEFAULT
                 }
                 clearSchemeSelectionIfDiverged()
                 generateBarcode()
@@ -319,10 +319,10 @@ class GenerateFragment : Fragment() {
             safe {
                 if (checkedIds.isEmpty()) return@safe
                 positionPatternShape = when (checkedIds.first()) {
-                    R.id.chipPositionSquare -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+                    R.id.chipPositionSquare -> AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT
                     R.id.chipPositionCircle -> AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE
                     R.id.chipPositionFollow -> AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE
-                    else -> AdvancedBarcodeGenerator.PositionPatternShape.SQUARE
+                    else -> AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT
                 }
                 clearSchemeSelectionIfDiverged()
                 generateBarcode()
@@ -689,7 +689,7 @@ class GenerateFragment : Fragment() {
         safe {
             binding.chipGroupModuleShape.check(
                 when (moduleShape) {
-                    AdvancedBarcodeGenerator.ModuleShape.SQUARE -> R.id.chipModuleSquare
+                    AdvancedBarcodeGenerator.ModuleShape.DEFAULT -> R.id.chipModuleSquare
                     AdvancedBarcodeGenerator.ModuleShape.CIRCLE -> R.id.chipModuleCircle
                     AdvancedBarcodeGenerator.ModuleShape.ROUNDED -> R.id.chipModuleRounded
                 }
@@ -699,7 +699,7 @@ class GenerateFragment : Fragment() {
 
             binding.chipGroupPositionPattern.check(
                 when (positionPatternShape) {
-                    AdvancedBarcodeGenerator.PositionPatternShape.SQUARE -> R.id.chipPositionSquare
+                    AdvancedBarcodeGenerator.PositionPatternShape.DEFAULT -> R.id.chipPositionSquare
                     AdvancedBarcodeGenerator.PositionPatternShape.CIRCLE -> R.id.chipPositionCircle
                     AdvancedBarcodeGenerator.PositionPatternShape.FOLLOW_MODULE -> R.id.chipPositionFollow
                 }

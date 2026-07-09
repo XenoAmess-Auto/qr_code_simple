@@ -203,12 +203,12 @@
     <string name="corner_radius">圆角半径</string>
     <string name="corner_radius_hint">为条码图片添加外圆角</string>
     <string name="module_shape">模块形状</string>
-    <string name="module_shape_square">方块</string>
+    <string name="module_shape_square">默认</string>
     <string name="module_shape_circle">圆点</string>
     <string name="module_shape_rounded">圆角</string>
     <string name="module_fill_ratio">点填充比例</string>
     <string name="position_pattern_shape">定位点形状</string>
-    <string name="position_pattern_square">方形</string>
+    <string name="position_pattern_square">默认</string>
     <string name="position_pattern_circle">圆形</string>
     <string name="position_pattern_follow">跟随模块</string>
     <string name="gradient">渐变</string>

@@ -39,6 +39,20 @@ fun StyleConfig.toJson(): String {
     return json.toString()
 }
 
+fun parseModuleShape(name: String): ModuleShape =
+    try {
+        ModuleShape.valueOf(name)
+    } catch (e: IllegalArgumentException) {
+        ModuleShape.DEFAULT
+    }
+
+fun parsePositionPatternShape(name: String): PositionPatternShape =
+    try {
+        PositionPatternShape.valueOf(name)
+    } catch (e: IllegalArgumentException) {
+        PositionPatternShape.DEFAULT
+    }
+
 /**
  * 从 JSON 字符串反序列化 StyleConfig。
  * 解析失败时返回 null。
@@ -64,9 +78,9 @@ fun styleConfigFromJson(jsonString: String): AdvancedBarcodeGenerator.StyleConfi
             cornerRadius = json.optDouble("cornerRadius", 0.0).toFloat(),
             logoScale = json.optDouble("logoScale", 0.2).toFloat(),
             ecLevel = ErrorCorrectionLevel.valueOf(json.optString("ecLevel", "H")),
-            moduleShape = ModuleShape.valueOf(json.optString("moduleShape", "SQUARE")),
+            moduleShape = parseModuleShape(json.optString("moduleShape", "DEFAULT")),
             moduleFillRatio = json.optDouble("moduleFillRatio", 1.0).toFloat(),
-            positionPatternShape = PositionPatternShape.valueOf(json.optString("positionPatternShape", "SQUARE")),
+            positionPatternShape = parsePositionPatternShape(json.optString("positionPatternShape", "DEFAULT")),
             gradientAngle = json.optDouble("gradientAngle", 0.0).toFloat(),
             gradientType = GradientType.valueOf(json.optString("gradientType", "LINEAR")),
             gradientStops = stops
