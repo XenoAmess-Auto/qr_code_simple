@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
@@ -148,10 +149,10 @@ class MainActivity : AppCompatActivity() {
         tabButtons.forEachIndexed { index, button ->
             if (index == selectedIndex) {
                 button.setTextColor(ContextCompat.getColor(this, R.color.cyan_500))
-                button.paint.isFakeBoldText = true
+                button.setTypeface(button.typeface, Typeface.BOLD)
             } else {
                 button.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-                button.paint.isFakeBoldText = false
+                button.setTypeface(button.typeface, Typeface.NORMAL)
             }
         }
     }

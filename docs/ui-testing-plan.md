@@ -28,7 +28,7 @@
 | 批次 3 | 结果页 | 完成 | 公共 `QRResultAdapter` 已提取并测试；`ResultActivity` / `VideoScanActivity` 覆盖列表展示和选择操作 |
 | 批次 4 | 连续扫描 | 完成 | `ContinuousScanActivity` 通过反射注入 `handleScanResult` 测试扫描结果处理；`ContinuousScanAdapter` 独立测试 |
 | 批次 5 | 生成页自定义控件 | 完成 | 新增 `ColorPickerViewTest` / `ColorPickerDialogTest` / `AngleDialViewTest`；修复 `ColorPickerView.setColor` 未更新 `currentColor` 和 `AngleDialView.angle` setter 未通知回调的问题 |
-| 批次 6 | 主页导航 | 待执行 | |
+| 批次 6 | 主页导航 | 完成 | 新增 `MainActivityUiTest`；`MainActivity.updateTabSelection` 改用 `setTypeface` 实现加粗以便可测 |
 | 批次 7 | 剩余页面 | 待执行 | |
 
 ## 4. 共享基础设施

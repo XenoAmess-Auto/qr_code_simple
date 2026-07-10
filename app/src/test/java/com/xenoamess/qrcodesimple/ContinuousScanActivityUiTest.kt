@@ -19,6 +19,7 @@ import com.xenoamess.qrcodesimple.data.HistoryRepository
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -181,11 +182,18 @@ class ContinuousScanActivityUiTest {
         assertEquals(View.GONE, getFirstSavedVisibility())
 
         onView(withId(R.id.btnSaveAll)).perform(click())
-        flushMainLooper()
-        Thread.sleep(300)
-        flushMainLooper()
+        val visible = waitUntilSavedVisible()
+        assertTrue("Save icon should become visible after save all", visible)
+    }
 
-        assertEquals(View.VISIBLE, getFirstSavedVisibility())
+    private fun waitUntilSavedVisible(): Boolean {
+        val deadline = System.currentTimeMillis() + 5000
+        while (System.currentTimeMillis() < deadline) {
+            if (getFirstSavedVisibility() == View.VISIBLE) return true
+            Thread.sleep(100)
+            flushMainLooper()
+        }
+        return false
     }
 
     @Test
