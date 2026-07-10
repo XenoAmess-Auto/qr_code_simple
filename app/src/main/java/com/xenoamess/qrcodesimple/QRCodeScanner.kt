@@ -29,7 +29,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -234,7 +233,9 @@ object QRCodeScanner {
         val processedBitmap = preprocessBitmap(bitmap, config.maxDimension)
         val shouldRecycleProcessed = processedBitmap !== bitmap
 
-        val scope = CoroutineScope(Dispatchers.Default + SupervisorJob(coroutineContext.job))
+        // 使用独立的 CoroutineScope（不作为 channelFlow 的子 job），确保即使引擎任务不响应取消，
+        // channelFlow 本身也能在超时后正常结束，不会被挂起的引擎拖住。
+        val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
         val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
         val engineJobs = mutableListOf<Job>()
         var allCompleted = false
