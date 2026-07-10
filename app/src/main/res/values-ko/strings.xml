@@ -102,7 +102,6 @@
     <string name="share_qr_code_content">QR 코드 내용 공유</string>
     <string name="share_all_qr_code_content">모든 QR 코드 내용 공유</string>
     <string name="no_history_found">기록이 없습니다</string>
-    <string name="search_results">검색 결과</string>
     <string name="items_found">%1$d개 항목 발견</string>
     <string name="add_notes">노트 추가</string>
     <string name="edit_notes">노트 편집</string>

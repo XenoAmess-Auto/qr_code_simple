@@ -100,8 +100,10 @@ class BatchResultActivity : AppCompatActivity() {
             }
 
             val generated = BatchGenerator.generateBatch(items) { current, total ->
-                binding.tvProgress.text = "$current/$total"
-                binding.progressBar.progress = (current * 100 / total)
+                withContext(Dispatchers.Main) {
+                    binding.tvProgress.text = "$current/$total"
+                    binding.progressBar.progress = (current * 100 / total)
+                }
             }
 
             results.clear()
