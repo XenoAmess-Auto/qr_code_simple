@@ -19,17 +19,22 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.decoder.CustomLinearBarcodeScanner
 import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
 import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinDecoder
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.opencv.core.Mat
 import java.util.ArrayList
@@ -201,6 +206,14 @@ object QRCodeScanner {
     }
 
     /**
+     * 引擎事件：Result 表示一批识别结果，Completed 表示该引擎已结束。
+     */
+    private sealed class EngineEvent {
+        data class Result(val results: List<ScanResult>) : EngineEvent()
+        object Completed : EngineEvent()
+    }
+
+    /**
      * 并行扫描位图中的所有条码，以 Flow 形式逐步返回结果。
      * 6 个引擎同时启动，任一引擎识别到结果即 emit 一次；
      * 后续引擎返回的新结果（按 text+format 去重）会继续追加 emit。
@@ -221,75 +234,80 @@ object QRCodeScanner {
         val processedBitmap = preprocessBitmap(bitmap, config.maxDimension)
         val shouldRecycleProcessed = processedBitmap !== bitmap
 
-        try {
-            withTimeoutOrNull(config.totalTimeoutMs) {
-                coroutineScope {
-                    val seenKeys = mutableSetOf<String>()
-                    val allDeferred = mutableListOf<kotlinx.coroutines.Deferred<List<ScanResult>>>()
+        val scope = CoroutineScope(Dispatchers.Default + SupervisorJob(coroutineContext.job))
+        val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
+        val engineJobs = mutableListOf<Job>()
+        var allCompleted = false
 
-                    fun emitNew(results: List<ScanResult>) {
-                        val newResults = results.filter { seenKeys.add(it.deduplicationKey) }
-                        if (newResults.isNotEmpty()) {
-                            trySend(newResults)
-                        }
-                    }
-
-                    // 1. WeChatQRCode
-                    if (QRCodeApp.isWeChatQRCodeInitialized) {
-                        allDeferred += async {
-                            runEngineSafely("WeChatQRCode", config.perEngineTimeoutMs) {
-                                scanWithWeChatQRCode(processedBitmap)
-                            }.also { emitNew(it) }
-                        }
-                    }
-
-                    // 2. ZXing
-                    allDeferred += async {
-                        runEngineSafely("ZXing", config.perEngineTimeoutMs) {
-                            scanWithZXing(processedBitmap)
-                        }.also { emitNew(it) }
-                    }
-
-                    // 3. ML Kit
-                    allDeferred += async {
-                        runEngineSafely("ML Kit", config.perEngineTimeoutMs) {
-                            scanWithMLKit(processedBitmap)
-                        }.also { emitNew(it) }
-                    }
-
-                    // 4. BoofCV Micro QR
-                    allDeferred += async {
-                        runEngineSafely("BoofCV Micro QR", config.perEngineTimeoutMs) {
-                            MicroQrCodeScanner.scan(processedBitmap)
-                                .map { ScanResult(it.text, Library.BOOFCV, BarcodeFormat.QR_CODE) }
-                        }.also { emitNew(it) }
-                    }
-
-                    // 5. Han Xin Code
-                    allDeferred += async {
-                        runEngineSafely("Han Xin", config.perEngineTimeoutMs) {
-                            HanXinDecoder.decode(processedBitmap)?.let {
-                                listOf(ScanResult(it.text, Library.HAN_XIN, BarcodeFormat.QR_CODE))
-                            } ?: emptyList()
-                        }.also { emitNew(it) }
-                    }
-
-                    // 6. 自定义一维码
-                    allDeferred += async {
-                        runEngineSafely("CustomLinear", config.perEngineTimeoutMs) {
-                            CustomLinearBarcodeScanner.scan(processedBitmap)
-                                .map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) }
-                        }.also { emitNew(it) }
-                    }
-
-                    // 等待所有引擎结束，确保后续结果都能被 emit
-                    allDeferred.awaitAll()
+        fun launchEngine(name: String, block: suspend () -> List<ScanResult>) {
+            engineJobs += scope.launch {
+                try {
+                    val results = runEngineSafely(name, config.perEngineTimeoutMs, block)
+                    eventChannel.trySend(EngineEvent.Result(results))
+                } catch (e: CancellationException) {
+                    // expected when scope is cancelled
+                } finally {
+                    eventChannel.trySend(EngineEvent.Completed)
                 }
+            }
+        }
+
+        try {
+            // 1. WeChatQRCode
+            if (QRCodeApp.isWeChatQRCodeInitialized) {
+                launchEngine("WeChatQRCode") { scanWithWeChatQRCode(processedBitmap) }
+            }
+
+            // 2. ZXing
+            launchEngine("ZXing") { scanWithZXing(processedBitmap) }
+
+            // 3. ML Kit
+            launchEngine("ML Kit") { scanWithMLKit(processedBitmap) }
+
+            // 4. BoofCV Micro QR
+            launchEngine("BoofCV Micro QR") {
+                MicroQrCodeScanner.scan(processedBitmap)
+                    .map { ScanResult(it.text, Library.BOOFCV, BarcodeFormat.QR_CODE) }
+            }
+
+            // 5. Han Xin Code
+            launchEngine("Han Xin") {
+                HanXinDecoder.decode(processedBitmap)?.let {
+                    listOf(ScanResult(it.text, Library.HAN_XIN, BarcodeFormat.QR_CODE))
+                } ?: emptyList()
+            }
+
+            // 6. 自定义一维码
+            launchEngine("CustomLinear") {
+                CustomLinearBarcodeScanner.scan(processedBitmap)
+                    .map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) }
+            }
+
+            val engineCount = engineJobs.size
+
+            withTimeoutOrNull(config.totalTimeoutMs) {
+                val seenKeys = mutableSetOf<String>()
+                var completedCount = 0
+                while (completedCount < engineCount) {
+                    when (val event = eventChannel.receiveCatching().getOrNull()) {
+                        is EngineEvent.Result -> {
+                            val newResults = event.results.filter { seenKeys.add(it.deduplicationKey) }
+                            if (newResults.isNotEmpty()) {
+                                send(newResults)
+                            }
+                        }
+                        is EngineEvent.Completed -> completedCount++
+                        null -> break
+                    }
+                }
+                allCompleted = true
             }
         } catch (e: Throwable) {
             Log.e(TAG, "Scan flow crashed", e)
         } finally {
-            if (shouldRecycleProcessed && !processedBitmap.isRecycled) {
+            eventChannel.close()
+            scope.cancel()
+            if (allCompleted && shouldRecycleProcessed && !processedBitmap.isRecycled) {
                 processedBitmap.recycle()
             }
         }
@@ -448,6 +466,7 @@ object QRCodeScanner {
      */
     private suspend fun scanWithMLKit(bitmap: Bitmap): List<ScanResult> = suspendCancellableCoroutine { continuation ->
         val image = InputImage.fromBitmap(bitmap, 0)
+        val resumed = AtomicBoolean(false)
 
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(
@@ -478,19 +497,27 @@ object QRCodeScanner {
                         ScanResult(it, Library.ML_KIT, mapMlKitFormat(barcode.format))
                     }
                 }
-                continuation.resume(results)
+                if (resumed.compareAndSet(false, true)) {
+                    try {
+                        continuation.resume(results)
+                    } catch (e: IllegalStateException) {
+                        // already cancelled or resumed; ignore
+                    }
+                }
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "ML Kit processing failed", e)
-                continuation.resume(emptyList())
+                if (resumed.compareAndSet(false, true)) {
+                    try {
+                        continuation.resume(emptyList())
+                    } catch (e: IllegalStateException) {
+                        // already cancelled or resumed; ignore
+                    }
+                }
             }
             .addOnCompleteListener {
                 scanner.close()
             }
-
-        continuation.invokeOnCancellation {
-            scanner.close()
-        }
     }
 
     /**
