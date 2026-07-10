@@ -57,7 +57,7 @@ class BarcodeValidationTest {
 
     @Test
     fun `invalid UPC-E wrong length`() {
-        val result = BarcodeGenerator.validateContent("1234567", BarcodeFormat.UPC_E)
+        val result = BarcodeGenerator.validateContent("123456", BarcodeFormat.UPC_E)
         assertFalse(result.isValid)
     }
 

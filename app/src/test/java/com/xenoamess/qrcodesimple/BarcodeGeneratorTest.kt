@@ -49,20 +49,26 @@ class BarcodeGeneratorTest {
     }
 
     @Test
-    fun `validate UPC-E with correct length 6`() {
+    fun `validate UPC-E with valid 7-digit input`() {
+        val result = BarcodeGenerator.validateContent("0123456", BarcodeFormat.UPC_E)
+        assertTrue(result.isValid)
+    }
+
+    @Test
+    fun `validate UPC-E with valid 8-digit input`() {
+        val result = BarcodeGenerator.validateContent("01234565", BarcodeFormat.UPC_E)
+        assertTrue(result.isValid)
+    }
+
+    @Test
+    fun `validate UPC-E with invalid length`() {
         val result = BarcodeGenerator.validateContent("123456", BarcodeFormat.UPC_E)
-        assertTrue(result.isValid)
+        assertFalse(result.isValid)
     }
 
     @Test
-    fun `validate UPC-E with correct length 8`() {
-        val result = BarcodeGenerator.validateContent("12345678", BarcodeFormat.UPC_E)
-        assertTrue(result.isValid)
-    }
-
-    @Test
-    fun `validate UPC-E with incorrect length`() {
-        val result = BarcodeGenerator.validateContent("1234567", BarcodeFormat.UPC_E)
+    fun `validate UPC-E with invalid check digit`() {
+        val result = BarcodeGenerator.validateContent("11223344", BarcodeFormat.UPC_E)
         assertFalse(result.isValid)
     }
 

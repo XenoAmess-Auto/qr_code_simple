@@ -1922,11 +1922,70 @@ object BarcodeGenerator {
 
     private fun validateUPCE(content: String): ValidationResult {
         val digitsOnly = content.filter { it.isDigit() }
-        return if (digitsOnly.length == 6 || digitsOnly.length == 8) {
-            ValidationResult(true)
-        } else {
-            ValidationResult(false, "UPC-E requires 6 or 8 digits")
+        if (digitsOnly.length != 7 && digitsOnly.length != 8) {
+            return ValidationResult(false, "UPC-E requires 7 or 8 digits")
         }
+        if (digitsOnly[0] != '0' && digitsOnly[0] != '1') {
+            return ValidationResult(false, "UPC-E number system must be 0 or 1")
+        }
+        if (digitsOnly.length == 8) {
+            val upcA = convertUPCEtoUPCA(digitsOnly)
+            if (!isStandardUPCEANChecksumValid(upcA)) {
+                return ValidationResult(false, "UPC-E check digit is invalid")
+            }
+        }
+        return ValidationResult(true)
+    }
+
+    private fun convertUPCEtoUPCA(upce: String): String {
+        val upceChars = upce.substring(1, 7).toCharArray()
+        val result = StringBuilder(12)
+        result.append(upce[0])
+        when (val lastChar = upceChars[5]) {
+            '0', '1', '2' -> {
+                result.append(upceChars, 0, 2)
+                result.append(lastChar)
+                result.append("0000")
+                result.append(upceChars, 2, 3)
+            }
+            '3' -> {
+                result.append(upceChars, 0, 3)
+                result.append("00000")
+                result.append(upceChars, 3, 2)
+            }
+            '4' -> {
+                result.append(upceChars, 0, 4)
+                result.append("00000")
+                result.append(upceChars[4])
+            }
+            else -> {
+                result.append(upceChars, 0, 5)
+                result.append("0000")
+                result.append(lastChar)
+            }
+        }
+        if (upce.length >= 8) {
+            result.append(upce[7])
+        }
+        return result.toString()
+    }
+
+    private fun isStandardUPCEANChecksumValid(s: String): Boolean {
+        if (s.length < 2 || !s.all { it.isDigit() }) return false
+        val check = s.last().digitToInt()
+        return computeStandardUPCEANChecksum(s.dropLast(1)) == check
+    }
+
+    private fun computeStandardUPCEANChecksum(s: String): Int {
+        var sum = 0
+        for (i in s.length - 1 downTo 0 step 2) {
+            sum += s[i].digitToInt()
+        }
+        sum *= 3
+        for (i in s.length - 2 downTo 0 step 2) {
+            sum += s[i].digitToInt()
+        }
+        return (1000 - sum) % 10
     }
 
     private fun validateCode39(content: String): ValidationResult {
@@ -2003,11 +2062,13 @@ object BarcodeGenerator {
     }
 
     private fun validateRssExpanded(content: String): ValidationResult {
-        return if (content.isNotEmpty() && content.all { it.code in 0..127 } && content.any { it.isDigit() }) {
-            ValidationResult(true)
-        } else {
-            ValidationResult(false, "RSS Expanded content must be ASCII and contain at least one digit")
+        if (content.isEmpty() || !content.all { it.code in 0..127 } || !content.any { it.isDigit() }) {
+            return ValidationResult(false, "RSS Expanded content must be ASCII and contain at least one digit")
         }
+        if (!content.matches(Regex("^[\\[(]\\d+[\\])].*$"))) {
+            return ValidationResult(false, "RSS Expanded content must start with a GS1 Application Identifier")
+        }
+        return ValidationResult(true)
     }
 
     private fun validateMicroQr(content: String): ValidationResult {
@@ -2177,10 +2238,18 @@ object BarcodeGenerator {
     }
 
     private fun validateChannelCode(content: String): ValidationResult {
-        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+        if (content.isEmpty() || !content.all { it.isDigit() }) {
+            return ValidationResult(false, "Channel Code requires digits")
+        }
+        if (content.length > 7) {
+            return ValidationResult(false, "Channel Code input too long")
+        }
+        val value = content.toIntOrNull()
+            ?: return ValidationResult(false, "Channel Code value out of range")
+        return if (value <= 7_742_862) {
             ValidationResult(true)
         } else {
-            ValidationResult(false, "Channel Code requires digits")
+            ValidationResult(false, "Channel Code value out of range")
         }
     }
 
@@ -2244,11 +2313,19 @@ object BarcodeGenerator {
     }
 
     private fun validateUspsOneCode(content: String): ValidationResult {
-        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
-            ValidationResult(true)
-        } else {
-            ValidationResult(false, "USPS OneCode requires digits")
+        if (content.matches(Regex("^[0-9]{20}$"))) {
+            return ValidationResult(true)
         }
+        if (content.matches(Regex("^[0-9]{20}-[0-9]{5}$")) ||
+            content.matches(Regex("^[0-9]{20}-[0-9]{9}$")) ||
+            content.matches(Regex("^[0-9]{20}-[0-9]{11}$"))
+        ) {
+            return ValidationResult(true)
+        }
+        return ValidationResult(
+            false,
+            "USPS OneCode requires a 20-digit tracking code, optionally followed by a 5, 9, or 11-digit ZIP code"
+        )
     }
 
     private fun validateUspsPackage(content: String): ValidationResult {
@@ -2281,10 +2358,10 @@ object BarcodeGenerator {
     }
 
     private fun validateKoreaPost(content: String): ValidationResult {
-        return if (content.isNotEmpty() && content.all { it.isDigit() }) {
+        return if (content.isNotEmpty() && content.length <= 6 && content.all { it.isDigit() }) {
             ValidationResult(true)
         } else {
-            ValidationResult(false, "Korea Post requires digits")
+            ValidationResult(false, "Korea Post requires up to 6 digits")
         }
     }
 
