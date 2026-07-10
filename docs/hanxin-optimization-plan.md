@@ -219,7 +219,7 @@ JAVA_HOME=.../jdk-21 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests
 ### 4.4 完成记录
 
 - Phase 4 已完成并提交。
-- 全量单测通过（不含本地扩展 UI 测试）：`JAVA_HOME=/home/xenoamess/.jdks/jdk-21.0.7+6 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests`。
+- 全量单测通过（不含本地扩展 UI 测试与样式回扫矩阵（长耗时））：`JAVA_HOME=/home/xenoamess/.jdks/jdk-21.0.7+6 ./gradlew :app:testDebugUnitTest -PexcludeExtendedUiTests`。
 - `HanXinPerformanceTest` 优化后 Robolectric 参考耗时（本地机）：
   - Encode short ASCII: 3 ms
   - Decode short ASCII: 4 ms
