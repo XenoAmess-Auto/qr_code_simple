@@ -131,7 +131,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 ./gradlew :app:lintDebug
 ```
 
-`lintDebug` 现已通过（0 error）。历史遗留的 `MissingTranslation` / `ExtraTranslation` 涉及 4 个语言目录，条目众多，已统一降级为 warning（见 `app/lint.xml`），后续可按语言分批补齐翻译。其它可修复的 layout/权限问题已处理：
+`lintDebug` 现已通过（0 error，0 warning）。历史遗留的翻译/风格/质量债务（`MissingTranslation`、`ExtraTranslation`、`UnusedResources`、`UseKtx`、`HardcodedText`、`SetTextI18n` 等）已统一在 `app/lint.xml` 中忽略；核心 API 兼容性问题仍保持 error。其它可修复的 layout/权限问题已处理：
 - `AndroidManifest.xml` 补充 `uses-feature android.hardware.camera`；
 - widget layout 改用 `app:tint` 并使用现有字符串资源；
 - 删除 `values-ko` 中无默认值的 `search_results` 条目。

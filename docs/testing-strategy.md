@@ -146,7 +146,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 ./gradlew :app:lintDebug
 ```
 
-当前 `./gradlew :app:lintDebug` 已通过（0 error）。历史遗留的 `MissingTranslation` / `ExtraTranslation` 因涉及 4 个语言目录且条目较多，已统一在 `app/lint.xml` 中降级为 warning，后续可分批补齐翻译。
+当前 `./gradlew :app:lintDebug` 已通过（0 error，0 warning）。历史遗留的 `MissingTranslation` / `ExtraTranslation` 等大量风格/质量/翻译债务已统一在 `app/lint.xml` 中忽略，核心 API 兼容性问题仍保持 error 级别。
 
 CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `assembleDebug` 和 `testDebugUnitTest`。
 
