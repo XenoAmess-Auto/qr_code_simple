@@ -12,10 +12,12 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 class BarcodeFormatAdapter(
     context: Context,
     private val formats: List<BarcodeFormat>
-) : ArrayAdapter<BarcodeFormat>(context, android.R.layout.simple_dropdown_item_1line, ArrayList(formats)) {
+) : ArrayAdapter<BarcodeFormat>(context, R.layout.item_barcode_format, ArrayList(formats)) {
 
     private val localizedNames = formats.associateWith { it.localizedName(context) }
+    private val englishNames = formats.associateWith { it.displayName }
     private val layoutInflater = LayoutInflater.from(context)
+    private val showEnglish = !isEnglishLocale(context)
 
     private val formatFilter = object : Filter() {
         override fun performFiltering(constraint: CharSequence?): FilterResults {
@@ -26,13 +28,15 @@ class BarcodeFormatAdapter(
             } else {
                 formats.filter { format ->
                     localizedNames[format]!!.lowercase().contains(lower) ||
+                        englishNames[format]!!.lowercase().contains(lower) ||
                         format.name.lowercase().contains(lower)
                 }.sortedWith(
                     compareBy(
                         { format ->
+                            val localized = localizedNames[format]!!.lowercase()
+                            val english = englishNames[format]!!.lowercase()
                             val name = format.name.lowercase()
-                            val display = localizedNames[format]!!.lowercase()
-                            if (name.startsWith(lower) || display.startsWith(lower)) 0 else 1
+                            if (localized.startsWith(lower) || english.startsWith(lower) || name.startsWith(lower)) 0 else 1
                         },
                         { it.ordinal }
                     )
@@ -67,16 +71,31 @@ class BarcodeFormatAdapter(
 
     private fun createView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view = convertView ?: layoutInflater.inflate(
-            android.R.layout.simple_dropdown_item_1line,
+            R.layout.item_barcode_format,
             parent,
             false
         )
-        val textView = view.findViewById<TextView>(android.R.id.text1)
-        textView.text = getItem(position)?.localizedName(context)
+        val text1 = view.findViewById<TextView>(android.R.id.text1)
+        val text2 = view.findViewById<TextView>(android.R.id.text2)
+        val format = getItem(position) ?: return view
+        text1.text = localizedNames[format]
+        if (showEnglish && localizedNames[format] != englishNames[format]) {
+            text2.text = englishNames[format]
+            text2.visibility = View.VISIBLE
+        } else {
+            text2.text = ""
+            text2.visibility = View.GONE
+        }
         return view
     }
 
     fun resetFilter() {
         formatFilter.filter(null)
+    }
+
+    private fun isEnglishLocale(context: Context): Boolean {
+        val locale = context.resources.configuration.locales.get(0)
+            ?: context.resources.configuration.locale
+        return locale.language.equals("en", ignoreCase = true)
     }
 }

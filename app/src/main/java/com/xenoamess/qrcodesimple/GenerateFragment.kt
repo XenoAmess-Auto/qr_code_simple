@@ -253,11 +253,12 @@ class GenerateFragment : Fragment() {
                         val text = binding.spinnerFormat.text?.toString()?.trim() ?: ""
                         val matched = formats.find {
                             it.localizedName(requireContext()).equals(text, ignoreCase = true) ||
+                                it.displayName.equals(text, ignoreCase = true) ||
                                 it.name.equals(text, ignoreCase = true)
                         }
                         selectedFormat = matched ?: pendingFormatBeforeFocus ?: selectedFormat
                         pendingFormatBeforeFocus = null
-                        binding.spinnerFormat.setText(selectedFormat.localizedName(requireContext()), false)
+                        binding.spinnerFormat.setText(selectedFormat.localizedNameWithEnglish(requireContext()), false)
                         adapter.resetFilter()
                         updateHintForFormat()
                         updateStyleControlsVisibility()
@@ -272,7 +273,7 @@ class GenerateFragment : Fragment() {
                 val format = adapter.getItem(position) ?: return@safe
                 selectedFormat = format
                 pendingFormatBeforeFocus = null
-                binding.spinnerFormat.setText(format.localizedName(requireContext()), false)
+                binding.spinnerFormat.setText(format.localizedNameWithEnglish(requireContext()), false)
                 adapter.resetFilter()
                 updateHintForFormat()
                 updateStyleControlsVisibility()
@@ -280,7 +281,7 @@ class GenerateFragment : Fragment() {
             }
         }
 
-        binding.spinnerFormat.setText(selectedFormat.localizedName(requireContext()), false)
+        binding.spinnerFormat.setText(selectedFormat.localizedNameWithEnglish(requireContext()), false)
         updateStyleControlsVisibility()
     }
 
@@ -669,7 +670,7 @@ class GenerateFragment : Fragment() {
             val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
             val position = formats.indexOf(it)
             if (position >= 0) {
-                binding.spinnerFormat.setText(it.localizedName(requireContext()), false)
+                binding.spinnerFormat.setText(it.localizedNameWithEnglish(requireContext()), false)
             }
             updateStyleControlsVisibility()
         }
@@ -1063,7 +1064,7 @@ class GenerateFragment : Fragment() {
         try {
             val style = buildCurrentStyleConfig()
             val sanitizedStyle = AdvancedBarcodeGenerator.sanitize(style, selectedFormat)
-            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, sanitizedStyle)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, 800, sanitizedStyle)
             if (bitmap == null) {
                 Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return

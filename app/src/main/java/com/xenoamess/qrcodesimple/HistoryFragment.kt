@@ -348,7 +348,7 @@ class HistoryFragment : Fragment() {
                     val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
                     val rawStyle = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
                     val style = AdvancedBarcodeGenerator.sanitize(rawStyle, format)
-                    AdvancedBarcodeGenerator.generateStyled(item.content, format, 1024, style)
+                    AdvancedBarcodeGenerator.generateStyled(item.content, format, 1024, 1024, style)
                 }
                 if (bitmap == null) {
                     Toast.makeText(requireContext(), "Failed to generate barcode", Toast.LENGTH_SHORT).show()

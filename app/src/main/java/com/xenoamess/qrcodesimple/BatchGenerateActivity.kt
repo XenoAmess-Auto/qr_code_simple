@@ -69,11 +69,12 @@ class BatchGenerateActivity : AppCompatActivity() {
                     val text = binding.spinnerFormat.text?.toString()?.trim() ?: ""
                     val matched = formats.find {
                         it.localizedName(this@BatchGenerateActivity).equals(text, ignoreCase = true) ||
+                            it.displayName.equals(text, ignoreCase = true) ||
                             it.name.equals(text, ignoreCase = true)
                     }
                     selectedFormat = matched ?: pendingFormatBeforeFocus ?: selectedFormat
                     pendingFormatBeforeFocus = null
-                    binding.spinnerFormat.setText(selectedFormat.localizedName(this@BatchGenerateActivity), false)
+                    binding.spinnerFormat.setText(selectedFormat.localizedNameWithEnglish(this@BatchGenerateActivity), false)
                     adapter.resetFilter()
                 }
             }
@@ -83,11 +84,11 @@ class BatchGenerateActivity : AppCompatActivity() {
             val format = adapter.getItem(position) ?: return@setOnItemClickListener
             selectedFormat = format
             pendingFormatBeforeFocus = null
-            binding.spinnerFormat.setText(format.localizedName(this), false)
+            binding.spinnerFormat.setText(format.localizedNameWithEnglish(this), false)
             adapter.resetFilter()
         }
 
-        binding.spinnerFormat.setText(selectedFormat.localizedName(this), false)
+        binding.spinnerFormat.setText(selectedFormat.localizedNameWithEnglish(this), false)
     }
 
     private fun setupButtons() {

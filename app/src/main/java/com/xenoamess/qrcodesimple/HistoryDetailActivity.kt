@@ -109,7 +109,7 @@ class HistoryDetailActivity : AppCompatActivity() {
         val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
         val rawStyle = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
         val style = AdvancedBarcodeGenerator.sanitize(rawStyle, format)
-        val bitmap = AdvancedBarcodeGenerator.generateStyled(item.content, format, 600, style)
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(item.content, format, 600, 600, style)
         bitmap?.let { binding.ivBarcode.setImageBitmap(it) }
 
         // 按钮

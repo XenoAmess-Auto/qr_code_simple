@@ -142,19 +142,30 @@ object AdvancedBarcodeGenerator {
     fun generateStyled(
         content: String,
         format: BarcodeFormat = BarcodeFormat.QR_CODE,
-        size: Int = 800,
+        width: Int = 800,
+        height: Int = 800,
         style: StyleConfig = StyleConfig()
     ): Bitmap? {
         return try {
             when (format) {
-                BarcodeFormat.QR_CODE -> generateStyledQR(content, size, style)
-                else -> generateGenericWithStyle(content, format, size, style)
+                BarcodeFormat.QR_CODE -> generateStyledQR(content, width, height, style)
+                else -> generateGenericWithStyle(content, format, width, height, style)
             }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
     }
+
+    /**
+     * 兼容旧版单尺寸调用。
+     */
+    fun generateStyled(
+        content: String,
+        format: BarcodeFormat,
+        size: Int,
+        style: StyleConfig
+    ): Bitmap? = generateStyled(content, format, size, size, style)
 
     /**
      * 根据指定格式清洗 [StyleConfig]，不支持的字段回退为默认值。
@@ -187,7 +198,8 @@ object AdvancedBarcodeGenerator {
         )
     }
 
-    private fun generateStyledQR(content: String, size: Int, styleConfig: StyleConfig): Bitmap {
+    private fun generateStyledQR(content: String, width: Int, height: Int, styleConfig: StyleConfig): Bitmap {
+        val size = min(width, height)
         val hints = hashMapOf(
             EncodeHintType.ERROR_CORRECTION to styleConfig.ecLevel,
             EncodeHintType.CHARACTER_SET to "UTF-8"
@@ -460,13 +472,14 @@ object AdvancedBarcodeGenerator {
     private fun generateGenericWithStyle(
         content: String,
         format: BarcodeFormat,
-        size: Int,
+        width: Int,
+        height: Int,
         styleConfig: StyleConfig
     ): Bitmap {
         val config = BarcodeGenerator.BarcodeConfig(
             format = format,
-            width = size,
-            height = size,
+            width = width,
+            height = height,
             foregroundColor = Color.BLACK,
             backgroundColor = Color.WHITE,
             ecLevel = styleConfig.ecLevel
@@ -475,7 +488,9 @@ object AdvancedBarcodeGenerator {
         val result = BarcodeGenerator.generateWithLayout(content, config)
             ?: throw IllegalStateException("Failed to generate barcode")
 
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val outputWidth = result.bitmap.width
+        val outputHeight = result.bitmap.height
+        val output = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
         fillBackground(output, styleConfig)
         val logoRect = computeLogoRect(output, styleConfig)
         val gradientBounds = computeGradientBounds(output.width, output.height, styleConfig)
@@ -509,7 +524,7 @@ object AdvancedBarcodeGenerator {
         styleConfig: StyleConfig,
         logoRect: Rect?
     ) {
-        val scaled = scaleToFit(raw, output.width)
+        val scaled = scaleToFit(raw, output.width, output.height)
         val mask = binarize(scaled)
         val shapedMask = applyShapeAndFillToMask(mask, scaled.width, scaled.height, styleConfig)
         val left = (output.width - scaled.width) / 2
@@ -734,6 +749,14 @@ object AdvancedBarcodeGenerator {
         }
     }
 
+    private fun scaleToFit(source: Bitmap, width: Int, height: Int): Bitmap {
+        if (source.width == width && source.height == height) return source
+        val scale = minOf(width.toFloat() / source.width, height.toFloat() / source.height)
+        val newWidth = (source.width * scale).toInt().coerceAtLeast(1)
+        val newHeight = (source.height * scale).toInt().coerceAtLeast(1)
+        return Bitmap.createScaledBitmap(source, newWidth, newHeight, false)
+    }
+
     private fun scaleToFit(source: Bitmap, size: Int): Bitmap {
         if (source.width == size && source.height == size) return source
         val scale = minOf(size.toFloat() / source.width, size.toFloat() / source.height)
@@ -751,7 +774,7 @@ object AdvancedBarcodeGenerator {
         target.setPixels(pixels, 0, copyWidth, left, top, copyWidth, copyHeight)
     }
 
-    private fun computeLayoutScale(layout: BarcodeLayout, outputSize: Int): Triple<Float, Float, Float> {
+    private fun computeLayoutScale(layout: BarcodeLayout, outputWidth: Int, outputHeight: Int): Triple<Float, Float, Float> {
         val (layoutWidth, layoutHeight) = when (layout) {
             is BarcodeLayout.GridLayout -> {
                 val w = layout.bitMatrix.width * layout.moduleSize + 2 * layout.padding
@@ -771,9 +794,9 @@ object AdvancedBarcodeGenerator {
             is BarcodeLayout.Fallback -> layout.bitmap.width.toFloat() to layout.bitmap.height.toFloat()
         }
         if (layoutWidth <= 0 || layoutHeight <= 0) return Triple(1f, 0f, 0f)
-        val scale = minOf(outputSize / layoutWidth, outputSize / layoutHeight)
-        val offsetX = (outputSize - layoutWidth * scale) / 2f
-        val offsetY = (outputSize - layoutHeight * scale) / 2f
+        val scale = minOf(outputWidth / layoutWidth, outputHeight / layoutHeight)
+        val offsetX = (outputWidth - layoutWidth * scale) / 2f
+        val offsetY = (outputHeight - layoutHeight * scale) / 2f
         return Triple(scale, offsetX, offsetY)
     }
 
@@ -864,7 +887,7 @@ object AdvancedBarcodeGenerator {
         logoRect: Rect?,
         gradientBounds: GradientBounds
     ) {
-        val (scale, offsetX, offsetY) = computeLayoutScale(layout, output.width)
+        val (scale, offsetX, offsetY) = computeLayoutScale(layout, output.width, output.height)
         for (run in layout.barRuns) {
             val left = (offsetX + run.left * scale).toInt()
             val top = (offsetY + run.top * scale).toInt()
@@ -935,7 +958,7 @@ object AdvancedBarcodeGenerator {
         logoRect: Rect?,
         gradientBounds: GradientBounds
     ) {
-        val (scale, offsetX, offsetY) = computeLayoutScale(layout, output.width)
+        val (scale, offsetX, offsetY) = computeLayoutScale(layout, output.width, output.height)
         val rawMask = renderMaxiCodeMask(output.width, output.height, layout, scale, offsetX, offsetY)
         renderStyledFromRawBitmap(output, rawMask, styleConfig, logoRect)
         rawMask.recycle()

@@ -48,7 +48,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 ### 生成入口
 
 所有条码生成统一通过 `BarcodeGenerator.generate(content, config)`。
-样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, size, style)`：
+样式化生成走 `AdvancedBarcodeGenerator.generateStyled(content, format, width, height, style)`（另有旧版单尺寸重载 `generateStyled(content, format, size, style)` 保持兼容）：
 
 - 生成器本身不清洗 `StyleConfig`，传入什么就用什么；调用方（`GenerateFragment`、历史页面）在生成前调用 `AdvancedBarcodeGenerator.sanitize(style, format)` 清洗。
 - `GenerateFragment` 根据当前格式能力表隐藏不支持的控件，不做提示。

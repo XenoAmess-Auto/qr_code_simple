@@ -187,6 +187,20 @@ class AdvancedBarcodeGeneratorTest {
     }
 
     @Test
+    fun `1D barcode generated dimensions are not square`() {
+        val content = "CODE128-TEST"
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(
+            content,
+            BarcodeFormat.CODE_128,
+            800,
+            800,
+            AdvancedBarcodeGenerator.StyleConfig()
+        )
+        assertNotNull(bitmap, "Should generate 1D barcode")
+        assertTrue(bitmap!!.width > bitmap.height, "1D barcode width should be greater than height")
+    }
+
+    @Test
     fun `QR Code with custom foreground and background scans back`() {
         val content = "https://example.com"
         val style = AdvancedBarcodeGenerator.StyleConfig(
