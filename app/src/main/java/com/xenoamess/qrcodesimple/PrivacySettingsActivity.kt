@@ -101,6 +101,14 @@ class PrivacySettingsActivity : AppCompatActivity() {
     }
 
     private fun showSetPinDialog(onResult: (Boolean) -> Unit) {
+        var resultDelivered = false
+        val deliverResult: (Boolean) -> Unit = { success ->
+            if (!resultDelivered) {
+                resultDelivered = true
+                onResult(success)
+            }
+        }
+
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(48, 24, 48, 24)
@@ -128,21 +136,21 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
                 if (pin.length < 4) {
                     Toast.makeText(this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT).show()
-                    onResult(false)
+                    deliverResult(false)
                     return@setPositiveButton
                 }
 
                 if (pin != confirmPin) {
                     Toast.makeText(this, getString(R.string.pin_mismatch), Toast.LENGTH_SHORT).show()
-                    onResult(false)
+                    deliverResult(false)
                     return@setPositiveButton
                 }
 
                 AppLockManager.setPin(pin)
-                onResult(true)
+                deliverResult(true)
             }
             .setNegativeButton(getString(R.string.cancel), null)
-            .setOnDismissListener { onResult(false) }
+            .setOnDismissListener { deliverResult(false) }
             .show()
     }
 

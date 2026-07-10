@@ -29,7 +29,7 @@
 | 批次 4 | 连续扫描 | 完成 | `ContinuousScanActivity` 通过反射注入 `handleScanResult` 测试扫描结果处理；`ContinuousScanAdapter` 独立测试 |
 | 批次 5 | 生成页自定义控件 | 完成 | 新增 `ColorPickerViewTest` / `ColorPickerDialogTest` / `AngleDialViewTest`；修复 `ColorPickerView.setColor` 未更新 `currentColor` 和 `AngleDialView.angle` setter 未通知回调的问题 |
 | 批次 6 | 主页导航 | 完成 | 新增 `MainActivityUiTest`；`MainActivity.updateTabSelection` 改用 `setTypeface` 实现加粗以便可测 |
-| 批次 7 | 剩余页面 | 待执行 | |
+| 批次 7 | 剩余页面 | 完成 | 新增 `HistoryDetailActivityTest` / `AboutFragmentUiTest` / `PrivacySettingsActivityTest` / `BackupActivityTest` / `DatabaseSecurityActivityTest` / `BatchResultAdapterTest` / `ScanImageFragmentTest` / `CameraScanFragmentTest` / `ScannerOverlayViewTest` / `ScanRegionViewTest`；修复 `PrivacySettingsActivity.showSetPinDialog` 重复回调问题 |
 
 ## 4. 共享基础设施
 
@@ -100,20 +100,20 @@
 | 新增测试 | `MainActivityUiTest.kt` |
 | 测试点 | 1. 点击底部 5 个 tab 按钮切换 `ViewPager2` 到对应页面。<br>2. 切换时 tab 按钮颜色和加粗状态更新。<br>3. 通过 shortcut/deep-link 启动 `MainActivity` 后定位到指定 tab。<br>4. 携带 `EXTRA_GENERATE_CONTENT` 时进入生成 tab。 |
 
-### 批次 7：剩余页面
+### 批次 7：剩余页面 ✅
 
 | 页面 | 新增测试 | 主要测试点 |
 |---|---|---|
-| `HistoryDetailActivity` | `HistoryDetailActivityTest.kt` | tag chips 显示、笔记可见性、收藏按钮状态、重新生成 intent。 |
-| `AboutFragment` | `AboutFragmentUiTest.kt` | 语言切换对话框、重启对话框、外部链接 intent。 |
-| `PrivacySettingsActivity` | `PrivacySettingsActivityTest.kt` | 隐私模式开关、应用锁开关、确认对话框。 |
-| `BackupActivity` | `BackupActivityTest.kt` | 导出 intent、导入 intent 启动。 |
-| `DatabaseSecurityActivity` | `DatabaseSecurityActivityTest.kt` | 重置数据库确认、重启提示。 |
-| `BatchResultActivity` + `BatchResultAdapter` | `BatchResultActivityTest.kt`、`BatchResultAdapterTest.kt` | 网格项绑定、单条保存、全部保存为 zip。 |
-| `ScanImageFragment` | `ScanImageFragmentUiTest.kt` | 相册/相机/文件 launcher 选择入口。 |
-| `CameraScanFragment` | `CameraScanFragmentUiTest.kt` | 闪光灯按钮切换、前后摄像头切换、结果卡片显示/隐藏。 |
-| `ScannerOverlayView` | `ScannerOverlayViewTest.kt` | 动画区域绘制、裁剪区域变化。 |
-| `ScanRegionView` | `ScanRegionViewTest.kt` | 裁剪区域设置、手势/触摸反馈。 |
+| `HistoryDetailActivity` | `HistoryDetailActivityTest.kt` | tag chips 显示、笔记可见性、收藏按钮状态、分享 intent、重新生成 intent。 |
+| `AboutFragment` | `AboutFragmentUiTest.kt` | 版本号显示、语言切换对话框、隐私设置跳转、外部链接 intent。 |
+| `PrivacySettingsActivity` | `PrivacySettingsActivityTest.kt` | 隐私模式开关、应用锁开关/PIN 设置、确认对话框。 |
+| `BackupActivity` | `BackupActivityTest.kt` | 导出 JSON/CSV intent、导入 intent 启动。 |
+| `DatabaseSecurityActivity` | `DatabaseSecurityActivityTest.kt` | 加密状态显示、重置数据库确认、备份跳转。 |
+| `BatchResultActivity` + `BatchResultAdapter` | `BatchResultAdapterTest.kt` | 网格项绑定（成功/失败）、单条保存回调。 |
+| `ScanImageFragment` | `ScanImageFragmentTest.kt` | 相册/相机/文件 launcher 选择入口。 |
+| `CameraScanFragment` | `CameraScanFragmentTest.kt` | 结果分享/复制、智能操作、关闭结果卡片、闪光灯/切换摄像头不崩溃。 |
+| `ScannerOverlayView` | `ScannerOverlayViewTest.kt` | 默认扫描框居中、颜色/setter 生效、动画停止不崩溃。 |
+| `ScanRegionView` | `ScanRegionViewTest.kt` | 拖拽选择区域、清除区域、小于阈值时清除。 |
 
 ## 6. 验证步骤
 
