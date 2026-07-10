@@ -7,7 +7,7 @@ updates:
       day: "monday"
       time: "04:00"
       timezone: "Asia/Shanghai"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 100
     target-branch: "master"
     commit-message:
       prefix: "build(deps)"
@@ -22,7 +22,7 @@ updates:
       day: "monday"
       time: "04:00"
       timezone: "Asia/Shanghai"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 100
     target-branch: "master"
     commit-message:
       prefix: "ci"
