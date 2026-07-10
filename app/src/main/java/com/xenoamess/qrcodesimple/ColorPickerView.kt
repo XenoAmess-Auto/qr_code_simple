@@ -59,6 +59,7 @@ class ColorPickerView @JvmOverloads constructor(
     fun setColor(color: Int) {
         Color.colorToHSV(color, hsv)
         currentAlpha = Color.alpha(color)
+        updateColor()
         rebuildSvBitmap()
         rebuildAlphaBitmap()
         invalidate()

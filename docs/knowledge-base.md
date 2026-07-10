@@ -125,8 +125,9 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `AppLockManager.kt` | 应用锁（PIN / 生物识别） |
 | `GenerateFragment.kt` | 生成界面 Fragment |
 | `BarcodeLayout.kt` | 统一布局抽象（Grid、Linear、MaxiCode、Fallback）供样式渲染器使用 |
-| `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条） |
-| `ColorPickerDialog.kt` | 颜色选取对话框（含 hex 输入） |
+| `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条 + Alpha 透明度条） |
+| `ColorPickerDialog.kt` | 颜色选取对话框（含 hex / RGBA 输入） |
+| `AngleDialView.kt` | 圆形角度旋钮（用于渐变角度） |
 | `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel） |
 | `ContinuousScanActivity.kt` | 连续扫描 Activity |
 | `HistoryDetailActivity.kt` | 历史记录详情页 |

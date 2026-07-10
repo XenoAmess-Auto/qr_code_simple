@@ -26,8 +26,8 @@
 | 批次 1 | `BatchGenerateActivity` 格式选择器改造 | 完成 | `Spinner` 已替换为 `AutoCompleteTextView` |
 | 批次 2 | 历史列表 | 完成 | `HistoryFragment` 增加 `loadHistoryJob` 取消，避免多个 Flow 收集器并发；`HistoryFragmentUiTest` 使用轮询等待列表尺寸 |
 | 批次 3 | 结果页 | 完成 | 公共 `QRResultAdapter` 已提取并测试；`ResultActivity` / `VideoScanActivity` 覆盖列表展示和选择操作 |
-| 批次 4 | 连续扫描 | 待执行 | |
-| 批次 5 | 生成页自定义控件 | 待执行 | |
+| 批次 4 | 连续扫描 | 完成 | `ContinuousScanActivity` 通过反射注入 `handleScanResult` 测试扫描结果处理；`ContinuousScanAdapter` 独立测试 |
+| 批次 5 | 生成页自定义控件 | 完成 | 新增 `ColorPickerViewTest` / `ColorPickerDialogTest` / `AngleDialViewTest`；修复 `ColorPickerView.setColor` 未更新 `currentColor` 和 `AngleDialView.angle` setter 未通知回调的问题 |
 | 批次 6 | 主页导航 | 待执行 | |
 | 批次 7 | 剩余页面 | 待执行 | |
 

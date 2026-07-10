@@ -47,6 +47,7 @@ class AngleDialView @JvmOverloads constructor(
         set(value) {
             field = value
             invalidate()
+            notifyAngle()
         }
 
     var onAngleChanged: ((Float) -> Unit)? = null
