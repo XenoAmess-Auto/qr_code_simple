@@ -239,21 +239,27 @@ object QRCodeScanner {
         val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
         val engineJobs = mutableListOf<Job>()
         var allCompleted = false
+        var engineCount = 0
 
         fun launchEngine(name: String, block: suspend () -> List<ScanResult>) {
             engineJobs += scope.launch {
+                val start = System.currentTimeMillis()
+                Log.d(TAG, "Engine start: $name")
                 try {
                     val results = runEngineSafely(name, config.perEngineTimeoutMs, block)
+                    Log.d(TAG, "Engine end: $name, ${System.currentTimeMillis() - start}ms, results=${results.size}")
                     eventChannel.trySend(EngineEvent.Result(results))
                 } catch (e: CancellationException) {
-                    // expected when scope is cancelled
+                    Log.d(TAG, "Engine cancelled: $name, ${System.currentTimeMillis() - start}ms")
                 } finally {
+                    Log.d(TAG, "Engine completed event: $name")
                     eventChannel.trySend(EngineEvent.Completed)
                 }
             }
         }
 
         try {
+            Log.d(TAG, "Starting scanAsFlow with engines: WeChatQRCode=${QRCodeApp.isWeChatQRCodeInitialized}, ZXing, ML Kit, BoofCV, HanXin, CustomLinear")
             // 1. WeChatQRCode
             if (QRCodeApp.isWeChatQRCodeInitialized) {
                 launchEngine("WeChatQRCode") { scanWithWeChatQRCode(processedBitmap) }
@@ -284,7 +290,7 @@ object QRCodeScanner {
                     .map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) }
             }
 
-            val engineCount = engineJobs.size
+            engineCount = engineJobs.size
 
             withTimeoutOrNull(config.totalTimeoutMs) {
                 val seenKeys = mutableSetOf<String>()
@@ -297,7 +303,10 @@ object QRCodeScanner {
                                 send(newResults)
                             }
                         }
-                        is EngineEvent.Completed -> completedCount++
+                        is EngineEvent.Completed -> {
+                            Log.d(TAG, "Engine completed received: ${completedCount + 1}/$engineCount")
+                            completedCount++
+                        }
                         null -> break
                     }
                 }
@@ -306,6 +315,11 @@ object QRCodeScanner {
         } catch (e: Throwable) {
             Log.e(TAG, "Scan flow crashed", e)
         } finally {
+            if (!allCompleted) {
+                Log.d(TAG, "Total timeout reached, abandoning $engineCount engines")
+            } else {
+                Log.d(TAG, "scanAsFlow completed normally")
+            }
             eventChannel.close()
             scope.cancel()
             if (allCompleted && shouldRecycleProcessed && !processedBitmap.isRecycled) {
@@ -344,6 +358,7 @@ object QRCodeScanner {
      * 使用 WeChatQRCode 扫描
      */
     private fun scanWithWeChatQRCode(bitmap: Bitmap): List<ScanResult> {
+        val start = System.currentTimeMillis()
         val points = ArrayList<Mat>()
         return try {
             val results = WeChatQRCodeDetector.detectAndDecode(bitmap, points)
@@ -352,6 +367,8 @@ object QRCodeScanner {
         } catch (e: Exception) {
             points.forEach { it.release() }
             throw e
+        }.also {
+            Log.d(TAG, "WeChatQRCode engine finished in ${System.currentTimeMillis() - start}ms, results=${it.size}")
         }
     }
 
@@ -359,6 +376,8 @@ object QRCodeScanner {
      * 使用 ZXing 扫描 - 优化版本，支持条形码
      */
     private fun scanWithZXing(bitmap: Bitmap): List<ScanResult> {
+        val start = System.currentTimeMillis()
+        Log.d(TAG, "ZXing engine started")
         // 尝试多种配置
         val allFormats = listOf(
             BarcodeFormat.QR_CODE,
@@ -409,20 +428,26 @@ object QRCodeScanner {
         // 尝试原始图像
         for (config in configs) {
             val result = tryDecode(bitmap, config)
-            if (result != null) return listOf(result)
+            if (result != null) {
+                Log.d(TAG, "ZXing engine finished in ${System.currentTimeMillis() - start}ms, results=1")
+                return listOf(result)
+            }
         }
 
         // 尝试旋转图像（条形码可能在不同方向）
+        Log.d(TAG, "ZXing engine trying rotated image")
         val rotatedBitmap = rotateBitmap(bitmap, 90f)
         for (config in configs) {
             val result = tryDecode(rotatedBitmap, config)
             if (result != null) {
                 rotatedBitmap.recycle()
+                Log.d(TAG, "ZXing engine finished in ${System.currentTimeMillis() - start}ms, results=1")
                 return listOf(result)
             }
         }
         rotatedBitmap.recycle()
 
+        Log.d(TAG, "ZXing engine finished in ${System.currentTimeMillis() - start}ms, results=0")
         return emptyList()
     }
 
@@ -466,6 +491,8 @@ object QRCodeScanner {
      * 使用 ML Kit 扫描
      */
     private suspend fun scanWithMLKit(bitmap: Bitmap): List<ScanResult> = suspendCancellableCoroutine { continuation ->
+        val start = System.currentTimeMillis()
+        Log.d(TAG, "ML Kit engine started")
         val image = InputImage.fromBitmap(bitmap, 0)
         val resumed = AtomicBoolean(false)
 
@@ -498,6 +525,7 @@ object QRCodeScanner {
                         ScanResult(it, Library.ML_KIT, mapMlKitFormat(barcode.format))
                     }
                 }
+                Log.d(TAG, "ML Kit engine finished in ${System.currentTimeMillis() - start}ms, results=${results.size}")
                 if (resumed.compareAndSet(false, true)) {
                     try {
                         continuation.resume(results)
@@ -508,6 +536,7 @@ object QRCodeScanner {
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "ML Kit processing failed", e)
+                Log.d(TAG, "ML Kit engine finished in ${System.currentTimeMillis() - start}ms, results=0")
                 if (resumed.compareAndSet(false, true)) {
                     try {
                         continuation.resume(emptyList())
