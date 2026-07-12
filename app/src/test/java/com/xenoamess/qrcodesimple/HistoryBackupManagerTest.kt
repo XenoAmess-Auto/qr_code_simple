@@ -269,4 +269,11 @@ class HistoryBackupManagerTest {
         val result = HistoryBackupManager.importFromCsv(context, "")
         assertFalse(result.success)
     }
+
+    @Test
+    fun `import from empty json returns failure`() = runBlocking {
+        val result = HistoryBackupManager.importFromJson(context, "")
+        assertFalse(result.success)
+        assertEquals(0, result.count)
+    }
 }

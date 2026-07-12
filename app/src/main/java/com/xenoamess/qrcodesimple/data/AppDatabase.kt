@@ -158,7 +158,7 @@ abstract class AppDatabase : RoomDatabase() {
     /**
      * 数据库迁移：从版本3到版本4，添加生成样式参数字段
      */
-    private val MIGRATION_3_4 = object : Migration(3, 4) {
+    internal val MIGRATION_3_4 = object : Migration(3, 4) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE history ADD COLUMN styleJson TEXT")
         }
@@ -167,7 +167,7 @@ abstract class AppDatabase : RoomDatabase() {
     /**
      * 数据库迁移：从版本1（未加密）到版本2（加密）
      */
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
+        internal val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // 表结构没有变化，只是切换到加密数据库
                 // Room 会自动处理
@@ -177,7 +177,7 @@ abstract class AppDatabase : RoomDatabase() {
         /**
          * 数据库迁移：从版本2到版本3，添加标签字段
          */
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
+        internal val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE history ADD COLUMN tags TEXT")
             }
