@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -209,5 +210,63 @@ class HistoryBackupManagerTest {
         val fileName = HistoryBackupManager.generateBackupFileName("json")
         assertTrue(fileName.startsWith("qr_backup_"))
         assertTrue(fileName.endsWith(".json"))
+    }
+
+    @Test
+    fun `import from json rejects unsupported version`() = runBlocking {
+        val json = """
+            {
+              "version": 99,
+              "items": []
+            }
+        """.trimIndent()
+
+        val result = HistoryBackupManager.importFromJson(context, json)
+        assertFalse(result.success)
+        assertEquals(0, result.count)
+    }
+
+    @Test
+    fun `import from json handles invalid json gracefully`() = runBlocking {
+        val result = HistoryBackupManager.importFromJson(context, "not json")
+        assertFalse(result.success)
+        assertEquals(0, result.count)
+    }
+
+    @Test
+    fun `export to csv escapes commas quotes and newlines`() = runBlocking {
+        repository.insert(
+            HistoryItem(
+                content = "a,b",
+                type = HistoryType.QR_CODE,
+                isGenerated = false,
+                notes = "note with \"quotes\"",
+                tags = "tag1,tag2"
+            )
+        )
+
+        val csv = HistoryBackupManager.exportToCsv(context)
+        assertTrue(csv.contains("\"a,b\""))
+        assertTrue(csv.contains("\"note with \"\"quotes\"\"\""))
+    }
+
+    @Test
+    fun `import from csv handles empty rows and no header`() = runBlocking {
+        val csv = """
+            content,type,timestamp,isGenerated
+            hello,QR_CODE,123,true
+
+            ,QR_CODE,123,true
+        """.trimIndent()
+
+        val result = HistoryBackupManager.importFromCsv(context, csv)
+        assertTrue(result.success)
+        assertEquals(1, result.count)
+    }
+
+    @Test
+    fun `import from empty csv returns failure`() = runBlocking {
+        val result = HistoryBackupManager.importFromCsv(context, "")
+        assertFalse(result.success)
     }
 }

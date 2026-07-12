@@ -9,6 +9,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 /**
  * AppLockManager 单元测试
@@ -70,5 +71,43 @@ class AppLockManagerTest {
         AppLockManager.setPin("1234")
         AppLockManager.lock()
         assertTrue(AppLockManager.shouldLock())
+    }
+
+    @Test
+    fun `recordUnlock prevents immediate lock`() {
+        AppLockManager.setPin("1234")
+        AppLockManager.recordUnlock()
+        assertFalse(AppLockManager.shouldLock())
+        assertTrue(AppLockManager.isUnlocked())
+    }
+
+    @Test
+    fun `isUnlocked returns true when lock disabled`() {
+        AppLockManager.clearPin()
+        assertTrue(AppLockManager.isUnlocked())
+    }
+
+    @Test
+    fun `lock clears last unlocked time`() {
+        AppLockManager.setPin("1234")
+        AppLockManager.recordUnlock()
+        AppLockManager.lock()
+        assertTrue(AppLockManager.shouldLock())
+    }
+
+    @Test
+    fun `setPin enables lock and hashPin produces different hashes for different pins`() {
+        AppLockManager.setPin("1234")
+        AppLockManager.setPin("5678")
+        assertTrue(AppLockManager.isLockEnabled())
+        assertTrue(AppLockManager.verifyPin("5678"))
+        assertFalse(AppLockManager.verifyPin("1234"))
+    }
+
+    @Test
+    fun `biometric availability can be checked without crash`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        // Result depends on Robolectric shadow; just ensure no crash
+        AppLockManager.isBiometricAvailable(context)
     }
 }

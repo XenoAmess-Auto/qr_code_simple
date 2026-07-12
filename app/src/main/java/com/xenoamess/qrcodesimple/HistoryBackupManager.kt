@@ -148,20 +148,20 @@ object HistoryBackupManager {
         try {
             val repository = HistoryRepository(context)
             val lines = csvString.lines()
-            
-            if (lines.isEmpty()) {
+
+            if (csvString.isBlank()) {
                 return@withContext BackupResult(false, 0, "Empty CSV file")
             }
 
             // 跳过标题行
             val dataLines = if (lines[0].contains("content,type")) lines.drop(1) else lines
-            
+
             var importedCount = 0
 
             dataLines.filter { it.isNotBlank() }.forEach { line ->
                 try {
                     val parts = parseCsvLine(line)
-                    if (parts.size >= 4) {
+                    if (parts.size >= 4 && parts[0].isNotBlank()) {
                         val item = HistoryItem(
                             content = parts[0],
                             type = HistoryType.valueOf(parts[1]),

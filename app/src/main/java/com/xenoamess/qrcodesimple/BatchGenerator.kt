@@ -95,7 +95,17 @@ object BatchGenerator {
                 val headerIndex = parseExcelHeader(firstRow)
                 val hasHeader = headerIndex["content"] != null
 
-                var rowNumber = if (hasHeader) 1 else 0
+                var rowNumber = 1
+
+                if (!hasHeader) {
+                    try {
+                        parseExcelRow(firstRow, headerIndex, false, rowNumber)?.let { item ->
+                            items.add(item)
+                        }
+                    } catch (e: Exception) {
+                        errors.add("Row $rowNumber: ${e.message}")
+                    }
+                }
 
                 while (rowIterator.hasNext()) {
                     rowNumber++
@@ -197,7 +207,7 @@ object BatchGenerator {
 
         val fgColor = parseColor(record.get("fg_color"), Color.BLACK)
         val bgColor = parseColor(record.get("bg_color"), Color.WHITE)
-        val fileName = record.get("filename")?.trim()
+        val fileName = record.get("filename")?.trim()?.takeIf { it.isNotEmpty() }
 
         return BatchItem(content, format, fgColor, bgColor, fileName)
     }

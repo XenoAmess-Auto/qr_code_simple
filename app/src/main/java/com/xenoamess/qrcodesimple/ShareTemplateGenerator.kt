@@ -49,6 +49,8 @@ object ShareTemplateGenerator {
         )
     ): Uri? = withContext(Dispatchers.IO) {
         try {
+            if (qrCodeBitmap.isRecycled) return@withContext null
+
             val width = 1080
             val qrSize = 600
             val padding = 80
@@ -135,9 +137,9 @@ object ShareTemplateGenerator {
             }
             canvas.drawText("扫码查看内容", width / 2f, footerY + 50, hintPaint)
 
-            // 保存到缓存
-            val cacheDir = File(context.cacheDir, "share_images").apply { mkdirs() }
-            val file = File(cacheDir, "share_${System.currentTimeMillis()}.png")
+            // 保存到文件目录
+            val shareDir = File(context.filesDir, "share_images").apply { mkdirs() }
+            val file = File(shareDir, "share_${System.currentTimeMillis()}.png")
             FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
@@ -158,6 +160,8 @@ object ShareTemplateGenerator {
         padding: Int = 40
     ): Uri? = withContext(Dispatchers.IO) {
         try {
+            if (qrCodeBitmap.isRecycled) return@withContext null
+
             val size = qrCodeBitmap.width + padding * 2
             val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
@@ -165,8 +169,8 @@ object ShareTemplateGenerator {
             canvas.drawColor(Color.WHITE)
             canvas.drawBitmap(qrCodeBitmap, padding.toFloat(), padding.toFloat(), null)
 
-            val cacheDir = File(context.cacheDir, "share_images").apply { mkdirs() }
-            val file = File(cacheDir, "qr_${System.currentTimeMillis()}.png")
+            val shareDir = File(context.filesDir, "share_images").apply { mkdirs() }
+            val file = File(shareDir, "qr_${System.currentTimeMillis()}.png")
             FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
