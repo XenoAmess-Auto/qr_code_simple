@@ -171,6 +171,23 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-analytics'
 
+    // firebase-bom 34.16.0 会把 play-services-tasks 升到 18.4.0、bom/basement 升到 18.9.0，
+    // 在 Robolectric/CI 低核环境下会留下非 daemon 线程导致测试 JVM 不退出。这里强制保持旧版本。
+    constraints {
+        implementation('com.google.android.gms:play-services-tasks') {
+            version {
+                strictly '18.2.0'
+                because 'prevent intermittent CI hang caused by firebase-bom 34.16.0'
+            }
+        }
+        implementation('com.google.android.gms:play-services-basement') {
+            version {
+                strictly '18.4.0'
+                because 'prevent intermittent CI hang caused by firebase-bom 34.16.0'
+            }
+        }
+    }
+
     // BoofCV - Micro QR Code support
     implementation 'org.boofcv:boofcv-core:1.4.0'
     implementation 'org.boofcv:boofcv-android:1.4.0'
