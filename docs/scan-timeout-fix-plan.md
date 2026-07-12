@@ -33,8 +33,11 @@
 ### 4.1 `QRCodeScanner.kt` — 重构 `scanAsFlow`
 
 - 废弃 `coroutineScope { ... allDeferred.awaitAll() }` 结构。
-- 创建独立的 `CoroutineScope(SupervisorJob() + Dispatchers.IO)` 启动所有引擎。
-  - 使用 `Dispatchers.IO` 而不是 `Dispatchers.Default`，防止阻塞型/不响应取消的引擎占满 Default 线程池，导致后续 `scanSync` 的 `runBlocking(Dispatchers.Default)` 因线程饥饿而挂起。这是 firebase-bom 34.16.0 在 CI 上诱发超时的新根因。
+- 创建独立的守护线程池（默认大小 `availableProcessors` 与 2 取大）启动所有引擎：
+  - 不占用 `Dispatchers.Default` 或 `Dispatchers.IO`。
+  - 线程设为 daemon，即使引擎 ignore 取消，也不会阻止 JVM/进程退出。
+  - `scanAsFlow` 结束时调用 `shutdownNow()`，尽量中断未完成的引擎线程。
+  - 从根本上避免阻塞型引擎占满任何全局协程调度器，导致 `scanSync` 的 `runBlocking(Dispatchers.Default)` 因线程饥饿而挂起。这是 firebase-bom 34.16.0 在 CI 上诱发超时的根因。
 - 引入 `sealed class EngineEvent { Result, Completed }` 和一个 `Channel<EngineEvent>`。
 - 每个引擎在独立 scope 中执行：
   - 调用 `runEngineSafely(...)` 获取结果；
@@ -90,13 +93,14 @@
 
 ### 6.3 修复
 
-- 将引擎 scope 的 dispatcher 改为 `Dispatchers.IO`。
-- `Dispatchers.IO` 与 `Dispatchers.Default` 共享统一调度器但允许更多线程，适合阻塞型任务，不会饿死 Default 池。
-- `scanSync` 继续保留在 `Dispatchers.Default`，不再和阻塞引擎竞争线程。
+- 不依赖 `Dispatchers.Default` 或 `Dispatchers.IO`，而是为每次 `scanAsFlow` 创建一个独立的固定线程池。
+- 池内线程设为 daemon，大小为 `availableProcessors.coerceAtLeast(2)`。
+- 扫描结束（无论是否超时）后调用 `scope.cancel()` + `executor.shutdownNow()`，尽量回收线程。
+- `scanSync` 继续保留在 `Dispatchers.Default`，不再和阻塞引擎共享或竞争任何线程池。
 
 ## 7. 权衡与已知限制
 
-- 使用 `Dispatchers.IO` 后，阻塞引擎仍可能占用 IO 线程，但 IO 池更大，不会阻塞 `scanSync` 的 Default 线程。
+- 每个 `scanAsFlow` 调用创建独立引擎线程池，线程为 daemon，`finally` 中 `shutdownNow()` 尽力中断未完成的阻塞引擎。若引擎完全 ignore 中断，daemon 线程不会阻止 JVM 退出，但仍可能存活到进程结束。
 - 第三方阻塞引擎（ZXing/WeChatQRCode/BoofCV）超时后会被 abandon，可能继续占用后台线程并短暂持有 Bitmap。这是为了彻底避免 CI 挂死而做的取舍。
 - 我们自己的 HanXin 和 CustomLinear 解码器会支持安全取消。
 - ML Kit 取消时不再调用可能阻塞的 `close()`，依赖 `onComplete` 做资源释放；如果任务永远不完成，资源可能泄漏，但测试不会再挂死。
