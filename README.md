@@ -2,6 +2,8 @@
 
 [English](README.md) | [中文](README_CN.md)
 
+[![Coverage](https://img.shields.io/endpoint?url=https://xenoamess-auto.github.io/qr_code_simple/coverage.json)](https://xenoamess-auto.github.io/qr_code_simple/coverage.html)
+
 A feature-rich Android QR/Barcode scanning and generation app.
 
 ---

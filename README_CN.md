@@ -2,6 +2,8 @@
 
 [English](README.md) | [中文](README_CN.md)
 
+[![Coverage](https://img.shields.io/endpoint?url=https://xenoamess-auto.github.io/qr_code_simple/coverage.json)](https://xenoamess-auto.github.io/qr_code_simple/coverage.html)
+
 一款功能丰富的 Android 二维码/条码扫描与生成应用。
 
 ---

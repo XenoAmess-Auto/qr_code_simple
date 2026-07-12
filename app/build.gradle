@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+    id 'jacoco'
 }
 
 /**
@@ -27,6 +28,10 @@ static def getGitHash() {
     } catch (Exception e) {
         return "unknown"
     }
+}
+
+jacoco {
+    toolVersion = '0.8.12'
 }
 
 android {
@@ -58,6 +63,9 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            testCoverage {
+                enableUnitTestCoverage = true
+            }
         }
         release {
             minifyEnabled false
@@ -209,4 +217,38 @@ dependencies {
     testImplementation 'androidx.test.espresso:espresso-contrib:3.7.0'
     testImplementation 'androidx.fragment:fragment-testing:1.8.9'
     debugImplementation 'androidx.fragment:fragment-testing:1.8.9'
+}
+
+tasks.register('jacocoTestReport', JacocoReport) {
+    dependsOn 'testDebugUnitTest'
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+        xml.outputLocation = file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
+        html.outputLocation = file("${buildDir}/reports/jacoco/html")
+    }
+
+    def fileFilter = [
+            '**/R.class',
+            '**/R$*.class',
+            '**/BuildConfig.*',
+            '**/Manifest*.*',
+            '**/*Test*.*',
+            'android/**/*.*',
+            '**/*$Lambda$*.*',
+            '**/*$inlined$*.*'
+    ]
+
+    def javaClasses = fileTree(dir: "${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes", excludes: fileFilter)
+    def kotlinClasses = fileTree(dir: "${buildDir}/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.from = files([mainSrc])
+    classDirectories.from = files([javaClasses, kotlinClasses])
+    executionData.from = fileTree(dir: buildDir, includes: [
+            'outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec',
+            'jacoco/testDebugUnitTest.exec'
+    ])
 }

@@ -21,6 +21,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | Micro QR | BoofCV | 1.4.0 |
 | 复杂格式生成 | OkapiBarcode | 0.5.6 |
 | 测试 | JUnit + Robolectric | 4.13.2 / 4.16.1 |
+| 覆盖率 | JaCoCo + GitHub Pages | 0.8.12 / shields.io endpoint badge |
 
 ## 3. 支持格式总览
 
@@ -132,7 +133,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `ContinuousScanActivity.kt` | 连续扫描 Activity |
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
 | `docs/ui-testing-plan.md` | 全页面 UI/Adapter 测试补全计划 |
-| `.github/workflows/build.yml` | CI 工作流（build + unit tests） |
+| `.github/workflows/build.yml` | CI 工作流（build + unit tests + JaCoCo coverage → GitHub Pages） |
 
 ## 6.5 生成实现细节
 
