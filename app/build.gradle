@@ -64,7 +64,7 @@ android {
         debug {
             signingConfig signingConfigs.debug
             testCoverage {
-                enableUnitTestCoverage = true
+                enableUnitTestCoverage = false
             }
         }
         release {
@@ -89,6 +89,10 @@ android {
         unitTests {
             includeAndroidResources = true
             all {
+                it.jacoco {
+                    includeNoLocationClasses = true
+                    excludes = ['jdk.internal.reflect.*']
+                }
                 it.filter {
                     if (project.hasProperty('excludeExtendedUiTests')) {
                         // 本地/CI 常规验证时排除长耗时测试：扩展 UI 测试 + 样式回扫矩阵
@@ -221,6 +225,10 @@ dependencies {
 
 tasks.register('jacocoTestReport', JacocoReport) {
     dependsOn 'testDebugUnitTest'
+
+    doFirst {
+        delete reports.html.outputLocation
+    }
 
     reports {
         xml.required = true
