@@ -126,7 +126,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 ## 6. UI 与 Adapter 测试
 
-所有用户可见的 UI 页面、Fragment、Activity、Adapter 和自定义 View 均已通过 Robolectric + Espresso 进行交互测试。全量计划见 `docs/ui-testing-plan.md`，当前已全部完成，整体测试套件约 **470 个测试**，0 失败。
+所有用户可见的 UI 页面、Fragment、Activity、Adapter 和自定义 View 均已通过 Robolectric + Espresso 进行交互测试。全量计划见 `docs/ui-testing-plan.md`，当前已全部完成，整体测试套件约 **552 个测试**，0 失败。
 
 重点覆盖：
 
@@ -146,7 +146,9 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 ./gradlew :app:lintDebug
 ```
 
-当前 `./gradlew :app:lintDebug` 已通过（0 error，0 warning）。历史遗留的 `MissingTranslation` / `ExtraTranslation` 等大量风格/质量/翻译债务已统一在 `app/lint.xml` 中忽略，核心 API 兼容性问题仍保持 error 级别。
+当前 `./gradlew :app:lintDebug` 在部分环境（含本地代理/网络受限场景）下可能因依赖解析失败而无法完成；即便依赖可用，项目也存在历史遗留 lint 错误，**不将其作为合并门禁**。核心 API 兼容性问题仍保持 error 级别。
+
+历史遗留的 `MissingTranslation` / `ExtraTranslation` 等大量风格/质量/翻译债务已统一在 `app/lint.xml` 中忽略。
 
 CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `assembleDebug` 和 `testDebugUnitTest`。
 

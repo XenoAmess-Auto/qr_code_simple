@@ -110,6 +110,10 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 |------|------|
 | `BarcodeGenerator.kt` | 条码生成器主入口（ZXing / 自定义 / BoofCV / HanXin / OkapiBarcode 路由） |
 | `AdvancedBarcodeGenerator.kt` | 带样式的高级生成器（含 `FormatStyleCapabilities` 与 `sanitize`） |
+| `BarcodeFormatAdapter.kt` | 生成界面格式下拉框适配器 |
+| `BarcodeFormatUtils.kt` | 格式工具、本地化名称与校验辅助 |
+| `BarcodeLayout.kt` | 统一布局抽象（Grid、Linear、MaxiCode、Fallback）供样式渲染器使用 |
+| `StyleConfigSerialization.kt` | 样式配置 JSON 序列化/反序列化 |
 | `SvgQRCodeGenerator.kt` | 全格式 SVG 导出（ZXing 路径 + bitmap 回退） |
 | `QRCodeScanner.kt` | 多引擎扫描器 |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
@@ -125,13 +129,13 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `data/BarcodeFormat.kt` | 应用内条码格式枚举（含 `isScannable`） |
 | `AppLockManager.kt` | 应用锁（PIN / 生物识别） |
 | `GenerateFragment.kt` | 生成界面 Fragment |
-| `BarcodeLayout.kt` | 统一布局抽象（Grid、Linear、MaxiCode、Fallback）供样式渲染器使用 |
 | `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条 + Alpha 透明度条） |
 | `ColorPickerDialog.kt` | 颜色选取对话框（含 hex / RGBA 输入） |
 | `AngleDialView.kt` | 圆形角度旋钮（用于渐变角度） |
 | `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel） |
 | `ContinuousScanActivity.kt` | 连续扫描 Activity |
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
+| `ui/result/QRResultAdapter.kt` | 多扫描结果 RecyclerView 适配器 |
 | `docs/ui-testing-plan.md` | 全页面 UI/Adapter 测试补全计划 |
 | `.github/workflows/build.yml` | CI 工作流（build + unit tests + JaCoCo coverage → GitHub Pages） |
 

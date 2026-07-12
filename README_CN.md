@@ -15,7 +15,7 @@
 - ✅ **50+ 种条码格式** - 支持 QR Code、Data Matrix（含中文/UTF-8）、Aztec、PDF417、汉信码（Han Xin Code）、MaxiCode、Micro QR、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF、Pharmacode、Plessey、MSI Plessey、Telepen、RSS-14、RSS Expanded、UPC/EAN Extension 等可扫描格式的扫描与生成，同时支持大量 OkapiBarcode 仅生成格式（Code 2 of 5 系列、邮政码、Codablock F、Grid Matrix、Code One 等）。
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等，提供一键操作。
 - ✅ **批量生成** - 从 CSV 或 Excel 导入数据批量生成条码，支持 ZIP 导出。
-- ✅ **样式定制** - 前景/背景颜色、中心 Logo、圆角/点阵样式。
+- ✅ **样式定制** - 前景/背景色、多段渐变、中心 Logo、模块形状（方形/圆点/圆角）、定位图案、圆角比例、纠错等级。
 - ✅ **二维码修复** - 基于 TensorFlow Lite 的增强模型，对模糊/破损二维码进行识别增强。
 
 ### 历史记录
@@ -249,6 +249,10 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── QRCodeScanner.kt                 # 多引擎扫描器（WeChatQRCode → ZXing → ML Kit → BoofCV → HanXin → 自定义）
 ├── BarcodeGenerator.kt              # 条码生成入口
 ├── AdvancedBarcodeGenerator.kt      # 带样式的生成（颜色、Logo、形状）
+├── BarcodeFormatAdapter.kt          # 生成界面格式下拉框适配器
+├── BarcodeFormatUtils.kt            # 格式工具、本地化名称与校验辅助
+├── BarcodeLayout.kt                 # 样式化条码渲染布局抽象（Grid / Linear / MaxiCode / Fallback）
+├── StyleConfigSerialization.kt      # 样式配置 JSON 序列化/反序列化
 ├── SvgQRCodeGenerator.kt            # SVG（矢量）导出
 ├── ShareTemplateGenerator.kt        # 分享图片合成
 ├── ContentParser.kt                 # 纯文本 → WiFi / 联系人 / URL / 日历 / 地理位置
@@ -268,6 +272,7 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── BatchResultActivity.kt           # 批量生成结果页
 ├── BatchGenerator.kt                # CSV / Excel 解析 + 批量生成
 ├── ResultActivity.kt                # 单码结果页（操作菜单）
+├── ui/result/QRResultAdapter.kt     # 多扫描结果 RecyclerView 适配器
 ├── HistoryFragment.kt               # 历史记录列表
 ├── HistoryAdapter.kt                # 历史记录列表适配器
 ├── HistoryBackupManager.kt          # JSON / CSV 导入导出

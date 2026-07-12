@@ -15,7 +15,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **50+ Barcode Formats** - Scan and generate QR Code, Data Matrix (including Chinese/UTF-8), Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, UPC/EAN Extension, and many more OkapiBarcode-only generate-only formats (Code 2 of 5 variants, postal codes, Codablock F, Grid Matrix, Code One, etc.).
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
 - ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with ZIP export.
-- ✅ **Style Customization** - Foreground/background colors, center logo, rounded and dot styles.
+- ✅ **Style Customization** - Foreground/background colors, multi-stop gradients, center logo, module shapes (square/circle/rounded), position patterns, corner radius, and error correction levels.
 - ✅ **QR Code Repair** - Enhancement model for blurry or damaged QR codes (TensorFlow Lite).
 
 ### History
@@ -228,6 +228,10 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── QRCodeScanner.kt                 # Multi-engine scanner (WeChatQRCode -> ZXing -> ML Kit -> BoofCV -> HanXin -> custom)
 ├── BarcodeGenerator.kt              # Barcode generation entry
 ├── AdvancedBarcodeGenerator.kt      # Styled generation (colors, logos, shapes)
+├── BarcodeFormatAdapter.kt          # Format dropdown adapter for the generate UI
+├── BarcodeFormatUtils.kt            # Format utilities, localized names and validation helpers
+├── BarcodeLayout.kt                 # Layout abstraction for styled barcode rendering (Grid / Linear / MaxiCode / Fallback)
+├── StyleConfigSerialization.kt      # JSON serialization / deserialization for style configs
 ├── SvgQRCodeGenerator.kt            # SVG (vector) export
 ├── ShareTemplateGenerator.kt        # Share-image composition
 ├── ContentParser.kt                 # Plain-text -> WiFi / contact / URL / event / geo parsing
@@ -247,6 +251,7 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── BatchResultActivity.kt           # Batch results screen
 ├── BatchGenerator.kt                # CSV / Excel parsing + bulk generation
 ├── ResultActivity.kt                # Single-code result screen (action menu)
+├── ui/result/QRResultAdapter.kt     # RecyclerView adapter for multiple scan results
 ├── HistoryFragment.kt               # History list
 ├── HistoryDetailActivity.kt         # History record detail
 ├── HistoryAdapter.kt                # History list adapter
