@@ -33,7 +33,8 @@
 ### 4.1 `QRCodeScanner.kt` — 重构 `scanAsFlow`
 
 - 废弃 `coroutineScope { ... allDeferred.awaitAll() }` 结构。
-- 创建独立的 `CoroutineScope(SupervisorJob() + Dispatchers.Default)` 启动所有引擎。
+- 创建独立的 `CoroutineScope(SupervisorJob() + Dispatchers.IO)` 启动所有引擎。
+  - 使用 `Dispatchers.IO` 而不是 `Dispatchers.Default`，防止阻塞型/不响应取消的引擎占满 Default 线程池，导致后续 `scanSync` 的 `runBlocking(Dispatchers.Default)` 因线程饥饿而挂起。这是 firebase-bom 34.16.0 在 CI 上诱发超时的新根因。
 - 引入 `sealed class EngineEvent { Result, Completed }` 和一个 `Channel<EngineEvent>`。
 - 每个引擎在独立 scope 中执行：
   - 调用 `runEngineSafely(...)` 获取结果；
@@ -73,8 +74,29 @@
 3. 用 `taskset -c 0` 限制单核再跑，验证低资源下不再挂死。
 4. 重新触发 core-ktx PR 的 CI，确认 60 分钟超时消失。
 
-## 6. 权衡与已知限制
+## 6. 补充：firebase-bom 34.16.0 触发的线程饥饿
 
+### 6.1 现象
+
+- 升级到 `com.google.firebase:firebase-bom:34.16.0` 后，CI 间歇性 60 分钟超时。
+- 在启用 CI 标准输出日志后，发现超时前最后一个 `START TEST` 常是 `AdvancedBarcodeGeneratorTest > Chinese sentence ... roundtrips for 2D formats`，但该测试本身无错；真正原因是前面的扫描请求已让 `Dispatchers.Default` 被阻塞引擎占满，导致新的 `scanSync` 无法分配到线程而挂起。
+
+### 6.2 根因
+
+- `scanAsFlow` 的引擎 scope 原来使用 `Dispatchers.Default`。
+- `scanSync` 使用 `runBlocking(Dispatchers.Default)` 等待 `scanAsFlow` 结果。
+- 当引擎任务（特别是 ML Kit 等不响应取消的阻塞任务）占用 Default 线程池后，`runBlocking` 无法获得线程，形成死锁/饥饿。
+- GitHub Actions runner 通常只有 2 核，Default 线程池更小，比本地多核机器更容易触发。
+
+### 6.3 修复
+
+- 将引擎 scope 的 dispatcher 改为 `Dispatchers.IO`。
+- `Dispatchers.IO` 与 `Dispatchers.Default` 共享统一调度器但允许更多线程，适合阻塞型任务，不会饿死 Default 池。
+- `scanSync` 继续保留在 `Dispatchers.Default`，不再和阻塞引擎竞争线程。
+
+## 7. 权衡与已知限制
+
+- 使用 `Dispatchers.IO` 后，阻塞引擎仍可能占用 IO 线程，但 IO 池更大，不会阻塞 `scanSync` 的 Default 线程。
 - 第三方阻塞引擎（ZXing/WeChatQRCode/BoofCV）超时后会被 abandon，可能继续占用后台线程并短暂持有 Bitmap。这是为了彻底避免 CI 挂死而做的取舍。
 - 我们自己的 HanXin 和 CustomLinear 解码器会支持安全取消。
 - ML Kit 取消时不再调用可能阻塞的 `close()`，依赖 `onComplete` 做资源释放；如果任务永远不完成，资源可能泄漏，但测试不会再挂死。

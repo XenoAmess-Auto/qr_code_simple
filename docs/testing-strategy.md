@@ -150,7 +150,13 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `assembleDebug` 和 `testDebugUnitTest`。
 
-## 8. 注意事项
+## 8. CI 排查辅助
+
+- `app/build.gradle` 已开启 `testLogging.showStandardStreams = true` 并设置 `robolectric.logging=stdout`，让 `android.util.Log` 输出进入 CI 日志。
+- `QRCodeScanner` 内部使用 `Log.d` 记录每个引擎的启动、结束、耗时和总体超时事件，便于在 CI 超时事故中定位是哪个引擎或哪条测试挂起。
+- 如果未来再次出现 CI 挂死，优先查看最后一条 `START TEST` 以及该测试的 `D/QRCodeScanner` 日志，确认是否有引擎只有 `Engine start` 没有 `Engine end`。
+
+## 9. 注意事项
 
 - ML Kit 在 Robolectric 环境下可能无法初始化，因此 roundtrip 测试主要依赖 ZXing、BoofCV 和自定义解码器。
 - 对于仅 ZXing 能扫描的格式（RSS、MaxiCode），确保生成图像质量足够高。
