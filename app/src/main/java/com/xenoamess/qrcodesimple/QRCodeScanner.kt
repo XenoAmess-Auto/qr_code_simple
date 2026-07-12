@@ -235,7 +235,9 @@ object QRCodeScanner {
 
         // 使用独立的 CoroutineScope（不作为 channelFlow 的子 job），确保即使引擎任务不响应取消，
         // channelFlow 本身也能在超时后正常结束，不会被挂起的引擎拖住。
-        val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+        // 使用 Dispatchers.IO 而不是 Default，避免阻塞型引擎任务占满 Default 线程池，
+        // 导致后续 scanSync 的 runBlocking 因线程饥饿而挂起。
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
         val engineJobs = mutableListOf<Job>()
         var allCompleted = false
