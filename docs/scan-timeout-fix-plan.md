@@ -57,9 +57,12 @@
 - 移除 `invokeOnCancellation { scanner.close() }` 中的同步 `close()`，避免取消路径被阻塞。
 - 保留 `onComplete { scanner.close() }`，让任务自然结束时释放资源。
 
-### 4.3 `QRCodeScanner.kt` — 给 `scanSync` 加外层保险
+### 4.3 `QRCodeScanner.kt` — `scanSync` 不再依赖 `Dispatchers.Default`
 
-- 在 `runBlocking` 内再包一层 `withTimeout(config.totalTimeoutMs + 5_000)`，确保调用方永远不会永久阻塞。
+- 原实现：`scanSync` 使用 `runBlocking(Dispatchers.Default)` 等待 `scan()` 结果。
+- 问题：即使引擎已经运行在独立线程池，`scanSync` 自身仍需要一个 `Dispatchers.Default` 线程。当 Default 池被其他协程或泄漏占满时，`runBlocking` 无法拿到线程，新的扫描请求会卡在入口处，连 `scanAsFlow` 的第一行日志都打印不出来。
+- 修改：将 `scanSync` 改为 `runBlocking { ... }`（不带 dispatcher），让扫描流程直接在调用方线程上执行。引擎仍然使用 4.1 中的独立 daemon 线程池，因此不会阻塞调用方线程，也不会再与任何全局调度器竞争。
+- 影响：调用方线程会被阻塞到扫描结束（这是 `scanSync` 同步语义的一部分）。所有生产调用点都位于后台线程（`CameraScanFragment` 的 cameraExecutor、`VideoScanActivity` 的视频处理线程、`GenerateFragment` 的 `lifecycleScope.launch(Dispatchers.Default)`），因此不会阻塞主线程。
 
 ### 4.4 给我们自己的引擎加入取消检查
 
@@ -82,13 +85,15 @@
 ### 6.1 现象
 
 - 升级到 `com.google.firebase:firebase-bom:34.16.0` 后，CI 间歇性 60 分钟超时。
-- 在启用 CI 标准输出日志后，发现超时前最后一个 `START TEST` 常是 `AdvancedBarcodeGeneratorTest > Chinese sentence ... roundtrips for 2D formats`，但该测试本身无错；真正原因是前面的扫描请求已让 `Dispatchers.Default` 被阻塞引擎占满，导致新的 `scanSync` 无法分配到线程而挂起。
+- 在启用 CI 标准输出日志后，发现超时前最后一个 `START TEST` 常是 `AdvancedBarcodeGeneratorTest > Chinese sentence ... roundtrips for 2D formats`，但该测试本身无错；真正原因是 `scanSync` 的 `runBlocking(Dispatchers.Default)` 无法从已耗尽或死锁的 `Dispatchers.Default` 中分配到线程，导致扫描流程还未启动就挂起。
+- 本地多核机器无法稳定复现，但在 GitHub Actions 2 核 runner 上（以及 `taskset -c 0,1` 限制后的本地环境）可以高概率复现。
 
 ### 6.2 根因
 
-- `scanAsFlow` 的引擎 scope 原来使用 `Dispatchers.Default`。
-- `scanSync` 使用 `runBlocking(Dispatchers.Default)` 等待 `scanAsFlow` 结果。
-- 当引擎任务（特别是 ML Kit 等不响应取消的阻塞任务）占用 Default 线程池后，`runBlocking` 无法获得线程，形成死锁/饥饿。
+- `scanAsFlow` 的引擎 scope 最初使用 `Dispatchers.Default`。
+- 第一阶段修复：将引擎 scope 改为独立 daemon 线程池，避免阻塞引擎占满 Default 池。
+- 但 `scanSync` 仍然使用 `runBlocking(Dispatchers.Default)` 等待 `scanAsFlow` 结果。
+- 在测试运行一段时间后，部分第三方库（ML Kit / play-services-tasks / Firebase）或测试框架本身会占用、泄漏或阻塞 `Dispatchers.Default` 的线程。当可用线程数降为 0 时，新的 `scanSync` 的 `runBlocking` 无法获得线程，形成入口级死锁/饥饿。
 - GitHub Actions runner 通常只有 2 核，Default 线程池更小，比本地多核机器更容易触发。
 
 ### 6.3 修复
@@ -96,7 +101,7 @@
 - 不依赖 `Dispatchers.Default` 或 `Dispatchers.IO`，而是为每次 `scanAsFlow` 创建一个独立的固定线程池。
 - 池内线程设为 daemon，大小为 `availableProcessors.coerceAtLeast(2)`。
 - 扫描结束（无论是否超时）后调用 `scope.cancel()` + `executor.shutdownNow()`，尽量回收线程。
-- `scanSync` 继续保留在 `Dispatchers.Default`，不再和阻塞引擎共享或竞争任何线程池。
+- 将 `scanSync` 从 `runBlocking(Dispatchers.Default)` 改为 `runBlocking { ... }`，让扫描流程在调用方线程上执行，不再向 `Dispatchers.Default` 请求线程。
 
 ## 7. 权衡与已知限制
 
@@ -104,3 +109,4 @@
 - 第三方阻塞引擎（ZXing/WeChatQRCode/BoofCV）超时后会被 abandon，可能继续占用后台线程并短暂持有 Bitmap。这是为了彻底避免 CI 挂死而做的取舍。
 - 我们自己的 HanXin 和 CustomLinear 解码器会支持安全取消。
 - ML Kit 取消时不再调用可能阻塞的 `close()`，依赖 `onComplete` 做资源释放；如果任务永远不完成，资源可能泄漏，但测试不会再挂死。
+- `scanSync` 改为 `runBlocking()` 后，同步阻塞发生在调用方线程上。所有已知生产调用点都在后台线程（camera 回调、视频处理、`lifecycleScope.launch(Dispatchers.Default)`），因此不会阻塞主线程。如果未来有主线程直接调用 `scanSync` 的需求，需要在外层自行切换到后台线程。

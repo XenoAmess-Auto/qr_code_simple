@@ -154,7 +154,8 @@ CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `as
 
 - `app/build.gradle` 已开启 `testLogging.showStandardStreams = true` 并设置 `robolectric.logging=stdout`，让 `android.util.Log` 输出进入 CI 日志。
 - `QRCodeScanner` 内部使用 `Log.d` 记录每个引擎的启动、结束、耗时和总体超时事件，便于在 CI 超时事故中定位是哪个引擎或哪条测试挂起。
-- 如果未来再次出现 CI 挂死，优先查看最后一条 `START TEST` 以及该测试的 `D/QRCodeScanner` 日志，确认是否有引擎只有 `Engine start` 没有 `Engine end`。
+- `scanSync` 现在使用 `runBlocking()`（不带 dispatcher）在调用方线程上执行扫描，不再向 `Dispatchers.Default` 请求线程。因此即使其他测试或第三方库占满 `Dispatchers.Default`，扫描流程也不会在入口处死锁。
+- 如果未来再次出现 CI 挂死，优先查看最后一条 `START TEST` 以及该测试的 `D/QRCodeScanner` 日志，确认是否有引擎只有 `Engine start` 没有 `Engine end`；同时确认 `scanSync` 是否已打印 `Starting scanAsFlow`（未打印说明卡在进入 `scanSync` 之前）。
 
 ## 9. 注意事项
 

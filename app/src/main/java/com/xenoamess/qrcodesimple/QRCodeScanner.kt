@@ -21,7 +21,6 @@ import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
 import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinDecoder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -355,7 +354,7 @@ object QRCodeScanner {
      * 内部并行执行，但等待全部引擎结束后返回完整列表，保持调用方语义不变。
      */
     fun scanSync(context: Context, bitmap: Bitmap): List<ScanResult> = try {
-        runBlocking(Dispatchers.Default) {
+        runBlocking {
             scan(context, bitmap)
         }
     } catch (e: Throwable) {
