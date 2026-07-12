@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -38,6 +39,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.opencv.core.Mat
 import java.util.ArrayList
 import java.util.EnumMap
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
@@ -233,11 +236,14 @@ object QRCodeScanner {
         val processedBitmap = preprocessBitmap(bitmap, config.maxDimension)
         val shouldRecycleProcessed = processedBitmap !== bitmap
 
-        // 使用独立的 CoroutineScope（不作为 channelFlow 的子 job），确保即使引擎任务不响应取消，
-        // channelFlow 本身也能在超时后正常结束，不会被挂起的引擎拖住。
-        // 使用 Dispatchers.IO 而不是 Default，避免阻塞型引擎任务占满 Default 线程池，
-        // 导致后续 scanSync 的 runBlocking 因线程饥饿而挂起。
-        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        // 使用独立的线程池启动引擎，避免阻塞型/不响应取消的引擎占满 Dispatchers.Default 或 Dispatchers.IO。
+        // 线程池里的线程设为 daemon，即使引擎 ignore 取消，也不会阻止 JVM/进程退出。
+        val engineExecutor = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors().coerceAtLeast(2)
+        ) { runnable ->
+            Thread(runnable, "QRCodeScanner-engine").apply { isDaemon = true }
+        }
+        val scope = CoroutineScope(engineExecutor.asCoroutineDispatcher() + SupervisorJob())
         val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
         val engineJobs = mutableListOf<Job>()
         var allCompleted = false
@@ -324,6 +330,7 @@ object QRCodeScanner {
             }
             eventChannel.close()
             scope.cancel()
+            engineExecutor.shutdownNow()
             if (allCompleted && shouldRecycleProcessed && !processedBitmap.isRecycled) {
                 processedBitmap.recycle()
             }
