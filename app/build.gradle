@@ -89,6 +89,10 @@ android {
                     }
                 }
                 it.addTestListener(new GlobalTestLogger())
+                testLogging {
+                    showStandardStreams = true
+                }
+                systemProperty 'robolectric.logging', 'stdout'
             }
         }
     }
