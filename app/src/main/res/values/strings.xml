@@ -342,4 +342,68 @@
     <string name="hint_code_39">Enter alphanumeric (0-9, A-Z, -, ., space, $, /, +, %)</string>
     <string name="hint_code_128">Enter any ASCII characters</string>
 
+    <!-- Missing defaults for translated-only resources -->
+
+    <!-- Chips -->
+    <string name="chip_all">All</string>
+    <string name="chip_favorites">Favorites</string>
+    <string name="chip_scanned">Scanned</string>
+    <string name="chip_generated">Generated</string>
+    <string name="chip_type_qr">QR Code</string>
+    <string name="chip_type_barcode">Barcode</string>
+    <string name="chip_content_link">Link</string>
+    <string name="chip_content_text">Text</string>
+    <string name="chip_content_wifi">WiFi</string>
+    <string name="chip_content_contact">Contact</string>
+    <string name="chip_format_qr">QR Code</string>
+    <string name="chip_format_ean13">EAN-13</string>
+    <string name="chip_format_code128">Code 128</string>
+    <string name="chip_format_code39">Code 39</string>
+    <string name="chip_sort_newest">Newest</string>
+    <string name="chip_sort_oldest">Oldest</string>
+
+    <!-- Search -->
+    <string name="search">Search</string>
+    <string name="search_hint">Search by content…</string>
+    <string name="clear_search">Clear search</string>
+
+    <!-- History -->
+    <string name="no_history_found">No history found</string>
+    <string name="items_found">%1$d items found</string>
+
+    <!-- Notes -->
+    <string name="add_notes">Add notes</string>
+    <string name="edit_notes">Edit notes</string>
+    <string name="notes_hint">Enter notes for this item…</string>
+
+    <!-- Content Types -->
+    <string name="content_type_barcode">Barcode</string>
+    <string name="content_type_event">Event</string>
+    <string name="content_type_link">Link</string>
+
+    <!-- Batch/CSV -->
+    <string name="csv_file_empty">CSV file is empty</string>
+    <string name="csv_file_selected">CSV file selected</string>
+    <string name="csv_parse_error">CSV parse error</string>
+    <string name="generating">Generating %1$d/%2$d…</string>
+    <string name="generation_complete">Generation complete</string>
+    <string name="generation_failed">Generation failed: %1$s</string>
+    <string name="failed_count">Failed: %1$d</string>
+    <string name="generating_zip">Generating ZIP…</string>
+    <string name="download_zip">Download ZIP</string>
+
+    <!-- Continuous Scan -->
+    <string name="results">Results</string>
+    <string name="auto_save">Auto save</string>
+    <string name="deduplication">Deduplication</string>
+
+    <!-- Privacy Settings -->
+    <string name="privacy_mode">Privacy mode</string>
+    <string name="privacy_mode_description">Scanned QR codes will not be saved to history</string>
+    <string name="privacy_mode_enabled">Privacy mode enabled</string>
+    <string name="privacy_mode_disabled">Privacy mode disabled</string>
+
+    <!-- Dialogs -->
+    <string name="confirm">Confirm</string>
+
 </resources>
