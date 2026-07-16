@@ -39,7 +39,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Your history data is encrypted with SQLCipher using AES-256 encryption."
+                    android:text="@string/sqlcipher_description"
                     android:textSize="12sp"
                     android:textColor="?android:attr/textColorSecondary" />
 

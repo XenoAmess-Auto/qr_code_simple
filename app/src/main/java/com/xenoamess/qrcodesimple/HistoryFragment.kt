@@ -296,7 +296,7 @@ class HistoryFragment : Fragment() {
     private fun toggleFavorite(item: HistoryItem) {
         lifecycleScope.launch {
             repository.toggleFavorite(item)
-            val message = if (!item.isFavorite) "Added to favorites" else "Removed from favorites"
+            val message = getString(if (!item.isFavorite) R.string.added_to_favorites else R.string.removed_from_favorites)
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
     }

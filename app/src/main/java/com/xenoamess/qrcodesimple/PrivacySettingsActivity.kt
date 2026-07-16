@@ -86,7 +86,7 @@ class PrivacySettingsActivity : AppCompatActivity() {
             } else {
                 QRCodeApp.setPrivacyMode(this, false)
                 updatePrivacyModeUI(false)
-                Toast.makeText(this, "Privacy mode disabled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.privacy_mode_disabled), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -176,7 +176,7 @@ class PrivacySettingsActivity : AppCompatActivity() {
                 val confirmPin = confirmPinInput.text?.toString()?.trim() ?: ""
 
                 if (pin.length < 4) {
-                    Toast.makeText(this, "PIN must be at least 4 digits", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.pin_min_digits), Toast.LENGTH_SHORT).show()
                     deliverResult(false)
                     return@setPositiveButton
                 }
@@ -220,7 +220,7 @@ class PrivacySettingsActivity : AppCompatActivity() {
             .setPositiveButton("Enable") { _, _ ->
                 QRCodeApp.setPrivacyMode(this, true)
                 updatePrivacyModeUI(true)
-                Toast.makeText(this, "Privacy mode enabled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.privacy_mode_enabled), Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel") { _, _ ->
                 binding.switchPrivacyMode.isChecked = false

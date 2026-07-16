@@ -177,7 +177,7 @@ class QRResultAdapterTest : BaseAdapterTest() {
         val layout = holder.itemView.findViewById<View>(R.id.layoutSecurityIndicator)
         val tvStatus = holder.itemView.findViewById<TextView>(R.id.tvSecurityStatus)
         assertEquals(View.VISIBLE, layout.visibility)
-        assertEquals("链接安全", tvStatus.text.toString())
+        assertEquals("Link looks safe", tvStatus.text.toString())
     }
 
     @Test
@@ -185,7 +185,7 @@ class QRResultAdapterTest : BaseAdapterTest() {
         val holder = bindItem(QRResult("https://phishing.com/steal"), withLifecycleScope = true)
         flushMainLooper()
         val tvStatus = holder.itemView.findViewById<TextView>(R.id.tvSecurityStatus)
-        assertEquals("危险链接", tvStatus.text.toString())
+        assertEquals("Dangerous link", tvStatus.text.toString())
     }
 
     @Test

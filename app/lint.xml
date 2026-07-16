@@ -15,10 +15,10 @@
     <!--
         以下多为风格、质量或项目当前不优先处理的警告。由于历史代码量大，逐一
         修复收益不高，先忽略以保持 lint 报告干净，后续重构时逐步解决。
+        （HardcodedText 已于 0.2.2 清理主流程后升级为 error，见下。）
     -->
     <issue id="UseKtx" severity="ignore" />
     <issue id="UnusedResources" severity="ignore" />
-    <issue id="HardcodedText" severity="ignore" />
     <issue id="SetTextI18n" severity="ignore" />
     <issue id="ButtonStyle" severity="ignore" />
     <issue id="UseCompatLoadingForDrawables" severity="ignore" />
@@ -40,6 +40,12 @@
     -->
     <issue id="ContentDescription" severity="error" />
     <issue id="ClickableViewAccessibility" severity="ignore" />
+
+    <!--
+        布局硬编码文本：主流程已清理（占位文本改 tools:text，真实文本走字符串资源），
+        升级为 error；剩余零星问题在 baseline 中。
+    -->
+    <issue id="HardcodedText" severity="error" />
     <issue id="UseSwitchCompatOrMaterialXml" severity="ignore" />
     <issue id="SmallSp" severity="ignore" />
     <issue id="DiscouragedApi" severity="ignore" />

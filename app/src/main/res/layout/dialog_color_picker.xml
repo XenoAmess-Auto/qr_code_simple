@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -94,7 +95,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hex"
+                        android:text="@string/hex"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?android:attr/textColorSecondary"
                         android:layout_marginEnd="12dp" />
@@ -137,7 +138,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="R"
+                            android:text="@string/color_channel_r"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?android:attr/textColorSecondary" />
 
@@ -148,7 +149,7 @@
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"
-                            android:text="255"
+                            tools:text="255"
                             android:background="@drawable/bg_rgba_input"
                             android:padding="8dp" />
 
@@ -164,7 +165,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="G"
+                            android:text="@string/color_channel_g"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?android:attr/textColorSecondary" />
 
@@ -175,7 +176,7 @@
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"
-                            android:text="255"
+                            tools:text="255"
                             android:background="@drawable/bg_rgba_input"
                             android:padding="8dp" />
 
@@ -191,7 +192,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="B"
+                            android:text="@string/color_channel_b"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?android:attr/textColorSecondary" />
 
@@ -202,7 +203,7 @@
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"
-                            android:text="255"
+                            tools:text="255"
                             android:background="@drawable/bg_rgba_input"
                             android:padding="8dp" />
 
@@ -218,7 +219,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="A"
+                            android:text="@string/color_channel_a"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?android:attr/textColorSecondary" />
 
@@ -229,7 +230,7 @@
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"
-                            android:text="255"
+                            tools:text="255"
                             android:background="@drawable/bg_rgba_input"
                             android:padding="8dp" />
 

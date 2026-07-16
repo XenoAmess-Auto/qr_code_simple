@@ -31,7 +31,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Privacy Mode"
+                        android:text="@string/privacy_mode"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -39,7 +39,7 @@
                         android:id="@+id/tvPrivacyStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Privacy mode is OFF"
+                        android:text="@string/privacy_mode_off"
                         android:textSize="14sp"
                         android:layout_marginTop="4dp" />
 
@@ -93,7 +93,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Privacy Mode Active"
+                android:text="@string/privacy_mode_active"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorPrimary" />
@@ -101,7 +101,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• Scan results will not be saved\n• Generate history will not be saved\n• Existing history is preserved"
+                android:text="@string/privacy_mode_info"
                 android:textSize="14sp"
                 android:layout_marginTop="8dp" />
 
@@ -183,7 +183,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Data Management"
+                android:text="@string/data_management"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -214,7 +214,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Clear All History"
+                android:text="@string/clear_all"
                 android:textColor="@android:color/holo_red_dark"
                 style="?android:attr/borderlessButtonStyle" />
 

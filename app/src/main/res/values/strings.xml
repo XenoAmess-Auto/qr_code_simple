@@ -428,4 +428,59 @@
     <string name="scan_region_mode_on">Region mode on: drag to select the decode area</string>
     <string name="scan_region_mode_off">Region mode off: decoding full frames</string>
     <string name="select_history_prompt">Select a history item to view details</string>
+    <!-- 安全检查（SecurityManager） -->
+    <string name="security_cannot_parse_domain">Cannot parse domain</string>
+    <string name="security_dangerous_link">Dangerous link</string>
+    <string name="security_domain_blacklisted">This domain is blacklisted and may be unsafe</string>
+    <string name="security_suspicious_link">Suspicious link</string>
+    <string name="security_insecure_link">Insecure link</string>
+    <string name="security_no_https">This link does not use HTTPS encryption</string>
+    <string name="security_link_safe">Link looks safe</string>
+    <string name="security_no_obvious_risk">No obvious security risks found</string>
+    <string name="security_check_failed">Security check failed</string>
+    <string name="security_check_failed_detail">Could not complete the security check: %1$s</string>
+    <string name="security_feature_ip">Uses an IP address instead of a domain name</string>
+    <string name="security_feature_long_url">URL is very long and may hide its real destination</string>
+    <string name="security_feature_at">Contains an @ symbol, which can be used to deceive</string>
+    <string name="security_feature_complex_url">URL structure is complex and may involve redirects</string>
+    <string name="security_feature_keywords">Contains multiple sensitive keywords; possible phishing</string>
+    <string name="security_feature_short_url">Shortened URL service; destination cannot be inspected directly</string>
+    <string name="security_tip_safe">This link looks safe, but stay cautious</string>
+    <string name="security_tip_low">Confirm the source before visiting this link</string>
+    <string name="security_tip_medium">This link has suspicious features; be careful</string>
+    <string name="security_tip_high">Strongly recommend NOT visiting this link!</string>
+    <string name="security_tip_unknown">Cannot determine safety; handle with care</string>
+    <!-- 分享模板 -->
+    <string name="share_hint_scan_to_view">Scan to view content</string>
+    <string name="share_text_share">Text share</string>
+    <string name="share_hint_wifi">Scan to join the Wi-Fi network</string>
+    <string name="share_hint_contact">Scan to add the contact</string>
+    <string name="share_hint_email">Scan to send an email</string>
+    <string name="share_hint_detail">Scan for details</string>
+    <!-- 各页面零散硬编码 -->
+    <string name="no_valid_content">No valid content found</string>
+    <string name="no_content_to_generate">No content to generate</string>
+    <string name="pin_min_digits">PIN must be at least 4 digits</string>
+    <string name="added_to_favorites">Added to favorites</string>
+    <string name="removed_from_favorites">Removed from favorites</string>
+    <string name="comma_separated_tags">Comma separated tags</string>
+    <string name="tags_saved">Tags saved</string>
+    <string name="saved">Saved</string>
+    <!-- 布局硬编码 -->
+    <string name="export_label">Export</string>
+    <string name="template">Template</string>
+    <string name="hex">Hex</string>
+    <string name="data_management">Data Management</string>
+    <string name="privacy_mode_off">Privacy mode is OFF</string>
+    <string name="privacy_mode_active">Privacy Mode Active</string>
+    <string name="enter_content_hint">Enter content (one per line)</string>
+    <string name="import_csv">Import CSV</string>
+    <string name="sqlcipher_description">Your history data is encrypted with SQLCipher using AES-256 encryption.</string>
+    <string name="batch_input_hint">https://example.com\nhttps://another.com\n...</string>
+    <string name="privacy_mode_info">• Scan results will not be saved\n• Generate history will not be saved\n• Existing history is preserved</string>
+    <string name="color_channel_r">R</string>
+    <string name="color_channel_g">G</string>
+    <string name="color_channel_b">B</string>
+    <string name="color_channel_a">A</string>
+    <string name="items_count">%1$d items</string>
 </resources>

@@ -155,7 +155,7 @@ class HistoryDetailFragment : Fragment() {
         val editText = android.widget.EditText(requireContext()).apply {
             setText(item.tags ?: "")
             setSelection(item.tags?.length ?: 0)
-            hint = "Comma separated tags"
+            hint = getString(R.string.comma_separated_tags)
         }
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.edit_tags))
@@ -164,7 +164,7 @@ class HistoryDetailFragment : Fragment() {
                 val tags = editText.text.toString()
                 viewLifecycleOwner.lifecycleScope.launch {
                     repository.setTags(item.id, TagManager.parseTags(tags))
-                    Toast.makeText(requireContext(), "Tags saved", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.tags_saved), Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(getString(R.string.cancel), null)
@@ -217,7 +217,7 @@ class HistoryDetailFragment : Fragment() {
                 val newContent = editText.text.toString()
                 viewLifecycleOwner.lifecycleScope.launch {
                     repository.updateContent(item.id, newContent)
-                    Toast.makeText(requireContext(), "Saved", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.saved), Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(getString(R.string.cancel), null)
@@ -242,7 +242,7 @@ class HistoryDetailFragment : Fragment() {
     private fun toggleFavorite(item: HistoryItem) {
         viewLifecycleOwner.lifecycleScope.launch {
             repository.toggleFavorite(item)
-            val message = if (!item.isFavorite) "Added to favorites" else "Removed from favorites"
+            val message = getString(if (!item.isFavorite) R.string.added_to_favorites else R.string.removed_from_favorites)
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
     }

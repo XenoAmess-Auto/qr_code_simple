@@ -183,9 +183,9 @@ class BatchGenerateActivity : AppCompatActivity() {
                     contentResolver.openOutputStream(uri)?.use { outputStream ->
                         outputStream.write(BatchGenerator.generateTemplate().toByteArray())
                     }
-                    Toast.makeText(this, "Template saved", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.batch_template_saved), Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
-                    Toast.makeText(this, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -194,13 +194,13 @@ class BatchGenerateActivity : AppCompatActivity() {
     private fun generateBatch() {
         val text = binding.etContent.text?.toString()?.trim()
         if (text.isNullOrEmpty()) {
-            Toast.makeText(this, "Please enter content", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.please_enter_content), Toast.LENGTH_SHORT).show()
             return
         }
 
         val items = BatchGenerator.parseSimpleBatch(text, selectedFormat)
         if (items.isEmpty()) {
-            Toast.makeText(this, "No valid content found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_valid_content), Toast.LENGTH_SHORT).show()
             return
         }
 

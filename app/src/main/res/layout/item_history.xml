@@ -79,7 +79,7 @@
             android:layout_height="36dp"
             android:src="@drawable/ic_star_border"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Favorite" />
+            android:contentDescription="@string/chip_favorites" />
 
         <ImageButton
             android:id="@+id/btnNote"
@@ -87,7 +87,7 @@
             android:layout_height="36dp"
             android:src="@drawable/ic_note"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Add note" />
+            android:contentDescription="@string/add_notes" />
 
         <ImageButton
             android:id="@+id/btnEdit"

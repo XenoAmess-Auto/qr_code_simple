@@ -19,11 +19,21 @@ object SecurityManager {
     @Volatile
     private var blacklist: SecurityBlacklist = SecurityBlacklist.fallback()
 
+    /** 用于解析本地化字符串；未 init 时回退到英文硬编码（单元测试场景）。 */
+    @Volatile
+    private var appContext: Context? = null
+
+    private fun str(resId: Int, fallback: String, vararg args: Any): String {
+        val ctx = appContext ?: return if (args.isEmpty()) fallback else String.format(fallback, *args)
+        return ctx.getString(resId, *args)
+    }
+
     /**
      * 初始化黑名单：加载 assets 内置列表，若有更高版本的在线更新产物则覆盖。
      * 可重复调用（在线更新完成后用于热加载）。
      */
     fun init(context: Context) {
+        appContext = context.applicationContext
         val bundled = SecurityBlacklist.loadBundled(context)
         val override = SecurityBlacklist.loadOverride(context)
         blacklist = when {
@@ -32,9 +42,10 @@ object SecurityManager {
         }
     }
 
-    /** 仅用于测试：重置为代码内置兜底列表。 */
+    /** 仅用于测试：重置为代码内置兜底列表并清除 Context。 */
     internal fun resetForTesting() {
         blacklist = SecurityBlacklist.fallback()
+        appContext = null
     }
 
     /** 当前生效的黑名单版本。 */
@@ -70,7 +81,7 @@ object SecurityManager {
             val domain = extractDomain(url) ?: return SecurityCheckResult(
                 false,
                 RiskLevel.UNKNOWN,
-                "无法解析域名"
+                str(R.string.security_cannot_parse_domain, "Cannot parse domain")
             )
 
             // 1. 检查本地黑名单
@@ -78,8 +89,8 @@ object SecurityManager {
                 return SecurityCheckResult(
                     false,
                     RiskLevel.HIGH,
-                    "危险链接",
-                    "该域名在黑名单中，可能存在安全风险"
+                    str(R.string.security_dangerous_link, "Dangerous link"),
+                    str(R.string.security_domain_blacklisted, "This domain is blacklisted and may be unsafe")
                 )
             }
 
@@ -89,7 +100,7 @@ object SecurityManager {
                 return SecurityCheckResult(
                     false,
                     RiskLevel.MEDIUM,
-                    "可疑链接",
+                    str(R.string.security_suspicious_link, "Suspicious link"),
                     suspiciousFeatures.joinToString("\n")
                 )
             }
@@ -99,24 +110,24 @@ object SecurityManager {
                 return SecurityCheckResult(
                     false,
                     RiskLevel.LOW,
-                    "非安全链接",
-                    "该链接未使用 HTTPS 加密传输"
+                    str(R.string.security_insecure_link, "Insecure link"),
+                    str(R.string.security_no_https, "This link does not use HTTPS encryption")
                 )
             }
 
             SecurityCheckResult(
                 true,
                 RiskLevel.SAFE,
-                "链接安全",
-                "未发现明显安全风险"
+                str(R.string.security_link_safe, "Link looks safe"),
+                str(R.string.security_no_obvious_risk, "No obvious security risks found")
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error checking URL", e)
             SecurityCheckResult(
                 false,
                 RiskLevel.UNKNOWN,
-                "检测失败",
-                "无法完成安全检测: ${e.message}"
+                str(R.string.security_check_failed, "Security check failed"),
+                str(R.string.security_check_failed_detail, "Could not complete the security check: %1\$s", e.message ?: "")
             )
         }
     }
@@ -153,35 +164,35 @@ object SecurityManager {
         
         // 检查 IP 地址（而非域名）
         if (domain.matches(Regex("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$"))) {
-            features.add("使用 IP 地址而非域名")
+            features.add(str(R.string.security_feature_ip, "Uses an IP address instead of a domain name"))
         }
         
         // 检查 URL 长度
         if (url.length > 200) {
-            features.add("URL 过长，可能隐藏真实地址")
+            features.add(str(R.string.security_feature_long_url, "URL is very long and may hide its real destination"))
         }
         
         // 检查可疑字符
         if (url.contains("@")) {
-            features.add("包含 @ 符号，可能用于欺骗")
+            features.add(str(R.string.security_feature_at, "Contains an @ symbol, which can be used to deceive"))
         }
         
         // 检查多重域名
         val domainCount = url.split("/").count { it.contains(".") }
         if (domainCount > 2) {
-            features.add("URL 结构复杂，可能存在重定向")
+            features.add(str(R.string.security_feature_complex_url, "URL structure is complex and may involve redirects"))
         }
         
         // 检查可疑关键词组合
         val lowercaseUrl = url.lowercase()
         val keywordCount = blacklist.suspiciousKeywords.count { lowercaseUrl.contains(it) }
         if (keywordCount >= 3) {
-            features.add("包含多个敏感关键词，可能是钓鱼链接")
+            features.add(str(R.string.security_feature_keywords, "Contains multiple sensitive keywords; possible phishing"))
         }
 
         // 检查短链接服务
         if (blacklist.shortUrlServices.any { domain.contains(it) }) {
-            features.add("短链接服务，无法直接查看目标地址")
+            features.add(str(R.string.security_feature_short_url, "Shortened URL service; destination cannot be inspected directly"))
         }
         
         return features
@@ -192,11 +203,11 @@ object SecurityManager {
      */
     fun getSecurityTip(result: SecurityCheckResult): String {
         return when (result.riskLevel) {
-            RiskLevel.SAFE -> "该链接看起来安全，但仍建议谨慎访问"
-            RiskLevel.LOW -> "建议确认链接来源后再访问"
-            RiskLevel.MEDIUM -> "该链接存在可疑特征，请谨慎访问"
-            RiskLevel.HIGH -> "强烈建议不要访问此链接！"
-            RiskLevel.UNKNOWN -> "无法判断安全性，请谨慎处理"
+            RiskLevel.SAFE -> str(R.string.security_tip_safe, "This link looks safe, but stay cautious")
+            RiskLevel.LOW -> str(R.string.security_tip_low, "Confirm the source before visiting this link")
+            RiskLevel.MEDIUM -> str(R.string.security_tip_medium, "This link has suspicious features; be careful")
+            RiskLevel.HIGH -> str(R.string.security_tip_high, "Strongly recommend NOT visiting this link!")
+            RiskLevel.UNKNOWN -> str(R.string.security_tip_unknown, "Cannot determine safety; handle with care")
         }
     }
 

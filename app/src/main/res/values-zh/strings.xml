@@ -385,4 +385,59 @@
     <string name="privacy_mode_disabled">隐私模式已关闭</string>
     <string name="confirm">确认</string>
     <string name="select_history_prompt">选择一条历史记录查看详情</string>
+    <!-- 安全检查（SecurityManager） -->
+    <string name="security_cannot_parse_domain">无法解析域名</string>
+    <string name="security_dangerous_link">危险链接</string>
+    <string name="security_domain_blacklisted">该域名在黑名单中，可能存在安全风险</string>
+    <string name="security_suspicious_link">可疑链接</string>
+    <string name="security_insecure_link">非安全链接</string>
+    <string name="security_no_https">该链接未使用 HTTPS 加密传输</string>
+    <string name="security_link_safe">链接安全</string>
+    <string name="security_no_obvious_risk">未发现明显安全风险</string>
+    <string name="security_check_failed">检测失败</string>
+    <string name="security_check_failed_detail">无法完成安全检测：%1$s</string>
+    <string name="security_feature_ip">使用 IP 地址而非域名</string>
+    <string name="security_feature_long_url">URL 过长，可能隐藏真实地址</string>
+    <string name="security_feature_at">包含 @ 符号，可能用于欺骗</string>
+    <string name="security_feature_complex_url">URL 结构复杂，可能存在重定向</string>
+    <string name="security_feature_keywords">包含多个敏感关键词，可能是钓鱼链接</string>
+    <string name="security_feature_short_url">短链接服务，无法直接查看目标地址</string>
+    <string name="security_tip_safe">该链接看起来安全，但仍建议谨慎访问</string>
+    <string name="security_tip_low">建议确认链接来源后再访问</string>
+    <string name="security_tip_medium">该链接存在可疑特征，请谨慎访问</string>
+    <string name="security_tip_high">强烈建议不要访问此链接！</string>
+    <string name="security_tip_unknown">无法判断安全性，请谨慎处理</string>
+    <!-- 分享模板 -->
+    <string name="share_hint_scan_to_view">扫码查看内容</string>
+    <string name="share_text_share">文本分享</string>
+    <string name="share_hint_wifi">扫描连接 WiFi 网络</string>
+    <string name="share_hint_contact">扫描添加联系人</string>
+    <string name="share_hint_email">扫描发送邮件</string>
+    <string name="share_hint_detail">扫描查看详情</string>
+    <!-- 各页面零散硬编码 -->
+    <string name="no_valid_content">未找到有效内容</string>
+    <string name="no_content_to_generate">没有可生成的内容</string>
+    <string name="pin_min_digits">PIN 至少需要 4 位数字</string>
+    <string name="added_to_favorites">已加入收藏</string>
+    <string name="removed_from_favorites">已取消收藏</string>
+    <string name="comma_separated_tags">标签，用逗号分隔</string>
+    <string name="tags_saved">标签已保存</string>
+    <string name="saved">已保存</string>
+    <!-- 布局硬编码 -->
+    <string name="export_label">导出</string>
+    <string name="template">模板</string>
+    <string name="hex">Hex</string>
+    <string name="data_management">数据管理</string>
+    <string name="privacy_mode_off">隐私模式已关闭</string>
+    <string name="privacy_mode_active">隐私模式已开启</string>
+    <string name="enter_content_hint">输入内容（每行一条）</string>
+    <string name="import_csv">导入 CSV</string>
+    <string name="sqlcipher_description">您的历史数据已使用 SQLCipher（AES-256）加密。</string>
+    <string name="batch_input_hint">https://example.com\nhttps://another.com\n...</string>
+    <string name="privacy_mode_info">• 扫描结果不会保存\n• 生成历史不会保存\n• 已有历史记录会保留</string>
+    <string name="color_channel_r">R</string>
+    <string name="color_channel_g">G</string>
+    <string name="color_channel_b">B</string>
+    <string name="color_channel_a">A</string>
+    <string name="items_count">%1$d 条</string>
 </resources>

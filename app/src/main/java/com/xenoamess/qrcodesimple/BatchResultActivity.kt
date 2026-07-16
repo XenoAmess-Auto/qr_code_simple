@@ -70,7 +70,7 @@ class BatchResultActivity : AppCompatActivity() {
         val format = formatName?.let { BarcodeFormat.valueOf(it) } ?: BarcodeFormat.QR_CODE
 
         if (contents.isNullOrEmpty()) {
-            Toast.makeText(this, "No content to generate", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_content_to_generate), Toast.LENGTH_SHORT).show()
             finish()
             return
         }

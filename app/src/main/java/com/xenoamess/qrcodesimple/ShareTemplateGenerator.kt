@@ -44,8 +44,8 @@ object ShareTemplateGenerator {
         content: String,
         type: HistoryType,
         config: TemplateConfig = TemplateConfig(
-            title = getDefaultTitle(type),
-            description = getDefaultDescription(content, type)
+            title = getDefaultTitle(context, type),
+            description = getDefaultDescription(context, content, type)
         )
     ): Uri? = withContext(Dispatchers.IO) {
         try {
@@ -135,7 +135,7 @@ object ShareTemplateGenerator {
                 textSize = 28f
                 textAlign = Paint.Align.CENTER
             }
-            canvas.drawText("扫码查看内容", width / 2f, footerY + 50, hintPaint)
+            canvas.drawText(context.getString(R.string.share_hint_scan_to_view), width / 2f, footerY + 50, hintPaint)
 
             // 保存到文件目录
             val shareDir = File(context.filesDir, "share_images").apply { mkdirs() }
@@ -182,10 +182,10 @@ object ShareTemplateGenerator {
         }
     }
 
-    private fun getDefaultTitle(type: HistoryType): String {
+    private fun getDefaultTitle(context: Context, type: HistoryType): String {
         return when (type) {
-            HistoryType.QR_CODE -> "二维码"
-            HistoryType.BARCODE -> "条码"
+            HistoryType.QR_CODE -> context.getString(R.string.type_qr_code)
+            HistoryType.BARCODE -> context.getString(R.string.type_barcode)
             HistoryType.DATA_MATRIX -> "Data Matrix"
             HistoryType.AZTEC -> "Aztec Code"
             HistoryType.PDF417 -> "PDF417"
@@ -200,17 +200,17 @@ object ShareTemplateGenerator {
             HistoryType.TELEPEN -> "Telepen"
             HistoryType.HAN_XIN -> "Han Xin Code"
             HistoryType.GENERATED_ONLY -> "Generated Barcode"
-            HistoryType.TEXT -> "文本分享"
+            HistoryType.TEXT -> context.getString(R.string.share_text_share)
         }
     }
 
-    private fun getDefaultDescription(content: String, type: HistoryType): String {
+    private fun getDefaultDescription(context: Context, content: String, type: HistoryType): String {
         return when {
-            content.startsWith("WIFI:") -> "扫描连接 WiFi 网络"
+            content.startsWith("WIFI:") -> context.getString(R.string.share_hint_wifi)
             content.startsWith("http://") || content.startsWith("https://") -> content.take(30)
-            content.startsWith("BEGIN:VCARD") -> "扫描添加联系人"
-            content.startsWith("mailto:") -> "扫描发送邮件"
-            else -> "扫描查看详情"
+            content.startsWith("BEGIN:VCARD") -> context.getString(R.string.share_hint_contact)
+            content.startsWith("mailto:") -> context.getString(R.string.share_hint_email)
+            else -> context.getString(R.string.share_hint_detail)
         }
     }
 }

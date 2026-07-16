@@ -24,7 +24,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enter content (one per line)"
+        android:text="@string/enter_content_hint"
         android:textSize="14sp"
         android:textColor="?attr/colorPrimary"
         android:layout_marginBottom="4dp" />
@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="top"
-            android:hint="https://example.com\nhttps://another.com\n..."
+            android:hint="@string/batch_input_hint"
             android:inputType="textMultiLine" />
 
     </LinearLayout>
@@ -56,7 +56,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Import CSV"
+            android:text="@string/import_csv"
             android:layout_marginEnd="4dp"
             style="?android:attr/borderlessButtonStyle" />
 
@@ -65,7 +65,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Template"
+            android:text="@string/template"
             android:layout_marginStart="4dp"
             style="?android:attr/borderlessButtonStyle" />
 
@@ -82,7 +82,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Generate Batch"
+            android:text="@string/generate_batch"
             android:layout_marginEnd="4dp" />
 
         <Button
@@ -90,7 +90,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Clear"
+            android:text="@string/clear"
             android:layout_marginStart="4dp"
             style="?android:attr/borderlessButtonStyle" />
 

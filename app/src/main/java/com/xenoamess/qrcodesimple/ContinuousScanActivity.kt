@@ -59,6 +59,7 @@ class ContinuousScanActivity : AppCompatActivity() {
         setupButtons()
         loadSettings()
         setupCameraFragment()
+        updateCount()
     }
 
     private fun setupCameraFragment() {
@@ -178,7 +179,7 @@ class ContinuousScanActivity : AppCompatActivity() {
         val result = results.getOrNull(position) ?: return
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         clipboard.setPrimaryClip(android.content.ClipData.newPlainText("QR Code", result.content))
-        Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.copied), Toast.LENGTH_SHORT).show()
     }
 
     private fun shareResult(position: Int) {
@@ -264,7 +265,7 @@ class ContinuousScanActivity : AppCompatActivity() {
     }
 
     private fun updateCount() {
-        binding.tvCount.text = "${results.size} items"
+        binding.tvCount.text = getString(R.string.items_count, results.size)
     }
 
     override fun onSupportNavigateUp(): Boolean {

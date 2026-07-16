@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/action_save_all"
-        android:title="Save All as ZIP"
+        android:title="@string/save_all_zip"
         android:orderInCategory="100"
         app:showAsAction="ifRoom" />
 
