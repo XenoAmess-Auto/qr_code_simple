@@ -24,7 +24,8 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Smart Categories** - Auto-classify into links, text, WiFi, contacts, and more.
 - ✅ **Favorites / Pinning** - Mark important items.
 - ✅ **Tag System** - Custom tag management.
-- ✅ **Import / Export** - JSON / CSV backup.
+- ✅ **Import / Export** - JSON / CSV backup, plus optional password-encrypted backups (AES-256-GCM + PBKDF2).
+- ✅ **Retention Policy** - Auto-delete history older than 30 / 90 / 365 days (favorites are kept).
 
 ### Scanning Experience
 
@@ -33,24 +34,29 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Auto / Tap-to-focus** - Adapts to code size; tap to focus manually.
 - ✅ **Scan Region Limit** - Decode only within a selected area.
 - ✅ **Video Scan** - Decode barcodes directly from video files.
+- ✅ **Share to Scan** - Share images or videos from any app straight into the scanner (gallery, file manager, etc.).
 
 ### Share & Export
 
 - ✅ **Vector Export** - SVG format for lossless scaling.
 - ✅ **Share Templates** - Generate share images with description text.
+- ✅ **Share to Generate** - Share plain text from any app to prefill and generate a code instantly.
 
 ### Security & Privacy
 
-- ✅ **Malicious Link Detection** - Local blacklist + URL suspicious-feature analysis.
+- ✅ **Malicious Link Detection** - Local blacklist + URL suspicious-feature analysis, with an optional (default-off) silent online blacklist update.
 - ✅ **Privacy Mode** - Incognito scanning; nothing is written to history.
 - ✅ **App Lock** - Fingerprint or password protection for sensitive history.
 - ✅ **Local Encryption** - SQLCipher (AES-256) on the history database.
+
+> **Privacy note**: The only network permission (`INTERNET`) is used solely by the optional, default-off blacklist update. Everything else works fully offline.
 
 ### UI & UX
 
 - ✅ **Material You** - Android 12+ dynamic colors.
 - ✅ **Landscape Support** - Tablet and landscape optimized.
 - ✅ **Shortcuts** - Long-press the launcher icon to scan or generate.
+- ✅ **Quick Settings Tile** - One-tap camera scan from the notification shade.
 - ✅ **Home Widgets** - Quick Scan and Quick Generate widgets.
 - ✅ **Internationalization** - Simplified Chinese, English, Japanese, Korean, German.
 - ✅ **Animation** - Page transitions and scan-line animation.
@@ -236,12 +242,13 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 │
 ├── CameraScanActivity.kt            # Live camera scan UI
 ├── CameraScanFragment.kt            # Live camera scan logic
-├── ScanImageActivity.kt             # Static-image scan UI
+├── ScanImageActivity.kt             # Static-image scan UI + share target (image/video)
 ├── ScanImageFragment.kt             # Static-image scan logic
+├── ScanImageProcessor.kt            # Shared image/video scan routing
 ├── ContinuousScanActivity.kt        # Continuous (batch) scan mode
 ├── ContinuousScanAdapter.kt         # List adapter for continuous scan
 ├── VideoScanActivity.kt             # Decode barcodes from video files
-├── GenerateActivity.kt              # Single-code generation UI
+├── GenerateActivity.kt              # Single-code generation UI + share target (text)
 ├── GenerateFragment.kt              # Single-code generation logic
 ├── BatchGenerateActivity.kt         # CSV / Excel batch generation UI
 ├── BatchResultActivity.kt           # Batch results screen
@@ -251,12 +258,15 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── HistoryFragment.kt               # History list
 ├── HistoryDetailActivity.kt         # History record detail
 ├── HistoryAdapter.kt                # History list adapter
-├── HistoryBackupManager.kt          # JSON / CSV import & export
+├── HistoryBackupManager.kt          # JSON / CSV / encrypted import & export
+├── BackupCrypto.kt                  # Backup encryption (AES-256-GCM + PBKDF2)
 ├── TagManager.kt                    # Custom-tag CRUD
 ├── AboutFragment.kt                 # About / acknowledgements
 │
 ├── AppLockManager.kt                # Biometric / PIN lock for history
 ├── SecurityManager.kt               # Malicious-link heuristics
+├── SecurityBlacklist.kt             # Blacklist model + assets/override loading
+├── BlacklistUpdater.kt              # Optional silent online blacklist update
 ├── PrivacySettingsActivity.kt       # Privacy mode toggle
 ├── DatabaseSecurityActivity.kt      # SQLCipher key rotation
 ├── QRCodeRestorationManager.kt      # Restoration variants (grayscale / contrast / binarization)
@@ -271,6 +281,7 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 │
 ├── QuickScanWidget.kt               # Home-screen Quick Scan widget
 ├── QuickGenerateWidget.kt           # Home-screen Quick Generate widget
+├── QuickScanTileService.kt          # Quick Settings tile for camera scan
 ├── BackupActivity.kt                # Backup / restore UI
 │
 ├── data/

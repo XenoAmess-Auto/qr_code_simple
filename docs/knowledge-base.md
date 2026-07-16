@@ -4,7 +4,7 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.1.8`
+- 当前版本：`0.1.9`
 - 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
@@ -91,6 +91,9 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 生成、保存、分享按钮均会触发历史记录写入/更新。
 - 历史列表的二维码分享使用原始 `barcodeFormat` 和 `styleJson` 重新生成图片，保持与生成时一致。
 - 历史详情页提供“自定义样式生成”按钮，可将文本带入 `GenerateFragment` 重新选择样式。
+- 保留策略：`PrivacySettingsActivity` 可配置自动清理（永久/30/90/365 天），存于 `app_settings`；`QRCodeApp.onCreate` 启动时执行一次 `deleteOlderThan`（收藏豁免），0 表示永久保留。
+- 备份导出支持明文 JSON / CSV 与加密备份（`QRBK1` magic + AES-256/GCM + PBKDF2 10 万次）；导入按内容自动识别（magic → 密码框，`{` / `[` → JSON，其余 → CSV）。
+- 恶意链接黑名单：`assets/security/blacklist.json` 内置（version 1），`PrivacySettingsActivity` 可开启静默在线更新（默认关；24h 节流；任何失败仅记日志）。开启需要 `INTERNET` 权限，这是应用唯一的网络用途。
 
 ## 5. 扫描引擎
 
@@ -120,6 +123,11 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `ScanImageProcessor.kt` | 图片/视频 Uri 扫描路由（ScanImageFragment 与系统分享入口共用） |
 | `RestorationRescan.kt` | 图片扫描无结果时的修复重试编排 |
 | `QRCodeRestorationManager.kt` | 修复变体生成（灰度 / 对比度 / 锐化 / 二值化 / 缩放） |
+| `ScanImageProcessor.kt` | 图片/视频 Uri 扫描路由（ScanImageFragment 与系统分享入口共用） |
+| `BackupCrypto.kt` | 备份加密原语（AES-256/GCM + PBKDF2，magic `QRBK1`） |
+| `SecurityBlacklist.kt` | 恶意链接黑名单模型；加载顺序 filesDir 覆盖 > assets 内置 > 代码兜底 |
+| `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
+| `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
 | `decoder/CustomLinearBarcodeScanner.kt` | 自定义一维码扫描入口 |
 | `decoder/PharmacodeDecoder.kt` | Pharmacode 解码器 |

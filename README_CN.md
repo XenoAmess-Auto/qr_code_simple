@@ -24,7 +24,8 @@
 - ✅ **智能分类** - 自动归类为链接、文本、WiFi、联系人等。
 - ✅ **收藏 / 置顶** - 标记重要内容。
 - ✅ **标签系统** - 自定义标签管理。
-- ✅ **导入 / 导出** - JSON / CSV 备份。
+- ✅ **导入 / 导出** - JSON / CSV 备份，支持密码加密的备份文件（AES-256-GCM + PBKDF2）。
+- ✅ **保留策略** - 自动清理 30 / 90 / 365 天前的历史记录（收藏保留）。
 
 ### 扫描体验
 
@@ -33,24 +34,29 @@
 - ✅ **智能 / 点击对焦** - 根据码大小自动对焦，支持点击对焦。
 - ✅ **扫描区域限定** - 框选特定区域识别。
 - ✅ **视频扫描** - 直接从视频文件中解码条码。
+- ✅ **分享扫描** - 从任意应用（相册、文件管理器等）分享图片或视频到本应用直接识别。
 
 ### 分享与导出
 
 - ✅ **矢量导出** - SVG 格式（无损放大）。
 - ✅ **分享模板** - 生成带说明文字的分享图片。
+- ✅ **分享生成** - 从任意应用分享纯文本到本应用，自动预填并生成条码。
 
 ### 安全与隐私
 
-- ✅ **恶意链接检测** - 本地黑名单 + URL 可疑特征分析。
+- ✅ **恶意链接检测** - 本地黑名单 + URL 可疑特征分析，支持可选（默认关闭）的静默在线黑名单更新。
 - ✅ **隐私模式** - 无痕扫描，不写入历史记录。
 - ✅ **应用锁** - 指纹 / 密码保护敏感历史。
 - ✅ **本地加密** - SQLCipher (AES-256) 加密历史数据库。
+
+> **隐私说明**：应用唯一的网络权限（`INTERNET`）仅用于可选的、默认关闭的黑名单在线更新；其余功能完全离线可用。
 
 ### 界面与体验
 
 - ✅ **Material You** - Android 12+ 动态取色。
 - ✅ **横屏适配** - 平板与横屏布局优化。
 - ✅ **快捷方式** - 长按图标快速扫码或生成。
+- ✅ **快捷设置磁贴** - 下拉栏一键进入相机扫描。
 - ✅ **桌面小组件** - 快速扫描、快速生成小组件。
 - ✅ **国际化** - 简体中文、英文、日语、韩语、德语。
 - ✅ **动画** - 页面过渡、扫描线动画。
@@ -257,12 +263,13 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 │
 ├── CameraScanActivity.kt            # 实时相机扫描 UI
 ├── CameraScanFragment.kt            # 实时相机扫描逻辑
-├── ScanImageActivity.kt             # 图片扫描 UI
+├── ScanImageActivity.kt             # 图片扫描 UI + 系统分享入口（图片/视频）
 ├── ScanImageFragment.kt             # 图片扫描逻辑
+├── ScanImageProcessor.kt            # 图片/视频扫描路由（共用）
 ├── ContinuousScanActivity.kt        # 连续（批量）扫描 UI
 ├── ContinuousScanAdapter.kt         # 连续扫描列表适配器
 ├── VideoScanActivity.kt             # 视频文件扫描
-├── GenerateActivity.kt              # 单码生成 UI
+├── GenerateActivity.kt              # 单码生成 UI + 系统分享入口（文本）
 ├── GenerateFragment.kt              # 单码生成逻辑
 ├── BatchGenerateActivity.kt         # CSV / Excel 批量生成 UI
 ├── BatchResultActivity.kt           # 批量生成结果页
@@ -271,12 +278,15 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── ui/result/QRResultAdapter.kt     # 多扫描结果 RecyclerView 适配器
 ├── HistoryFragment.kt               # 历史记录列表
 ├── HistoryAdapter.kt                # 历史记录列表适配器
-├── HistoryBackupManager.kt          # JSON / CSV 导入导出
+├── HistoryBackupManager.kt          # JSON / CSV / 加密备份导入导出
+├── BackupCrypto.kt                  # 备份加密（AES-256-GCM + PBKDF2）
 ├── TagManager.kt                    # 自定义标签 CRUD
 ├── AboutFragment.kt                 # 关于 / 致谢
 │
 ├── AppLockManager.kt                # 历史记录的生物认证 / PIN 锁
 ├── SecurityManager.kt               # 恶意链接启发式判断
+├── SecurityBlacklist.kt             # 黑名单模型与 assets/覆盖加载
+├── BlacklistUpdater.kt              # 可选静默在线黑名单更新
 ├── PrivacySettingsActivity.kt       # 隐私模式开关
 ├── DatabaseSecurityActivity.kt      # SQLCipher 密钥轮换
 ├── QRCodeRestorationManager.kt      # 修复变体生成（灰度 / 对比度 / 二值化）
@@ -291,6 +301,7 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 │
 ├── QuickScanWidget.kt               # 桌面"快速扫描"小组件
 ├── QuickGenerateWidget.kt           # 桌面"快速生成"小组件
+├── QuickScanTileService.kt          # 下拉快捷设置磁贴（一键扫码）
 ├── BackupActivity.kt                # 备份 / 恢复 UI
 │
 ├── data/

@@ -127,6 +127,7 @@
 | 7.1 | 测试日志定位 CI 卡死 | `app/build.gradle`、`HanXinDecoderFailureTest.kt` | 添加 Gradle `TestListener` 打印所有测试 START/END；随机噪声测试打印当次随机种子 | CI 日志中最后一条 `START TEST` 即为卡死测试，且可用种子复现噪声 |
 | 7.2 | JUnit 5 迁移 | `app/build.gradle`、全部 `*Test.kt` | 切换到 JUnit 5 Platform + Vintage Engine 运行旧测试；新测试逐步用 Jupiter | `./gradlew :app:testDebugUnitTest` 全部通过 | 详见 `docs/junit5-migration-plan.md` |
 | 7.3 | Dependabot JUnit 升级行为确认 | `.github/dependabot.yml` | 已确认 `junit:junit` 最新版为 4.13.2；JUnit 5 是不同 artifact，Dependabot 不会自动跨 artifact 迁移 | 无改动 |
+| 7.4 | 下一轮迭代（TFLite 清理、lint/翻译门禁、分享入口、QS Tile、保留策略、加密备份、黑名单在线更新、Firebase 移除、无障碍） | 见 `docs/next-iteration-plan.md` | 已全部完成（0.1.9） | 详见该文档 |
 
 ### 7.1 CI 卡死定位说明
 
