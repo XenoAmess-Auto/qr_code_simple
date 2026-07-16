@@ -1,0 +1,25 @@
+QR Code Simple 是一款离线优先的 Android 条码扫描与生成应用。
+
+扫描
+- 50+ 格式：QR、Data Matrix（UTF-8/中文）、Aztec、PDF417、汉信码、MaxiCode、Micro QR、Code 128/39/93、EAN、UPC、Codabar、ITF、Pharmacode、Plessey、MSI、Telepen、GS1 DataBar 等
+- 相机实时扫描：连续模式、点击对焦、变焦、可框选识别区域
+- 支持图片、视频识别；可从相册直接分享图片到本应用扫描
+- 识别失败时自动进行图像修复重试（灰度/对比度/二值化）
+
+生成
+- 全部可扫描格式，以及多种仅生成格式（邮政码、Code 2 of 5 系列、Codablock F、Grid Matrix、Code One 等）
+- 样式定制：颜色、渐变、Logo、模块形状、圆角、纠错等级
+- 支持 CSV/Excel 批量生成并导出 ZIP；支持 SVG 矢量导出
+- 从任意应用分享文本即可直接生成条码
+
+历史与隐私
+- 搜索、标签、收藏、分类；JSON/CSV 导出及可选 AES-256 加密备份
+- 可选历史自动清理策略
+- SQLCipher 加密本地数据库、应用锁、无痕隐私模式
+- 恶意链接提示，可选（默认关闭）静默黑名单在线更新
+- 完全离线可用；唯一的网络权限仅用于可选的黑名单更新
+
+其他
+- 下拉快捷设置磁贴、桌面小组件、长按快捷方式
+- Material You 动态取色、深色主题、横屏/平板适配
+- 5 种语言：English、简体中文、日本語、한국어、Deutsch

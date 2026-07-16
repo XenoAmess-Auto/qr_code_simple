@@ -1,0 +1,25 @@
+QR Code Simple is an offline-first barcode scanner and generator for Android.
+
+SCAN
+- 50+ formats: QR, Data Matrix (UTF-8/Chinese), Aztec, PDF417, Han Xin, MaxiCode, Micro QR, Code 128/39/93, EAN, UPC, Codabar, ITF, Pharmacode, Plessey, MSI, Telepen, GS1 DataBar and more
+- Live camera scan with continuous mode, tap-to-focus, zoom and a selectable decode region
+- Scan from images and videos, or share them straight into the app from your gallery
+- Automatic restoration retry (grayscale / contrast / binarization) when a code won't read
+
+GENERATE
+- All scannable formats plus many generate-only ones (postal codes, Code 2 of 5 variants, Codablock F, Grid Matrix, Code One…)
+- Full styling: colors, gradients, logos, module shapes, corner radius, error correction
+- Batch generation from CSV/Excel with ZIP export; lossless SVG export
+- Share any text into the app to turn it into a code instantly
+
+HISTORY & PRIVACY
+- Search, tags, favorites, categories, JSON/CSV export plus optional AES-256 encrypted backups
+- Optional auto-delete retention policy
+- SQLCipher-encrypted local database, app lock, incognito privacy mode
+- Malicious link warnings with an optional (default-off) silent blacklist update
+- Works fully offline; the only network permission is for the optional blacklist update
+
+EXTRAS
+- Quick Settings tile, home widgets, launcher shortcuts
+- Material You dynamic colors, dark theme, landscape/tablet support
+- 5 languages: English, 简体中文, 日本語, 한국어, Deutsch

@@ -1,0 +1,7 @@
+- Share images/videos/text into the app to scan or generate
+- Quick Settings tile for one-tap scanning
+- Selectable decode region on the camera screen
+- Password-encrypted backups (AES-256-GCM)
+- History auto-delete retention policy
+- Optional silent online update for the security blacklist
+- Release build now uses R8 + resource shrinking
