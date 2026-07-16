@@ -16,7 +16,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
 - ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with ZIP export.
 - ✅ **Style Customization** - Foreground/background colors, multi-stop gradients, center logo, module shapes (square/circle/rounded), position patterns, corner radius, and error correction levels.
-- ✅ **QR Code Repair** - Enhancement model for blurry or damaged QR codes (TensorFlow Lite).
+- ✅ **QR Code Repair** - Automatic restoration retry for blurry or low-contrast codes (grayscale / contrast / binarization variants).
 
 ### History
 
@@ -60,7 +60,6 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Unit Tests** - Roundtrip tests for every scannable format and generation tests for every generate-only format (Robolectric).
 - ✅ **Memory-aware Image Loading** - Large image handling.
 - ✅ **Crash Monitoring** - Firebase Crashlytics.
-- ✅ **Offline Enhancement** - TensorFlow Lite model.
 
 ---
 
@@ -176,7 +175,6 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 - **Barcode Recognition**: ZXing 3.5.3, ML Kit 17.2.0, WeChatQRCode 2.6.0 (OpenCV)
 - **Micro QR**: BoofCV 1.4.0
 - **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal / 2 of 5 / Code One / Grid Matrix / ...)
-- **ML**: TensorFlow Lite 2.17.0
 - **CSV Parsing**: Apache Commons CSV 1.14.1
 - **Biometric**: androidx.biometric 1.1.0
 - **Crash Monitoring**: Firebase Crashlytics
@@ -263,8 +261,8 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── SecurityManager.kt               # Malicious-link heuristics
 ├── PrivacySettingsActivity.kt       # Privacy mode toggle
 ├── DatabaseSecurityActivity.kt      # SQLCipher key rotation
-├── QRCodeRestorationManager.kt      # QR restoration / enhancement glue
-├── QREnhancementModel.kt            # TFLite wrapper for QR repair
+├── QRCodeRestorationManager.kt      # Restoration variants (grayscale / contrast / binarization)
+├── RestorationRescan.kt             # Retry orchestration when image scan finds nothing
 ├── ImagePerformanceManager.kt       # Large-image memory optimizer
 ├── CameraFocusManager.kt            # Auto / tap-to-focus
 ├── ScanRegionView.kt                # Region-of-interest overlay
@@ -329,7 +327,6 @@ app/src/main/res/
 - [BoofCV](https://boofcv.org/) - Micro QR Code detector
 - [OkapiBarcode](https://github.com/woo-j/OkapiBarcode) - Generation for RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal codes / Code 2 of 5 / Code One / Grid Matrix / ...
 - [SQLCipher](https://www.zetetic.net/sqlcipher/) - Database encryption
-- [TensorFlow Lite](https://www.tensorflow.org/lite) - On-device ML
 - [Apache Commons CSV](https://commons.apache.org/proper/commons-csv/) - CSV parsing for batch generation
 
 ---

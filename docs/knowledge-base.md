@@ -82,6 +82,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 - 实时扫描（相机/视频）：`QRCodeScanner.scan(context, bitmap)` 或 `QRCodeScanner.scanSync(context, bitmap)`，内部并行执行 6 个引擎，等待全部结束后返回完整结果列表。
 - 图片扫描：`QRCodeScanner.scanAsFlow(context, bitmap, config)`，6 个引擎并行执行，任一引擎识别到结果即通过 `Flow` 分批 emit；ResultActivity 收集到首个结果即展示页面，后续结果动态追加。图片扫描使用 `IMAGE_SCAN_CONFIG`（总超时 120s / 单引擎 60s），实时扫描使用 `CAMERA_SCAN_CONFIG`（总超时 15s / 单引擎 5s）。
+- 修复重试：图片扫描常规流程无任何结果时，`RestorationRescan.rescan()` 会用 `QRCodeRestorationManager` 生成修复变体（灰度 / 对比度 / 锐化 / 二值化 / 缩放，最多 8 个）逐张重扫；识别成功则在结果页显示"经图像修复后识别"弱提示。相机实时扫描不走该路径。
 
 ### 历史记录
 - `HistoryRepository.insertGenerate(content, type, barcodeFormat, styleJson)` 保存生成记录。
@@ -116,6 +117,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `StyleConfigSerialization.kt` | 样式配置 JSON 序列化/反序列化 |
 | `SvgQRCodeGenerator.kt` | 全格式 SVG 导出（ZXing 路径 + bitmap 回退） |
 | `QRCodeScanner.kt` | 多引擎扫描器 |
+| `RestorationRescan.kt` | 图片扫描无结果时的修复重试编排 |
+| `QRCodeRestorationManager.kt` | 修复变体生成（灰度 / 对比度 / 锐化 / 二值化 / 缩放） |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
 | `decoder/CustomLinearBarcodeScanner.kt` | 自定义一维码扫描入口 |
 | `decoder/PharmacodeDecoder.kt` | Pharmacode 解码器 |

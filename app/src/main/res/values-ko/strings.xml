@@ -75,6 +75,8 @@
     <string name="no_qr_codes_found">이미지에서 QR 코드를 찾을 수 없습니다</string>
     <string name="no_qr_codes_found_detail">QR 코드를 찾을 수 없습니다 (WeChatQR, ZXing, ML Kit 시도)</string>
     <string name="scanning_more">더 인식 중…</string>
+    <string name="restoration_retrying">이미지 복원 시도 중…</string>
+    <string name="restored_after_enhancement">이미지 복원 후 인식됨</string>
     <string name="no_image_provided">제공된 이미지가 없습니다</string>
     <string name="failed_to_load_image">이미지 로드 실패</string>
     <string name="detected_with">%1$s로 감지됨</string>

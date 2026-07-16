@@ -146,33 +146,56 @@ class ResultActivity : AppCompatActivity() {
                 binding.ivProcessedImage.visibility = View.VISIBLE
 
                 var hasResults = false
+
+                fun showBatch(batch: List<QRCodeScanner.ScanResult>) {
+                    if (batch.isEmpty()) return
+
+                    if (!hasResults) {
+                        hasResults = true
+                        binding.progressBar.visibility = View.GONE
+                        binding.tvNoResults.visibility = View.GONE
+                        binding.recyclerView.visibility = View.VISIBLE
+                        binding.layoutButtons.visibility = View.VISIBLE
+                    }
+
+                    val startIndex = results.size
+                    results.addAll(batch.map {
+                        QRResult(it.text, false, it.library)
+                    })
+                    scanResults.addAll(batch)
+
+                    adapter.notifyItemRangeInserted(startIndex, batch.size)
+                    updateSelectionCount()
+                    saveToHistory(batch)
+
+                    val libsUsed = batch.map { it.library.name }.distinct().joinToString(", ")
+                    Toast.makeText(this@ResultActivity, getString(R.string.detected_with, libsUsed), Toast.LENGTH_SHORT).show()
+                }
+
                 QRCodeScanner.scanAsFlow(this@ResultActivity, bitmap, QRCodeScanner.IMAGE_SCAN_CONFIG)
                     .collect { batch ->
-                        if (batch.isEmpty()) return@collect
-
-                        if (!hasResults) {
-                            hasResults = true
-                            binding.progressBar.visibility = View.GONE
-                            binding.tvNoResults.visibility = View.GONE
-                            binding.recyclerView.visibility = View.VISIBLE
-                            binding.layoutButtons.visibility = View.VISIBLE
-                        }
-
-                        val startIndex = results.size
-                        results.addAll(batch.map {
-                            QRResult(it.text, false, it.library)
-                        })
-                        scanResults.addAll(batch)
-
-                        adapter.notifyItemRangeInserted(startIndex, batch.size)
-                        updateSelectionCount()
-                        saveToHistory(batch)
-
-                        val libsUsed = batch.map { it.library.name }.distinct().joinToString(", ")
-                        Toast.makeText(this@ResultActivity, getString(R.string.detected_with, libsUsed), Toast.LENGTH_SHORT).show()
+                        showBatch(batch)
                     }
 
                 if (!isActive) return@launch
+
+                if (!hasResults) {
+                    // 常规识别失败，尝试图像修复后重扫
+                    binding.tvScanningMore.text = getString(R.string.restoration_retrying)
+                    binding.tvScanningMore.visibility = View.VISIBLE
+
+                    val restored = RestorationRescan.rescan(this@ResultActivity, bitmap)
+                    if (!isActive) return@launch
+
+                    if (restored.isNotEmpty()) {
+                        showBatch(restored)
+                        // 弱提示：结果来自修复后的图像
+                        binding.tvScanningMore.text = getString(R.string.restored_after_enhancement)
+                        binding.tvScanningMore.visibility = View.VISIBLE
+                        binding.progressBar.visibility = View.GONE
+                        return@launch
+                    }
+                }
 
                 binding.tvScanningMore.visibility = View.GONE
                 binding.progressBar.visibility = View.GONE

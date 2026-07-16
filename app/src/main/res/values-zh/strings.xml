@@ -49,6 +49,8 @@
     <string name="no_qr_codes_found">未在此图片中找到二维码</string>
     <string name="no_qr_codes_found_detail">未找到二维码（已尝试 WeChatQR、ZXing、ML Kit）</string>
     <string name="scanning_more">正在识别更多…</string>
+    <string name="restoration_retrying">正在尝试图像修复…</string>
+    <string name="restored_after_enhancement">经图像修复后识别</string>
     <string name="no_image_provided">未提供图片</string>
     <string name="no_video_provided">未提供视频</string>
     <string name="failed_to_load_image">加载图片失败</string>

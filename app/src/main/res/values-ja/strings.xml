@@ -44,5 +44,7 @@
     <string name="restart">再起動</string>
     <string name="later">後で</string>
     <string name="scanning_more">さらに認識中…</string>
+    <string name="restoration_retrying">画像修復を試行中…</string>
+    <string name="restored_after_enhancement">画像修復後に認識しました</string>
 
 </resources>

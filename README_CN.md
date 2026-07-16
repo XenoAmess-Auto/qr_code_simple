@@ -16,7 +16,7 @@
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等，提供一键操作。
 - ✅ **批量生成** - 从 CSV 或 Excel 导入数据批量生成条码，支持 ZIP 导出。
 - ✅ **样式定制** - 前景/背景色、多段渐变、中心 Logo、模块形状（方形/圆点/圆角）、定位图案、圆角比例、纠错等级。
-- ✅ **二维码修复** - 基于 TensorFlow Lite 的增强模型，对模糊/破损二维码进行识别增强。
+- ✅ **二维码修复** - 识别失败时自动进行图像修复重试（灰度 / 对比度 / 二值化等变体）。
 
 ### 历史记录
 
@@ -60,7 +60,6 @@
 - ✅ **单元测试** - 可扫描格式均提供基于 Robolectric 的 roundtrip 测试，仅生成格式均提供生成成功测试。
 - ✅ **大图加载优化** - 大图加载内存优化。
 - ✅ **崩溃监控** - Firebase Crashlytics。
-- ✅ **离线增强** - TensorFlow Lite 模型。
 
 ---
 
@@ -178,7 +177,6 @@
 - **条码识别**：ZXing 3.5.3、ML Kit 17.2.0、WeChatQRCode 2.6.0（OpenCV）
 - **Micro QR**：BoofCV 1.4.0
 - **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix / ...）
-- **机器学习**：TensorFlow Lite 2.17.0
 - **CSV 解析**：Apache Commons CSV 1.14.1
 - **生物认证**：androidx.biometric 1.1.0
 - **崩溃监控**：Firebase Crashlytics
@@ -283,8 +281,8 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── SecurityManager.kt               # 恶意链接启发式判断
 ├── PrivacySettingsActivity.kt       # 隐私模式开关
 ├── DatabaseSecurityActivity.kt      # SQLCipher 密钥轮换
-├── QRCodeRestorationManager.kt      # 二维码修复 / 增强的胶水代码
-├── QREnhancementModel.kt            # 二维码修复的 TFLite 封装
+├── QRCodeRestorationManager.kt      # 修复变体生成（灰度 / 对比度 / 二值化）
+├── RestorationRescan.kt             # 图片扫描无结果时的修复重试编排
 ├── ImagePerformanceManager.kt       # 大图加载内存优化
 ├── CameraFocusManager.kt            # 自动 / 点击对焦
 ├── ScanRegionView.kt                # 扫描区域（感兴趣区）覆盖
@@ -374,7 +372,6 @@ adb install app-debug.apk
 - [BoofCV](https://boofcv.org/) - Micro QR Code 检测
 - [OkapiBarcode](https://github.com/woo-j/OkapiBarcode) - RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix 等生成
 - [SQLCipher](https://www.zetetic.net/sqlcipher/) - 数据库加密
-- [TensorFlow Lite](https://www.tensorflow.org/lite) - 端侧 ML
 - [Apache Commons CSV](https://commons.apache.org/proper/commons-csv/) - 批量生成的 CSV 解析
 
 ---
