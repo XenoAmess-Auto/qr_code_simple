@@ -52,6 +52,10 @@
     <string name="restoration_retrying">正在尝试图像修复…</string>
     <string name="restored_after_enhancement">经图像修复后识别</string>
     <string name="shared_multiple_first_only">已分享 %1$d 张图片，仅处理第一张</string>
+    <string name="history_retention">自动清理历史记录</string>
+    <string name="history_retention_forever">永久保留</string>
+    <string name="history_retention_days">%1$d 天</string>
+    <string name="history_retention_dialog_title">自动清理超过以下时长的历史记录</string>
     <string name="no_image_provided">未提供图片</string>
     <string name="no_video_provided">未提供视频</string>
     <string name="failed_to_load_image">加载图片失败</string>

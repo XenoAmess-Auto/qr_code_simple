@@ -50,6 +50,32 @@ class PrivacySettingsActivity : AppCompatActivity() {
         updatePrivacyModeUI(isPrivacyMode)
 
         updateAppLockUI()
+        updateRetentionUI()
+    }
+
+    private val retentionOptions = intArrayOf(0, 30, 90, 365)
+
+    private fun retentionLabel(days: Int): String =
+        if (days <= 0) getString(R.string.history_retention_forever)
+        else getString(R.string.history_retention_days, days)
+
+    private fun updateRetentionUI() {
+        binding.btnHistoryRetention.text = retentionLabel(QRCodeApp.getHistoryRetentionDays(this))
+    }
+
+    private fun showRetentionDialog() {
+        val labels = retentionOptions.map { retentionLabel(it) }.toTypedArray()
+        val current = QRCodeApp.getHistoryRetentionDays(this)
+        val checkedIndex = retentionOptions.indexOf(current).coerceAtLeast(0)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.history_retention_dialog_title))
+            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
+                QRCodeApp.setHistoryRetentionDays(this, retentionOptions[which])
+                updateRetentionUI()
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun setupListeners() {
@@ -61,6 +87,10 @@ class PrivacySettingsActivity : AppCompatActivity() {
                 updatePrivacyModeUI(false)
                 Toast.makeText(this, "Privacy mode disabled", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        binding.btnHistoryRetention.setOnClickListener {
+            showRetentionDialog()
         }
 
         binding.btnClearAllHistory.setOnClickListener {

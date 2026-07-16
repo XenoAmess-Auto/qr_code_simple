@@ -32,6 +32,12 @@ interface HistoryDao {
     
     @Query("DELETE FROM history")
     suspend fun deleteAll()
+
+    /**
+     * 删除早于指定时间戳的历史记录（收藏豁免），返回删除条数。
+     */
+    @Query("DELETE FROM history WHERE timestamp < :cutoff AND isFavorite = 0")
+    suspend fun deleteOlderThan(cutoff: Long): Int
     
     @Query("SELECT * FROM history WHERE content = :content LIMIT 1")
     suspend fun findByContent(content: String): HistoryItem?

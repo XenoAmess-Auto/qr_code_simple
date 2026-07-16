@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
@@ -10,6 +11,8 @@ import android.service.quicksettings.TileService
  */
 class QuickScanTileService : TileService() {
 
+    // API 34+ 必须使用 PendingIntent 变体；低版本只能使用 Intent 变体（已按版本分支）
+    @SuppressLint("StartActivityAndCollapseDeprecated")
     override fun onClick() {
         super.onClick()
         val intent = Intent(this, CameraScanActivity::class.java).apply {

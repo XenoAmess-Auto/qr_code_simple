@@ -4,6 +4,10 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import com.king.wechat.qrcode.WeChatQRCodeDetector
+import com.xenoamess.qrcodesimple.data.HistoryRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class QRCodeApp : Application() {
 
@@ -34,6 +38,19 @@ class QRCodeApp : Application() {
         fun setPrivacyMode(context: Context, enabled: Boolean) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putBoolean(KEY_PRIVACY_MODE, enabled).apply()
+        }
+
+        private const val KEY_HISTORY_RETENTION_DAYS = "history_retention_days"
+
+        /** 历史记录自动清理天数；0 表示永久保留。 */
+        fun getHistoryRetentionDays(context: Context): Int {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getInt(KEY_HISTORY_RETENTION_DAYS, 0)
+        }
+
+        fun setHistoryRetentionDays(context: Context, days: Int) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putInt(KEY_HISTORY_RETENTION_DAYS, days).apply()
         }
 
         /**
@@ -94,6 +111,28 @@ class QRCodeApp : Application() {
         val success = initWeChatQRCodeDetector(this)
         if (!success) {
             Log.w(TAG, "WeChatQRCode pre-initialization failed, will use ZXing/ML Kit as fallback. Error: $initErrorMessage")
+        }
+
+        cleanupExpiredHistory()
+    }
+
+    /**
+     * 按设置的历史保留天数自动清理过期记录（收藏豁免）；0 表示永久保留，直接跳过。
+     */
+    private fun cleanupExpiredHistory() {
+        val retentionDays = getHistoryRetentionDays(this)
+        if (retentionDays <= 0) return
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val cutoff = System.currentTimeMillis() - retentionDays * 24L * 60 * 60 * 1000
+                val deleted = HistoryRepository(this@QRCodeApp)
+                    .deleteOlderThan(cutoff)
+                if (deleted > 0) {
+                    Log.i(TAG, "Auto-deleted $deleted history items older than $retentionDays days")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to clean up expired history", e)
+            }
         }
     }
 }

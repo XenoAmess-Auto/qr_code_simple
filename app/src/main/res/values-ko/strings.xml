@@ -78,6 +78,10 @@
     <string name="restoration_retrying">이미지 복원 시도 중…</string>
     <string name="restored_after_enhancement">이미지 복원 후 인식됨</string>
     <string name="shared_multiple_first_only">%1$d개의 이미지가 공유되었습니다. 첫 번째 이미지만 처리합니다</string>
+    <string name="history_retention">기록 자동 삭제</string>
+    <string name="history_retention_forever">영구 보관</string>
+    <string name="history_retention_days">%1$d일</string>
+    <string name="history_retention_dialog_title">다음 기간보다 오래된 기록 자동 삭제</string>
     <string name="no_image_provided">제공된 이미지가 없습니다</string>
     <string name="failed_to_load_image">이미지 로드 실패</string>
     <string name="detected_with">%1$s로 감지됨</string>

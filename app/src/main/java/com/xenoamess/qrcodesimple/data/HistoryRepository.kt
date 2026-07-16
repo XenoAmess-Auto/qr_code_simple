@@ -110,6 +110,13 @@ class HistoryRepository(private val context: Context) {
         historyDao.deleteAll()
     }
 
+    /**
+     * 删除早于指定时间戳的历史记录（收藏豁免），返回删除条数。
+     */
+    suspend fun deleteOlderThan(cutoff: Long): Int {
+        return historyDao.deleteOlderThan(cutoff)
+    }
+
     // ===== 搜索功能 =====
 
     fun searchHistory(query: String): Flow<List<HistoryItem>> {
