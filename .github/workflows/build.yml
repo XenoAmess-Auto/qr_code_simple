@@ -28,7 +28,7 @@ jobs:
 
       - name: Build debug APK, run unit tests, lint and generate coverage report
         timeout-minutes: 60
-        run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport -PexcludeExtendedUiTests
+        run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 
       - name: Upload debug APK
         if: always()
