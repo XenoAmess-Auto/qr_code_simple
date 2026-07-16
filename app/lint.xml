@@ -5,12 +5,12 @@
 
     <!--
         历史遗留翻译债务：项目支持 4 个非默认语言（de/ja/ko/zh），但大量英文
-        字符串尚未翻译，且各语言文件存在只在默认或只在翻译中的条目。手工对齐
-        250+ 条翻译成本高、易出错，因此忽略 MissingTranslation / ExtraTranslation，
-        后续可按语言分批补齐翻译。
+        字符串尚未翻译。存量债务记录在 lint-baseline.xml 中（不阻塞构建）；
+        新增字符串必须 5 语言（en/zh/de/ja/ko）齐全，否则 MissingTranslation
+        以 error 使构建失败。ExtraTranslation（译文有而默认没有）同样视为错误。
     -->
-    <issue id="MissingTranslation" severity="ignore" />
-    <issue id="ExtraTranslation" severity="ignore" />
+    <issue id="MissingTranslation" severity="error" />
+    <issue id="ExtraTranslation" severity="error" />
 
     <!--
         以下多为风格、质量或项目当前不优先处理的警告。由于历史代码量大，逐一

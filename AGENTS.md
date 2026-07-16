@@ -25,8 +25,10 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 ./gradlew :app:testDebugUnitTest --tests "*BarcodeGenerationRoundtripTest*"
 
 # Lint. Runs in CI and must stay clean (0 errors / 0 warnings / 0 hints).
-./gradlew :app:lintDebug
-```
+# MissingTranslation/ExtraTranslation are errors: new string resources must be
+# added to all 5 locales (values, values-zh, values-de, values-ja, values-ko).
+# Existing translation debt lives in app/lint-baseline.xml.
+./gradlew :app:lintDebug```
 
 ## Agent workflow
 

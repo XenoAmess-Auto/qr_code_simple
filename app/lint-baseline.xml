@@ -1,0 +1,3260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.2.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.2.1)" variant="all" version="9.2.1">
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;point_camera_at_qr_code&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;point_camera_at_qr_code&quot;>Point camera at QR code&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="12"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;flash&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;flash&quot;>Flash&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="14"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;switch_camera&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;switch_camera&quot;>Switch Camera&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="17"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;front_camera_not_available&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;front_camera_not_available&quot;>Front camera not available&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="20"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;permissions_granted&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;permissions_granted&quot;>Permissions granted&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="22"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;permissions_denied&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;permissions_denied&quot;>Some permissions denied&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="23"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;select_image_source&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;select_image_source&quot;>Select image source&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="27"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;from_file&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;from_file&quot;>From File&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="30"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;select_barcode_format&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;select_barcode_format&quot;>Select barcode format&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="34"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;clear&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;clear&quot;>Clear&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="37"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;share_barcode&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;share_barcode&quot;>Share Barcode&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="40"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;please_enter_content&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;please_enter_content&quot;>Please enter content&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="41"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;please_generate_qr_first&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;please_generate_qr_first&quot;>Please generate QR code first&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="42"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;invalid_content_for_format&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;invalid_content_for_format&quot;>Content does not match the selected barcode format&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="43"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;saved_to_gallery&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;saved_to_gallery&quot;>Saved to gallery: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="44"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;saved_to&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;saved_to&quot;>Saved to: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="45"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;failed_to_save&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;failed_to_save&quot;>Failed to save: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="46"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;failed_to_generate&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;failed_to_generate&quot;>Failed to generate QR code: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="47"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;unknown_error&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;unknown_error&quot;>Unknown error&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="48"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;scan_result&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;scan_result&quot;>Scan Result&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="51"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;scan_results&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;scan_results&quot;>Scan Results&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="52"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;close&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;close&quot;>Close&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="53"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_qr_codes_found&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_qr_codes_found&quot;>No QR codes found in this image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="54"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;checking_security&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;checking_security&quot;>Checking security…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="55"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_qr_codes_found_detail&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_qr_codes_found_detail&quot;>No QR codes found (tried WeChatQR, ZXing, ML Kit)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="56"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_image_provided&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_image_provided&quot;>No image provided&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="60"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_video_provided&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_video_provided&quot;>No video provided&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="61"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;failed_to_load_image&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;failed_to_load_image&quot;>Failed to load image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="62"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;detected_with&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;detected_with&quot;>Detected with: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="63"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;copied_to_clipboard&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;copied_to_clipboard&quot;>Copied to clipboard&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="65"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;copied_n_items&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;copied_n_items&quot;>Copied %1$d item(s)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="66"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;copied_all_n_items&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;copied_all_n_items&quot;>Copied all %1$d item(s)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="67"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;selected_n_of_m&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;selected_n_of_m&quot;>Selected: %1$d/%2$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="68"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_items_selected&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_items_selected&quot;>No items selected&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="69"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;share_qr_code_content&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;share_qr_code_content&quot;>Share QR Code content&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="70"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;share_all_qr_code_content&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;share_all_qr_code_content&quot;>Share all QR Code content&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="71"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;qr_code_for&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;qr_code_for&quot;>QR Code for: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="72"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;share_qr_code&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;share_qr_code&quot;>Share QR Code&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="73"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;generate_with_custom_style&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;generate_with_custom_style&quot;>Generate with Custom Style&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="74"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;invalid_video_duration&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;invalid_video_duration&quot;>Invalid video duration&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="77"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;scanning_video&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;scanning_video&quot;>Scanning video…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="78"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;scanning_progress&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;scanning_progress&quot;>Scanning: %1$d%% (%2$d codes found, %3$d frames processed)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="79"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;scan_complete&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;scan_complete&quot;>Scan complete! Found %1$d QR code(s)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="80"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;error_processing_video&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;error_processing_video&quot;>Error processing video: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="81"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;all&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;all&quot;>All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="85"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;scanned&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;scanned&quot;>Scanned&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="86"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;generated&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;generated&quot;>Generated&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="87"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_history&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_history&quot;>No history yet&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="88"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;clear_all&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;clear_all&quot;>Clear All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="89"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;clear_history&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;clear_history&quot;>Clear History&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="90"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;clear_history_confirm&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;clear_history_confirm&quot;>Are you sure you want to clear all history?&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="91"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;barcode_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;barcode_image&quot;>Barcode image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="92"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;history_detail&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;history_detail&quot;>History Detail&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="93"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;add_to_favorites&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;add_to_favorites&quot;>Add to favorites&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="94"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;remove_from_favorites&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;remove_from_favorites&quot;>Remove from favorites&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="95"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;all_tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;all_tags&quot;>All Tags&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="96"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;edit&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;edit&quot;>Edit&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="99"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;edit_content&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;edit_content&quot;>Edit Content&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="100"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;save_action&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;save_action&quot;>Save&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="101"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;updated&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;updated&quot;>Updated&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="102"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;delete_item&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;delete_item&quot;>Delete&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="103"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;delete_item_confirm&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;delete_item_confirm&quot;>Delete this item?&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="104"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;deleted&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;deleted&quot;>Deleted&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="105"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;history_cleared&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;history_cleared&quot;>History cleared&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="106"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;copy&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;copy&quot;>Copy&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="107"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;select_all&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;select_all&quot;>Select All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="108"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;deselect_all&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;deselect_all&quot;>Deselect All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="109"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;delete_selected&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;delete_selected&quot;>Delete Selected&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="110"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;delete_selected_confirm&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;delete_selected_confirm&quot;>Delete %1$d item(s)?&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="111"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_generated&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;type_generated&quot;>Generated&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="114"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_scanned&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;type_scanned&quot;>Scanned&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="115"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_qr_code&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;type_qr_code&quot;>QR Code&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="116"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_barcode&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;type_barcode&quot;>Barcode&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="117"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_data_matrix&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;type_data_matrix&quot;>Data Matrix&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="118"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_aztec&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;type_aztec&quot;>Aztec&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="119"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_pdf417&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;type_pdf417&quot;>PDF417&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="120"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;type_text&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;type_text&quot;>Text&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="121"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;settings&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;settings&quot;>Settings&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="124"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;save_all&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;save_all&quot;>Save All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="125"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;about&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;about&quot;>About&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="128"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;version_with_prefix&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;version_with_prefix&quot;>v%1$s (%2$s)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="129"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;buy_me_a_coffee&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;buy_me_a_coffee&quot;>Buy me a coffee&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="135"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;sources&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;sources&quot;>Sources&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="136"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;maintainer&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;maintainer&quot;>Maintainer: XenoAmess&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="137"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;license&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;license&quot;>Apache License 2.0&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="138"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;edit_qr_code_content&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;edit_qr_code_content&quot;>Edit QR Code Content&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="139"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;share_qr&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;share_qr&quot;>Share QR&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="140"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;copy_all&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;copy_all&quot;>Copy All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="143"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;share_all&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;share_all&quot;>Share All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="144"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;qr_code_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;qr_code_image&quot;>QR Code&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="147"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;processed_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;processed_image&quot;>Processed Image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="148"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_wifi&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_wifi&quot;>WiFi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="151"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_contact&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_contact&quot;>Contact&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="152"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_calendar&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_calendar&quot;>Calendar&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="153"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_email&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_email&quot;>Email&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="154"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_location&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_location&quot;>Location&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="155"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_sms&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_sms&quot;>SMS&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="156"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_phone&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_phone&quot;>Phone&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="157"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_url&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_url&quot;>URL&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="158"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_text&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;content_type_text&quot;>Text&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="159"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_connect_wifi&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_connect_wifi&quot;>Connect&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="162"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_add_contact&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_add_contact&quot;>Add Contact&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="163"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_add_event&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_add_event&quot;>Add to Calendar&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="164"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_send_email&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_send_email&quot;>Send Email&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="165"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_open_url&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_open_url&quot;>Open&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="166"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_open_map&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_open_map&quot;>View Map&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="167"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_call&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_call&quot;>Call&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="168"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;action_send_sms&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;action_send_sms&quot;>Send SMS&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="169"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_invalid&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_invalid&quot;>Invalid WiFi configuration&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="172"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_connecting&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_connecting&quot;>Connecting to %1$s…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="173"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_connected&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_connected&quot;>Connected to %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="174"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_add_failed&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_add_failed&quot;>Failed to add WiFi network&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="175"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_permission_denied&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_permission_denied&quot;>WiFi permission denied&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="176"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_manual_connect&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_manual_connect&quot;>Please connect to %1$s manually&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="177"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_connect_title&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_connect_title&quot;>Connect to WiFi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="178"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_connect_confirm&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_connect_confirm&quot;>Connect to network &quot;%1$s&quot;?&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="179"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_connect_button&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_connect_button&quot;>Connect&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="180"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_request_sent&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_request_sent&quot;>Connection request sent for %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="181"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_connection_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_connection_failed&quot;>Failed to connect to WiFi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="182"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_connection_error&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_connection_error&quot;>Connection error: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="183"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_enabling&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_enabling&quot;>Enabling WiFi…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="184"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_wep_not_supported&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_wep_not_supported&quot;>WEP encryption is not supported on Android 10+. Please connect manually.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="185"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_suggestion_added&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_suggestion_added&quot;>WiFi suggestion added for %1$s. Check system WiFi settings to connect.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="186"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;wifi_suggestion_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;wifi_suggestion_failed&quot;>Failed to add WiFi suggestion&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="187"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_app_found&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_app_found&quot;>No suitable app found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="190"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_calendar_app&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_calendar_app&quot;>No calendar app found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="191"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_email_app&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_email_app&quot;>No email app found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="192"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_browser_found&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_browser_found&quot;>No browser found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="193"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_map_app&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_map_app&quot;>No map app found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="194"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_phone_app&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_phone_app&quot;>No phone app found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="195"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_sms_app&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;no_sms_app&quot;>No SMS app found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="196"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;confirm_call&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;confirm_call&quot;>Call this number?&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="199"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;call&quot; is not translated in &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;call&quot;>Call&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="200"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;batch_generate&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;batch_generate&quot;>Batch Generate&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="203"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;batch_result&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;batch_result&quot;>Batch Result&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="204"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;import_csv_excel&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;import_csv_excel&quot;>Import CSV/Excel&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="205"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;download_template&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;download_template&quot;>Download Template&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="206"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;generate_batch&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;generate_batch&quot;>Generate Batch&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="207"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;save_all_zip&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;save_all_zip&quot;>Save All as ZIP&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="208"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;batch_template_saved&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;batch_template_saved&quot;>Template saved&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="209"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;batch_items_imported&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;batch_items_imported&quot;>Imported %1$d items&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="210"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;batch_no_items&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;batch_no_items&quot;>No valid items found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="211"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;batch_generated_count&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;batch_generated_count&quot;>Generated: %1$d/%2$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="212"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_scan_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_scan_short&quot;>Scan&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="215"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_scan_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_scan_long&quot;>Quick Scan&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="216"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_scan_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_scan_disabled&quot;>Scan is disabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="217"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_generate_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_generate_short&quot;>Generate&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="218"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_generate_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_generate_long&quot;>Generate QR Code&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="219"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_generate_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_generate_disabled&quot;>Generate is disabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="220"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_history_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_history_short&quot;>History&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="221"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_history_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_history_long&quot;>View History&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="222"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_history_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_history_disabled&quot;>History is disabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="223"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_batch_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_batch_short&quot;>Batch&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="224"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_batch_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_batch_long&quot;>Batch Generate&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="225"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;shortcut_batch_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;shortcut_batch_disabled&quot;>Batch is disabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="226"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;continuous_scan&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;continuous_scan&quot;>Continuous Scan&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="229"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;privacy_settings&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;privacy_settings&quot;>Privacy Settings&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="232"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;database_security&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;database_security&quot;>Database Security&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="235"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;encryption_enabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;encryption_enabled&quot;>Encryption Enabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="236"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;reset_database&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;reset_database&quot;>Reset Database&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="237"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;reset_database_confirm&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;reset_database_confirm&quot;>This will delete all history data and reset encryption keys. This action cannot be undone. Continue?&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="238"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;database_reset_success&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;database_reset_success&quot;>Database reset successfully. App will restart.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="239"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;database_reset_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;database_reset_failed&quot;>Failed to reset database: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="240"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;backup_restore&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;backup_restore&quot;>Backup &amp;amp; Restore&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="243"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;export_json&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;export_json&quot;>Export as JSON&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="244"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;export_csv&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;export_csv&quot;>Export as CSV&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="245"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;import_data&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;import_data&quot;>Import Data&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="246"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;export_success&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;export_success&quot;>Export successful&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="247"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;export_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;export_failed&quot;>Export failed: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="248"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;import_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;import_failed&quot;>Import failed: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="249"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;tags&quot;>Tags&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="252"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;add_tag&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;add_tag&quot;>Add Tag&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="253"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;edit_tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;edit_tags&quot;>Edit Tags&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="254"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;tag_hint&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;tag_hint&quot;>Enter tags separated by commas&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="255"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;widget_quick_scan&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;widget_quick_scan&quot;>Quick Scan&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="258"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;widget_quick_generate&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;widget_quick_generate&quot;>Quick Generate&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="259"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;widget_tap_to_scan&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;widget_tap_to_scan&quot;>Tap to scan&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="260"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;widget_tap_to_generate&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;widget_tap_to_generate&quot;>Tap to generate&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="261"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;select_csv_file&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;select_csv_file&quot;>Select CSV file&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="264"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;share_zip&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;share_zip&quot;>Share ZIP&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="265"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;stop_scanning&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;stop_scanning&quot;>Stop Scanning&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="266"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;success_count&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;success_count&quot;>Success: %1$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="267"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;total_generated&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;total_generated&quot;>Total generated: %1$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="268"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;zip_saved&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;zip_saved&quot;>ZIP saved: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="269"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;zip_save_failed&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;zip_save_failed&quot;>Failed to save ZIP&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="270"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;style&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;style&quot;>Style&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="273"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;color_scheme&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;color_scheme&quot;>Color Scheme&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="274"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;ec_level&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;ec_level&quot;>Error Correction&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="275"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;ec_level_l&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;ec_level_l&quot;>L&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="276"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;ec_level_m&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;ec_level_m&quot;>M&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="277"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;ec_level_q&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;ec_level_q&quot;>Q&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="278"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;ec_level_h&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;ec_level_h&quot;>H&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="279"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;foreground_color&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;foreground_color&quot;>Foreground Color&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="280"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;background_color&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;background_color&quot;>Background Color&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="281"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;custom_color&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;custom_color&quot;>Custom&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="282"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;custom_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;custom_image&quot;>Custom Image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="283"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;foreground_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;foreground_image&quot;>Foreground Image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="284"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;background_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;background_image&quot;>Background Image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="285"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;crop_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;crop_image&quot;>Crop Image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="286"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;crop_ratio_free&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;crop_ratio_free&quot;>Free&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="287"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;crop_ratio_square&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;crop_ratio_square&quot;>Square&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="288"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;crop_ratio_4_3&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;crop_ratio_4_3&quot;>4:3&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="289"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;crop_ratio_3_4&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;crop_ratio_3_4&quot;>3:4&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="290"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;crop_ratio_16_9&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;crop_ratio_16_9&quot;>16:9&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="291"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;crop_ratio_9_16&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;crop_ratio_9_16&quot;>9:16&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="292"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;corner_radius&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;corner_radius&quot;>Corner Radius&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="293"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;corner_radius_hint&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;corner_radius_hint&quot;>Rounds the outer corners of the barcode image&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="294"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;module_shape&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;module_shape&quot;>Module Shape&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="295"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;module_shape_square&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;module_shape_square&quot;>Default&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="296"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;module_shape_circle&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;module_shape_circle&quot;>Circle&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="297"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;module_shape_rounded&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;module_shape_rounded&quot;>Rounded&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="298"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;module_fill_ratio&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;module_fill_ratio&quot;>Module Fill Ratio&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="299"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;position_pattern_shape&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;position_pattern_shape&quot;>Position Pattern Shape&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="300"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;position_pattern_square&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;position_pattern_square&quot;>Default&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="301"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;position_pattern_circle&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;position_pattern_circle&quot;>Circle&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="302"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;position_pattern_follow&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;position_pattern_follow&quot;>Follow Module&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="303"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;gradient&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;gradient&quot;>Gradient&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="304"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;gradient_angle&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;gradient_angle&quot;>Gradient Angle&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="305"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;gradient_angle_input&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;gradient_angle_input&quot;>Angle:&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="306"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;gradient_angle_hint&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;gradient_angle_hint&quot;>0-360&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="307"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;add_gradient_stop&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;add_gradient_stop&quot;>Add Gradient Stop&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="308"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;logo_scale&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;logo_scale&quot;>Logo Scale&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="309"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;add_logo&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;add_logo&quot;>Add Logo&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="310"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;remove&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;remove&quot;>Remove&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="311"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;logo_preview&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;logo_preview&quot;>Logo Preview&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="312"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;failed_to_load_logo&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;failed_to_load_logo&quot;>Failed to load logo: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="313"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;hex_color_hint&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;hex_color_hint&quot;>#RRGGBB&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="314"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;invalid_color_format&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;invalid_color_format&quot;>Invalid color format&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="315"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;pick_color&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;pick_color&quot;>Pick Color&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="316"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;warning_barcode_not_scannable&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;warning_barcode_not_scannable&quot;>Generated barcode cannot be recognized by this app. Please check content or format.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="319"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;warning_barcode_content_mismatch&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;warning_barcode_content_mismatch&quot;>Scan result does not match the original content. Original: %1$s, Scanned: %2$s. Please confirm if it is acceptable.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="320"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;warning_generate_only_format&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;warning_generate_only_format&quot;>This format can only be generated and cannot be recognized by this app.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="321"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;warning_scan_success&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
+        errorLine1="    &lt;string name=&quot;warning_scan_success&quot;>Scan verified successfully&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="322"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;app_lock&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;app_lock&quot;>App Lock&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="325"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;app_lock_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;app_lock_disabled&quot;>App lock is OFF&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="326"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;app_lock_enabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;app_lock_enabled&quot;>App lock is ON&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="327"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;change_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;change_pin&quot;>Change PIN&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="328"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;enter_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;enter_pin&quot;>Enter PIN&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="329"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;confirm_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;confirm_pin&quot;>Confirm PIN&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="330"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;set_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;set_pin&quot;>Set PIN&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="331"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;pin_set&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;pin_set&quot;>PIN set successfully&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="332"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;pin_mismatch&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;pin_mismatch&quot;>PINs do not match&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="333"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;pin_incorrect&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;pin_incorrect&quot;>Incorrect PIN&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="334"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;biometric_not_available&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;biometric_not_available&quot;>Biometric authentication is not available&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="335"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;set_pin_first&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;set_pin_first&quot;>Please set a PIN first&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="336"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;unlock&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;unlock&quot;>Unlock&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="337"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;hint_ean_13&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;hint_ean_13&quot;>Enter 13 digits (e.g., 1234567890123)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="340"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;hint_ean_8&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;hint_ean_8&quot;>Enter 8 digits&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="341"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;hint_upc_a&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;hint_upc_a&quot;>Enter 12 digits&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="342"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;hint_upc_e&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;hint_upc_e&quot;>Enter 6-8 digits&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="343"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;hint_code_39&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;hint_code_39&quot;>Enter alphanumeric (0-9, A-Z, -, ., space, $, /, +, %)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="344"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;hint_code_128&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;hint_code_128&quot;>Enter any ASCII characters&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="345"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_all&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_all&quot;>All&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="350"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_favorites&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_favorites&quot;>Favorites&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="351"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_scanned&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_scanned&quot;>Scanned&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="352"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_generated&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_generated&quot;>Generated&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="353"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_type_qr&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_type_qr&quot;>QR Code&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="354"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_type_barcode&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_type_barcode&quot;>Barcode&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="355"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_content_link&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_content_link&quot;>Link&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="356"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_content_text&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_content_text&quot;>Text&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="357"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_content_wifi&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_content_wifi&quot;>WiFi&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="358"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_content_contact&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_content_contact&quot;>Contact&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="359"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_format_qr&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_format_qr&quot;>QR Code&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="360"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_format_ean13&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_format_ean13&quot;>EAN-13&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="361"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_format_code128&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_format_code128&quot;>Code 128&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="362"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_format_code39&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_format_code39&quot;>Code 39&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="363"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_sort_newest&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_sort_newest&quot;>Newest&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="364"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;chip_sort_oldest&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;chip_sort_oldest&quot;>Oldest&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="365"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;search&quot; is not translated in &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;search&quot;>Search&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="368"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;search_hint&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;search_hint&quot;>Search by content…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="369"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;clear_search&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;clear_search&quot;>Clear search&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="370"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;no_history_found&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;no_history_found&quot;>No history found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="373"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;items_found&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;items_found&quot;>%1$d items found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="374"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;add_notes&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;add_notes&quot;>Add notes&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="377"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;edit_notes&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;edit_notes&quot;>Edit notes&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="378"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;notes_hint&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;notes_hint&quot;>Enter notes for this item…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="379"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_barcode&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;content_type_barcode&quot;>Barcode&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="382"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_event&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;content_type_event&quot;>Event&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="383"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;content_type_link&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;content_type_link&quot;>Link&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="384"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;csv_file_empty&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;csv_file_empty&quot;>CSV file is empty&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="387"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;csv_file_selected&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;csv_file_selected&quot;>CSV file selected&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="388"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;csv_parse_error&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;csv_parse_error&quot;>CSV parse error&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="389"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;generating&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;generating&quot;>Generating %1$d/%2$d…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="390"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;generation_complete&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;generation_complete&quot;>Generation complete&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="391"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;generation_failed&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;generation_failed&quot;>Generation failed: %1$s&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="392"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;failed_count&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;failed_count&quot;>Failed: %1$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="393"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;generating_zip&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;generating_zip&quot;>Generating ZIP…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="394"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;download_zip&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;download_zip&quot;>Download ZIP&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="395"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;results&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;results&quot;>Results&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="398"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;auto_save&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;auto_save&quot;>Auto save&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="399"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;deduplication&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;deduplication&quot;>Deduplication&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="400"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;privacy_mode&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;privacy_mode&quot;>Privacy mode&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="403"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;privacy_mode_description&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;privacy_mode_description&quot;>Scanned QR codes will not be saved to history&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="404"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;privacy_mode_enabled&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;privacy_mode_enabled&quot;>Privacy mode enabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="405"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;privacy_mode_disabled&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;privacy_mode_disabled&quot;>Privacy mode disabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="406"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="MissingTranslation"
+        message="&quot;confirm&quot; is not translated in &quot;ko&quot; (Korean) or &quot;zh&quot; (Chinese)"
+        errorLine1="    &lt;string name=&quot;confirm&quot;>Confirm&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="409"
+            column="13"/>
+    </issue>
+
+</issues>

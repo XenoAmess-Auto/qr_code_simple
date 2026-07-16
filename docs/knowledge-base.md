@@ -160,4 +160,4 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - **仅生成格式**：允许只生成不扫描；在 `BarcodeFormat` 上标记 `isScannable = false`，并在生成页面向用户展示提示。
 - 每种可扫描新格式必须配套 roundtrip 单元测试；仅生成格式至少保证 `BarcodeGenerator.generate()` 成功的生成测试。
 - 新增枚举值时需同步更新 `toHistoryType()` 映射。
-- 字符串资源需同时提供英文（`values/strings.xml`）和中文（`values-zh/strings.xml`）。
+- 字符串资源需同时提供全部 5 种语言（`values` / `values-zh` / `values-de` / `values-ja` / `values-ko`）。`MissingTranslation` / `ExtraTranslation` 为 lint error；存量翻译债务记录在 `app/lint-baseline.xml`，**新增未翻译字符串会使 `lintDebug` 失败**（de/ja/ko 可先用机翻占位）。
