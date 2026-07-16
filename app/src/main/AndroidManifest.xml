@@ -48,7 +48,22 @@
 
         <activity
             android:name=".ScanImageActivity"
-            android:label="@string/scan_image" />
+            android:label="@string/scan_image"
+            android:exported="true">
+            <!-- 系统分享：单张图片或视频 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+            <!-- 系统分享：多张图片（仅处理第一张） -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".GenerateActivity"

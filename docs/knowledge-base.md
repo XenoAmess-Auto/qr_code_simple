@@ -117,6 +117,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `StyleConfigSerialization.kt` | 样式配置 JSON 序列化/反序列化 |
 | `SvgQRCodeGenerator.kt` | 全格式 SVG 导出（ZXing 路径 + bitmap 回退） |
 | `QRCodeScanner.kt` | 多引擎扫描器 |
+| `ScanImageProcessor.kt` | 图片/视频 Uri 扫描路由（ScanImageFragment 与系统分享入口共用） |
 | `RestorationRescan.kt` | 图片扫描无结果时的修复重试编排 |
 | `QRCodeRestorationManager.kt` | 修复变体生成（灰度 / 对比度 / 锐化 / 二值化 / 缩放） |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |

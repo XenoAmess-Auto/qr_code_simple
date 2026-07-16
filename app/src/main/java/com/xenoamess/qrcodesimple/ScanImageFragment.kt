@@ -2,8 +2,6 @@ package com.xenoamess.qrcodesimple
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -112,67 +110,11 @@ class ScanImageFragment : Fragment() {
     }
 
     private fun processMedia(uri: Uri) {
-        try {
-            val mimeType = requireContext().contentResolver.getType(uri)
-            when {
-                mimeType?.startsWith("video/") == true -> {
-                    val intent = Intent(requireContext(), VideoScanActivity::class.java).apply {
-                        putExtra(VideoScanActivity.EXTRA_VIDEO_URI, uri.toString())
-                    }
-                    startActivity(intent)
-                }
-                else -> {
-                    processImage(uri)
-                }
-            }
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
-        }
+        ScanImageProcessor.processMedia(requireContext(), uri)
     }
 
     private fun processImage(uri: Uri) {
-        try {
-            val bitmap = loadBitmapFromUri(uri)
-            if (bitmap != null) {
-                val intent = Intent(requireContext(), ResultActivity::class.java).apply {
-                    putExtra(ResultActivity.EXTRA_BITMAP_URI, uri.toString())
-                }
-                startActivity(intent)
-            } else {
-                Toast.makeText(requireContext(), getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun loadBitmapFromUri(uri: Uri): Bitmap? {
-        return try {
-            requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-                val options = BitmapFactory.Options().apply {
-                    inJustDecodeBounds = true
-                }
-                BitmapFactory.decodeStream(inputStream, null, options)
-
-                val maxDimension = 2048
-                val maxDim = maxOf(options.outWidth, options.outHeight)
-                val sampleSize = if (maxDim > maxDimension) {
-                    Integer.highestOneBit((maxDim / maxDimension).coerceAtLeast(1))
-                } else {
-                    1
-                }
-
-                requireContext().contentResolver.openInputStream(uri)?.use { decodeStream ->
-                    BitmapFactory.decodeStream(
-                        decodeStream,
-                        null,
-                        BitmapFactory.Options().apply { inSampleSize = sampleSize }
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            null
-        }
+        ScanImageProcessor.processImage(requireContext(), uri)
     }
 
     override fun onDestroyView() {

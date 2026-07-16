@@ -82,6 +82,7 @@
     <string name="scanning_more">Erkenne weitere…</string>
     <string name="restoration_retrying">Bildwiederherstellung wird versucht…</string>
     <string name="restored_after_enhancement">Nach Bildwiederherstellung erkannt</string>
+    <string name="shared_multiple_first_only">%1$d Bilder geteilt; nur das erste wird verarbeitet</string>
     <string name="no_app_found">Keine geeignete App gefunden</string>
     <string name="no_calendar_app">Keine Kalender-App gefunden</string>
     <string name="no_email_app">Keine E-Mail-App gefunden</string>

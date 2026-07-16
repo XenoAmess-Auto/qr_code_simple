@@ -46,5 +46,6 @@
     <string name="scanning_more">さらに認識中…</string>
     <string name="restoration_retrying">画像修復を試行中…</string>
     <string name="restored_after_enhancement">画像修復後に認識しました</string>
+    <string name="shared_multiple_first_only">%1$d 枚の画像が共有されました。最初の1枚のみ処理します</string>
 
 </resources>

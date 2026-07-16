@@ -57,6 +57,7 @@
     <string name="scanning_more">Recognizing more…</string>
     <string name="restoration_retrying">Trying image restoration…</string>
     <string name="restored_after_enhancement">Recognized after image restoration</string>
+    <string name="shared_multiple_first_only">%1$d images shared; only the first one will be processed</string>
     <string name="no_image_provided">No image provided</string>
     <string name="no_video_provided">No video provided</string>
     <string name="failed_to_load_image">Failed to load image</string>

@@ -77,6 +77,7 @@
     <string name="scanning_more">더 인식 중…</string>
     <string name="restoration_retrying">이미지 복원 시도 중…</string>
     <string name="restored_after_enhancement">이미지 복원 후 인식됨</string>
+    <string name="shared_multiple_first_only">%1$d개의 이미지가 공유되었습니다. 첫 번째 이미지만 처리합니다</string>
     <string name="no_image_provided">제공된 이미지가 없습니다</string>
     <string name="failed_to_load_image">이미지 로드 실패</string>
     <string name="detected_with">%1$s로 감지됨</string>
