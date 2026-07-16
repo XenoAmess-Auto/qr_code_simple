@@ -1,5 +1,12 @@
 # JUnit 5 迁移计划
 
+## 状态：✅ 已落地（2026-07）
+
+- 已启用 `useJUnitPlatform()`，JUnit 5.14.4 Platform + Vintage Engine 运行全部既有 JUnit 4 / Robolectric 测试。
+- 新测试可使用 Jupiter 注解（示例：`BackupCryptoJupiterTest`）。
+- **注意**：JUnit 6 已移除 Vintage Engine，依赖版本必须停留在 5.x。
+- 既有测试全部显式使用 `org.junit.Test`（JUnit 4），故 `kotlin-test` 保持 JUnit4 风味未替换；后续可按本计划第 4 步逐步迁移纯 JVM 测试。
+
 ## 目标
 
 - 将测试框架从 JUnit 4 迁移到 JUnit 5 Platform。
