@@ -563,7 +563,7 @@ object HanXinEncoder {
             }
 
             val size = version * 2 + 21
-            val dataStream = IntArray(dataCodewords) { 0 }
+            val dataStream = IntArray(dataCodewords)
             binary.toByteArray(dataCodewords).copyInto(dataStream, 0, 0, min(binary.byteSize(), dataCodewords))
 
             val totalCodewords = TOTAL_CODEWORDS[version - 1]
@@ -573,7 +573,7 @@ object HanXinEncoder {
             val picketFence = IntArray(totalCodewords)
             makePicketFence(fullStream, picketFence)
 
-            val grid = IntArray(size * size) { 0 }
+            val grid = IntArray(size * size)
             setupGrid(grid, size, version)
             populateGrid(grid, size, picketFence)
 
@@ -1667,7 +1667,7 @@ object HanXinEncoder {
     // -------------------------------------------------------------------------
 
     private class BitWriter(initialCapacity: Int) {
-        private val bits = IntArray(initialCapacity) { 0 }
+        private val bits = IntArray(initialCapacity)
         private var pos = 0
 
         val size: Int get() = pos
@@ -1690,7 +1690,7 @@ object HanXinEncoder {
         fun byteSize(): Int = (pos + 7) shr 3
 
         fun toByteArray(maxBytes: Int): IntArray {
-            val result = IntArray(maxBytes) { 0 }
+            val result = IntArray(maxBytes)
             for (i in 0 until pos) {
                 if (bits[i] == 1) {
                     result[i shr 3] = result[i shr 3] or (0x80 shr (i and 0x07))
@@ -1864,8 +1864,8 @@ object HanXinEncoder {
          * and error-evaluator polynomial omega.
          */
         fun berlekampMassey(syndromes: IntArray, numEcc: Int): Pair<IntArray, IntArray> {
-            val sigma = IntArray(numEcc + 1) { 0 }
-            var b = IntArray(numEcc + 1) { 0 }
+            val sigma = IntArray(numEcc + 1)
+            var b = IntArray(numEcc + 1)
             sigma[0] = 1
             b[0] = 1
             var l = 0

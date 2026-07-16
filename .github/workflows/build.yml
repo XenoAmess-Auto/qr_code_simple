@@ -26,9 +26,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK, run unit tests and generate coverage report
+      - name: Build debug APK, run unit tests, lint and generate coverage report
         timeout-minutes: 60
-        run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:jacocoTestReport -PexcludeExtendedUiTests
+        run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport -PexcludeExtendedUiTests
 
       - name: Upload debug APK
         if: always()

@@ -24,7 +24,7 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 # Run a single test class
 ./gradlew :app:testDebugUnitTest --tests "*BarcodeGenerationRoundtripTest*"
 
-# Lint (currently fails on pre-existing errors; do not treat as a required gate)
+# Lint. Runs in CI and must stay clean (0 errors / 0 warnings / 0 hints).
 ./gradlew :app:lintDebug
 ```
 

@@ -500,7 +500,7 @@ object HanXinDecoder {
         eccLevel: Int
     ): IntArray? {
         val tablePos = (version - 1) * 36 + (eccLevel - 1) * 9
-        val output = IntArray(dataCodewords) { 0 }
+        val output = IntArray(dataCodewords)
         var inputPos = 0
         var outputPos = 0
 
@@ -669,7 +669,7 @@ object HanXinDecoder {
     // -------------------------------------------------------------------------
 
     private fun readDataCodewords(grid: IntArray, size: Int, totalCodewords: Int): IntArray {
-        val result = IntArray(totalCodewords) { 0 }
+        val result = IntArray(totalCodewords)
         var bitPos = 0
         for (i in grid.indices) {
             if (bitPos >= totalCodewords * 8) break
