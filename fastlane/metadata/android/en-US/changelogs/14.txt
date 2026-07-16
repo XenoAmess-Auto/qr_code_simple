@@ -1,0 +1,3 @@
+- Two-pane list-detail history on tablets (sw600dp+)
+- Simplified Chinese translation now 100% complete
+- Play/F-Droid metadata (fastlane) added

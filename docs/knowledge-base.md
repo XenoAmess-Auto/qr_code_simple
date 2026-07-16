@@ -4,7 +4,7 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.2.0`
+- 当前版本：`0.2.1`
 - 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
@@ -92,6 +92,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 历史列表的二维码分享使用原始 `barcodeFormat` 和 `styleJson` 重新生成图片，保持与生成时一致。
 - 历史详情页提供“自定义样式生成”按钮，可将文本带入 `GenerateFragment` 重新选择样式。
 - 保留策略：`PrivacySettingsActivity` 可配置自动清理（永久/30/90/365 天），存于 `app_settings`；`QRCodeApp.onCreate` 启动时执行一次 `deleteOlderThan`（收藏豁免），0 表示永久保留。
+- 平板双栏：`layout-sw600dp/fragment_history.xml` 为列表 + 详情双栏；`HistoryFragment.openHistoryDetail` 检测到 `detailPaneContainer` 时嵌入 `HistoryDetailFragment`，否则启动 `HistoryDetailActivity`。列表布局经 `<include android:id="@+id/listPart">` 在两种配置间复用（ViewBinding 生成嵌套绑定 `binding.listPart`）。
 - 备份导出支持明文 JSON / CSV 与加密备份（`QRBK1` magic + AES-256/GCM + PBKDF2 10 万次）；导入按内容自动识别（magic → 密码框，`{` / `[` → JSON，其余 → CSV）。
 - 恶意链接黑名单：`assets/security/blacklist.json` 内置（version 1），`PrivacySettingsActivity` 可开启静默在线更新（默认关；24h 节流；任何失败仅记日志）。开启需要 `INTERNET` 权限，这是应用唯一的网络用途。
 
@@ -128,6 +129,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `SecurityBlacklist.kt` | 恶意链接黑名单模型；加载顺序 filesDir 覆盖 > assets 内置 > 代码兜底 |
 | `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
 | `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
+| `HistoryDetailFragment.kt` | 历史详情内容页；手机由 HistoryDetailActivity 薄包装承载，平板 sw600dp 双栏嵌入右侧面板 |
 | `ScanRegionMapper.kt` | 框选区域视图坐标 → 帧 bitmap 像素坐标映射（FILL_CENTER + 旋转变换） |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
 | `decoder/CustomLinearBarcodeScanner.kt` | 自定义一维码扫描入口 |

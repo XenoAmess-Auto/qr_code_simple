@@ -54,11 +54,11 @@ A feature-rich Android QR/Barcode scanning and generation app.
 ### UI & UX
 
 - ✅ **Material You** - Android 12+ dynamic colors.
-- ✅ **Landscape Support** - Tablet and landscape optimized.
+- ✅ **Landscape & Tablet** - Landscape optimized; two-pane list-detail history on tablets (sw600dp+).
 - ✅ **Shortcuts** - Long-press the launcher icon to scan or generate.
 - ✅ **Quick Settings Tile** - One-tap camera scan from the notification shade.
 - ✅ **Home Widgets** - Quick Scan and Quick Generate widgets.
-- ✅ **Internationalization** - Simplified Chinese, English, Japanese, Korean, German.
+- ✅ **Internationalization** - Simplified Chinese (complete), English, Japanese, Korean, German.
 - ✅ **Animation** - Page transitions and scan-line animation.
 
 ### Technical
@@ -266,7 +266,8 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── ResultActivity.kt                # Single-code result screen (action menu)
 ├── ui/result/QRResultAdapter.kt     # RecyclerView adapter for multiple scan results
 ├── HistoryFragment.kt               # History list
-├── HistoryDetailActivity.kt         # History record detail
+├── HistoryDetailActivity.kt         # History detail (thin wrapper, phone)
+├── HistoryDetailFragment.kt         # History detail content (shared, also embedded on tablets)
 ├── HistoryAdapter.kt                # History list adapter
 ├── HistoryBackupManager.kt          # JSON / CSV / encrypted import & export
 ├── BackupCrypto.kt                  # Backup encryption (AES-256-GCM + PBKDF2)

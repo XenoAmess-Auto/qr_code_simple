@@ -173,6 +173,13 @@
 - 推迟：P1.4 targetSdk 36 / 依赖大版本升级（需真机验证）、P3.2 androidTest 真机冒烟（需模拟器基建）、P4.1 Baseline Profile、P4.3 Fastlane、P4.5 平板双栏
 - **遗留风险**：R8 混淆后的 release 包尚未在真机做过全流程冒烟，首次正式发布前需人工验证（重点：Excel 导入、批量生成 ZIP、微信引擎、SVG 导出）
 
+## 第三轮执行记录（0.2.1）
+
+- [x] P4.3 Fastlane 元数据（en-US/zh-CN 描述、截图、changelog）
+- [x] zh 翻译债务回填 131 条（values-zh 与默认完全对齐：0 缺失 / 0 冗余 / 0 占位符不匹配），baseline 重新生成
+- [x] P4.5 历史页平板双栏：`HistoryDetailFragment` 抽取 + `HistoryDetailActivity` 薄包装 + sw600dp 布局变体（嵌套绑定 `binding.listPart`）
+- 剩余推迟：P1.4 targetSdk 36、P3.2 androidTest 真机冒烟、P4.1 Baseline Profile；de/ja/ko 翻译债务仍在 baseline 中（可按 zh 模式分批回填）
+
 ## 执行中新发现（已全部解决/记录）
 
 1. ~~**ScannerOverlayView / ScanRegionView 也是死代码**~~：**已解决（接入）**。扫描线动画叠加在相机扫描页；ScanRegionView 通过顶栏框选按钮启用，选择区域经 `ScanRegionMapper`（FILL_CENTER 裁剪 + rotationDegrees 旋转变换）映射到帧像素坐标后裁剪识别。README 宣称的"Scan Region Limit / 扫描区域限定"与扫描线动画现已为真实功能。
