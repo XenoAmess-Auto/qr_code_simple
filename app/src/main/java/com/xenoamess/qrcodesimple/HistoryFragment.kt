@@ -57,6 +57,9 @@ class HistoryFragment : Fragment() {
         return binding.root
     }
 
+    /** 列表区域（单/双栏布局共用，经 <include> 复用同一布局）。 */
+    private val listBinding get() = binding.listPart
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -70,8 +73,8 @@ class HistoryFragment : Fragment() {
         } catch (e: Exception) {
             android.util.Log.e("HistoryFragment", "DB init failed", e)
             Toast.makeText(requireContext(), "History unavailable: ${e.message}", Toast.LENGTH_LONG).show()
-            binding.tvEmpty.text = "History unavailable"
-            binding.tvEmpty.visibility = View.VISIBLE
+            listBinding.tvEmpty.text = "History unavailable"
+            listBinding.tvEmpty.visibility = View.VISIBLE
             return
         }
 
@@ -142,38 +145,47 @@ class HistoryFragment : Fragment() {
             onFavorite = { item -> toggleFavorite(item) },
             onAddNote = { item -> showAddNoteDialog(item) }
         )
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerView.adapter = adapter
+        listBinding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        listBinding.recyclerView.adapter = adapter
     }
 
     private fun openHistoryDetail(item: HistoryItem) {
-        val intent = Intent(requireContext(), HistoryDetailActivity::class.java).apply {
-            putExtra(HistoryDetailActivity.EXTRA_ITEM_ID, item.id)
+        val detailPane = binding.detailPaneContainer
+        if (detailPane != null) {
+            // 平板双栏：详情嵌入右侧面板
+            childFragmentManager.beginTransaction()
+                .replace(R.id.detailPaneContainer, HistoryDetailFragment.newInstance(item.id))
+                .commit()
+        } else {
+            // 手机单栏：打开独立详情页
+            val intent = Intent(requireContext(), HistoryDetailActivity::class.java).apply {
+                putExtra(HistoryDetailActivity.EXTRA_ITEM_ID, item.id)
+            }
+            startActivity(intent)
         }
-        startActivity(intent)
     }
 
     private fun setupFilterTabs() {
-        binding.btnFilterAll.setOnClickListener {
+        listBinding.btnFilterAll.setOnClickListener {
             currentFilter = FilterType.ALL
             loadHistory()
         }
-        binding.btnFilterScanned.setOnClickListener {
+        listBinding.btnFilterScanned.setOnClickListener {
             currentFilter = FilterType.SCANNED
             loadHistory()
         }
-        binding.btnFilterGenerated.setOnClickListener {
+        listBinding.btnFilterGenerated.setOnClickListener {
             currentFilter = FilterType.GENERATED
             loadHistory()
         }
-        binding.btnFilterFavorite.setOnClickListener {
+        listBinding.btnFilterFavorite.setOnClickListener {
             currentFilter = FilterType.FAVORITE
             loadHistory()
         }
     }
 
     private fun setupSearchView() {
-        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        listBinding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 currentSearchQuery = query ?: ""
                 loadHistory()
@@ -189,7 +201,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun setupClearButton() {
-        binding.btnClearAll.setOnClickListener {
+        listBinding.btnClearAll.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle(getString(R.string.clear_history))
                 .setMessage(getString(R.string.clear_history_confirm))
@@ -208,11 +220,11 @@ class HistoryFragment : Fragment() {
         lifecycleScope.launch {
             val tags = repository.getAllTags()
             if (tags.isEmpty()) {
-                binding.chipGroupTags.visibility = View.GONE
+                listBinding.chipGroupTags.visibility = View.GONE
                 return@launch
             }
-            binding.chipGroupTags.visibility = View.VISIBLE
-            binding.chipGroupTags.removeAllViews()
+            listBinding.chipGroupTags.visibility = View.VISIBLE
+            listBinding.chipGroupTags.removeAllViews()
 
             val allChip = com.google.android.material.chip.Chip(requireContext()).apply {
                 text = getString(R.string.all_tags)
@@ -225,7 +237,7 @@ class HistoryFragment : Fragment() {
                     }
                 }
             }
-            binding.chipGroupTags.addView(allChip)
+            listBinding.chipGroupTags.addView(allChip)
 
             for (tag in tags) {
                 val chip = com.google.android.material.chip.Chip(requireContext()).apply {
@@ -238,7 +250,7 @@ class HistoryFragment : Fragment() {
                         }
                     }
                 }
-                binding.chipGroupTags.addView(chip)
+                listBinding.chipGroupTags.addView(chip)
             }
         }
     }
@@ -269,7 +281,7 @@ class HistoryFragment : Fragment() {
                     if (_binding != null) {
                         adapter.submitList(emptyList())
                         updateEmptyState(true)
-                        binding.tvEmpty.text = "History unavailable: ${e.message}"
+                        listBinding.tvEmpty.text = "History unavailable: ${e.message}"
                     }
                 }
             }
@@ -277,8 +289,8 @@ class HistoryFragment : Fragment() {
     }
 
     private fun updateEmptyState(isEmpty: Boolean) {
-        binding.tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        binding.recyclerView.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        listBinding.tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        listBinding.recyclerView.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
     private fun toggleFavorite(item: HistoryItem) {

@@ -384,4 +384,5 @@
     <string name="privacy_mode_enabled">隐私模式已开启</string>
     <string name="privacy_mode_disabled">隐私模式已关闭</string>
     <string name="confirm">确认</string>
+    <string name="select_history_prompt">选择一条历史记录查看详情</string>
 </resources>

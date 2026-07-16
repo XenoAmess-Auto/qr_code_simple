@@ -427,4 +427,5 @@
     <string name="scan_region">Scan region</string>
     <string name="scan_region_mode_on">Region mode on: drag to select the decode area</string>
     <string name="scan_region_mode_off">Region mode off: decoding full frames</string>
+    <string name="select_history_prompt">Select a history item to view details</string>
 </resources>

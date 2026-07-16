@@ -241,4 +241,5 @@
     <string name="scan_region">스캔 영역</string>
     <string name="scan_region_mode_on">영역 모드 켜줌: 드래그로 인식 영역 선택</string>
     <string name="scan_region_mode_off">영역 모드 꺼짐: 전체 화면 인식</string>
+    <string name="select_history_prompt">기록 항목을 선택하면 상세 정보를 표시합니다</string>
 </resources>

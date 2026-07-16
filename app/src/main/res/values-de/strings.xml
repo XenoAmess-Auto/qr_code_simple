@@ -164,4 +164,5 @@
     <string name="scan_region">Scanbereich</string>
     <string name="scan_region_mode_on">Bereichsmodus an: Ziehen, um den Erkennungsbereich zu wählen</string>
     <string name="scan_region_mode_off">Bereichsmodus aus: Vollbild-Erkennung</string>
+    <string name="select_history_prompt">Wählen Sie einen Verlaufseintrag, um Details anzuzeigen</string>
 </resources>
