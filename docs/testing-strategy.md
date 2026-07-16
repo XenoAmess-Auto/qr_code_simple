@@ -8,7 +8,7 @@
 
 ## 2. 测试框架
 
-- **JUnit 4**：基础单元测试。
+- **JUnit 5 Platform（5.14.4）**：`useJUnitPlatform()`；既有 JUnit 4 测试经 **Vintage Engine** 运行，新测试可用 Jupiter 注解。**JUnit 版本必须停留 5.x**（6.x 已移除 Vintage Engine）。
 - **Robolectric 4.16.1**：在 JVM 上模拟 Android `Bitmap`。
 - **Kotlin test**：辅助断言。
 
@@ -167,3 +167,5 @@ CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `as
 - `AppDatabase` 在 Robolectric 测试中会回退到未加密数据库，因为 SQLCipher 原生库在 JVM 单元测试中不可用。
 - 部分 OkapiBarcode 生成的格式（如 Code One、Grid Matrix、各类邮政码）存在编码器限制或已知 bug，测试内容需使用合法样例，详见 `BarcodeFormatTestFixtures.kt`。
 - 覆盖率由 JaCoCo 生成（`./gradlew :app:jacocoTestReport`）。`app/build.gradle` 关闭 AGP 内置覆盖率，改用 Gradle JaCoCo 插件并开启 `includeNoLocationClasses = true`，使 Robolectric 加载的类也能被计入；同时排除 `jdk.internal.reflect.*` 避免 Gradle worker 序列化异常。
+- 覆盖率门禁：`jacocoTestCoverageVerification` 已接入 CI（指令 ≥ 0.75，行 ≥ 0.70，`-PexcludeExtendedUiTests` 口径）。
+- 金样测试：`GenerationGoldenTest` 固定输入断言 SVG 输出 SHA-256，防止生成图案在依赖升级时静默变化；预期变更需更新金样并注明原因。

@@ -4,14 +4,14 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.1.9`
+- 当前版本：`0.2.0`
 - 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
 
 | 组件 | 技术/库 | 版本 |
 |------|---------|------|
-| 语言 | Kotlin | 2.2.10 |
+| 语言 | Kotlin | 2.2.21 |
 | UI | Jetpack Compose / XML Layout | - |
 | 相机 | CameraX | 1.3.3 |
 | 数据库 | Room + SQLCipher | 2.7.1 / 4.5.4 |
@@ -20,7 +20,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | 二维码识别 | WeChatQRCode | 2.5.0 |
 | Micro QR | BoofCV | 1.4.0 |
 | 复杂格式生成 | OkapiBarcode | 0.5.6 |
-| 测试 | JUnit + Robolectric | 4.13.2 / 4.16.1 |
+| 测试 | JUnit 5 Platform (Vintage) + Robolectric | 5.14.4 / 4.16.1 |
 | 覆盖率 | JaCoCo + GitHub Pages | 0.8.12 / shields.io endpoint badge |
 
 ## 3. 支持格式总览
@@ -171,3 +171,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 每种可扫描新格式必须配套 roundtrip 单元测试；仅生成格式至少保证 `BarcodeGenerator.generate()` 成功的生成测试。
 - 新增枚举值时需同步更新 `toHistoryType()` 映射。
 - 字符串资源需同时提供全部 5 种语言（`values` / `values-zh` / `values-de` / `values-ja` / `values-ko`）。`MissingTranslation` / `ExtraTranslation` 为 lint error；存量翻译债务记录在 `app/lint-baseline.xml`，**新增未翻译字符串会使 `lintDebug` 失败**（de/ja/ko 可先用机翻占位）。
+- 生成稳定性：固定输入的 SVG 输出哈希受 `GenerationGoldenTest` 金样保护；生成逻辑或依赖升级导致图案变化时会失败，属预期变更时更新金样并在提交信息说明。
+- 测试在 JUnit 5 Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）。**JUnit 版本必须停留在 5.x**（6.x 移除了 Vintage Engine）。
+- CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.75，行 ≥ 0.70，`-PexcludeExtendedUiTests` 口径），随覆盖率提升逐步收紧。
+- Release 构建开启 R8 + shrinkResources；正式签名通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 gradle 属性注入，未配置时回退 debug 签名。推 `v*` 标签触发 `.github/workflows/release.yml` 产出 APK + AAB 并创建 GitHub Release。

@@ -6,7 +6,7 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 
 ## Toolchain
 
-- Kotlin 2.2.10, Android Gradle Plugin 9.2.1, Gradle 9.6.1
+- Kotlin 2.2.21, Android Gradle Plugin 9.2.1, Gradle 9.6.1
 - `compileSdk 35`, `minSdk 28`, `targetSdk 35`
 - **JDK 21 required** (`sourceCompatibility/targetCompatibility = VERSION_21`, `jvmTarget = '21'`).
   README says JDK 17 — trust build config.
@@ -28,7 +28,14 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 # MissingTranslation/ExtraTranslation are errors: new string resources must be
 # added to all 5 locales (values, values-zh, values-de, values-ja, values-ko).
 # Existing translation debt lives in app/lint-baseline.xml.
-./gradlew :app:lintDebug```
+./gradlew :app:lintDebug
+
+# Coverage floor gate. Runs in CI (instruction >= 0.75, line >= 0.70).
+./gradlew :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
+
+# Release build (R8 + shrinkResources; signs with RELEASE_KEYSTORE_* env vars
+# when set, falls back to debug signing otherwise)
+./gradlew :app:assembleRelease :app:bundleRelease```
 
 ## Agent workflow
 

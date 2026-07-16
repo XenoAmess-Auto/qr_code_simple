@@ -161,7 +161,19 @@
 - [x] 批次 11
 - [x] 批次 12
 
-## 执行中新发现（后续跟进）
+## 第二轮执行记录（构建/测试工程化，0.2.0）
+
+- [x] P0.3 release 构建正经化：R8 + shrinkResources + 各库 ProGuard 规则；RELEASE_KEYSTORE_* 注入签名，未配置回退 debug（Release APK 78M / AAB 44M，Debug APK 120M）
+- [x] P1.2 Release 工作流：`v*` 标签 → 构建 APK+AAB → GitHub Release（`.github/workflows/release.yml`）
+- [x] P1.3 kapt → KSP 2.2.21-2.0.5
+- [x] P3.1 JUnit 5 Platform + Vintage（5.14.4；6.x 已移除 Vintage 不可用）
+- [x] P3.3 生成金样测试（QR/EAN-13/Code128/DataMatrix SVG SHA-256）
+- [x] P3.5 覆盖率门禁（指令 ≥ 0.75 / 行 ≥ 0.70，探针验证会失败）
+- [x] 跟进项：ScannerOverlayView / ScanRegionView 接入相机扫描页（`ScanRegionMapper` 坐标映射）
+- 推迟：P1.4 targetSdk 36 / 依赖大版本升级（需真机验证）、P3.2 androidTest 真机冒烟（需模拟器基建）、P4.1 Baseline Profile、P4.3 Fastlane、P4.5 平板双栏
+- **遗留风险**：R8 混淆后的 release 包尚未在真机做过全流程冒烟，首次正式发布前需人工验证（重点：Excel 导入、批量生成 ZIP、微信引擎、SVG 导出）
+
+## 执行中新发现（已全部解决/记录）
 
 1. ~~**ScannerOverlayView / ScanRegionView 也是死代码**~~：**已解决（接入）**。扫描线动画叠加在相机扫描页；ScanRegionView 通过顶栏框选按钮启用，选择区域经 `ScanRegionMapper`（FILL_CENTER 裁剪 + rotationDegrees 旋转变换）映射到帧像素坐标后裁剪识别。README 宣称的"Scan Region Limit / 扫描区域限定"与扫描线动画现已为真实功能。
 2. 批次 8 顺带修复了一个存量 bug：JSON 备份因检测字符写错（`[` vs `{`）一直被路由到 CSV 导入。

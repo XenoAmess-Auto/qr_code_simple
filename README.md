@@ -172,7 +172,7 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 
 ## Tech Stack
 
-- **Language**: Kotlin 2.2.10
+- **Language**: Kotlin 2.2.21
 - **UI**: Jetpack Compose + XML Layouts (viewBinding)
 - **Database**: Room 2.7.1 + SQLCipher 4.5.4 (encrypted)
 - **Async**: Kotlin Coroutines
@@ -182,7 +182,7 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 - **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal / 2 of 5 / Code One / Grid Matrix / ...)
 - **CSV Parsing**: Apache Commons CSV 1.14.1
 - **Biometric**: androidx.biometric 1.1.0
-- **Tests**: JUnit 4 + Robolectric 4.16.1
+- **Tests**: JUnit 5 Platform (Vintage engine runs existing JUnit 4) + Robolectric 4.16.1
 
 The full file index and architectural notes live in [`docs/knowledge-base.md`](docs/knowledge-base.md).
 
@@ -215,7 +215,17 @@ cd qr_code_simple
 
 # Install to a connected device
 ./gradlew :app:installDebug
+
+# Release build (R8 + shrinkResources). Signs with RELEASE_KEYSTORE_* env vars
+# (RELEASE_KEYSTORE_FILE / _PASSWORD / _ALIAS) when set, otherwise falls back to debug signing.
+./gradlew :app:assembleRelease   # APK
+./gradlew :app:bundleRelease     # AAB for Play Console
+
+# Lint and coverage floor (both gate CI)
+./gradlew :app:lintDebug :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 ```
+
+Pushing a `v*` tag triggers the release workflow (`.github/workflows/release.yml`): it builds the APK + AAB and creates a GitHub Release. Configure `RELEASE_KEYSTORE_BASE64` / `RELEASE_KEYSTORE_PASSWORD` / `RELEASE_KEYSTORE_ALIAS` secrets for production signing.
 
 If you see "App not installed" or signature mismatch errors, see `README_CN.md` → "签名问题解决方案" for three workarounds (download CI debug keystore, use CI-built APK, or uninstall and reinstall).
 

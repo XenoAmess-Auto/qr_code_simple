@@ -174,7 +174,7 @@
 
 ## 技术栈
 
-- **语言**：Kotlin 2.2.10
+- **语言**：Kotlin 2.2.21
 - **UI**：Jetpack Compose + XML 布局（viewBinding）
 - **数据库**：Room 2.7.1 + SQLCipher 4.5.4（加密）
 - **异步**：Kotlin Coroutines
@@ -184,7 +184,7 @@
 - **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix / ...）
 - **CSV 解析**：Apache Commons CSV 1.14.1
 - **生物认证**：androidx.biometric 1.1.0
-- **测试**：JUnit 4 + Robolectric 4.16.1
+- **测试**：JUnit 5 Platform（Vintage 引擎运行既有 JUnit 4）+ Robolectric 4.16.1
 
 完整文件索引和架构说明位于 [`docs/knowledge-base.md`](docs/knowledge-base.md)。
 
@@ -236,7 +236,17 @@ cd qr_code_simple
 
 # 安装到设备
 ./gradlew :app:installDebug
+
+# Release 构建（R8 + shrinkResources）。设置 RELEASE_KEYSTORE_* 环境变量
+# （RELEASE_KEYSTORE_FILE / _PASSWORD / _ALIAS）时使用正式签名，否则回退 debug 签名。
+./gradlew :app:assembleRelease   # APK
+./gradlew :app:bundleRelease     # Play 用 AAB
+
+# Lint 与覆盖率门禁（均为 CI 门禁）
+./gradlew :app:lintDebug :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 ```
+
+推送 `v*` 标签会触发 release 工作流（`.github/workflows/release.yml`）：构建 APK + AAB 并创建 GitHub Release。正式签名需配置 `RELEASE_KEYSTORE_BASE64` / `RELEASE_KEYSTORE_PASSWORD` / `RELEASE_KEYSTORE_ALIAS` secrets。
 
 如遇到"应用未安装"或"签名不匹配"错误，请参见下方"签名问题解决方案"。
 
