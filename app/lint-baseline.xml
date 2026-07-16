@@ -14,7 +14,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;flash&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;flash&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;flash&quot;>Flash&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~">
         <location
@@ -25,7 +25,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;switch_camera&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;switch_camera&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;switch_camera&quot;>Switch Camera&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -201,7 +201,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;unknown_error&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;unknown_error&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;unknown_error&quot;>Unknown error&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -212,7 +212,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;scan_result&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;scan_result&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;scan_result&quot;>Scan Result&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -234,7 +234,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;close&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;close&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;close&quot;>Close&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~">
         <location
@@ -256,7 +256,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;checking_security&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;checking_security&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;checking_security&quot;>Checking security…&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -564,7 +564,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;barcode_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;barcode_image&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;barcode_image&quot;>Barcode image&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -575,7 +575,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;history_detail&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;history_detail&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;history_detail&quot;>History Detail&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -586,7 +586,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;add_to_favorites&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;add_to_favorites&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;add_to_favorites&quot;>Add to favorites&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -597,7 +597,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;remove_from_favorites&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;remove_from_favorites&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;remove_from_favorites&quot;>Remove from favorites&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -608,7 +608,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;all_tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;all_tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;all_tags&quot;>All Tags&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
@@ -806,7 +806,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;type_data_matrix&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;type_data_matrix&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;type_data_matrix&quot;>Data Matrix&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -817,7 +817,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;type_aztec&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;type_aztec&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;type_aztec&quot;>Aztec&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -828,7 +828,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;type_pdf417&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;type_pdf417&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;type_pdf417&quot;>PDF417&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -850,7 +850,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;settings&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;settings&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;settings&quot;>Settings&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
@@ -861,7 +861,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;save_all&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;save_all&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;save_all&quot;>Save All&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
@@ -1466,7 +1466,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;batch_generate&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;batch_generate&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;batch_generate&quot;>Batch Generate&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1477,7 +1477,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;batch_result&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;batch_result&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;batch_result&quot;>Batch Result&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1488,7 +1488,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;import_csv_excel&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;import_csv_excel&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;import_csv_excel&quot;>Import CSV/Excel&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1499,7 +1499,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;download_template&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;download_template&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;download_template&quot;>Download Template&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1510,7 +1510,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;generate_batch&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;generate_batch&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;generate_batch&quot;>Generate Batch&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1521,7 +1521,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;save_all_zip&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;save_all_zip&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;save_all_zip&quot;>Save All as ZIP&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1532,7 +1532,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;batch_template_saved&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;batch_template_saved&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;batch_template_saved&quot;>Template saved&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1543,7 +1543,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;batch_items_imported&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;batch_items_imported&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;batch_items_imported&quot;>Imported %1$d items&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1554,7 +1554,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;batch_no_items&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;batch_no_items&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;batch_no_items&quot;>No valid items found&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1565,7 +1565,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;batch_generated_count&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;batch_generated_count&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;batch_generated_count&quot;>Generated: %1$d/%2$d&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1576,7 +1576,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_scan_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_scan_short&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_scan_short&quot;>Scan&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1587,7 +1587,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_scan_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_scan_long&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_scan_long&quot;>Quick Scan&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1598,7 +1598,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_scan_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_scan_disabled&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_scan_disabled&quot;>Scan is disabled&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1609,7 +1609,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_generate_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_generate_short&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_generate_short&quot;>Generate&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1620,7 +1620,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_generate_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_generate_long&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_generate_long&quot;>Generate QR Code&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1631,7 +1631,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_generate_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_generate_disabled&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_generate_disabled&quot;>Generate is disabled&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1642,7 +1642,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_history_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_history_short&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_history_short&quot;>History&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1653,7 +1653,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_history_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_history_long&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_history_long&quot;>View History&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1664,7 +1664,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_history_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_history_disabled&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_history_disabled&quot;>History is disabled&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1675,7 +1675,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_batch_short&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_batch_short&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_batch_short&quot;>Batch&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1686,7 +1686,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_batch_long&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_batch_long&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_batch_long&quot;>Batch Generate&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1697,7 +1697,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;shortcut_batch_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;shortcut_batch_disabled&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;shortcut_batch_disabled&quot;>Batch is disabled&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1708,7 +1708,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;continuous_scan&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;continuous_scan&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;continuous_scan&quot;>Continuous Scan&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1719,7 +1719,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;privacy_settings&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;privacy_settings&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;privacy_settings&quot;>Privacy Settings&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1730,7 +1730,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;database_security&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;database_security&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;database_security&quot;>Database Security&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1741,7 +1741,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;encryption_enabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;encryption_enabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;encryption_enabled&quot;>Encryption Enabled&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1752,7 +1752,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;reset_database&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;reset_database&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;reset_database&quot;>Reset Database&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1763,7 +1763,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;reset_database_confirm&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;reset_database_confirm&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;reset_database_confirm&quot;>This will delete all history data and reset encryption keys. This action cannot be undone. Continue?&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1774,7 +1774,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;database_reset_success&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;database_reset_success&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;database_reset_success&quot;>Database reset successfully. App will restart.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1785,7 +1785,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;database_reset_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;database_reset_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;database_reset_failed&quot;>Failed to reset database: %1$s&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1796,7 +1796,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;backup_restore&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;backup_restore&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;backup_restore&quot;>Backup &amp;amp; Restore&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1807,7 +1807,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;export_json&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;export_json&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;export_json&quot;>Export as JSON&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -1818,7 +1818,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;export_csv&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;export_csv&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;export_csv&quot;>Export as CSV&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -1829,7 +1829,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;import_data&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;import_data&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;import_data&quot;>Import Data&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -1840,7 +1840,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;export_success&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;export_success&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;export_success&quot;>Export successful&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1851,7 +1851,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;export_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;export_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;export_failed&quot;>Export failed: %1$s&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1862,7 +1862,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;import_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;import_failed&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;import_failed&quot;>Import failed: %1$s&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1873,7 +1873,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;tags&quot;>Tags&lt;/string>"
         errorLine2="            ~~~~~~~~~~~">
         <location
@@ -1884,7 +1884,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;add_tag&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;add_tag&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;add_tag&quot;>Add Tag&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~">
         <location
@@ -1895,7 +1895,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;edit_tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;edit_tags&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;edit_tags&quot;>Edit Tags&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
@@ -1906,7 +1906,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;tag_hint&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;tag_hint&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;tag_hint&quot;>Enter tags separated by commas&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
@@ -1917,7 +1917,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;widget_quick_scan&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;widget_quick_scan&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;widget_quick_scan&quot;>Quick Scan&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1928,7 +1928,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;widget_quick_generate&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;widget_quick_generate&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;widget_quick_generate&quot;>Quick Generate&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1939,7 +1939,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;widget_tap_to_scan&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;widget_tap_to_scan&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;widget_tap_to_scan&quot;>Tap to scan&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1950,7 +1950,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;widget_tap_to_generate&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;widget_tap_to_generate&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;widget_tap_to_generate&quot;>Tap to generate&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1961,7 +1961,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;select_csv_file&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;select_csv_file&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;select_csv_file&quot;>Select CSV file&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1972,7 +1972,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;share_zip&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;share_zip&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;share_zip&quot;>Share ZIP&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
@@ -1983,7 +1983,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;stop_scanning&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;stop_scanning&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;stop_scanning&quot;>Stop Scanning&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -1994,7 +1994,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;success_count&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;success_count&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;success_count&quot;>Success: %1$d&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2005,7 +2005,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;total_generated&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;total_generated&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;total_generated&quot;>Total generated: %1$d&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2016,7 +2016,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;zip_saved&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;zip_saved&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;zip_saved&quot;>ZIP saved: %1$s&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
@@ -2027,7 +2027,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;zip_save_failed&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;zip_save_failed&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;zip_save_failed&quot;>Failed to save ZIP&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2566,7 +2566,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;app_lock&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;app_lock&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;app_lock&quot;>App Lock&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
@@ -2577,7 +2577,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;app_lock_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;app_lock_disabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;app_lock_disabled&quot;>App lock is OFF&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2588,7 +2588,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;app_lock_enabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;app_lock_enabled&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;app_lock_enabled&quot;>App lock is ON&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2599,7 +2599,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;change_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;change_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;change_pin&quot;>Change PIN&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -2610,7 +2610,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;enter_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;enter_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;enter_pin&quot;>Enter PIN&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
@@ -2621,7 +2621,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;confirm_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;confirm_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;confirm_pin&quot;>Confirm PIN&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -2632,7 +2632,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;set_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;set_pin&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;set_pin&quot;>Set PIN&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~">
         <location
@@ -2643,7 +2643,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;pin_set&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;pin_set&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;pin_set&quot;>PIN set successfully&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~">
         <location
@@ -2654,7 +2654,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;pin_mismatch&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;pin_mismatch&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;pin_mismatch&quot;>PINs do not match&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2665,7 +2665,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;pin_incorrect&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;pin_incorrect&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;pin_incorrect&quot;>Incorrect PIN&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2676,7 +2676,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;biometric_not_available&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;biometric_not_available&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;biometric_not_available&quot;>Biometric authentication is not available&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2687,7 +2687,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;set_pin_first&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;set_pin_first&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;set_pin_first&quot;>Please set a PIN first&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2698,7 +2698,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;unlock&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;unlock&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;unlock&quot;>Unlock&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~">
         <location
@@ -2709,7 +2709,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;hint_ean_13&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;hint_ean_13&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;hint_ean_13&quot;>Enter 13 digits (e.g., 1234567890123)&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -2720,7 +2720,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;hint_ean_8&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;hint_ean_8&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;hint_ean_8&quot;>Enter 8 digits&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -2731,7 +2731,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;hint_upc_a&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;hint_upc_a&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;hint_upc_a&quot;>Enter 12 digits&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -2742,7 +2742,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;hint_upc_e&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;hint_upc_e&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;hint_upc_e&quot;>Enter 6-8 digits&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -2753,7 +2753,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;hint_code_39&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;hint_code_39&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;hint_code_39&quot;>Enter alphanumeric (0-9, A-Z, -, ., space, $, /, +, %)&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2764,7 +2764,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;hint_code_128&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;hint_code_128&quot; is not translated in &quot;de&quot; (German), &quot;ko&quot; (Korean), &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;hint_code_128&quot;>Enter any ASCII characters&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2775,7 +2775,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_all&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;chip_all&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_all&quot;>All&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
@@ -2786,7 +2786,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_favorites&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;chip_favorites&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_favorites&quot;>Favorites&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2797,7 +2797,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_scanned&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;chip_scanned&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_scanned&quot;>Scanned&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2808,7 +2808,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_generated&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;chip_generated&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_generated&quot;>Generated&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2819,7 +2819,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_type_qr&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_type_qr&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_type_qr&quot;>QR Code&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2830,7 +2830,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_type_barcode&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_type_barcode&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_type_barcode&quot;>Barcode&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2841,7 +2841,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_content_link&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_content_link&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_content_link&quot;>Link&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2852,7 +2852,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_content_text&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_content_text&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_content_text&quot;>Text&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2863,7 +2863,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_content_wifi&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_content_wifi&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_content_wifi&quot;>WiFi&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2874,7 +2874,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_content_contact&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_content_contact&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_content_contact&quot;>Contact&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2885,7 +2885,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_format_qr&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_format_qr&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_format_qr&quot;>QR Code&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2896,7 +2896,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_format_ean13&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_format_ean13&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_format_ean13&quot;>EAN-13&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2907,7 +2907,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_format_code128&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_format_code128&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_format_code128&quot;>Code 128&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2918,7 +2918,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_format_code39&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_format_code39&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_format_code39&quot;>Code 39&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2929,7 +2929,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_sort_newest&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_sort_newest&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_sort_newest&quot;>Newest&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2940,7 +2940,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;chip_sort_oldest&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;chip_sort_oldest&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;chip_sort_oldest&quot;>Oldest&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2951,18 +2951,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;search&quot; is not translated in &quot;zh&quot; (Chinese)"
-        errorLine1="    &lt;string name=&quot;search&quot;>Search&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="381"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="MissingTranslation"
-        message="&quot;search_hint&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;search_hint&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;search_hint&quot;>Search by content…&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -2973,7 +2962,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;clear_search&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;clear_search&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;clear_search&quot;>Clear search&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2984,7 +2973,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;no_history_found&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;no_history_found&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;no_history_found&quot;>No history found&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -2995,7 +2984,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;items_found&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;items_found&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;items_found&quot;>%1$d items found&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
@@ -3006,7 +2995,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;add_notes&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;add_notes&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;add_notes&quot;>Add notes&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
@@ -3017,7 +3006,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;edit_notes&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;edit_notes&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;edit_notes&quot;>Edit notes&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -3028,7 +3017,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;notes_hint&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;notes_hint&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;notes_hint&quot;>Enter notes for this item…&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -3039,7 +3028,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;content_type_barcode&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;content_type_barcode&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;content_type_barcode&quot;>Barcode&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3050,7 +3039,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;content_type_event&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;content_type_event&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;content_type_event&quot;>Event&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3061,7 +3050,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;content_type_link&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;content_type_link&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;content_type_link&quot;>Link&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3072,7 +3061,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;csv_file_empty&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;csv_file_empty&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;csv_file_empty&quot;>CSV file is empty&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3083,7 +3072,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;csv_file_selected&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;csv_file_selected&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;csv_file_selected&quot;>CSV file selected&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3094,7 +3083,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;csv_parse_error&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;csv_parse_error&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;csv_parse_error&quot;>CSV parse error&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3105,7 +3094,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;generating&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;generating&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;generating&quot;>Generating %1$d/%2$d…&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
@@ -3116,7 +3105,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;generation_complete&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;generation_complete&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;generation_complete&quot;>Generation complete&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3127,7 +3116,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;generation_failed&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;generation_failed&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;generation_failed&quot;>Generation failed: %1$s&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3138,7 +3127,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;failed_count&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;failed_count&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;failed_count&quot;>Failed: %1$d&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3149,7 +3138,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;generating_zip&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;generating_zip&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;generating_zip&quot;>Generating ZIP…&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3160,7 +3149,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;download_zip&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;download_zip&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;download_zip&quot;>Download ZIP&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3171,7 +3160,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;results&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;results&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;results&quot;>Results&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~">
         <location
@@ -3182,7 +3171,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;auto_save&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;auto_save&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;auto_save&quot;>Auto save&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~">
         <location
@@ -3193,7 +3182,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;deduplication&quot; is not translated in &quot;de&quot; (German), &quot;ja&quot; (Japanese), &quot;zh&quot; (Chinese)"
+        message="&quot;deduplication&quot; is not translated in &quot;de&quot; (German) or &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;deduplication&quot;>Deduplication&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3204,7 +3193,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;privacy_mode&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;privacy_mode&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;privacy_mode&quot;>Privacy mode&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3215,7 +3204,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;privacy_mode_description&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;privacy_mode_description&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;privacy_mode_description&quot;>Scanned QR codes will not be saved to history&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3226,7 +3215,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;privacy_mode_enabled&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;privacy_mode_enabled&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;privacy_mode_enabled&quot;>Privacy mode enabled&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3237,7 +3226,7 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;privacy_mode_disabled&quot; is not translated in &quot;ja&quot; (Japanese) or &quot;zh&quot; (Chinese)"
+        message="&quot;privacy_mode_disabled&quot; is not translated in &quot;ja&quot; (Japanese)"
         errorLine1="    &lt;string name=&quot;privacy_mode_disabled&quot;>Privacy mode disabled&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -3248,46 +3237,13 @@
 
     <issue
         id="MissingTranslation"
-        message="&quot;confirm&quot; is not translated in &quot;ko&quot; (Korean) or &quot;zh&quot; (Chinese)"
+        message="&quot;confirm&quot; is not translated in &quot;ko&quot; (Korean)"
         errorLine1="    &lt;string name=&quot;confirm&quot;>Confirm&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
             line="422"
             column="13"/>
-    </issue>
-
-    <issue
-        id="ContentDescription"
-        message="Missing `contentDescription` attribute on image"
-        errorLine1="        &lt;ImageView"
-        errorLine2="         ~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_about.xml"
-            line="15"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="ContentDescription"
-        message="Missing `contentDescription` attribute on image"
-        errorLine1="            &lt;ImageView"
-        errorLine2="             ~~~~~~~~~">
-        <location
-            file="src/main/res/layout/item_continuous_scan_result.xml"
-            line="37"
-            column="14"/>
-    </issue>
-
-    <issue
-        id="ContentDescription"
-        message="Missing `contentDescription` attribute on image"
-        errorLine1="            &lt;ImageView"
-        errorLine2="             ~~~~~~~~~">
-        <location
-            file="src/main/res/layout/item_history.xml"
-            line="22"
-            column="14"/>
     </issue>
 
 </issues>
