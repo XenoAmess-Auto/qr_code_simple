@@ -59,7 +59,6 @@
 
 - ✅ **单元测试** - 可扫描格式均提供基于 Robolectric 的 roundtrip 测试，仅生成格式均提供生成成功测试。
 - ✅ **大图加载优化** - 大图加载内存优化。
-- ✅ **崩溃监控** - Firebase Crashlytics。
 
 ---
 
@@ -179,7 +178,6 @@
 - **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix / ...）
 - **CSV 解析**：Apache Commons CSV 1.14.1
 - **生物认证**：androidx.biometric 1.1.0
-- **崩溃监控**：Firebase Crashlytics
 - **测试**：JUnit 4 + Robolectric 4.16.1
 
 完整文件索引和架构说明位于 [`docs/knowledge-base.md`](docs/knowledge-base.md)。
@@ -290,7 +288,6 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── AnimationUtils.kt                # 通用动画工具
 ├── EdgeToEdgeExt.kt                 # Edge-to-edge 工具
 ├── AppShortcutManager.kt            # 静态 + 动态快捷方式
-├── CrashlyticsManager.kt            # Crashlytics 初始化封装
 │
 ├── QuickScanWidget.kt               # 桌面"快速扫描"小组件
 ├── QuickGenerateWidget.kt           # 桌面"快速生成"小组件

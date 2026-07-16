@@ -59,7 +59,6 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 - ✅ **Unit Tests** - Roundtrip tests for every scannable format and generation tests for every generate-only format (Robolectric).
 - ✅ **Memory-aware Image Loading** - Large image handling.
-- ✅ **Crash Monitoring** - Firebase Crashlytics.
 
 ---
 
@@ -177,7 +176,6 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 - **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal / 2 of 5 / Code One / Grid Matrix / ...)
 - **CSV Parsing**: Apache Commons CSV 1.14.1
 - **Biometric**: androidx.biometric 1.1.0
-- **Crash Monitoring**: Firebase Crashlytics
 - **Tests**: JUnit 4 + Robolectric 4.16.1
 
 The full file index and architectural notes live in [`docs/knowledge-base.md`](docs/knowledge-base.md).
@@ -270,7 +268,6 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── AnimationUtils.kt                # Shared animation helpers
 ├── EdgeToEdgeExt.kt                 # Edge-to-edge utilities
 ├── AppShortcutManager.kt            # Static + dynamic shortcuts
-├── CrashlyticsManager.kt            # Crashlytics init wrappers
 │
 ├── QuickScanWidget.kt               # Home-screen Quick Scan widget
 ├── QuickGenerateWidget.kt           # Home-screen Quick Generate widget
