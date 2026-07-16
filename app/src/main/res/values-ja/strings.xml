@@ -58,5 +58,6 @@
     <string name="backup_password_required">パスワードを入力してください</string>
     <string name="backup_password_prompt_import">このバックアップは暗号化されています。インポートするパスワードを入力してください。</string>
     <string name="backup_decrypt_failed">復号に失敗しました：パスワードが違うか、ファイルが破損しています</string>
+    <string name="blacklist_auto_update">セキュリティブラックリストの自動更新（バックグラウンドで小さなリストファイルをダウンロードします）</string>
 
 </resources>

@@ -94,6 +94,7 @@
     <string name="backup_password_required">Passwort erforderlich</string>
     <string name="backup_password_prompt_import">Dieses Backup ist verschlüsselt. Zum Importieren Passwort eingeben.</string>
     <string name="backup_decrypt_failed">Entschlüsselung fehlgeschlagen: falsches Passwort oder beschädigte Datei</string>
+    <string name="blacklist_auto_update">Sicherheits-Blacklist automatisch aktualisieren (lädt im Hintergrund eine kleine Listendatei)</string>
     <string name="no_app_found">Keine geeignete App gefunden</string>
     <string name="no_calendar_app">Keine Kalender-App gefunden</string>
     <string name="no_email_app">Keine E-Mail-App gefunden</string>

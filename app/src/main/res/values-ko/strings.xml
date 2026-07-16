@@ -89,6 +89,7 @@
     <string name="backup_password_required">비밀번호를 입력하세요</string>
     <string name="backup_password_prompt_import">이 백업은 암호화되어 있습니다. 가져올 비밀번호를 입력하세요.</string>
     <string name="backup_decrypt_failed">복호화 실패: 비밀번호가 틀렸거나 파일이 손상되었습니다</string>
+    <string name="blacklist_auto_update">보안 블랙리스트 자동 업데이트 (백그라운드에서 작은 목록 파일 다운로드)</string>
     <string name="no_image_provided">제공된 이미지가 없습니다</string>
     <string name="failed_to_load_image">이미지 로드 실패</string>
     <string name="detected_with">%1$s로 감지됨</string>

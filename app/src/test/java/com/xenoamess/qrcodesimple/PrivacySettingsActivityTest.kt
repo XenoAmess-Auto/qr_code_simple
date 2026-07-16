@@ -161,7 +161,10 @@ class PrivacySettingsActivityTest {
 
     @Test
     fun clearHistoryButtonShowsConfirmDialog() {
-        onView(withId(R.id.btnClearAllHistory)).perform(click())
+        // 新增设置项后按钮可能滚出屏幕，Robolectric 下直接触发点击
+        scenario.onActivity { activity ->
+            activity.findViewById<android.widget.Button>(R.id.btnClearAllHistory).performClick()
+        }
         idleMain()
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog

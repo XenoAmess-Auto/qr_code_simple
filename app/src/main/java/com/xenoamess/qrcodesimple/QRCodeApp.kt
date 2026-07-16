@@ -41,6 +41,9 @@ class QRCodeApp : Application() {
         }
 
         private const val KEY_HISTORY_RETENTION_DAYS = "history_retention_days"
+        private const val KEY_BLACKLIST_AUTO_UPDATE = "blacklist_auto_update"
+        private const val KEY_BLACKLIST_LAST_CHECK = "blacklist_last_check"
+        private const val BLACKLIST_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
 
         /** 历史记录自动清理天数；0 表示永久保留。 */
         fun getHistoryRetentionDays(context: Context): Int {
@@ -51,6 +54,17 @@ class QRCodeApp : Application() {
         fun setHistoryRetentionDays(context: Context, days: Int) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putInt(KEY_HISTORY_RETENTION_DAYS, days).apply()
+        }
+
+        /** 恶意链接黑名单自动更新开关（默认关闭）。 */
+        fun isBlacklistAutoUpdateEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_BLACKLIST_AUTO_UPDATE, false)
+        }
+
+        fun setBlacklistAutoUpdateEnabled(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_BLACKLIST_AUTO_UPDATE, enabled).apply()
         }
 
         /**
@@ -114,6 +128,25 @@ class QRCodeApp : Application() {
         }
 
         cleanupExpiredHistory()
+
+        // 初始化恶意链接黑名单（assets 内置 + filesDir 在线更新产物）
+        SecurityManager.init(this)
+        maybeUpdateBlacklist()
+    }
+
+    /**
+     * 开启自动更新时，后台静默检查黑名单更新（24h 节流；任何失败静默忽略）。
+     */
+    private fun maybeUpdateBlacklist() {
+        if (!isBlacklistAutoUpdateEnabled(this)) return
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val lastCheck = prefs.getLong(KEY_BLACKLIST_LAST_CHECK, 0L)
+        if (System.currentTimeMillis() - lastCheck < BLACKLIST_CHECK_INTERVAL_MS) return
+        // 先记录检查时间，避免失败时每次启动都请求网络
+        prefs.edit().putLong(KEY_BLACKLIST_LAST_CHECK, System.currentTimeMillis()).apply()
+        CoroutineScope(Dispatchers.IO).launch {
+            BlacklistUpdater.updateSilently(this@QRCodeApp)
+        }
     }
 
     /**

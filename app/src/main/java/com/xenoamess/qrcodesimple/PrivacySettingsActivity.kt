@@ -51,6 +51,7 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
         updateAppLockUI()
         updateRetentionUI()
+        binding.switchBlacklistAutoUpdate.isChecked = QRCodeApp.isBlacklistAutoUpdateEnabled(this)
     }
 
     private val retentionOptions = intArrayOf(0, 30, 90, 365)
@@ -91,6 +92,16 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
         binding.btnHistoryRetention.setOnClickListener {
             showRetentionDialog()
+        }
+
+        binding.switchBlacklistAutoUpdate.setOnCheckedChangeListener { _, isChecked ->
+            QRCodeApp.setBlacklistAutoUpdateEnabled(this, isChecked)
+            if (isChecked) {
+                // 开启时立即静默拉取一次；任何失败都静默处理
+                CoroutineScope(Dispatchers.IO).launch {
+                    BlacklistUpdater.updateSilently(this@PrivacySettingsActivity)
+                }
+            }
         }
 
         binding.btnClearAllHistory.setOnClickListener {

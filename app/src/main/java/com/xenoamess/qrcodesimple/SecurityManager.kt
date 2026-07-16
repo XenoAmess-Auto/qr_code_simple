@@ -11,18 +11,34 @@ import java.net.URL
 object SecurityManager {
 
     private const val TAG = "SecurityManager"
-    
-    // 本地黑名单 - 常见恶意域名
-    private val BLACKLISTED_DOMAINS = setOf(
-        "phishing.com", "malware.net", "virus.org",
-        "suspicious.site", "dangerous.link"
-    )
-    
-    // 本地可疑关键词
-    private val SUSPICIOUS_KEYWORDS = listOf(
-        "login", "verify", "account", "password", "credential",
-        "security", "update", "confirm", "authenticate"
-    )
+
+    /**
+     * 当前生效的黑名单。默认使用代码内置兜底列表；
+     * [init] 后会替换为 assets 内置或 filesDir 在线更新产物（取 version 更高者）。
+     */
+    @Volatile
+    private var blacklist: SecurityBlacklist = SecurityBlacklist.fallback()
+
+    /**
+     * 初始化黑名单：加载 assets 内置列表，若有更高版本的在线更新产物则覆盖。
+     * 可重复调用（在线更新完成后用于热加载）。
+     */
+    fun init(context: Context) {
+        val bundled = SecurityBlacklist.loadBundled(context)
+        val override = SecurityBlacklist.loadOverride(context)
+        blacklist = when {
+            override != null && override.version > bundled.version -> override
+            else -> bundled
+        }
+    }
+
+    /** 仅用于测试：重置为代码内置兜底列表。 */
+    internal fun resetForTesting() {
+        blacklist = SecurityBlacklist.fallback()
+    }
+
+    /** 当前生效的黑名单版本。 */
+    fun currentVersion(): Int = blacklist.version
 
     data class SecurityCheckResult(
         val isSafe: Boolean,
@@ -124,8 +140,8 @@ object SecurityManager {
      * 检查域名是否在黑名单中
      */
     private fun isBlacklisted(domain: String): Boolean {
-        return BLACKLISTED_DOMAINS.any { 
-            domain == it || domain.endsWith(".$it") 
+        return blacklist.domains.any {
+            domain == it || domain.endsWith(".$it")
         }
     }
 
@@ -158,14 +174,13 @@ object SecurityManager {
         
         // 检查可疑关键词组合
         val lowercaseUrl = url.lowercase()
-        val keywordCount = SUSPICIOUS_KEYWORDS.count { lowercaseUrl.contains(it) }
+        val keywordCount = blacklist.suspiciousKeywords.count { lowercaseUrl.contains(it) }
         if (keywordCount >= 3) {
             features.add("包含多个敏感关键词，可能是钓鱼链接")
         }
-        
+
         // 检查短链接服务
-        val shortUrlServices = listOf("bit.ly", "tinyurl.com", "t.co", "goo.gl", "ow.ly")
-        if (shortUrlServices.any { domain.contains(it) }) {
+        if (blacklist.shortUrlServices.any { domain.contains(it) }) {
             features.add("短链接服务，无法直接查看目标地址")
         }
         

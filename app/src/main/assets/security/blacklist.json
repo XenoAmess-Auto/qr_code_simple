@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "domains": [
+    "phishing.com",
+    "malware.net",
+    "virus.org",
+    "suspicious.site",
+    "dangerous.link"
+  ],
+  "suspiciousKeywords": [
+    "login",
+    "verify",
+    "account",
+    "password",
+    "credential",
+    "security",
+    "update",
+    "confirm",
+    "authenticate"
+  ],
+  "shortUrlServices": [
+    "bit.ly",
+    "tinyurl.com",
+    "t.co",
+    "goo.gl",
+    "ow.ly"
+  ]
+}
