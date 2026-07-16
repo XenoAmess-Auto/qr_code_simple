@@ -67,7 +67,15 @@
 
         <activity
             android:name=".GenerateActivity"
-            android:label="@string/generate_qr" />
+            android:label="@string/generate_qr"
+            android:exported="true">
+            <!-- 系统分享：文本直接生成二维码 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".ResultActivity"

@@ -229,6 +229,19 @@ class GenerateFragment : Fragment() {
                 loadFromHistory(content, format?.let { BarcodeFormat.fromString(it) }, styleJson)
             }
         }
+
+        // 系统分享入口：ACTION_SEND text/plain 时把分享文本带入并直接生成
+        handleShareTextPrefill()
+    }
+
+    private fun handleShareTextPrefill() {
+        val intent = activity?.intent ?: return
+        if (intent.action != Intent.ACTION_SEND) return
+        if (intent.type?.startsWith("text/") != true) return
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+        if (!text.isNullOrBlank()) {
+            loadFromHistory(text, null, null)
+        }
     }
 
     private var pendingFormatBeforeFocus: BarcodeFormat? = null
