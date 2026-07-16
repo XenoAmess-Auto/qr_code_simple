@@ -1,0 +1,2 @@
+- All 5 locales (en/zh/de/ja/ko) now 100% translated
+- Hardcoded strings cleaned up; security messages fully localized

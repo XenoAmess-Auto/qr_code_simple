@@ -27,7 +27,9 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 # Lint. Runs in CI and must stay clean (0 errors / 0 warnings / 0 hints).
 # MissingTranslation/ExtraTranslation are errors: new string resources must be
 # added to all 5 locales (values, values-zh, values-de, values-ja, values-ko).
-# Existing translation debt lives in app/lint-baseline.xml.
+# HardcodedText is an error: real layout texts use string resources, runtime
+# placeholders use tools:text. The baseline holds one intentional entry
+# (InconsistentLayout for the sw600dp two-pane variant).
 ./gradlew :app:lintDebug
 
 # Coverage floor gate. Runs in CI (instruction >= 0.75, line >= 0.70).

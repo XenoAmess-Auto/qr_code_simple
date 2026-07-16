@@ -58,7 +58,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Shortcuts** - Long-press the launcher icon to scan or generate.
 - ✅ **Quick Settings Tile** - One-tap camera scan from the notification shade.
 - ✅ **Home Widgets** - Quick Scan and Quick Generate widgets.
-- ✅ **Internationalization** - Simplified Chinese (complete), English, Japanese, Korean, German.
+- ✅ **Internationalization** - Complete translations in English, Simplified Chinese, Japanese, Korean, and German.
 - ✅ **Animation** - Page transitions and scan-line animation.
 
 ### Technical
