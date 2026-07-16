@@ -421,6 +421,7 @@
                         android:id="@+id/angleDial"
                         android:layout_width="80dp"
                         android:layout_height="80dp"
+                        android:contentDescription="@string/gradient_angle"
                         android:layout_marginEnd="12dp" />
 
                     <LinearLayout

@@ -235,4 +235,7 @@
     <string name="type_qr_code">QR 코드</string>
     <string name="type_barcode">바코드</string>
 
+    <string name="cd_saved">저장됨</string>
+    <string name="cd_favorite">즐겨찾기</string>
+    <string name="cd_color_picker">컬러 피커</string>
 </resources>

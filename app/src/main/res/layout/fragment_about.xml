@@ -17,6 +17,7 @@
             android:layout_height="96dp"
             android:src="@mipmap/ic_launcher"
             android:scaleType="centerCrop"
+            android:importantForAccessibility="no"
             android:layout_marginBottom="16dp" />
 
         <!-- App Name -->

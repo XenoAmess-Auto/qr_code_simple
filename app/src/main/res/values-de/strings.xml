@@ -158,4 +158,7 @@
     <string name="type_qr_code">QR-Code</string>
     <string name="type_barcode">Strichcode</string>
 
+    <string name="cd_saved">Gespeichert</string>
+    <string name="cd_favorite">Favorit</string>
+    <string name="cd_color_picker">Farbauswahl</string>
 </resources>

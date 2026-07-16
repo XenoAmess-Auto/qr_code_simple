@@ -33,7 +33,12 @@
     <issue id="ObsoleteSdkInt" severity="ignore" />
     <issue id="UseCompoundDrawables" severity="ignore" />
     <issue id="DisableBaselineAlignment" severity="ignore" />
-    <issue id="ContentDescription" severity="ignore" />
+    <!--
+        无障碍：ContentDescription 是门禁项（error）。存量问题在 baseline 中，
+        主流程（扫描/生成/历史/颜色选择）的已在批次 11 修复；新增图标按钮、
+        图片必须提供 contentDescription 或标记 importantForAccessibility="no"。
+    -->
+    <issue id="ContentDescription" severity="error" />
     <issue id="ClickableViewAccessibility" severity="ignore" />
     <issue id="UseSwitchCompatOrMaterialXml" severity="ignore" />
     <issue id="SmallSp" severity="ignore" />

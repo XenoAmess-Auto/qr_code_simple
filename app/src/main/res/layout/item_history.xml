@@ -25,6 +25,7 @@
                 android:layout_height="16dp"
                 android:src="@drawable/ic_star"
                 android:visibility="gone"
+                android:contentDescription="@string/cd_favorite"
                 android:layout_marginEnd="4dp"
                 app:tint="?attr/colorPrimary" />
 

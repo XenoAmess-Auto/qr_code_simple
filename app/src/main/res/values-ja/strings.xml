@@ -60,4 +60,7 @@
     <string name="backup_decrypt_failed">復号に失敗しました：パスワードが違うか、ファイルが破損しています</string>
     <string name="blacklist_auto_update">セキュリティブラックリストの自動更新（バックグラウンドで小さなリストファイルをダウンロードします）</string>
 
+    <string name="cd_saved">保存済み</string>
+    <string name="cd_favorite">お気に入り</string>
+    <string name="cd_color_picker">カラーピッカー</string>
 </resources>

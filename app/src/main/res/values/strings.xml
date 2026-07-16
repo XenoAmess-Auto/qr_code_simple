@@ -421,4 +421,7 @@
     <!-- Dialogs -->
     <string name="confirm">Confirm</string>
 
+    <string name="cd_saved">Saved</string>
+    <string name="cd_favorite">Favorite</string>
+    <string name="cd_color_picker">Color picker</string>
 </resources>

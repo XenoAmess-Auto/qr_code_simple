@@ -247,4 +247,7 @@
     <string name="warning_generate_only_format">该格式仅支持生成，无法被本应用扫描识别。</string>
     <string name="warning_scan_success">扫描验证通过</string>
 
+    <string name="cd_saved">已保存</string>
+    <string name="cd_favorite">已收藏</string>
+    <string name="cd_color_picker">颜色选择器</string>
 </resources>
