@@ -60,6 +60,34 @@ object HistoryBackupManager {
     }
 
     /**
+     * 判断文本是否为 JSON 备份（导出产物以 `{` 开头；兼容历史 `[` 开头的数组格式）。
+     */
+    fun looksLikeJson(content: String): Boolean {
+        val trimmed = content.trimStart()
+        return trimmed.startsWith("{") || trimmed.startsWith("[")
+    }
+
+    /**
+     * 导出历史记录为加密备份（AES-256/GCM，密码派生密钥）。
+     */
+    suspend fun exportEncryptedJson(context: Context, password: CharArray): ByteArray = withContext(Dispatchers.IO) {
+        BackupCrypto.encrypt(exportToJson(context).toByteArray(Charsets.UTF_8), password)
+    }
+
+    /**
+     * 从加密备份导入历史记录。
+     * 密码错误或文件损坏时返回失败结果，不抛异常。
+     */
+    suspend fun importEncrypted(context: Context, data: ByteArray, password: CharArray): BackupResult = withContext(Dispatchers.IO) {
+        try {
+            val json = BackupCrypto.decrypt(data, password).toString(Charsets.UTF_8)
+            importFromJson(context, json)
+        } catch (e: Exception) {
+            BackupResult(false, 0, "Decryption failed: wrong password or corrupted file")
+        }
+    }
+
+    /**
      * 从 JSON 导入历史记录
      */
     suspend fun importFromJson(context: Context, jsonString: String): BackupResult = withContext(Dispatchers.IO) {

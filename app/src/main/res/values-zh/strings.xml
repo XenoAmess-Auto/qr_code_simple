@@ -56,6 +56,13 @@
     <string name="history_retention_forever">永久保留</string>
     <string name="history_retention_days">%1$d 天</string>
     <string name="history_retention_dialog_title">自动清理超过以下时长的历史记录</string>
+    <string name="export_encrypted">导出加密备份</string>
+    <string name="backup_password">备份密码</string>
+    <string name="backup_password_confirm">确认密码</string>
+    <string name="backup_password_mismatch">两次输入的密码不一致</string>
+    <string name="backup_password_required">请输入密码</string>
+    <string name="backup_password_prompt_import">此备份已加密，请输入密码导入。</string>
+    <string name="backup_decrypt_failed">解密失败：密码错误或文件已损坏</string>
     <string name="no_image_provided">未提供图片</string>
     <string name="no_video_provided">未提供视频</string>
     <string name="failed_to_load_image">加载图片失败</string>

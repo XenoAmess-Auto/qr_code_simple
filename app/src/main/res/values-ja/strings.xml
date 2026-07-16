@@ -51,5 +51,12 @@
     <string name="history_retention_forever">永久に保持</string>
     <string name="history_retention_days">%1$d 日</string>
     <string name="history_retention_dialog_title">次の期間より古い履歴を自動削除</string>
+    <string name="export_encrypted">暗号化バックアップをエクスポート</string>
+    <string name="backup_password">バックアップパスワード</string>
+    <string name="backup_password_confirm">パスワード確認</string>
+    <string name="backup_password_mismatch">パスワードが一致しません</string>
+    <string name="backup_password_required">パスワードを入力してください</string>
+    <string name="backup_password_prompt_import">このバックアップは暗号化されています。インポートするパスワードを入力してください。</string>
+    <string name="backup_decrypt_failed">復号に失敗しました：パスワードが違うか、ファイルが破損しています</string>
 
 </resources>

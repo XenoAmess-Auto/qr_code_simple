@@ -80,7 +80,10 @@ class BackupActivityTest {
 
     @Test
     fun importButtonLaunchesOpenDocumentIntent() {
-        onView(withId(R.id.btnImport)).perform(click())
+        // 布局在 ScrollView 中，Robolectric 下 Espresso scrollTo 不可靠，直接触发点击
+        scenario.onActivity { activity ->
+            activity.findViewById<android.widget.Button>(R.id.btnImport).performClick()
+        }
         idleMain()
 
         val intent = captureNextStartedActivity()

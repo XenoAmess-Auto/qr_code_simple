@@ -62,6 +62,13 @@
     <string name="history_retention_forever">Keep forever</string>
     <string name="history_retention_days">%1$d days</string>
     <string name="history_retention_dialog_title">Auto-delete history older than</string>
+    <string name="export_encrypted">Export encrypted backup</string>
+    <string name="backup_password">Backup password</string>
+    <string name="backup_password_confirm">Confirm password</string>
+    <string name="backup_password_mismatch">Passwords do not match</string>
+    <string name="backup_password_required">Password required</string>
+    <string name="backup_password_prompt_import">This backup is encrypted. Enter the password to import.</string>
+    <string name="backup_decrypt_failed">Decryption failed: wrong password or corrupted file</string>
     <string name="no_image_provided">No image provided</string>
     <string name="no_video_provided">No video provided</string>
     <string name="failed_to_load_image">Failed to load image</string>
