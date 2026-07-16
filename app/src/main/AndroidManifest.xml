@@ -114,6 +114,18 @@
             android:name=".HistoryDetailActivity"
             android:label="@string/history_detail" />
 
+        <!-- 下拉快捷设置 Tile：快速扫码 -->
+        <service
+            android:name=".QuickScanTileService"
+            android:label="@string/widget_quick_scan"
+            android:icon="@drawable/ic_qr_code"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <!-- 桌面小组件 -->
         <receiver
             android:name=".QuickScanWidget"
