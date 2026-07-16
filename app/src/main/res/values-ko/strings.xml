@@ -238,4 +238,7 @@
     <string name="cd_saved">저장됨</string>
     <string name="cd_favorite">즐겨찾기</string>
     <string name="cd_color_picker">컬러 피커</string>
+    <string name="scan_region">스캔 영역</string>
+    <string name="scan_region_mode_on">영역 모드 켜줌: 드래그로 인식 영역 선택</string>
+    <string name="scan_region_mode_off">영역 모드 꺼짐: 전체 화면 인식</string>
 </resources>

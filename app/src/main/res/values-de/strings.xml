@@ -161,4 +161,7 @@
     <string name="cd_saved">Gespeichert</string>
     <string name="cd_favorite">Favorit</string>
     <string name="cd_color_picker">Farbauswahl</string>
+    <string name="scan_region">Scanbereich</string>
+    <string name="scan_region_mode_on">Bereichsmodus an: Ziehen, um den Erkennungsbereich zu wählen</string>
+    <string name="scan_region_mode_off">Bereichsmodus aus: Vollbild-Erkennung</string>
 </resources>

@@ -128,6 +128,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `SecurityBlacklist.kt` | 恶意链接黑名单模型；加载顺序 filesDir 覆盖 > assets 内置 > 代码兜底 |
 | `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
 | `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
+| `ScanRegionMapper.kt` | 框选区域视图坐标 → 帧 bitmap 像素坐标映射（FILL_CENTER + 旋转变换） |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
 | `decoder/CustomLinearBarcodeScanner.kt` | 自定义一维码扫描入口 |
 | `decoder/PharmacodeDecoder.kt` | Pharmacode 解码器 |

@@ -63,4 +63,7 @@
     <string name="cd_saved">保存済み</string>
     <string name="cd_favorite">お気に入り</string>
     <string name="cd_color_picker">カラーピッカー</string>
+    <string name="scan_region">スキャン範囲</string>
+    <string name="scan_region_mode_on">範囲モードオン：ドラッグして認識範囲を選択</string>
+    <string name="scan_region_mode_off">範囲モードオフ：全画面で認識</string>
 </resources>

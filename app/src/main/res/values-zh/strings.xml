@@ -250,4 +250,7 @@
     <string name="cd_saved">已保存</string>
     <string name="cd_favorite">已收藏</string>
     <string name="cd_color_picker">颜色选择器</string>
+    <string name="scan_region">扫描区域</string>
+    <string name="scan_region_mode_on">框选模式已开启：拖动选择识别区域</string>
+    <string name="scan_region_mode_off">框选模式已关闭：恢复全幅识别</string>
 </resources>

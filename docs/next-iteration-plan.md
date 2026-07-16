@@ -163,5 +163,5 @@
 
 ## 执行中新发现（后续跟进）
 
-1. **ScannerOverlayView / ScanRegionView 也是死代码**：两个自定义 View 只被自己的测试引用，从未加入任何界面；README 宣称的"Scan Region Limit"与扫描线动画实际未接线。需要产品决策：接入相机扫描页或删除并更新 README（同 0.1 的处理模式）。
+1. ~~**ScannerOverlayView / ScanRegionView 也是死代码**~~：**已解决（接入）**。扫描线动画叠加在相机扫描页；ScanRegionView 通过顶栏框选按钮启用，选择区域经 `ScanRegionMapper`（FILL_CENTER 裁剪 + rotationDegrees 旋转变换）映射到帧像素坐标后裁剪识别。README 宣称的"Scan Region Limit / 扫描区域限定"与扫描线动画现已为真实功能。
 2. 批次 8 顺带修复了一个存量 bug：JSON 备份因检测字符写错（`[` vs `{`）一直被路由到 CSV 导入。

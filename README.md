@@ -32,7 +32,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Continuous Scan Mode** - Scan multiple codes without confirmation dialogs.
 - ✅ **Haptic Feedback** - Vibration on successful decode.
 - ✅ **Auto / Tap-to-focus** - Adapts to code size; tap to focus manually.
-- ✅ **Scan Region Limit** - Decode only within a selected area.
+- ✅ **Scan Region Limit** - Toggle region mode and drag to decode only within the selected area.
 - ✅ **Video Scan** - Decode barcodes directly from video files.
 - ✅ **Share to Scan** - Share images or videos from any app straight into the scanner (gallery, file manager, etc.).
 

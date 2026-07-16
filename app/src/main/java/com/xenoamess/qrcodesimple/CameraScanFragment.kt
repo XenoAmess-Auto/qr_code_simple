@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
+import android.graphics.RectF
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -64,6 +65,9 @@ class CameraScanFragment : Fragment() {
     private var currentParsedContent: ParsedContent? = null
     private var scanResultListener: OnScanResultListener? = null
 
+    /** 框选识别模式开关；开启后帧会裁剪到用户选择区域再识别。 */
+    private var regionModeEnabled = false
+
     fun setScanResultListener(listener: OnScanResultListener?) {
         scanResultListener = listener
     }
@@ -103,15 +107,40 @@ class CameraScanFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
+
         setupButtons()
         setupZoomControls()
-        
+        setupScanRegion()
+
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
             startCameraWithDelay()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun setupScanRegion() {
+        binding.scanRegionView.setOnRegionSelectedListener(object : ScanRegionView.OnRegionSelectedListener {
+            override fun onRegionSelected(rect: RectF) {
+                // 选择完成，后续帧将裁剪到该区域识别
+            }
+
+            override fun onRegionCleared() {
+                // 区域被清除，恢复全幅识别
+            }
+        })
+    }
+
+    private fun toggleScanRegion() {
+        regionModeEnabled = !regionModeEnabled
+        if (regionModeEnabled) {
+            binding.scanRegionView.visibility = View.VISIBLE
+            Toast.makeText(requireContext(), getString(R.string.scan_region_mode_on), Toast.LENGTH_SHORT).show()
+        } else {
+            binding.scanRegionView.clearSelection()
+            binding.scanRegionView.visibility = View.GONE
+            Toast.makeText(requireContext(), getString(R.string.scan_region_mode_off), Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -152,6 +181,7 @@ class CameraScanFragment : Fragment() {
         
         binding.btnFlash.setOnClickListener { toggleFlash() }
         binding.btnSwitchCamera.setOnClickListener { switchCamera() }
+        binding.btnScanRegion.setOnClickListener { toggleScanRegion() }
     }
     
     private fun onSmartActionClick() {
@@ -468,17 +498,44 @@ class CameraScanFragment : Fragment() {
             mat.release()
             rgbMat.release()
 
-            val results = QRCodeScanner.scanSync(requireContext(), bitmap)
+            // 框选模式：把视图坐标的选择区域映射到帧像素坐标后裁剪
+            val scanBitmap = cropToScanRegion(bitmap, imageProxy.imageInfo.rotationDegrees)
+                ?: bitmap
+
+            val results = QRCodeScanner.scanSync(requireContext(), scanBitmap)
             if (results.isNotEmpty()) {
                 showResult(results[0])
             }
 
+            if (scanBitmap !== bitmap) {
+                scanBitmap.recycle()
+            }
             bitmap.recycle()
         } catch (e: Exception) {
             Log.e(TAG, "Error processing image", e)
         } finally {
             isProcessing = false
             imageProxy.close()
+        }
+    }
+
+    /**
+     * 框选模式下把帧 bitmap 裁剪到用户选择的区域。
+     * 选择无效或未开启时返回 null（调用方按全幅处理）。
+     */
+    private fun cropToScanRegion(bitmap: Bitmap, rotationDegrees: Int): Bitmap? {
+        if (!regionModeEnabled) return null
+        val view = _binding?.scanRegionView ?: return null
+        val viewRect = view.getSelectionRect() ?: return null
+        val mapped = ScanRegionMapper.mapViewRectToBitmap(
+            viewRect, view.width, view.height,
+            bitmap.width, bitmap.height, rotationDegrees
+        ) ?: return null
+        return try {
+            Bitmap.createBitmap(bitmap, mapped.left, mapped.top, mapped.width(), mapped.height())
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to crop to scan region, fallback to full frame", e)
+            null
         }
     }
 
