@@ -54,6 +54,46 @@ jobs:
           name: test-reports
           path: app/build/reports/tests/
 
+  android-test:
+    name: Instrumented Tests (Emulator)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run instrumented tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          emulator-boot-timeout: 600
+          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+
+      - name: Upload androidTest reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: androidtest-reports
+          path: app/build/reports/androidTests/
+
   coverage-pages:
     name: Deploy Coverage Report to GitHub Pages
     runs-on: ubuntu-latest
