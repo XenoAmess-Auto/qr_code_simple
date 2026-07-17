@@ -388,12 +388,12 @@ class CameraScanFragment : Fragment() {
         }
     }
 
-    private fun hideResult() {
+    internal fun hideResult() {
         binding.resultCard.visibility = View.GONE
         currentParsedContent = null
     }
 
-    private fun showResult(result: QRCodeScanner.ScanResult) {
+    internal fun showResult(result: QRCodeScanner.ScanResult) {
         if (!isAdded) return
         scanResultListener?.let { listener ->
             activity?.runOnUiThread {

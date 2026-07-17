@@ -25,6 +25,9 @@ object BlacklistUpdater {
     private const val READ_TIMEOUT_MS = 5_000
     private const val MAX_BYTES = 64 * 1024
 
+    /** 测试注入点：替换网络连接工厂。生产环境为 null，走真实 URL.openConnection。 */
+    internal var connectionFactoryForTesting: ((URL) -> HttpURLConnection)? = null
+
     /**
      * 静默尝试在线更新。
      * @return true 表示拉取并应用了更新版本；其余任何情况返回 false。
@@ -78,7 +81,8 @@ object BlacklistUpdater {
     private fun download(url: String): String? {
         var connection: HttpURLConnection? = null
         return try {
-            connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            connection = (connectionFactoryForTesting?.invoke(URL(url))
+                ?: URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = CONNECT_TIMEOUT_MS
                 readTimeout = READ_TIMEOUT_MS
                 instanceFollowRedirects = true

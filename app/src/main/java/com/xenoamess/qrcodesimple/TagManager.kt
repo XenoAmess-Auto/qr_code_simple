@@ -61,7 +61,7 @@ object TagManager {
      */
     fun parseTags(tagsString: String?): List<String> {
         if (tagsString.isNullOrBlank()) return emptyList()
-        return tagsString.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        return tagsString.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
     }
 
     /**

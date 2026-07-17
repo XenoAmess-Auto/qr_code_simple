@@ -56,6 +56,7 @@ class ScanRegionView @JvmOverloads constructor(
     private var endX = 0f
     private var endY = 0f
     private var isDragging = false
+    private var isMoving = false
     private var isAdjusting = false
     private var activeCorner = Corner.NONE
 
@@ -119,10 +120,10 @@ class ScanRegionView @JvmOverloads constructor(
             if (activeCorner != Corner.NONE) {
                 isAdjusting = true
             } else if (selectionRect.contains(x, y)) {
-                // 移动选择区域
+                // 移动选择区域：记录触摸点在选区内的偏移
                 startX = x - selectionRect.left
                 startY = y - selectionRect.top
-                isDragging = true
+                isMoving = true
             } else {
                 // 开始新的选择
                 clearSelection()
@@ -137,6 +138,13 @@ class ScanRegionView @JvmOverloads constructor(
 
     private fun handleTouchMove(x: Float, y: Float) {
         when {
+            isMoving -> {
+                // 平移：保持选区尺寸，按偏移跟随触摸点
+                val w = selectionRect.width()
+                val h = selectionRect.height()
+                selectionRect.set(x - startX, y - startY, x - startX + w, y - startY + h)
+                drawSelection()
+            }
             isDragging -> {
                 endX = x
                 endY = y
@@ -151,9 +159,10 @@ class ScanRegionView @JvmOverloads constructor(
     }
 
     private fun handleTouchUp() {
-        if (isDragging || isAdjusting) {
+        if (isDragging || isAdjusting || isMoving) {
             isDragging = false
             isAdjusting = false
+            isMoving = false
             activeCorner = Corner.NONE
 
             if (selectionRect.width() > 100 && selectionRect.height() > 100) {
