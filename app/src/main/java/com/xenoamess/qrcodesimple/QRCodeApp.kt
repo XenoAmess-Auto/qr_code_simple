@@ -132,6 +132,15 @@ class QRCodeApp : Application() {
         // 初始化恶意链接黑名单（assets 内置 + filesDir 在线更新产物）
         SecurityManager.init(this)
         maybeUpdateBlacklist()
+
+        // 根据最近历史记录刷新动态快捷方式（失败静默）
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                AppShortcutManager.updateDynamicShortcuts(this@QRCodeApp)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to update dynamic shortcuts", e)
+            }
+        }
     }
 
     /**

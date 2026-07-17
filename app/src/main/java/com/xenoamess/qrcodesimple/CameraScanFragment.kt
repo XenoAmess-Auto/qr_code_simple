@@ -14,6 +14,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -111,12 +112,34 @@ class CameraScanFragment : Fragment() {
         setupButtons()
         setupZoomControls()
         setupScanRegion()
+        setupTapToFocus()
 
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED) {
             startCameraWithDelay()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    /**
+     * 点击预览画面对焦。框选模式下触摸由 ScanRegionView 拦截，不影响本逻辑。
+     */
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
+    private fun setupTapToFocus() {
+        binding.previewView.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                camera?.let {
+                    CameraFocusManager.focusOnPoint(
+                        it, event.x, event.y,
+                        binding.previewView.width.toFloat(),
+                        binding.previewView.height.toFloat()
+                    )
+                }
+                true
+            } else {
+                false
+            }
         }
     }
 
@@ -380,8 +403,8 @@ class CameraScanFragment : Fragment() {
         }
         activity?.runOnUiThread {
             binding.tvResult.text = result.text
-            binding.resultCard.visibility = View.VISIBLE
-            
+            AnimationUtils.scaleIn(binding.resultCard)
+
             // 解析内容并更新智能操作按钮
             updateSmartActionButton(result.text)
             

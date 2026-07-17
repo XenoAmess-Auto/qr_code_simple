@@ -1084,6 +1084,7 @@ class GenerateFragment : Fragment() {
             }
             currentBitmap = bitmap
             binding.ivQRCode.setImageBitmap(bitmap)
+            AnimationUtils.fadeIn(binding.ivQRCode)
             if (selectedFormat.isScannable) {
                 validateGeneratedBarcode(content, selectedFormat, bitmap)
             } else {

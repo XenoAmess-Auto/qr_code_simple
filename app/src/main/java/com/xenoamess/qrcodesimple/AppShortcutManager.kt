@@ -35,11 +35,12 @@ object AppShortcutManager {
     }
 
     /**
-     * 创建历史记录快捷方式
+     * 创建历史记录快捷方式。
+     * 深链使用 ACTION_SEND text/plain，与 GenerateActivity 的分享预填入口保持一致。
      */
     private fun createHistoryShortcut(context: Context, item: HistoryItem, index: Int): ShortcutInfoCompat {
         val shortcutId = "history_${item.id}"
-        
+
         // 截断内容作为标题
         val shortLabel = if (item.content.length > 15) {
             item.content.substring(0, 15) + "..."
@@ -74,8 +75,9 @@ object AppShortcutManager {
             .setIcon(IconCompat.createWithResource(context, iconRes))
             .setIntent(
                 Intent(context, GenerateActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    putExtra("content", item.content)
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, item.content)
                 }
             )
             .setRank(index)
