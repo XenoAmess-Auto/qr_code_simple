@@ -201,6 +201,14 @@
 - 覆盖率：指令 79.0% → 83.0%，行 73.7% → 78.6%；门禁提升至 0.80 / 0.75
 - 剩余低覆盖（真实限制）：CameraScanFragment.processImage（需真实相机帧）、VideoScanActivity 抽帧解码（需真实视频文件）、ScannerOverlayView 绘制、BatchResultActivity MediaStore 路径（Q+）
 
+## 第六轮执行记录（0.2.4，androidTest 基建 + 模拟器场景 + Baseline Profile）
+
+- [x] androidTest 基建：runner/rules/espresso + GrantPermissionRule 预授权（首启权限弹窗会挡住 RESUMED）；CI `android-test` job（android-emulator-runner, API 35, google_apis, x86_64, KVM）
+- [x] 模拟器覆盖测试（补 Robolectric 盲区）：启动冒烟 + 微信引擎状态（ARM 翻译层）、MediaStore Q+ 保存路径、SQLCipher 真机加密文件头、视频扫描全管线（资产 mp4 中的 QR 完整解码）
+- [x] Baseline Profile：`:baselineprofile` 模块（plugin 1.4.1），两条启动旅程（冷启动 + 相机扫描页首帧），本机模拟器生成 7631 条规则提交至 `app/src/release/generated/baselineProfiles/baseline-prof.txt`，release 构建自动并入 R8
+- 排障记录：API 36.1 x86_64 镜像自带 ARM64 翻译层（arm-only 原生库可运行）；`com.android.test` 模块必须显式应用 Kotlin 插件否则 .kt 不进包；生成过程模拟器 2G 内存 kernel_panic，调至 4G 后稳定；debugRuntime 需与 androidTest 统一 androidx.test:core 版本
+- 全部既定任务完成；剩余仅人工事项（发布、签名 secrets、真机冒烟）
+
 ## 执行中新发现（已全部解决/记录）
 
 1. ~~**ScannerOverlayView / ScanRegionView 也是死代码**~~：**已解决（接入）**。扫描线动画叠加在相机扫描页；ScanRegionView 通过顶栏框选按钮启用，选择区域经 `ScanRegionMapper`（FILL_CENTER 裁剪 + rotationDegrees 旋转变换）映射到帧像素坐标后裁剪识别。README 宣称的"Scan Region Limit / 扫描区域限定"与扫描线动画现已为真实功能。

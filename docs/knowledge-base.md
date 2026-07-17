@@ -4,7 +4,7 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.2.3`
+- 当前版本：`0.2.4`
 - 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
@@ -129,6 +129,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `SecurityBlacklist.kt` | 恶意链接黑名单模型；加载顺序 filesDir 覆盖 > assets 内置 > 代码兜底 |
 | `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
 | `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
+| `baselineprofile/` | Baseline Profile 生成模块（`:app:generateReleaseBaselineProfile` 在模拟器/真机上生成 `app/src/release/generated/baselineProfiles/baseline-prof.txt`，release 构建自动合并进 R8 art profile） |
+| `app/src/androidTest/` | 仪器测试（启动冒烟、MediaStore Q+、SQLCipher 真机加密、视频扫描全管线），CI `android-test` job 在 API 35 模拟器上运行 |
 | `HistoryDetailFragment.kt` | 历史详情内容页；手机由 HistoryDetailActivity 薄包装承载，平板 sw600dp 双栏嵌入右侧面板 |
 | `ScanRegionMapper.kt` | 框选区域视图坐标 → 帧 bitmap 像素坐标映射（FILL_CENTER + 旋转变换） |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |

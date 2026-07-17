@@ -182,7 +182,8 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 - **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal / 2 of 5 / Code One / Grid Matrix / ...)
 - **CSV Parsing**: Apache Commons CSV 1.14.1
 - **Biometric**: androidx.biometric 1.1.0
-- **Tests**: JUnit 5 Platform (Vintage engine runs existing JUnit 4) + Robolectric 4.16.1
+- **Tests**: JUnit 5 Platform (Vintage engine runs existing JUnit 4) + Robolectric 4.16.1 + instrumented tests on emulator (CI)
+- **Performance**: Baseline Profile (cold-start journeys pre-compiled into the release build)
 
 The full file index and architectural notes live in [`docs/knowledge-base.md`](docs/knowledge-base.md).
 

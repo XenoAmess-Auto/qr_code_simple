@@ -184,7 +184,8 @@
 - **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix / ...）
 - **CSV 解析**：Apache Commons CSV 1.14.1
 - **生物认证**：androidx.biometric 1.1.0
-- **测试**：JUnit 5 Platform（Vintage 引擎运行既有 JUnit 4）+ Robolectric 4.16.1
+- **测试**：JUnit 5 Platform（Vintage 引擎运行既有 JUnit 4）+ Robolectric 4.16.1 + 模拟器仪器测试（CI）
+- **性能**：Baseline Profile（启动旅程预编译进 release 构建）
 
 完整文件索引和架构说明位于 [`docs/knowledge-base.md`](docs/knowledge-base.md)。
 

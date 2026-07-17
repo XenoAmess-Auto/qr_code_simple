@@ -1,0 +1,2 @@
+- Baseline Profile for faster cold start (app startup journeys pre-compiled)
+- Instrumented test suite on emulator now runs in CI
