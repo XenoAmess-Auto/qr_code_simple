@@ -169,3 +169,10 @@ CI 在 `.github/workflows/build.yml` 中配置，每次 push/PR 都会执行 `as
 - 覆盖率由 JaCoCo 生成（`./gradlew :app:jacocoTestReport`）。`app/build.gradle` 关闭 AGP 内置覆盖率，改用 Gradle JaCoCo 插件并开启 `includeNoLocationClasses = true`，使 Robolectric 加载的类也能被计入；同时排除 `jdk.internal.reflect.*` 避免 Gradle worker 序列化异常。
 - 覆盖率门禁：`jacocoTestCoverageVerification` 已接入 CI（指令 ≥ 0.75，行 ≥ 0.70，`-PexcludeExtendedUiTests` 口径）。
 - 金样测试：`GenerationGoldenTest` 固定输入断言 SVG 输出 SHA-256，防止生成图案在依赖升级时静默变化；预期变更需更新金样并注明原因。
+- 场景测试套件（0.2.3）：`ContentActionScenarioTest`（各内容类型动作分发）、`ContentActionWifiModernTest`（API 29 WiFi 路径）、`BackupActivityFileRoundtripTest`（真实文件备份往返）、`HistoryScenarioTest` / `HistoryDetailScenarioTest`（筛选/搜索/标签/分享/详情操作）、`BatchFileScenarioTest`（CSV/Excel 导入 + ZIP/PNG 落盘）、`ScanRegionTouchTest`、`CameraScanScenarioTest`、`BlacklistUpdaterDownloadTest`、`AppShortcutManagerTest`、`CameraFocusManagerTest`。
+- Robolectric 测试要点：
+  - AlertDialog/AppCompat 按钮点击经 Handler 投递，断言前必须 idle 主 Looper；
+  - Dispatchers.IO/后台协程不受主 Looper 控制，用谓词轮询（waitUntil）代替固定 sleep；
+  - FileProvider 的静态路径缓存按 authority 冻结首个测试的沙盒根路径，所有使用它的测试类在 setup 中清理 `FileProvider.sCache`，否则测试类间按执行顺序互相污染；
+  - CameraX 接口（Camera/CameraControl/CameraInfo/ZoomState）可用 JDK 动态代理伪造；
+  - 网络层用可注入的连接工厂（如 `BlacklistUpdater.connectionFactoryForTesting`）替代真实请求。

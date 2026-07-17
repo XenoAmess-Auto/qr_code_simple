@@ -187,6 +187,20 @@
 - [x] `HardcodedText` 升级为 lint error；baseline 从 296 条收敛到 1 条（设计内 sw600dp InconsistentLayout）
 - 剩余推迟：P1.4 targetSdk 36、P3.2 androidTest 真机冒烟、P4.1 Baseline Profile；R8 包真机验证（发布前人工）
 
+## 第五轮执行记录（0.2.3，覆盖率与场景用例）
+
+- [x] 死代码接线：`CameraFocusManager`（点击对焦到预览）、`AppShortcutManager`（启动时刷新动态快捷方式；修复深链 extra 无人读取的 bug）、`AnimationUtils`（结果卡 scaleIn / 生成预览 fadeIn）
+- [x] ContentActionHandler 全场景（联系人/日历/邮件/地理/短信/电话/WiFi 新旧两路）
+- [x] 备份真实文件往返（JSON/CSV/加密 + 密码框全流程）
+- [x] 历史筛选/搜索/标签/清空/分享条码图 + 详情编辑/收藏/删除/标签
+- [x] 批量 CSV/Excel 导入 + ZIP/PNG 落盘；**修复真实 bug**：CSV 缺可选列时整行报错（CSVRecord.get 未映射列抛异常，现按 isMapped 守卫）
+- [x] ScanRegionView 触摸状态机；**修复真实 bug**：选区内拖动变形而非平移（新增 isMoving 状态）
+- [x] TagManager；**修复**：parseTags 去重（集合语义）
+- [x] BlacklistUpdater 可测化（连接工厂注入）+ 下载路径全场景
+- [x] 测试基建：FileProvider.sCache 跨测试污染修复、AlertDialog Handler idle、IO 协程谓词轮询、CameraX 动态代理、单测堆提升至 2g
+- 覆盖率：指令 79.0% → 83.0%，行 73.7% → 78.6%；门禁提升至 0.80 / 0.75
+- 剩余低覆盖（真实限制）：CameraScanFragment.processImage（需真实相机帧）、VideoScanActivity 抽帧解码（需真实视频文件）、ScannerOverlayView 绘制、BatchResultActivity MediaStore 路径（Q+）
+
 ## 执行中新发现（已全部解决/记录）
 
 1. ~~**ScannerOverlayView / ScanRegionView 也是死代码**~~：**已解决（接入）**。扫描线动画叠加在相机扫描页；ScanRegionView 通过顶栏框选按钮启用，选择区域经 `ScanRegionMapper`（FILL_CENTER 裁剪 + rotationDegrees 旋转变换）映射到帧像素坐标后裁剪识别。README 宣称的"Scan Region Limit / 扫描区域限定"与扫描线动画现已为真实功能。

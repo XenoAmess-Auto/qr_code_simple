@@ -4,7 +4,7 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.2.2`
+- 当前版本：`0.2.3`
 - 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
@@ -176,5 +176,5 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - `SecurityManager` 等无 Context 单例的文案经 `init(context)` 持有的 `appContext` 解析；未 init（单元测试）回退英文。
 - 生成稳定性：固定输入的 SVG 输出哈希受 `GenerationGoldenTest` 金样保护；生成逻辑或依赖升级导致图案变化时会失败，属预期变更时更新金样并在提交信息说明。
 - 测试在 JUnit 5 Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）。**JUnit 版本必须停留在 5.x**（6.x 移除了 Vintage Engine）。
-- CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.75，行 ≥ 0.70，`-PexcludeExtendedUiTests` 口径），随覆盖率提升逐步收紧。
+- CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径），随覆盖率提升逐步收紧。
 - Release 构建开启 R8 + shrinkResources；正式签名通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 gradle 属性注入，未配置时回退 debug 签名。推 `v*` 标签触发 `.github/workflows/release.yml` 产出 APK + AAB 并创建 GitHub Release。

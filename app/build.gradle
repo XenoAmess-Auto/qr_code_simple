@@ -42,8 +42,8 @@ android {
         applicationId "com.xenoamess.qrcodesimple"
         minSdk 28
         targetSdk 35
-        versionCode 15
-        versionName "0.2.2"
+        versionCode 16
+        versionName "0.2.3"
         buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
 
         ndk {
@@ -277,7 +277,7 @@ tasks.register('jacocoTestReport', JacocoReport) {
     ])
 }
 
-// 覆盖率门禁：从当前值（指令 79% / 行 73.7%，-PexcludeExtendedUiTests 口径）起步，逐步收紧。
+// 覆盖率门禁：当前值 指令 83% / 行 78.6%（-PexcludeExtendedUiTests 口径），阈值随提升逐步收紧。
 tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
     dependsOn 'jacocoTestReport'
 
@@ -305,11 +305,11 @@ tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
         rule {
             limit {
                 counter = 'INSTRUCTION'
-                minimum = 0.75
+                minimum = 0.80
             }
             limit {
                 counter = 'LINE'
-                minimum = 0.70
+                minimum = 0.75
             }
         }
     }

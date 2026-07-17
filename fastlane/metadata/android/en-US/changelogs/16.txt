@@ -1,0 +1,4 @@
+- Tap the camera preview to focus (tap-to-focus)
+- Dynamic launcher shortcuts from recent history
+- Result card and preview animations
+- Fixes: CSV batch import with partial columns, scan-region dragging, duplicate tags
