@@ -106,7 +106,7 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun exportData(uri: Uri) {
+    internal fun exportData(uri: Uri) {
         val password = pendingExportPassword
         pendingExportPassword = null
         lifecycleScope.launch {
@@ -229,7 +229,7 @@ class BackupActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun importData(uri: Uri) {
+    internal fun importData(uri: Uri) {
         lifecycleScope.launch {
             try {
                 val bytes = withContext(Dispatchers.IO) {
