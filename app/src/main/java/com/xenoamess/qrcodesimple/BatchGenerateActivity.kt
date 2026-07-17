@@ -114,7 +114,7 @@ class BatchGenerateActivity : AppCompatActivity() {
         }
     }
 
-    private fun importFromFile(uri: Uri) {
+    internal fun importFromFile(uri: Uri) {
         lifecycleScope.launch {
             binding.progressBar.visibility = View.VISIBLE
             
@@ -128,7 +128,7 @@ class BatchGenerateActivity : AppCompatActivity() {
             if (result.errors.isNotEmpty()) {
                 Toast.makeText(
                     this@BatchGenerateActivity,
-                    "Import completed with ${result.errors.size} errors",
+                    getString(R.string.batch_import_errors, result.errors.size),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -139,13 +139,13 @@ class BatchGenerateActivity : AppCompatActivity() {
                 binding.etContent.setSelection(binding.etContent.text?.length ?: 0)
                 Toast.makeText(
                     this@BatchGenerateActivity,
-                    "Imported ${result.items.size} items",
+                    getString(R.string.batch_items_imported, result.items.size),
                     Toast.LENGTH_SHORT
                 ).show()
             } else {
                 Toast.makeText(
                     this@BatchGenerateActivity,
-                    "No valid items found",
+                    getString(R.string.batch_no_items),
                     Toast.LENGTH_SHORT
                 ).show()
             }

@@ -198,16 +198,21 @@ object BatchGenerator {
             throw IllegalArgumentException("Content cannot be empty")
         }
 
+        // 可选列：CSV 表头缺失该列时 record.get(name) 会抛 IllegalArgumentException，
+        // 必须先 isMapped 判断，否则只有部分列的用户 CSV 会整行失败。
+        fun optionalColumn(name: String): String? =
+            if (record.isMapped(name)) record.get(name) else null
+
         val format = try {
-            record.get("format")?.let { BarcodeFormat.valueOf(it.uppercase()) }
+            optionalColumn("format")?.let { BarcodeFormat.valueOf(it.uppercase()) }
                 ?: BarcodeFormat.QR_CODE
         } catch (e: Exception) {
             BarcodeFormat.QR_CODE
         }
 
-        val fgColor = parseColor(record.get("fg_color"), Color.BLACK)
-        val bgColor = parseColor(record.get("bg_color"), Color.WHITE)
-        val fileName = record.get("filename")?.trim()?.takeIf { it.isNotEmpty() }
+        val fgColor = parseColor(optionalColumn("fg_color"), Color.BLACK)
+        val bgColor = parseColor(optionalColumn("bg_color"), Color.WHITE)
+        val fileName = optionalColumn("filename")?.trim()?.takeIf { it.isNotEmpty() }
 
         return BatchItem(content, format, fgColor, bgColor, fileName)
     }

@@ -124,7 +124,7 @@ class BatchResultActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveSingleImage(bitmap: Bitmap, fileName: String) {
+    internal fun saveSingleImage(bitmap: Bitmap, fileName: String) {
         lifecycleScope.launch {
             try {
                 val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -142,7 +142,7 @@ class BatchResultActivity : AppCompatActivity() {
                         contentResolver.openOutputStream(it)?.use { outputStream ->
                             bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                         }
-                        Toast.makeText(this@BatchResultActivity, "Saved: $fullFileName", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@BatchResultActivity, getString(R.string.saved_to, fullFileName), Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BatchQR")
@@ -151,15 +151,15 @@ class BatchResultActivity : AppCompatActivity() {
                     FileOutputStream(file).use { outputStream ->
                         bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                     }
-                    Toast.makeText(this@BatchResultActivity, "Saved: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@BatchResultActivity, getString(R.string.saved_to, file.absolutePath), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@BatchResultActivity, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BatchResultActivity, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun saveAllAsZip() {
+    internal fun saveAllAsZip() {
         lifecycleScope.launch {
             try {
                 val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -184,7 +184,7 @@ class BatchResultActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                        Toast.makeText(this@BatchResultActivity, "Saved ZIP: $zipFileName", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@BatchResultActivity, getString(R.string.zip_saved, zipFileName), Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -199,10 +199,10 @@ class BatchResultActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    Toast.makeText(this@BatchResultActivity, "Saved ZIP: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@BatchResultActivity, getString(R.string.zip_saved, file.absolutePath), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@BatchResultActivity, "Failed to save ZIP: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BatchResultActivity, getString(R.string.zip_save_failed), Toast.LENGTH_SHORT).show()
             }
         }
     }
