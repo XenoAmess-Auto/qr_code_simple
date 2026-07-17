@@ -439,4 +439,9 @@
     <string name="color_channel_a">A</string>
     <string name="items_count">%1$d Elemente</string>
     <string name="batch_import_errors">Import mit %1$d Fehlern abgeschlossen</string>
+    <string name="logo_shape">Logo-Form</string>
+    <string name="logo_shape_square">Quadrat</string>
+    <string name="logo_shape_rounded">Abgerundet</string>
+    <string name="logo_shape_circle">Kreis</string>
+    <string name="logo_corner_radius">Eckenradius</string>
 </resources>

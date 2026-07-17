@@ -4,7 +4,7 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.2.4`
+- 当前版本：`0.2.5`
 - 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
@@ -59,6 +59,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - `foregroundColor` / `backgroundColor`：所有格式。
 - `cornerRadius`（0~1）：所有格式开放。
 - `logoScale` / `logoBitmap`：所有格式。
+- `logoShape` / `logoCornerRadius`：中心 logo 的裁剪形状（SQUARE 默认 / ROUNDED_RECT / CIRCLE）与圆角半径；所有格式。遮罩为逐像素计算（Robolectric 与真机行为一致，不走 BitmapShader）。
 - `gradientAngle` / `gradientStops` / `gradientType`：所有格式。
 - `foregroundBitmap` / `backgroundBitmap`：所有格式。
 - `moduleShape` / `moduleFillRatio`：对所有格式生效。有结构化布局的格式走原生渲染，仅生成格式和 MaxiCode 走兜底图片后处理（连通域 + 腐蚀/形状）。不同组合的回扫能力差异较大；具体见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)。

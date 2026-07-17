@@ -15,7 +15,7 @@
 - ✅ **50+ 种条码格式** - 支持 QR Code、Data Matrix（含中文/UTF-8）、Aztec、PDF417、汉信码（Han Xin Code）、MaxiCode、Micro QR、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF、Pharmacode、Plessey、MSI Plessey、Telepen、RSS-14、RSS Expanded、UPC/EAN Extension 等可扫描格式的扫描与生成，同时支持大量 OkapiBarcode 仅生成格式（Code 2 of 5 系列、邮政码、Codablock F、Grid Matrix、Code One 等）。
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等，提供一键操作。
 - ✅ **批量生成** - 从 CSV 或 Excel 导入数据批量生成条码，支持 ZIP 导出。
-- ✅ **样式定制** - 前景/背景色、多段渐变、中心 Logo、模块形状（方形/圆点/圆角）、定位图案、圆角比例、纠错等级。
+- ✅ **样式定制** - 前景/背景色、多段渐变、中心 Logo（方形 / 圆角矩形 / 圆形，圆角半径可调）、模块形状、定位图案、圆角比例、纠错等级。
 - ✅ **二维码修复** - 识别失败时自动进行图像修复重试（灰度 / 对比度 / 二值化等变体）。
 
 ### 历史记录

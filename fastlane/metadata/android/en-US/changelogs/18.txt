@@ -1,0 +1,1 @@
+- Center logo shapes: square, rounded rectangle (adjustable radius) or circle

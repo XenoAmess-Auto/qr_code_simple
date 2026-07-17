@@ -20,6 +20,8 @@ fun StyleConfig.toJson(): String {
         put("backgroundColor", backgroundColor)
         put("cornerRadius", cornerRadius)
         put("logoScale", logoScale)
+        put("logoShape", logoShape.name)
+        put("logoCornerRadius", logoCornerRadius.toDouble())
         put("ecLevel", ecLevel.name)
         put("moduleShape", moduleShape.name)
         put("moduleFillRatio", moduleFillRatio.toDouble())
@@ -53,6 +55,13 @@ fun parsePositionPatternShape(name: String): PositionPatternShape =
         PositionPatternShape.DEFAULT
     }
 
+fun parseLogoShape(name: String): AdvancedBarcodeGenerator.LogoShape =
+    try {
+        AdvancedBarcodeGenerator.LogoShape.valueOf(name)
+    } catch (e: IllegalArgumentException) {
+        AdvancedBarcodeGenerator.LogoShape.SQUARE
+    }
+
 /**
  * 从 JSON 字符串反序列化 StyleConfig。
  * 解析失败时返回 null。
@@ -77,6 +86,8 @@ fun styleConfigFromJson(jsonString: String): AdvancedBarcodeGenerator.StyleConfi
             backgroundColor = json.optInt("backgroundColor", Color.WHITE),
             cornerRadius = json.optDouble("cornerRadius", 0.0).toFloat(),
             logoScale = json.optDouble("logoScale", 0.2).toFloat(),
+            logoShape = parseLogoShape(json.optString("logoShape", "SQUARE")),
+            logoCornerRadius = json.optDouble("logoCornerRadius", 0.2).toFloat(),
             ecLevel = ErrorCorrectionLevel.valueOf(json.optString("ecLevel", "H")),
             moduleShape = parseModuleShape(json.optString("moduleShape", "DEFAULT")),
             moduleFillRatio = json.optDouble("moduleFillRatio", 1.0).toFloat(),

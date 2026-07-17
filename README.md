@@ -15,7 +15,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **50+ Barcode Formats** - Scan and generate QR Code, Data Matrix (including Chinese/UTF-8), Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, UPC/EAN Extension, and many more OkapiBarcode-only generate-only formats (Code 2 of 5 variants, postal codes, Codablock F, Grid Matrix, Code One, etc.).
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
 - ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with ZIP export.
-- ✅ **Style Customization** - Foreground/background colors, multi-stop gradients, center logo, module shapes (square/circle/rounded), position patterns, corner radius, and error correction levels.
+- ✅ **Style Customization** - Foreground/background colors, multi-stop gradients, center logo (square / rounded-rect / circle with adjustable corner radius), module shapes, position patterns, corner radius, and error correction levels.
 - ✅ **QR Code Repair** - Automatic restoration retry for blurry or low-contrast codes (grayscale / contrast / binarization variants).
 
 ### History

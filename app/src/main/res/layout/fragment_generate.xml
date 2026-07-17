@@ -634,6 +634,83 @@
 
                 </LinearLayout>
 
+                <!-- logo 形状选择 -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/logo_shape"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleLogoShape"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogoShapeSquare"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/logo_shape_square"
+                        style="?attr/materialButtonOutlinedStyle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogoShapeRounded"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/logo_shape_rounded"
+                        style="?attr/materialButtonOutlinedStyle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogoShapeCircle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/logo_shape_circle"
+                        style="?attr/materialButtonOutlinedStyle" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <!-- logo 圆角半径（仅圆角矩形时显示） -->
+                <LinearLayout
+                    android:id="@+id/logoCornerRadiusSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/logo_corner_radius"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/seekBarLogoCornerRadius"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:valueFrom="0"
+                        android:valueTo="100"
+                        android:value="20"
+                        android:stepSize="1" />
+
+                    <TextView
+                        android:id="@+id/tvLogoCornerRadiusValue"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        tools:text="20%"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
                 </LinearLayout>
 
             </LinearLayout>

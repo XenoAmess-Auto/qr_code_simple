@@ -43,8 +43,8 @@ android {
         applicationId "com.xenoamess.qrcodesimple"
         minSdk 28
         targetSdk 35
-        versionCode 17
-        versionName "0.2.4"
+        versionCode 18
+        versionName "0.2.5"
         buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

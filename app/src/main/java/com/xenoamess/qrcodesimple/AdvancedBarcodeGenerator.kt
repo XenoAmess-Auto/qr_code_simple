@@ -27,6 +27,9 @@ object AdvancedBarcodeGenerator {
     enum class PositionPatternShape { DEFAULT, CIRCLE, FOLLOW_MODULE }
     enum class GradientType { LINEAR }
 
+    /** 中心 logo 的裁剪形状。 */
+    enum class LogoShape { SQUARE, ROUNDED_RECT, CIRCLE }
+
     data class ColorStop(val position: Float, val color: Int)
 
     data class GradientBounds(
@@ -49,6 +52,10 @@ object AdvancedBarcodeGenerator {
         val cornerRadius: Float = 0f,
         val logoBitmap: Bitmap? = null,
         val logoScale: Float = 0.2f,
+        /** 中心 logo 的裁剪形状；默认 SQUARE 保持旧行为（原样盖印）。 */
+        val logoShape: LogoShape = LogoShape.SQUARE,
+        /** logo 为 ROUNDED_RECT 时的圆角半径（0~1，占 logo 边长的一半）。 */
+        val logoCornerRadius: Float = 0.2f,
         val ecLevel: ErrorCorrectionLevel = ErrorCorrectionLevel.H,
         val moduleShape: ModuleShape = ModuleShape.DEFAULT,
         val moduleFillRatio: Float = 1.0f,
@@ -177,9 +184,9 @@ object AdvancedBarcodeGenerator {
 
     /**
      * 根据 [FormatStyleCapabilities] 清洗 [StyleConfig]，不支持的字段回退为默认值。
-     * 原配置保留不变，返回新的清洗后实例。
+     * 原配置保留不变，返回新的清洗后实例。（internal 供测试直调）
      */
-    private fun StyleConfig.sanitized(capabilities: FormatStyleCapabilities): StyleConfig {
+    internal fun StyleConfig.sanitized(capabilities: FormatStyleCapabilities): StyleConfig {
         return copy(
             foregroundColor = if (capabilities.foregroundColor) foregroundColor else Color.BLACK,
             backgroundColor = if (capabilities.backgroundColor) backgroundColor else Color.WHITE,
@@ -188,6 +195,8 @@ object AdvancedBarcodeGenerator {
             cornerRadius = if (capabilities.cornerRadius) cornerRadius else 0f,
             logoBitmap = if (capabilities.logo) logoBitmap else null,
             logoScale = if (capabilities.logo) logoScale else 0.2f,
+            logoShape = if (capabilities.logo) logoShape else LogoShape.SQUARE,
+            logoCornerRadius = if (capabilities.logo) logoCornerRadius else 0.2f,
             ecLevel = if (capabilities.ecLevel) ecLevel else ErrorCorrectionLevel.H,
             moduleShape = if (capabilities.moduleShape) moduleShape else ModuleShape.DEFAULT,
             moduleFillRatio = if (capabilities.moduleFillRatio) moduleFillRatio else 1.0f,
@@ -239,7 +248,7 @@ object AdvancedBarcodeGenerator {
         }
 
         styleConfig.logoBitmap?.let { logo ->
-            drawLogoOnBitmap(output, logo, logoRect)
+            drawLogoOnBitmap(output, logo, logoRect, styleConfig.logoShape, styleConfig.logoCornerRadius)
         }
 
         return applyOuterCornerRadius(output, styleConfig)
@@ -503,7 +512,7 @@ object AdvancedBarcodeGenerator {
         }
 
         styleConfig.logoBitmap?.let { logo ->
-            drawLogoOnBitmap(output, logo, logoRect)
+            drawLogoOnBitmap(output, logo, logoRect, styleConfig.logoShape, styleConfig.logoCornerRadius)
         }
 
         return applyOuterCornerRadius(output, styleConfig)
@@ -1116,20 +1125,82 @@ object AdvancedBarcodeGenerator {
     }
 
     private fun drawLogoOnBitmap(output: Bitmap, logo: Bitmap, logoRect: Rect?) {
+        drawLogoOnBitmap(output, logo, logoRect, LogoShape.SQUARE, 0.2f)
+    }
+
+    /**
+     * 把 logo 按指定形状盖印到条码中央。
+     * SQUARE 保持旧行为（原样盖印）；ROUNDED_RECT 按 logoCornerRadius 圆角裁剪；
+     * CIRCLE 取内切圆裁剪。
+     */
+    private fun drawLogoOnBitmap(
+        output: Bitmap,
+        logo: Bitmap,
+        logoRect: Rect?,
+        logoShape: LogoShape,
+        logoCornerRadius: Float
+    ) {
         if (logoRect == null) return
         val logoSize = logoRect.width()
         val scaledLogo = Bitmap.createScaledBitmap(logo, logoSize, logoSize, true)
+        val masked = maskLogoToShape(scaledLogo, logoShape, logoCornerRadius)
         for (y in 0 until logoSize) {
             for (x in 0 until logoSize) {
-                val color = scaledLogo.getPixel(x, y)
+                val color = masked.getPixel(x, y)
                 if (Color.alpha(color) > 0) {
                     output.setPixel(logoRect.left + x, logoRect.top + y, color)
                 }
             }
         }
+        if (masked !== scaledLogo) {
+            masked.recycle()
+        }
         if (scaledLogo !== logo) {
             scaledLogo.recycle()
         }
+    }
+
+    /**
+     * 按形状裁剪 logo 位图；SQUARE 原样返回，其余返回新的带透明角的位图。
+     * 逐像素计算遮罩（Robolectric 与真机行为一致）。
+     */
+    internal fun maskLogoToShape(logo: Bitmap, shape: LogoShape, cornerRadius: Float): Bitmap {
+        if (shape == LogoShape.SQUARE) return logo
+        val size = logo.width
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val half = size / 2f
+        val radiusPx = cornerRadius.coerceIn(0f, 1f) * half
+
+        for (y in 0 until size) {
+            for (x in 0 until size) {
+                val inside = when (shape) {
+                    LogoShape.CIRCLE -> {
+                        val dx = x - half + 0.5f
+                        val dy = y - half + 0.5f
+                        dx * dx + dy * dy <= half * half
+                    }
+                    LogoShape.ROUNDED_RECT -> insideRoundedRect(x.toFloat(), y.toFloat(), size.toFloat(), radiusPx)
+                    LogoShape.SQUARE -> true
+                }
+                if (inside) {
+                    output.setPixel(x, y, logo.getPixel(x, y))
+                }
+            }
+        }
+        return output
+    }
+
+    private fun insideRoundedRect(x: Float, y: Float, size: Float, radius: Float): Boolean {
+        if (radius <= 0f) return true
+        // 中心十字区域（必然在内）
+        val inCenterBand = (x >= radius && x <= size - radius) || (y >= radius && y <= size - radius)
+        if (inCenterBand) return true
+        // 四个角：距角心不超过半径
+        val cx = if (x < radius) radius else size - radius
+        val cy = if (y < radius) radius else size - radius
+        val dx = x - cx
+        val dy = y - cy
+        return dx * dx + dy * dy <= radius * radius
     }
 
     fun addRoundedCorners(bitmap: Bitmap, radius: Float): Bitmap {

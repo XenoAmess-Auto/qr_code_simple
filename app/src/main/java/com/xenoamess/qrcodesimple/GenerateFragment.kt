@@ -62,6 +62,8 @@ class GenerateFragment : Fragment() {
     private var cornerRadius = 0f
     private var logoScale = 0.2f
     private var logoBitmap: Bitmap? = null
+    private var logoShape = AdvancedBarcodeGenerator.LogoShape.SQUARE
+    private var logoCornerRadius = 0.2f
     private var foregroundImageBitmap: Bitmap? = null
     private var backgroundImageBitmap: Bitmap? = null
     private var moduleShape = AdvancedBarcodeGenerator.ModuleShape.DEFAULT
@@ -98,7 +100,7 @@ class GenerateFragment : Fragment() {
     ) { uri: Uri? ->
         uri?.let { loadImage(it, MAX_LOGO_PX) { bitmap ->
             logoBitmap = bitmap
-            updateImagePreview(binding.ivLogoPreview, bitmap)
+            updateLogoPreview()
             binding.logoScaleSection.visibility = View.VISIBLE
             generateBarcode()
         } }
@@ -480,6 +482,35 @@ class GenerateFragment : Fragment() {
             override fun onStopTrackingTouch(slider: Slider) { safe { generateBarcode() } }
         })
 
+        // logo 形状切换：切换即重生成；圆角矩形时显示半径滑杆
+        binding.toggleLogoShape.check(R.id.btnLogoShapeSquare)
+        binding.toggleLogoShape.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            safe {
+                logoShape = when (checkedId) {
+                    R.id.btnLogoShapeRounded -> AdvancedBarcodeGenerator.LogoShape.ROUNDED_RECT
+                    R.id.btnLogoShapeCircle -> AdvancedBarcodeGenerator.LogoShape.CIRCLE
+                    else -> AdvancedBarcodeGenerator.LogoShape.SQUARE
+                }
+                binding.logoCornerRadiusSection.visibility =
+                    if (logoShape == AdvancedBarcodeGenerator.LogoShape.ROUNDED_RECT) View.VISIBLE else View.GONE
+                updateLogoPreview()
+                generateBarcode()
+            }
+        }
+
+        binding.seekBarLogoCornerRadius.addOnChangeListener { _, value, _ ->
+            safe {
+                logoCornerRadius = value / 100f
+                binding.tvLogoCornerRadiusValue.text = "${value.toInt()}%"
+                updateLogoPreview()
+            }
+        }
+        binding.seekBarLogoCornerRadius.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) { safe { generateBarcode() } }
+        })
+
         binding.btnPickForegroundColor.setOnClickListener {
             safe {
                 ColorPickerDialog().apply {
@@ -559,6 +590,7 @@ class GenerateFragment : Fragment() {
                 binding.ivLogoPreview.setImageBitmap(null)
                 binding.ivLogoPreview.visibility = View.GONE
                 binding.logoScaleSection.visibility = View.GONE
+                binding.logoCornerRadiusSection.visibility = View.GONE
                 generateBarcode()
             }
         }
@@ -652,6 +684,8 @@ class GenerateFragment : Fragment() {
         logoBitmap = null
         cornerRadius = style.cornerRadius
         logoScale = style.logoScale
+        logoShape = style.logoShape
+        logoCornerRadius = style.logoCornerRadius
         moduleShape = style.moduleShape
         moduleFillRatio = style.moduleFillRatio
         positionPatternShape = style.positionPatternShape
@@ -671,6 +705,17 @@ class GenerateFragment : Fragment() {
         updateStyleControlUIs()
         binding.seekBarLogoScale.value = logoScale * 100f
         binding.tvLogoScaleValue.text = "${(logoScale * 100).toInt()}%"
+        binding.toggleLogoShape.check(
+            when (logoShape) {
+                AdvancedBarcodeGenerator.LogoShape.ROUNDED_RECT -> R.id.btnLogoShapeRounded
+                AdvancedBarcodeGenerator.LogoShape.CIRCLE -> R.id.btnLogoShapeCircle
+                else -> R.id.btnLogoShapeSquare
+            }
+        )
+        binding.logoCornerRadiusSection.visibility =
+            if (logoShape == AdvancedBarcodeGenerator.LogoShape.ROUNDED_RECT) View.VISIBLE else View.GONE
+        binding.seekBarLogoCornerRadius.value = logoCornerRadius * 100f
+        binding.tvLogoCornerRadiusValue.text = "${(logoCornerRadius * 100).toInt()}%"
         updateHintForFormat()
     }
 
@@ -917,6 +962,17 @@ class GenerateFragment : Fragment() {
         imageView.visibility = if (bitmap != null) View.VISIBLE else View.GONE
     }
 
+    /** 按当前形状与半径更新 logo 预览（无 logo 时隐藏）。 */
+    private fun updateLogoPreview() {
+        val logo = logoBitmap
+        if (logo == null) {
+            updateImagePreview(binding.ivLogoPreview, null)
+            return
+        }
+        val masked = AdvancedBarcodeGenerator.maskLogoToShape(logo, logoShape, logoCornerRadius)
+        updateImagePreview(binding.ivLogoPreview, masked)
+    }
+
     private fun updateColorPreviews() {
         val fg = selectedStyle.foregroundColor
         val bg = selectedStyle.backgroundColor
@@ -1026,6 +1082,8 @@ class GenerateFragment : Fragment() {
             cornerRadius = cornerRadius,
             logoBitmap = logoBitmap,
             logoScale = logoScale,
+            logoShape = logoShape,
+            logoCornerRadius = logoCornerRadius,
             foregroundBitmap = foregroundImageBitmap,
             backgroundBitmap = backgroundImageBitmap,
             moduleShape = moduleShape,

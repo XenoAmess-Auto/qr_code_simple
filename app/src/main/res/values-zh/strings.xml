@@ -441,4 +441,9 @@
     <string name="color_channel_a">A</string>
     <string name="items_count">%1$d 条</string>
     <string name="batch_import_errors">导入完成，有 %1$d 个错误</string>
+    <string name="logo_shape">Logo 形状</string>
+    <string name="logo_shape_square">方形</string>
+    <string name="logo_shape_rounded">圆角矩形</string>
+    <string name="logo_shape_circle">圆形</string>
+    <string name="logo_corner_radius">圆角半径</string>
 </resources>
