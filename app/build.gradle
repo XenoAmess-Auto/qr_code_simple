@@ -107,6 +107,8 @@ android {
             includeAndroidResources = true
             all {
                 it.useJUnitPlatform()
+                // 大位图测试（4000x4000+）在加载全部测试类后可能超出默认堆
+                it.maxHeapSize = "2g"
                 it.jacoco {
                     includeNoLocationClasses = true
                     excludes = ['jdk.internal.reflect.*']
