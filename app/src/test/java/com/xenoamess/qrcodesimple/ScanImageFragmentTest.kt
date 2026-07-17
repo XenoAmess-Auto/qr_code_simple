@@ -24,8 +24,19 @@ class ScanImageFragmentTest {
 
     @Before
     fun setup() {
+        clearFileProviderCache()
         scenario = FragmentScenario.launchInContainer(ScanImageFragment::class.java, themeResId = R.style.Theme_QRCodeSimple)
         idleMain()
+    }
+
+    /**
+     * FileProvider 把路径策略按 authority 缓存在静态 Map 中（跨测试类共享 JVM 时，
+     * 先跑的测试会把沙盒路径冻结进缓存，导致本测试的 external-files 路径无法解析）。
+     */
+    private fun clearFileProviderCache() {
+        val field = androidx.core.content.FileProvider::class.java.getDeclaredField("sCache")
+        field.isAccessible = true
+        (field.get(null) as MutableMap<*, *>).clear()
     }
 
     @After
