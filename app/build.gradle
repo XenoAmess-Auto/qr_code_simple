@@ -228,7 +228,7 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     // JUnit 5 Platform：现有 JUnit4/Robolectric 测试经 Vintage Engine 继续运行，
     // 新测试可使用 Jupiter 注解。JUnit 6 已移除 Vintage Engine，必须使用 5.x。
-    def junit5_version = '5.14.4'
+    def junit5_version = '6.1.2'
     testImplementation "org.junit.jupiter:junit-jupiter:$junit5_version"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit5_version"
     testImplementation 'org.robolectric:robolectric:4.16.1'
