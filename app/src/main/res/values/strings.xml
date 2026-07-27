@@ -147,7 +147,7 @@
     <string name="later">Later</string>
     <string name="buy_me_a_coffee">Buy me a coffee</string>
     <string name="check_update">Check for updates</string>
-    <string name="auto_check_update">Auto-check for updates (daily, in background)</string>
+    <string name="auto_check_update">Auto-check</string>
     <string name="update_available_title">New version v%1$s available</string>
     <string name="update_now">Update now</string>
     <string name="update_view_release_page">View release page</string>

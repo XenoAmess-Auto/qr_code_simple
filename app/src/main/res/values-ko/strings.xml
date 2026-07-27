@@ -218,7 +218,7 @@
     <string name="license">MIT 라이선스에 따라 배포됨</string>
     <string name="buy_me_a_coffee">커피 한 잔 사주세요</string>
     <string name="check_update">업데이트 확인</string>
-    <string name="auto_check_update">업데이트 자동 확인 (매일, 백그라운드)</string>
+    <string name="auto_check_update">자동 확인</string>
     <string name="update_available_title">새 버전 v%1$s 사용 가능</string>
     <string name="update_now">지금 업데이트</string>
     <string name="update_view_release_page">릴리스 페이지 열기</string>

@@ -150,7 +150,7 @@
     <string name="version_with_prefix">v%1$s (%2$s)</string>
     <string name="buy_me_a_coffee">コーヒーを奢る</string>
     <string name="check_update">アップデートを確認</string>
-    <string name="auto_check_update">アップデートを自動確認（1日1回、バックグラウンド）</string>
+    <string name="auto_check_update">自動確認</string>
     <string name="update_available_title">新しいバージョン v%1$s があります</string>
     <string name="update_now">今すぐ更新</string>
     <string name="update_view_release_page">リリースページを開く</string>

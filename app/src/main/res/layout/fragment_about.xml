@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,12 +13,12 @@
 
         <!-- App Icon -->
         <ImageView
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:src="@mipmap/ic_launcher"
             android:scaleType="centerCrop"
             android:importantForAccessibility="no"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="8dp" />
 
         <!-- App Name -->
         <TextView
@@ -27,7 +27,7 @@
             android:text="@string/app_name"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="4dp" />
 
         <!-- Version -->
         <TextView
@@ -36,14 +36,14 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="12dp" />
 
         <!-- Language Selector -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLanguage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/language"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
@@ -52,35 +52,34 @@
             android:id="@+id/btnPrivacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/privacy_settings"
             app:icon="@drawable/ic_security"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <!-- Check for updates -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCheckUpdate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:text="@string/check_update"
-            app:icon="@drawable/ic_system_update"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-        <!-- Auto check updates switch -->
+        <!-- Check for updates + auto-check switch in one row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="16dp">
 
-            <TextView
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCheckUpdate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/check_update"
+                app:icon="@drawable/ic_system_update"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/auto_check_update"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <Switch
                 android:id="@+id/switchAutoUpdate"
@@ -93,7 +92,7 @@
             android:id="@+id/btnDonate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/buy_me_a_coffee"
             app:icon="@drawable/ic_coffee" />
 
@@ -102,7 +101,7 @@
             android:id="@+id/btnGitHubProject"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/sources"
             app:icon="@drawable/ic_github"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -112,7 +111,7 @@
             android:id="@+id/btnGitHubMaintainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:text="@string/maintainer"
             app:icon="@drawable/ic_github"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
