@@ -60,6 +60,18 @@ class AboutFragment : Fragment() {
         binding.btnPrivacy.setOnClickListener {
             startActivity(Intent(requireContext(), PrivacySettingsActivity::class.java))
         }
+
+        binding.btnCheckUpdate.setOnClickListener {
+            AppUpdateManager.checkManually(requireActivity())
+        }
+
+        binding.switchAutoUpdate.isChecked = QRCodeApp.isAppUpdateAutoCheckEnabled(requireContext())
+        binding.switchAutoUpdate.setOnCheckedChangeListener { _, isChecked ->
+            QRCodeApp.setAppUpdateAutoCheckEnabled(requireContext(), isChecked)
+            if (isChecked) {
+                AppUpdateManager.checkManually(requireActivity())
+            }
+        }
     }
 
     private fun updateLanguageButton() {

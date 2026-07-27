@@ -147,6 +147,18 @@
     <string name="maintainer">Betreuer</string>
     <string name="license">Lizenziert unter MIT</string>
     <string name="buy_me_a_coffee">Kauf mir einen Kaffee</string>
+    <string name="check_update">Nach Updates suchen</string>
+    <string name="auto_check_update">Automatisch nach Updates suchen (täglich, im Hintergrund)</string>
+    <string name="update_available_title">Neue Version v%1$s verfügbar</string>
+    <string name="update_now">Jetzt aktualisieren</string>
+    <string name="update_view_release_page">Release-Seite öffnen</string>
+    <string name="update_later">Später</string>
+    <string name="update_already_latest">Du verwendest die neueste Version</string>
+    <string name="update_check_failed">Update-Prüfung fehlgeschlagen</string>
+    <string name="update_downloading">v%1$s wird heruntergeladen…</string>
+    <string name="update_install_permission_needed">Bitte erlaube die Installation aus dieser Quelle und kehre dann zurück</string>
+    <string name="update_install_failed_title">Automatisches Update fehlgeschlagen</string>
+    <string name="update_install_failed_message">Das Update konnte nicht automatisch installiert werden. Du kannst es manuell von der Release-Seite herunterladen.</string>
 
     <!-- Widget -->
     <string name="widget_quick_scan">Schneller Scan</string>

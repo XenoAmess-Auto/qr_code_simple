@@ -49,7 +49,7 @@
 - ✅ **应用锁** - 指纹 / 密码保护敏感历史。
 - ✅ **本地加密** - SQLCipher (AES-256) 加密历史数据库。
 
-> **隐私说明**：应用唯一的网络权限（`INTERNET`）仅用于可选的、默认关闭的黑名单在线更新；其余功能完全离线可用。
+> **隐私说明**：`INTERNET` 权限仅用于两个可选的、默认关闭的功能：黑名单静默在线更新与应用更新检查（GitHub Releases）；其余功能完全离线可用。
 
 ### 界面与体验
 
@@ -298,6 +298,8 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── SecurityManager.kt               # 恶意链接启发式判断
 ├── SecurityBlacklist.kt             # 黑名单模型与 assets/覆盖加载
 ├── BlacklistUpdater.kt              # 可选静默在线黑名单更新
+├── AppUpdateChecker.kt              # GitHub Releases 更新检查与版本比较
+├── AppUpdateManager.kt              # 更新弹窗、APK 下载与安装（失败回退下载页）
 ├── PrivacySettingsActivity.kt       # 隐私模式开关
 ├── DatabaseSecurityActivity.kt      # SQLCipher 密钥轮换
 ├── QRCodeRestorationManager.kt      # 修复变体生成（灰度 / 对比度 / 二值化）

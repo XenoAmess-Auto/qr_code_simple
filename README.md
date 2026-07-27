@@ -49,7 +49,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **App Lock** - Fingerprint or password protection for sensitive history.
 - ✅ **Local Encryption** - SQLCipher (AES-256) on the history database.
 
-> **Privacy note**: The only network permission (`INTERNET`) is used solely by the optional, default-off blacklist update. Everything else works fully offline.
+> **Privacy note**: The `INTERNET` permission is used only by two optional, default-off features: the silent blacklist update and app update checks (GitHub Releases). Everything else works fully offline.
 
 ### UI & UX
 
@@ -279,6 +279,8 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── SecurityManager.kt               # Malicious-link heuristics
 ├── SecurityBlacklist.kt             # Blacklist model + assets/override loading
 ├── BlacklistUpdater.kt              # Optional silent online blacklist update
+├── AppUpdateChecker.kt              # GitHub Releases update check + version compare
+├── AppUpdateManager.kt              # Update dialog, APK download & install (fallback to release page)
 ├── PrivacySettingsActivity.kt       # Privacy mode toggle
 ├── DatabaseSecurityActivity.kt      # SQLCipher key rotation
 ├── QRCodeRestorationManager.kt      # Restoration variants (grayscale / contrast / binarization)

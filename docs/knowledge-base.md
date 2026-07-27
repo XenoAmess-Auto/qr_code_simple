@@ -129,6 +129,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `BackupCrypto.kt` | 备份加密原语（AES-256/GCM + PBKDF2，magic `QRBK1`） |
 | `SecurityBlacklist.kt` | 恶意链接黑名单模型；加载顺序 filesDir 覆盖 > assets 内置 > 代码兜底 |
 | `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
+| `AppUpdateChecker.kt` | 应用更新检查：GitHub `releases/latest` API（5s 超时 + 1MB 上限），纯函数 `isNewer` 版本比较；测试缝 `connectionFactoryForTesting` |
+| `AppUpdateManager.kt` | 更新编排：弹窗 → 安装权限（`REQUEST_INSTALL_PACKAGES`，API 26+ 需用户授权，返回后 `onHostResume` 续装）→ 下载 APK（私有 Downloads 目录，1GB 上限，进度对话框）→ FileProvider 调起系统安装器；任何失败回退打开 Release 页。自动检查默认关，24h 节流（`QRCodeApp.tryMarkAppUpdateChecked`），由 `MainActivity.onCreate` 触发；测试缝 `fetcherForTesting` |
 | `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
 | `baselineprofile/` | Baseline Profile 生成模块（`:app:generateReleaseBaselineProfile` 在模拟器/真机上生成 `app/src/release/generated/baselineProfiles/baseline-prof.txt`，release 构建自动合并进 R8 art profile） |
 | `app/src/androidTest/` | 仪器测试（启动冒烟、MediaStore Q+、SQLCipher 真机加密、视频扫描全管线），CI `android-test` job 在 API 35 模拟器上运行 |

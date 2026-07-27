@@ -44,6 +44,9 @@ class QRCodeApp : Application() {
         private const val KEY_BLACKLIST_AUTO_UPDATE = "blacklist_auto_update"
         private const val KEY_BLACKLIST_LAST_CHECK = "blacklist_last_check"
         private const val BLACKLIST_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
+        private const val KEY_APP_UPDATE_AUTO_CHECK = "app_update_auto_check"
+        private const val KEY_APP_UPDATE_LAST_CHECK = "app_update_last_check"
+        private const val APP_UPDATE_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
 
         /** 历史记录自动清理天数；0 表示永久保留。 */
         fun getHistoryRetentionDays(context: Context): Int {
@@ -65,6 +68,29 @@ class QRCodeApp : Application() {
         fun setBlacklistAutoUpdateEnabled(context: Context, enabled: Boolean) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putBoolean(KEY_BLACKLIST_AUTO_UPDATE, enabled).apply()
+        }
+
+        /** 应用自动检查更新开关（默认关闭）。 */
+        fun isAppUpdateAutoCheckEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_APP_UPDATE_AUTO_CHECK, false)
+        }
+
+        fun setAppUpdateAutoCheckEnabled(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_APP_UPDATE_AUTO_CHECK, enabled).apply()
+        }
+
+        /**
+         * 24h 节流：距上次检查不足 24h 返回 false；
+         * 否则先记录本次检查时间（避免失败时每次启动都请求网络）并返回 true。
+         */
+        fun tryMarkAppUpdateChecked(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val lastCheck = prefs.getLong(KEY_APP_UPDATE_LAST_CHECK, 0L)
+            if (System.currentTimeMillis() - lastCheck < APP_UPDATE_CHECK_INTERVAL_MS) return false
+            prefs.edit().putLong(KEY_APP_UPDATE_LAST_CHECK, System.currentTimeMillis()).apply()
+            return true
         }
 
         /**

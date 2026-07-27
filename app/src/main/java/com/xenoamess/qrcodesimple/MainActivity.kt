@@ -62,6 +62,15 @@ class MainActivity : AppCompatActivity() {
 
         // 处理从详情页跳转回生成页的参数
         handleGenerateIntent(intent)
+
+        // 自动检查应用更新（默认关闭；开启时 24h 节流，仅发现新版本才弹窗）
+        AppUpdateManager.maybeAutoCheck(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 用户从系统安装权限设置页返回后，继续待处理的自动安装
+        AppUpdateManager.onHostResume(this)
     }
 
     override fun onNewIntent(intent: Intent) {

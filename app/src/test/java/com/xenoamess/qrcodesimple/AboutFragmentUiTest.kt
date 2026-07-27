@@ -22,6 +22,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import org.robolectric.shadows.ShadowToast
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -99,6 +100,112 @@ class AboutFragmentUiTest {
     @Test
     fun donateButtonOpensUrl() {
         assertUrlButtonOpens(R.id.btnDonate, "https://ko-fi.com/xenoamess")
+    }
+
+    @Test
+    fun checkUpdateButtonShowsDialogWhenNewVersionAvailable() {
+        AppUpdateManager.fetcherForTesting = {
+            AppUpdateChecker.ReleaseInfo(
+                version = "99.0.0",
+                changelog = "big changes",
+                htmlUrl = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/tag/v99.0.0",
+                apkUrl = "https://example.com/app-release.apk",
+                apkSizeBytes = 123L
+            )
+        }
+        try {
+            onView(withId(R.id.btnCheckUpdate)).perform(click())
+            assertTrue(
+                "Update dialog should appear",
+                waitFor { ShadowDialog.getLatestDialog() != null }
+            )
+            val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+            val title = dialog.findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.text.toString()
+            assertTrue(title.contains("99.0.0"))
+        } finally {
+            AppUpdateManager.fetcherForTesting = null
+        }
+    }
+
+    @Test
+    fun checkUpdateButtonShowsToastWhenUpToDate() {
+        AppUpdateManager.fetcherForTesting = {
+            AppUpdateChecker.ReleaseInfo(
+                version = "0.0.1",
+                changelog = "",
+                htmlUrl = "https://example.com",
+                apkUrl = null,
+                apkSizeBytes = 0L
+            )
+        }
+        try {
+            onView(withId(R.id.btnCheckUpdate)).perform(click())
+            assertTrue(
+                "Up-to-date toast should appear",
+                waitFor { ShadowToast.getTextOfLatestToast() != null }
+            )
+            assertEquals(
+                ApplicationProvider.getApplicationContext<Context>().getString(R.string.update_already_latest),
+                ShadowToast.getTextOfLatestToast()
+            )
+        } finally {
+            AppUpdateManager.fetcherForTesting = null
+        }
+    }
+
+    @Test
+    fun checkUpdateButtonShowsToastWhenCheckFails() {
+        AppUpdateManager.fetcherForTesting = { null }
+        try {
+            onView(withId(R.id.btnCheckUpdate)).perform(click())
+            assertTrue(
+                "Failure toast should appear",
+                waitFor { ShadowToast.getTextOfLatestToast() != null }
+            )
+            assertEquals(
+                ApplicationProvider.getApplicationContext<Context>().getString(R.string.update_check_failed),
+                ShadowToast.getTextOfLatestToast()
+            )
+        } finally {
+            AppUpdateManager.fetcherForTesting = null
+        }
+    }
+
+    @Test
+    fun autoUpdateSwitchPersistsPreference() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        QRCodeApp.setAppUpdateAutoCheckEnabled(context, false)
+        // 避免打开开关时触发真实网络请求
+        AppUpdateManager.fetcherForTesting = { null }
+
+        try {
+            scenario.onFragment { fragment ->
+                val switch = fragment.requireView().findViewById<android.widget.Switch>(R.id.switchAutoUpdate)
+                assertEquals(false, switch.isChecked)
+                switch.isChecked = true
+            }
+            flushMainLooper()
+            assertTrue(QRCodeApp.isAppUpdateAutoCheckEnabled(context))
+
+            scenario.onFragment { fragment ->
+                fragment.requireView().findViewById<android.widget.Switch>(R.id.switchAutoUpdate).isChecked = false
+            }
+            flushMainLooper()
+            assertEquals(false, QRCodeApp.isAppUpdateAutoCheckEnabled(context))
+        } finally {
+            AppUpdateManager.fetcherForTesting = null
+            QRCodeApp.setAppUpdateAutoCheckEnabled(context, false)
+        }
+    }
+
+    private fun waitFor(maxMs: Long = 3000, condition: () -> Boolean): Boolean {
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < maxMs) {
+            flushMainLooper()
+            if (condition()) return true
+            Thread.sleep(50)
+        }
+        return false
     }
 
     private fun assertUrlButtonOpens(buttonId: Int, expectedUrl: String) {
