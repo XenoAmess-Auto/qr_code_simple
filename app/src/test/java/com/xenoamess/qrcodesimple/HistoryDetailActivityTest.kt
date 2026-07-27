@@ -91,6 +91,11 @@ class HistoryDetailActivityTest {
         val scenario = launchActivity(insertedId)
         resumeScenario(scenario)
 
+        assertTrue(
+            "Content should be bound to the view",
+            waitFor { getViewText(scenario, R.id.tvContent) == "https://example.com" }
+        )
+
         scenario.onActivity { activity ->
             assertEquals("https://example.com", activity.findViewById<android.widget.TextView>(R.id.tvContent).text.toString())
             assertNotNull(activity.findViewById<android.widget.TextView>(R.id.tvType).text.toString())
@@ -108,6 +113,11 @@ class HistoryDetailActivityTest {
         val insertedId = insertItem()
         val scenario = launchActivity(insertedId)
         resumeScenario(scenario)
+
+        assertTrue(
+            "Content should be bound before sharing",
+            waitFor { getViewText(scenario, R.id.tvContent) == "https://example.com" }
+        )
 
         onView(withId(R.id.btnShare)).perform(scrollTo(), click())
         flushMainLooper()
@@ -150,9 +160,13 @@ class HistoryDetailActivityTest {
     }
 
     private fun getFavoriteButtonText(scenario: ActivityScenario<HistoryDetailActivity>): String {
+        return getViewText(scenario, R.id.btnToggleFavorite)
+    }
+
+    private fun getViewText(scenario: ActivityScenario<HistoryDetailActivity>, viewId: Int): String {
         var text = ""
         scenario.onActivity { activity ->
-            text = activity.findViewById<android.widget.Button>(R.id.btnToggleFavorite).text.toString()
+            text = activity.findViewById<android.widget.TextView>(viewId).text.toString()
         }
         return text
     }
