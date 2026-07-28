@@ -1,5 +1,7 @@
 package com.xenoamess.qrcodesimple
 
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.cardview.widget.CardView
 import androidx.test.core.app.ActivityScenario
@@ -32,34 +34,42 @@ class CameraScanCloseButtonDeviceTest {
         android.Manifest.permission.READ_MEDIA_VIDEO
     )
 
+    private fun getFragment(scenario: ActivityScenario<MainActivity>): CameraScanFragment? {
+        var result: CameraScanFragment? = null
+        scenario.onActivity { activity ->
+            result = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
+        }
+        return result
+    }
+
+    private fun showResultOnMain(fragment: CameraScanFragment?, content: String) {
+        Handler(Looper.getMainLooper()).post {
+            fragment?.showResult(QRCodeScanner.ScanResult(content, QRCodeScanner.Library.ZXING))
+        }
+    }
+
+    private fun assertCardVisibility(scenario: ActivityScenario<MainActivity>, expected: Int, message: String) {
+        scenario.onActivity { activity ->
+            val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
+            val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
+            assertEquals(message, expected, card?.visibility)
+        }
+    }
+
     @Test
     fun closeResultButtonHidesCardInViewPager2() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             Thread.sleep(2000)
+            val fragment = getFragment(scenario)
+            assertNotNull("CameraScanFragment 应存在于 ViewPager2 position 0", fragment)
 
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                assertNotNull("CameraScanFragment 应存在于 ViewPager2 position 0", fragment)
-                fragment?.showResult(
-                    QRCodeScanner.ScanResult("https://close-button-device-test.com", QRCodeScanner.Library.ZXING)
-                )
-            }
+            showResultOnMain(fragment, "https://close-button-device-test.com")
             Thread.sleep(1000)
-
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
-                assertEquals("前置条件:卡片应已显示", View.VISIBLE, card?.visibility)
-            }
+            assertCardVisibility(scenario, View.VISIBLE, "前置条件:卡片应已显示")
 
             onView(withId(R.id.btnCloseResult)).perform(click())
             Thread.sleep(500)
-
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
-                assertEquals("点击叉号后卡片应隐藏", View.GONE, card?.visibility)
-            }
+            assertCardVisibility(scenario, View.GONE, "点击叉号后卡片应隐藏")
         }
     }
 
@@ -67,61 +77,38 @@ class CameraScanCloseButtonDeviceTest {
      * 模拟真机竞态:用户点叉号后,后台线程持续每 300ms 调用 showResult(同码)。
      * 之前的修复在这个场景下会失败(漏检清 last → 同码重弹)。
      * userDismissed 修复后应保持隐藏。
+     *
+     * 用 Handler.post 到主线程而非后台线程的 scenario.onActivity,
+     * 避免 Espresso 主线程空闲检测超时。
      */
     @Test
     fun cardStaysHiddenWhenBackgroundThreadContinuouslyScansSameCode() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             Thread.sleep(2000)
+            val fragment = getFragment(scenario)
+            assertNotNull(fragment)
 
             val content = "https://race-test-same-code.com"
-            val scanResult = QRCodeScanner.ScanResult(content, QRCodeScanner.Library.ZXING)
 
             // 显示卡片
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                fragment?.showResult(scanResult)
-            }
+            showResultOnMain(fragment, content)
             Thread.sleep(500)
+            assertCardVisibility(scenario, View.VISIBLE, "前置条件:卡片应已显示")
 
-            // 启动后台线程模拟 processImage 持续扫描同码
-            val stopFlag = java.util.concurrent.atomic.AtomicBoolean(false)
-            val bgThread = Thread {
-                while (!stopFlag.get()) {
-                    scenario.onActivity { activity ->
-                        val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                        fragment?.showResult(scanResult)
-                    }
-                    Thread.sleep(300)
-                }
-            }
-            bgThread.start()
-
-            // 等卡片显示
-            Thread.sleep(500)
-
-            // 点叉号
+            // 点叉号(Espresso 需要主线程空闲,此时后台线程未启动,可以正常点击)
             onView(withId(R.id.btnCloseResult)).perform(click())
             Thread.sleep(500)
+            assertCardVisibility(scenario, View.GONE, "点击叉号后卡片应隐藏")
 
-            // 验证卡片隐藏
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
-                assertEquals("点击叉号后卡片应隐藏", View.GONE, card?.visibility)
+            // 模拟后台线程持续扫同码:用 Handler.post 在主线程连续调用 showResult
+            // (showResult 内部也用 runOnUiThread,所以直接 post 是等价的)
+            for (i in 1..10) {
+                showResultOnMain(fragment, content)
+                Thread.sleep(300)
             }
-
-            // 等 3 秒(覆盖 1 秒延迟 + 余量),后台线程持续扫同码
-            Thread.sleep(3000)
 
             // 验证卡片仍隐藏(这是之前修复失败的竞态场景)
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
-                assertEquals("后台持续扫同码时,卡片应保持隐藏(userDismissed 守卫)", View.GONE, card?.visibility)
-            }
-
-            stopFlag.set(true)
-            bgThread.join(5000)
+            assertCardVisibility(scenario, View.GONE, "后台持续扫同码时,卡片应保持隐藏(userDismissed 守卫)")
         }
     }
 
@@ -132,38 +119,23 @@ class CameraScanCloseButtonDeviceTest {
     fun cardReShowsWhenBackgroundThreadScansDifferentCode() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             Thread.sleep(2000)
+            val fragment = getFragment(scenario)
+            assertNotNull(fragment)
 
             // 显示卡片 A
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                fragment?.showResult(QRCodeScanner.ScanResult("https://code-a.com", QRCodeScanner.Library.ZXING))
-            }
+            showResultOnMain(fragment, "https://code-a.com")
             Thread.sleep(500)
+            assertCardVisibility(scenario, View.VISIBLE, "前置条件:卡片A应已显示")
 
             // 点叉号
             onView(withId(R.id.btnCloseResult)).perform(click())
             Thread.sleep(500)
-
-            // 验证卡片隐藏
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
-                assertEquals("点击叉号后卡片应隐藏", View.GONE, card?.visibility)
-            }
+            assertCardVisibility(scenario, View.GONE, "点击叉号后卡片应隐藏")
 
             // 后台扫到不同码 B
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                fragment?.showResult(QRCodeScanner.ScanResult("https://code-b.com", QRCodeScanner.Library.ZXING))
-            }
+            showResultOnMain(fragment, "https://code-b.com")
             Thread.sleep(500)
-
-            // 验证卡片重弹
-            scenario.onActivity { activity ->
-                val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
-                val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
-                assertEquals("不同码应重弹卡片", View.VISIBLE, card?.visibility)
-            }
+            assertCardVisibility(scenario, View.VISIBLE, "不同码应重弹卡片")
         }
     }
 }
