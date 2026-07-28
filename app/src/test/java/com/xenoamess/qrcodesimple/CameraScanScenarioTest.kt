@@ -288,7 +288,8 @@ class CameraScanScenarioTest {
     }
 
     /**
-     * 码真正离开画面(延迟到期后 lastDetectedContent 被清除),
+     * 码真正离开画面(延迟到期后 clearLastDetectedRunnable 执行,
+     * 清除 lastDetectedContent/userDismissed/dismissedContent),
      * 再扫回同码时应重新弹出。
      */
     @Test
@@ -300,7 +301,49 @@ class CameraScanScenarioTest {
         }
         idleMain()
 
-        // 模拟码离开画面:延迟到期,lastDetectedContent 被清除
+        // 模拟延迟到期:clearLastDetectedRunnable 执行,清三个状态
+        scenario.onFragment { fragment ->
+            val runnableField = CameraScanFragment::class.java.getDeclaredField("clearLastDetectedRunnable")
+            runnableField.isAccessible = true
+            val runnable = runnableField.get(fragment) as Runnable
+            runnable.run()
+        }
+        idleMain()
+
+        // 再扫回同码,应重新弹出(userDismissed 已被清)
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            assertEquals(
+                "延迟清除后同码应重新弹出",
+                View.VISIBLE,
+                fragment.requireView().findViewById<CardView>(R.id.resultCard).visibility
+            )
+        }
+    }
+
+    /**
+     * 核心回归保护:用户关闭后,同码 showResult 不重弹。
+     * 即使模拟 ZXing 漏检导致 lastDetectedContent 被清成 null,
+     * userDismissed + dismissedContent 仍应拦截同码。
+     *
+     * 这是之前 3 次修复都失败的竞态场景:
+     * - f950338: hideResult 清 last → 同码重弹
+     * - 8792fdf: 漏检立即清 last → 同码重弹
+     * - 6d18b34: 漏检延迟 1 秒清 last → 1 秒后同码重弹
+     */
+    @Test
+    fun userDismissedBlocksSameContentEvenAfterLastCleared() {
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            fragment.hideResult()
+        }
+        idleMain()
+
+        // 模拟 ZXing 漏检:手动清 lastDetectedContent(但不清 userDismissed/dismissedContent)
+        // 在真实场景中,processImage 扫到码时 removeCallbacks 取消延迟,
+        // clearLastDetectedRunnable 不会执行,所以 userDismissed 保持 true。
         scenario.onFragment { fragment ->
             val field = CameraScanFragment::class.java.getDeclaredField("lastDetectedContent")
             field.isAccessible = true
@@ -308,13 +351,13 @@ class CameraScanScenarioTest {
         }
         idleMain()
 
-        // 再扫回同码,应重新弹出
+        // 同码进来,应被 userDismissed + dismissedContent 拦截
         show("https://example.com")
 
         scenario.onFragment { fragment ->
             assertEquals(
-                "延迟清除后同码应重新弹出",
-                View.VISIBLE,
+                "userDismissed 拦截同码:卡片应保持隐藏",
+                View.GONE,
                 fragment.requireView().findViewById<CardView>(R.id.resultCard).visibility
             )
         }

@@ -56,9 +56,15 @@ class CameraScanFragment : Fragment() {
     private var lastScanTime = 0L
     private val scanInterval = 300L
     private var lastDetectedContent: String? = null
+    private var userDismissed = false
+    private var dismissedContent: String? = null
     private var isCameraStarted = false
     private val handler = Handler(Looper.getMainLooper())
-    private val clearLastDetectedRunnable = Runnable { lastDetectedContent = null }
+    private val clearLastDetectedRunnable = Runnable {
+        lastDetectedContent = null
+        userDismissed = false
+        dismissedContent = null
+    }
     private var camera: Camera? = null
     private var currentZoom = 1f
     private var isFlashOn = false
@@ -392,6 +398,8 @@ class CameraScanFragment : Fragment() {
     internal fun hideResult() {
         binding.resultCard.visibility = View.GONE
         currentParsedContent = null
+        userDismissed = true
+        dismissedContent = lastDetectedContent
         handler.removeCallbacks(clearLastDetectedRunnable)
     }
 
@@ -404,6 +412,13 @@ class CameraScanFragment : Fragment() {
             return
         }
         activity?.runOnUiThread {
+            // 用户已手动关闭:同码(用 dismissedContent 判断,不依赖 lastDetectedContent,
+            // 因为延迟清除可能已把 lastDetectedContent 清成 null)不重弹;
+            // 不同码则重弹(用户通常希望看到新内容)。
+            if (userDismissed && result.text == dismissedContent) return@runOnUiThread
+            // 到这里:用户未关闭,或用户关闭后扫到不同码,或延迟清除后码回来
+            userDismissed = false
+            dismissedContent = null
             if (result.text == lastDetectedContent) return@runOnUiThread
             lastDetectedContent = result.text
             binding.tvResult.text = result.text
