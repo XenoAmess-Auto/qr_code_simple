@@ -391,7 +391,6 @@ class CameraScanFragment : Fragment() {
     internal fun hideResult() {
         binding.resultCard.visibility = View.GONE
         currentParsedContent = null
-        lastDetectedContent = null
     }
 
     internal fun showResult(result: QRCodeScanner.ScanResult) {
@@ -529,6 +528,9 @@ class CameraScanFragment : Fragment() {
             val results = QRCodeScanner.scanSync(requireContext(), scanBitmap)
             if (results.isNotEmpty()) {
                 showResult(results[0])
+            } else {
+                // 没扫到码时清除去重状态,让用户关闭后把码移开再扫回同码时能重新弹出
+                handler.post { lastDetectedContent = null }
             }
 
             if (scanBitmap !== bitmap) {

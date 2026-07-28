@@ -197,7 +197,7 @@ class CameraScanScenarioTest {
     }
 
     @Test
-    fun hideResultAllowsSameContentToReShow() {
+    fun hideResultBlocksSameContentFromReShowing() {
         show("https://example.com")
 
         scenario.onFragment { fragment ->
@@ -205,13 +205,38 @@ class CameraScanScenarioTest {
         }
         idleMain()
 
-        // 关闭后再次扫到同一码,应重新弹出卡片
+        // 关闭后相机仍在持续扫到同一码(模拟下一帧 showResult),卡片应保持关闭,
+        // 而不是被同码重新弹出。这是用户反馈"点叉号关不掉"的核心回归保护。
         show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            assertEquals(
+                View.GONE,
+                fragment.requireView().findViewById<CardView>(R.id.resultCard).visibility
+            )
+        }
+    }
+
+    @Test
+    fun hideResultAllowsDifferentContentToReShow() {
+        show("https://first.com")
+
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<ImageButton>(R.id.btnCloseResult).performClick()
+        }
+        idleMain()
+
+        // 关闭后扫到不同的码,卡片应重新弹出
+        show("https://second.com")
 
         scenario.onFragment { fragment ->
             assertEquals(
                 View.VISIBLE,
                 fragment.requireView().findViewById<CardView>(R.id.resultCard).visibility
+            )
+            assertEquals(
+                "https://second.com",
+                fragment.requireView().findViewById<TextView>(R.id.tvResult).text.toString()
             )
         }
     }
