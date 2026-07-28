@@ -241,6 +241,85 @@ class CameraScanScenarioTest {
         }
     }
 
+    /**
+     * 模拟 ZXing 漏检:扫到码后,紧接着一帧没扫到码(漏检),
+     * 再下一帧又扫到同码。漏检不应立即清除 lastDetectedContent,
+     * 否则同码会在下一帧绕过守卫重新弹框(用户看到的"点叉号关不掉")。
+     *
+     * processImage 依赖 CameraX 无法在 Robolectric 中调用,
+     * 这里通过反射直接操作 clearLastDetectedRunnable 来验证延迟逻辑。
+     */
+    @Test
+    fun frameMissDoesNotImmediatelyClearLastDetected() {
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            // 模拟用户关闭卡片
+            fragment.hideResult()
+        }
+        idleMain()
+
+        // 模拟 ZXing 漏检一帧:processImage 的 else 分支会 postDelayed 1 秒清除
+        scenario.onFragment { fragment ->
+            val handlerField = CameraScanFragment::class.java.getDeclaredField("handler")
+            handlerField.isAccessible = true
+            val handler = handlerField.get(fragment) as android.os.Handler
+
+            val runnableField = CameraScanFragment::class.java.getDeclaredField("clearLastDetectedRunnable")
+            runnableField.isAccessible = true
+            val runnable = runnableField.get(fragment) as Runnable
+
+            // 模拟 processImage 没扫到码:postDelayed 1 秒
+            handler.removeCallbacks(runnable)
+            handler.postDelayed(runnable, 1000)
+        }
+        idleMain()
+
+        // 漏检后立即(未到 1 秒)再扫到同码,不应重弹(守卫应拦截)
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            assertEquals(
+                "漏检后同码不应重新弹出(lastDetectedContent 未被立即清除)",
+                View.GONE,
+                fragment.requireView().findViewById<CardView>(R.id.resultCard).visibility
+            )
+        }
+    }
+
+    /**
+     * 码真正离开画面(延迟到期后 lastDetectedContent 被清除),
+     * 再扫回同码时应重新弹出。
+     */
+    @Test
+    fun lastDetectedClearedAfterDelayAllowsSameContentToReShow() {
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            fragment.hideResult()
+        }
+        idleMain()
+
+        // 模拟码离开画面:延迟到期,lastDetectedContent 被清除
+        scenario.onFragment { fragment ->
+            val field = CameraScanFragment::class.java.getDeclaredField("lastDetectedContent")
+            field.isAccessible = true
+            field.set(fragment, null)
+        }
+        idleMain()
+
+        // 再扫回同码,应重新弹出
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            assertEquals(
+                "延迟清除后同码应重新弹出",
+                View.VISIBLE,
+                fragment.requireView().findViewById<CardView>(R.id.resultCard).visibility
+            )
+        }
+    }
+
     @Test
     fun switchCameraWithoutFrontCameraShowsToast() {
         // Robolectric 环境默认没有前置相机

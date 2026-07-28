@@ -3,7 +3,9 @@ package com.xenoamess.qrcodesimple
 import android.content.Intent
 import android.net.Uri
 import android.os.Looper
+import android.view.View
 import android.widget.Button
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -14,6 +16,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.viewpager2.widget.ViewPager2
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -144,5 +147,43 @@ class MainActivityUiTest {
 
         assertEquals(2, currentPage())
         assertEquals(2, selectedTabIndex())
+    }
+
+    /**
+     * 在 ViewPager2 环境下验证叉号点击是否真正生效。
+     * Espresso 的 click() 走真实 dispatchTouchEvent 链路:
+     * DecorView → ContentView → ViewPager2 → RecyclerView → CameraScanFragment → resultCard → btnCloseResult
+     */
+    @Test
+    fun closeResultButtonWorksInsideViewPager2() {
+        waitForPager()
+
+        // 显示结果卡片
+        scenario.onActivity { activity ->
+            val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
+            assertNotNull("CameraScanFragment 应存在于 ViewPager2 position 0", fragment)
+            fragment?.showResult(
+                QRCodeScanner.ScanResult("https://viewpager-test.com", QRCodeScanner.Library.ZXING)
+            )
+        }
+        flushMainLooper()
+
+        // 验证卡片已显示
+        scenario.onActivity { activity ->
+            val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
+            val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
+            assertEquals("前置条件:卡片应已显示", View.VISIBLE, card?.visibility)
+        }
+
+        // 用 Espresso click() 走真实事件分发链路点击叉号
+        onView(withId(R.id.btnCloseResult)).perform(click())
+        flushMainLooper()
+
+        // 验证卡片已隐藏
+        scenario.onActivity { activity ->
+            val fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
+            val card = fragment?.requireView()?.findViewById<CardView>(R.id.resultCard)
+            assertEquals("ViewPager2 内点击叉号后卡片应隐藏", View.GONE, card?.visibility)
+        }
     }
 }
