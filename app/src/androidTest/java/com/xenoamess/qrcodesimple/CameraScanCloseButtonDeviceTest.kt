@@ -75,8 +75,7 @@ class CameraScanCloseButtonDeviceTest {
 
     /**
      * 模拟真机竞态:用户点叉号后,后台线程持续每 300ms 调用 showResult(同码)。
-     * 之前的修复在这个场景下会失败(漏检清 last → 同码重弹)。
-     * userDismissed 修复后应保持隐藏。
+     * showResult 的同码去重守卫(text == lastDetectedContent)应保持卡片隐藏。
      *
      * 用 Handler.post 到主线程而非后台线程的 scenario.onActivity,
      * 避免 Espresso 主线程空闲检测超时。
