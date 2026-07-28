@@ -105,6 +105,48 @@ class CameraScanFragmentTest {
     }
 
     @Test
+    fun clickingResultCardDoesNotCopy() {
+        // 回归保护:点卡片本体不应触发复制。
+        // 历史上 resultCard 绑过 copyResult,会拦截叉号点击。现已移除。
+        scenario.onFragment { fragment ->
+            val view = fragment.requireView()
+            val tvResult = view.findViewById<TextView>(R.id.tvResult)
+            tvResult.text = "card-body-content"
+            view.findViewById<CardView>(R.id.resultCard).performClick()
+        }
+        idleMain()
+
+        val clipboard = ApplicationProvider.getApplicationContext<Context>()
+            .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        // 剪贴板未被写入(无 primaryClip,或内容不匹配)
+        val clip = clipboard.primaryClip
+        if (clip != null) {
+            assertTrue(
+                "点卡片本体不应复制内容",
+                clip.getItemAt(0)?.text?.toString() != "card-body-content"
+            )
+        }
+    }
+
+    @Test
+    fun clickingResultTextCopiesToClipboard() {
+        // 点正文区(tvResult)应触发复制 —— 这是替代卡片整体点击复制的新入口。
+        scenario.onFragment { fragment ->
+            val view = fragment.requireView()
+            val tvResult = view.findViewById<TextView>(R.id.tvResult)
+            tvResult.text = "text-area-content"
+            tvResult.performClick()
+        }
+        idleMain()
+
+        val clipboard = ApplicationProvider.getApplicationContext<Context>()
+            .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = clipboard.primaryClip
+        assertNotNull(clip)
+        assertEquals("text-area-content", clip?.getItemAt(0)?.text?.toString())
+    }
+
+    @Test
     fun smartActionButtonOpensUrlForWebContent() {
         getNextStartedActivity()
 

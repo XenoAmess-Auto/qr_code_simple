@@ -198,7 +198,7 @@ class CameraScanFragment : Fragment() {
     private fun setupButtons() {
         binding.btnCopyResult.setOnClickListener { copyResult() }
         binding.btnShareResult.setOnClickListener { shareResult() }
-        binding.resultCard.setOnClickListener { copyResult() }
+        binding.tvResult.setOnClickListener { copyResult() }
         binding.btnCloseResult.setOnClickListener { hideResult() }
         binding.btnSmartAction.setOnClickListener { onSmartActionClick() }
         
@@ -391,6 +391,7 @@ class CameraScanFragment : Fragment() {
     internal fun hideResult() {
         binding.resultCard.visibility = View.GONE
         currentParsedContent = null
+        lastDetectedContent = null
     }
 
     internal fun showResult(result: QRCodeScanner.ScanResult) {
@@ -402,18 +403,18 @@ class CameraScanFragment : Fragment() {
             return
         }
         activity?.runOnUiThread {
+            if (result.text == lastDetectedContent) return@runOnUiThread
+            lastDetectedContent = result.text
             binding.tvResult.text = result.text
             AnimationUtils.scaleIn(binding.resultCard)
 
             // 解析内容并更新智能操作按钮
             updateSmartActionButton(result.text)
-            
-            val detectedText = result.text
-            if (detectedText != lastDetectedContent && detectedText.isNotBlank()) {
-                lastDetectedContent = detectedText
+
+            if (result.text.isNotBlank()) {
                 lifecycleScope.launch {
                     try {
-                        historyRepository.insertScan(detectedText, result.format.toHistoryType())
+                        historyRepository.insertScan(result.text, result.format.toHistoryType())
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save history", e)
                     }

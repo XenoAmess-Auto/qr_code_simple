@@ -161,6 +161,62 @@ class CameraScanScenarioTest {
     }
 
     @Test
+    fun showResultTwiceWithSameContentDoesNotReAnimateCard() {
+        show("https://example.com")
+
+        // 篡改正文文本作为"是否重新走刷新路径"的探针。
+        // 同内容第二次进入 showResult 时应早退,不会重新 setText。
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<TextView>(R.id.tvResult).text = "TAMPERED"
+        }
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            assertEquals(
+                "TAMPERED",
+                fragment.requireView().findViewById<TextView>(R.id.tvResult).text.toString()
+            )
+        }
+    }
+
+    @Test
+    fun showResultWithDifferentContentReShowsCard() {
+        show("https://first.com")
+
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<TextView>(R.id.tvResult).text = "TAMPERED"
+        }
+        show("https://second.com")
+
+        scenario.onFragment { fragment ->
+            assertEquals(
+                "https://second.com",
+                fragment.requireView().findViewById<TextView>(R.id.tvResult).text.toString()
+            )
+        }
+    }
+
+    @Test
+    fun hideResultAllowsSameContentToReShow() {
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<ImageButton>(R.id.btnCloseResult).performClick()
+        }
+        idleMain()
+
+        // 关闭后再次扫到同一码,应重新弹出卡片
+        show("https://example.com")
+
+        scenario.onFragment { fragment ->
+            assertEquals(
+                View.VISIBLE,
+                fragment.requireView().findViewById<CardView>(R.id.resultCard).visibility
+            )
+        }
+    }
+
+    @Test
     fun switchCameraWithoutFrontCameraShowsToast() {
         // Robolectric 环境默认没有前置相机
         scenario.onFragment { fragment ->
