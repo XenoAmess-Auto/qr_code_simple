@@ -254,12 +254,11 @@ class CameraScanScenarioTest {
         show("https://example.com")
 
         scenario.onFragment { fragment ->
-            // 模拟用户关闭卡片
             fragment.hideResult()
         }
         idleMain()
 
-        // 模拟 ZXing 漏检一帧:processImage 的 else 分支会 postDelayed 1 秒清除
+        // 模拟 ZXing 漏检一帧:processImage 的 else 分支只在 hasPendingClear=false 时 postDelayed
         scenario.onFragment { fragment ->
             val handlerField = CameraScanFragment::class.java.getDeclaredField("handler")
             handlerField.isAccessible = true
@@ -269,9 +268,14 @@ class CameraScanScenarioTest {
             runnableField.isAccessible = true
             val runnable = runnableField.get(fragment) as Runnable
 
-            // 模拟 processImage 没扫到码:postDelayed 1 秒
-            handler.removeCallbacks(runnable)
-            handler.postDelayed(runnable, 1000)
+            val pendingField = CameraScanFragment::class.java.getDeclaredField("hasPendingClear")
+            pendingField.isAccessible = true
+
+            // 模拟 processImage 没扫到码:只在第一次 postDelayed
+            if (!(pendingField.getBoolean(fragment))) {
+                handler.postDelayed(runnable, 1000)
+                pendingField.setBoolean(fragment, true)
+            }
         }
         idleMain()
 

@@ -56,9 +56,13 @@ class CameraScanFragment : Fragment() {
     private var lastScanTime = 0L
     private val scanInterval = 300L
     private var lastDetectedContent: String? = null
+    private var hasPendingClear = false
     private var isCameraStarted = false
     private val handler = Handler(Looper.getMainLooper())
-    private val clearLastDetectedRunnable = Runnable { lastDetectedContent = null }
+    private val clearLastDetectedRunnable = Runnable {
+        lastDetectedContent = null
+        hasPendingClear = false
+    }
     private var camera: Camera? = null
     private var currentZoom = 1f
     private var isFlashOn = false
@@ -529,16 +533,21 @@ class CameraScanFragment : Fragment() {
 
             val results = QRCodeScanner.scanSync(requireContext(), scanBitmap)
             if (results.isNotEmpty()) {
-                handler.removeCallbacks(clearLastDetectedRunnable)
+                if (hasPendingClear) {
+                    handler.removeCallbacks(clearLastDetectedRunnable)
+                    hasPendingClear = false
+                }
                 showResult(results[0])
             } else {
-                // 没扫到码时延迟 1 秒清除去重状态。
-                // 延迟而非立即清除是为了容忍 ZXing 偶尔漏检:
-                // 漏检一帧就清 last 会导致下一帧扫到同码时绕过 showResult 守卫重新弹框。
-                // 1 秒延迟能覆盖连续漏检(300ms 节流下约 3 帧),
-                // 码真正离开画面后才清除,让用户移开再扫回同码时能重新弹出。
-                handler.removeCallbacks(clearLastDetectedRunnable)
-                handler.postDelayed(clearLastDetectedRunnable, 1000)
+                // 只在第一次没扫到码时 postDelayed,不重复 post。
+                // 否则 processImage 每 500ms 走一次 else 会不断 postDelayed,
+                // 延迟永远被重置(每次 removeCallbacks + postDelayed),
+                // 导致 clearLastDetectedRunnable 永远不执行,
+                // 码离开画面后 lastDetectedContent 永远不清,码回来时不重弹。
+                if (!hasPendingClear) {
+                    handler.postDelayed(clearLastDetectedRunnable, 1000)
+                    hasPendingClear = true
+                }
             }
 
             if (scanBitmap !== bitmap) {

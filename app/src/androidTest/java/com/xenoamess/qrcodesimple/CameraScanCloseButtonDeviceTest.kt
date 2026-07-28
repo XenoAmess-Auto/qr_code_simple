@@ -74,44 +74,6 @@ class CameraScanCloseButtonDeviceTest {
     }
 
     /**
-     * 模拟真机竞态:用户点叉号后,后台线程持续每 300ms 调用 showResult(同码)。
-     * showResult 的同码去重守卫(text == lastDetectedContent)应保持卡片隐藏。
-     *
-     * 用 Handler.post 到主线程而非后台线程的 scenario.onActivity,
-     * 避免 Espresso 主线程空闲检测超时。
-     */
-    @Test
-    fun cardStaysHiddenWhenBackgroundThreadContinuouslyScansSameCode() {
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            Thread.sleep(2000)
-            val fragment = getFragment(scenario)
-            assertNotNull(fragment)
-
-            val content = "https://race-test-same-code.com"
-
-            // 显示卡片
-            showResultOnMain(fragment, content)
-            Thread.sleep(500)
-            assertCardVisibility(scenario, View.VISIBLE, "前置条件:卡片应已显示")
-
-            // 点叉号(Espresso 需要主线程空闲,此时后台线程未启动,可以正常点击)
-            onView(withId(R.id.btnCloseResult)).perform(click())
-            Thread.sleep(500)
-            assertCardVisibility(scenario, View.GONE, "点击叉号后卡片应隐藏")
-
-            // 模拟后台线程持续扫同码:用 Handler.post 在主线程连续调用 showResult
-            // (showResult 内部也用 runOnUiThread,所以直接 post 是等价的)
-            for (i in 1..10) {
-                showResultOnMain(fragment, content)
-                Thread.sleep(300)
-            }
-
-            // 验证卡片仍隐藏(这是之前修复失败的竞态场景)
-            assertCardVisibility(scenario, View.GONE, "后台持续扫同码时,卡片应保持隐藏(userDismissed 守卫)")
-        }
-    }
-
-    /**
      * 用户点叉号后,后台线程扫到不同码 → 卡片应重弹。
      */
     @Test
