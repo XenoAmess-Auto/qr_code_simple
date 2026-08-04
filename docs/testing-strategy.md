@@ -180,7 +180,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 `lintDebug` 与覆盖率门禁均为 CI 验证的一部分。Lint baseline 只保留已记录项；不要以跳过 lint 代替修复新问题。
 
-CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执行上述 JVM 验证，另有 API 35 的 Google ATD（`google_atd`）测试模拟器运行 `connectedDebugAndroidTest`。Debug 变体额外包含 x86_64 OpenCV 原生库以匹配该测试镜像，Release 仍只包含 ARM ABI。仅 `master` 的 push 会在这两个 job 成功后构建与 Debug 同证书的 Beta；Stable 标签工作流单独执行同一 JVM 验证命令。
+CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执行上述 JVM 验证，另有 API 35 的 Google ATD（`google_atd`）测试模拟器运行 `connectedDebugAndroidTest`。通用 Debug 和 Release APK 均包含 `armeabi-v7a`、`arm64-v8a`、`x86` 与 `x86_64` ABI 的 OpenCV 原生库。仅 `master` 的 push 会在这两个 job 成功后构建与 Debug 同证书的 Beta；Stable 标签工作流单独执行同一 JVM 验证命令。
 
 ### 7.1 版本元数据与发布产物核验
 

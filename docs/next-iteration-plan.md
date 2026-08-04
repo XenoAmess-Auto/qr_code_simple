@@ -203,7 +203,7 @@
 
 ## 第六轮执行记录（0.2.4，androidTest 基建 + 模拟器场景 + Baseline Profile）
 
-- [x] androidTest 基建：runner/rules/espresso + GrantPermissionRule 预授权（首启权限弹窗会挡住 RESUMED）；CI `android-test` job（android-emulator-runner, API 35, google_atd, x86_64, KVM；debug 额外打包 x86_64 OpenCV，release 保持 ARM-only）
+- [x] androidTest 基建：runner/rules/espresso + GrantPermissionRule 预授权（首启权限弹窗会挡住 RESUMED）；CI `android-test` job（android-emulator-runner, API 35, google_atd, x86_64, KVM；通用 debug/release APK 均打包 armv7a、arm64-v8a、x86、x86_64 OpenCV）
 - [x] 模拟器覆盖测试（补 Robolectric 盲区）：启动冒烟 + 微信引擎状态（ARM 翻译层）、MediaStore Q+ 保存路径、SQLCipher 真机加密文件头、视频扫描全管线（资产 mp4 中的 QR 完整解码）
 - [x] Baseline Profile：`:baselineprofile` 模块（plugin 1.4.1），两条启动旅程（冷启动 + 相机扫描页首帧），本机模拟器生成 7631 条规则提交至 `app/src/release/generated/baselineProfiles/baseline-prof.txt`，release 构建自动并入 R8
 - 排障记录：API 36.1 x86_64 镜像自带 ARM64 翻译层（arm-only 原生库可运行）；`com.android.test` 模块必须显式应用 Kotlin 插件否则 .kt 不进包；生成过程模拟器 2G 内存 kernel_panic，调至 4G 后稳定；debugRuntime 需与 androidTest 统一 androidx.test:core 版本
