@@ -151,6 +151,10 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            // API 35 Google ATD tests run on x86_64; release remains ARM-only.
+            ndk {
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+            }
             testCoverage {
                 enableUnitTestCoverage = false
             }
@@ -245,6 +249,8 @@ dependencies {
     implementation 'com.github.jenly1314.WeChatQRCode:opencv:2.6.0'
     implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv7a:2.6.0'
     implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv64:2.6.0'
+    // Supplies libopencv_java4.so to the x86_64 Android Test Device only.
+    debugImplementation 'com.github.jenly1314.WeChatQRCode:opencv-x86_64:2.6.0'
     implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode:2.6.0'
     implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode-scanning:2.6.0'
 
