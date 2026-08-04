@@ -88,7 +88,8 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
-          target: google_apis
+          # Test image avoids first-run Google UI surfaces stealing Espresso focus.
+          target: google_atd
           arch: x86_64
           profile: pixel_6
           emulator-boot-timeout: 600
