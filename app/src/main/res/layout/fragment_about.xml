@@ -82,6 +82,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
                 android:text="@string/check_beta_update"
+                app:icon="@drawable/ic_star"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <TextView
