@@ -36,8 +36,9 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 # Coverage floor gate. Runs in CI (instruction >= 0.80, line >= 0.75).
 ./gradlew :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 
-# Release build (R8 + shrinkResources; signs with RELEASE_KEYSTORE_* env vars
-# when set, falls back to debug signing otherwise)
+# Release build (R8 + shrinkResources; uses RELEASE_KEYSTORE_* when set,
+# otherwise app/debug.keystore. CI rejects a configured release certificate
+# that differs from the Debug signing baseline.)
 ./gradlew :app:assembleRelease :app:bundleRelease :app:writeVersionInfo
 ```
 
@@ -109,9 +110,9 @@ Native OpenCV is not loaded in Robolectric unit tests; `QRCodeApp.isWeChatQRCode
 
 - `versionCode` is the complete-history `git rev-list --count HEAD`; `versionName` comes from the nearest valid `vMAJOR.MINOR.PATCH` tag, with `+N` commits ahead, or `0.0.0+<count>` when no `v*` tag exists. A malformed nearest `v*` tag fails the build.
 - `BuildConfig.GIT_HASH` is the short eight-character commit hash. `generateChangelog` packages generated `CHANGELOG.txt` as an app asset, and `writeVersionInfo` is the workflow's source of version metadata.
-- Stable tags must be pushed as strict `vMAJOR.MINOR.PATCH` and point at current `origin/master`. `.github/workflows/release.yml` validates the tag, runs debug/unit/lint/coverage validation, then requires `RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`, and `RELEASE_KEYSTORE_ALIAS` before publishing release artifacts.
-- Master beta publication waits for `build` and `android-test`, requires the same release-signing secrets, and deploys the signed beta APK plus `version.json` to Pages. Pages deployment also publishes coverage.
-- Preserve the same release keystore and alias across beta and stable releases. CI does not upload a debug-keystore artifact; its `debug-apk` artifact is not an update baseline. See `docs/versioning-and-update-system.md` for the schema, delta constraints, and rollout process.
+- Stable tags must be pushed as strict `vMAJOR.MINOR.PATCH` and point at current `origin/master`. `.github/workflows/release.yml` validates the tag, runs debug/unit/lint/coverage validation, then publishes with the fixed `app/debug.keystore` certificate. Optional `RELEASE_KEYSTORE_*` secrets are accepted only when their certificate matches that baseline.
+- Master beta publication waits for `build` and `android-test`, uses the same signing baseline, and deploys the signed beta APK plus `version.json` to Pages. Pages deployment also publishes coverage.
+- Preserve the `app/debug.keystore` certificate across main-branch Debug, Beta, and Stable releases. CI does not upload the keystore artifact. See `docs/versioning-and-update-system.md` for the schema, delta constraints, and rollout process.
 
 ### CI and Coverage
 

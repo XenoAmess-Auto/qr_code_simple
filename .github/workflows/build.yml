@@ -106,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, android-test]
     outputs:
-      is_current: ${{ steps.master_tip.outputs.is_current }}
+      published: ${{ steps.publication.outputs.published }}
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     # The archive is mutable, so concurrent master pushes must update it in order.
     concurrency:
@@ -133,20 +133,29 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Require and decode release keystore
+      - name: Configure matching release signing
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
         run: |
-          if [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEYSTORE_ALIAS}" ]; then
-            echo "Beta APK signing requires RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS." >&2
+          if [ -z "${KEYSTORE_BASE64}" ] && [ -z "${KEYSTORE_PASSWORD}" ] && [ -z "${KEYSTORE_ALIAS}" ]; then
+            echo "No release-signing secrets configured; using app/debug.keystore for the matching release-signed Beta APK."
+          elif [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEYSTORE_ALIAS}" ]; then
+            echo "RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS must be configured together." >&2
             exit 1
+          else
+            printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/release.keystore"
+            test -s "${RUNNER_TEMP}/release.keystore"
+            chmod 600 "${RUNNER_TEMP}/release.keystore"
+            debug_cert_sha256="$(keytool -exportcert -keystore app/debug.keystore -storepass android -alias androiddebugkey | sha256sum | cut -d ' ' -f1)"
+            release_cert_sha256="$(keytool -exportcert -keystore "${RUNNER_TEMP}/release.keystore" -storepass "${KEYSTORE_PASSWORD}" -alias "${KEYSTORE_ALIAS}" | sha256sum | cut -d ' ' -f1)"
+            if [ "${debug_cert_sha256}" != "${release_cert_sha256}" ]; then
+              echo "Configured release keystore does not match app/debug.keystore; refusing to publish an incompatible Beta APK." >&2
+              exit 1
+            fi
+            echo "RELEASE_KEYSTORE_FILE=${RUNNER_TEMP}/release.keystore" >> "${GITHUB_ENV}"
           fi
-          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/release.keystore"
-          test -s "${RUNNER_TEMP}/release.keystore"
-          chmod 600 "${RUNNER_TEMP}/release.keystore"
-          echo "RELEASE_KEYSTORE_FILE=${RUNNER_TEMP}/release.keystore" >> "${GITHUB_ENV}"
 
       - name: Build signed beta APK and write version info
         timeout-minutes: 60
@@ -265,11 +274,21 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+      - name: Report beta publication state
+        id: publication
+        if: always()
+        run: |
+          if [ "${{ steps.master_tip.outputs.is_current }}" = "true" ]; then
+            echo "published=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "published=false" >> "${GITHUB_OUTPUT}"
+          fi
+
   coverage-pages:
     name: Deploy Coverage Report to GitHub Pages
     runs-on: ubuntu-latest
     needs: [build, beta]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.beta.outputs.is_current == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.beta.outputs.published == 'true'
     concurrency:
       group: qr-code-simple-pages-deployment
       cancel-in-progress: true

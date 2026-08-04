@@ -49,20 +49,29 @@ jobs:
         timeout-minutes: 60
         run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 
-      - name: Require and decode release keystore
-        run: |
-          if [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEYSTORE_ALIAS}" ]; then
-            echo "Stable releases require RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS." >&2
-            exit 1
-          fi
-          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/release.keystore"
-          test -s "${RUNNER_TEMP}/release.keystore"
-          chmod 600 "${RUNNER_TEMP}/release.keystore"
-          echo "RELEASE_KEYSTORE_FILE=${RUNNER_TEMP}/release.keystore" >> "${GITHUB_ENV}"
+      - name: Configure matching release signing
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
+        run: |
+          if [ -z "${KEYSTORE_BASE64}" ] && [ -z "${KEYSTORE_PASSWORD}" ] && [ -z "${KEYSTORE_ALIAS}" ]; then
+            echo "No release-signing secrets configured; using app/debug.keystore for a Stable APK compatible with main-branch Debug APKs."
+          elif [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEYSTORE_ALIAS}" ]; then
+            echo "RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS must be configured together." >&2
+            exit 1
+          else
+            printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/release.keystore"
+            test -s "${RUNNER_TEMP}/release.keystore"
+            chmod 600 "${RUNNER_TEMP}/release.keystore"
+            debug_cert_sha256="$(keytool -exportcert -keystore app/debug.keystore -storepass android -alias androiddebugkey | sha256sum | cut -d ' ' -f1)"
+            release_cert_sha256="$(keytool -exportcert -keystore "${RUNNER_TEMP}/release.keystore" -storepass "${KEYSTORE_PASSWORD}" -alias "${KEYSTORE_ALIAS}" | sha256sum | cut -d ' ' -f1)"
+            if [ "${debug_cert_sha256}" != "${release_cert_sha256}" ]; then
+              echo "Configured release keystore does not match app/debug.keystore; refusing to publish an incompatible Stable APK." >&2
+              exit 1
+            fi
+            echo "RELEASE_KEYSTORE_FILE=${RUNNER_TEMP}/release.keystore" >> "${GITHUB_ENV}"
+          fi
 
       - name: Build signed release APK and AAB
         timeout-minutes: 60

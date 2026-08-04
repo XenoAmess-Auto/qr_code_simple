@@ -242,9 +242,9 @@ cd qr_code_simple
 # 安装到设备
 ./gradlew :app:installDebug
 
-# Release 构建（R8 + shrinkResources）。本地设置 RELEASE_KEYSTORE_FILE、
-# RELEASE_KEYSTORE_PASSWORD、RELEASE_KEYSTORE_ALIAS 时使用正式签名，否则回退 debug 签名；
-# CI 的 Beta/Stable 发布不允许此回退。
+# Release 构建（R8 + shrinkResources）。本地设置 RELEASE_KEYSTORE_* 时使用该签名，
+# 否则使用固定的 app/debug.keystore。CI 默认使用相同 Debug 证书；若配置
+# RELEASE_KEYSTORE_*，其证书必须与 Debug 证书完全一致。
 ./gradlew :app:assembleRelease :app:bundleRelease :app:writeVersionInfo
 
 # Lint 与覆盖率门禁（均为 CI 门禁）
@@ -255,11 +255,11 @@ cd qr_code_simple
 
 Gradle 必须在具有完整历史、非浅克隆的 Git 仓库中运行。`versionCode` 为 `git rev-list --count HEAD`；`versionName` 取最近的严格 `vMAJOR.MINOR.PATCH` 标签（移除 `v`），若领先该标签 `N` 个提交则为 `MAJOR.MINOR.PATCH+N`。没有任何匹配 `v*` 标签时回退为 `0.0.0+<提交数>`。每个构建还会写入八位 `BuildConfig.GIT_HASH`，并将生成的 `CHANGELOG.txt` 打包给“关于”页显示。
 
-- 推送 Stable 标签时，标签必须严格为 `vMAJOR.MINOR.PATCH`，且必须指向当时的 `origin/master`。工作流会执行 debug 构建、单元测试、lint 和覆盖率门禁，再要求正式签名 secrets，最后向 GitHub Releases 发布 `qr-code-simple-<version>.apk`、`qr-code-simple-<version>.aab`、`version.json`、兼容别名 `app-release.apk` 以及可用的增量补丁。
-- 仅 `master` 推送会在常规构建和模拟器仪器测试均通过后发布 Beta：以正式签名 APK 和元数据部署到 GitHub Pages 的 `/beta/qr-code-simple-beta.apk` 与 `/beta/version.json`。同一次 Pages 部署仍会保留 `coverage.html` 和 `coverage.json`。
+- 推送 Stable 标签时，标签必须严格为 `vMAJOR.MINOR.PATCH`，且必须指向当时的 `origin/master`。工作流会执行 debug 构建、单元测试、lint 和覆盖率门禁，再以与主分支 Debug APK 相同的证书向 GitHub Releases 发布 `qr-code-simple-<version>.apk`、`qr-code-simple-<version>.aab`、`version.json`、兼容别名 `app-release.apk` 以及可用的增量补丁。
+- 仅 `master` 推送会在常规构建和模拟器仪器测试均通过后发布 Beta：以相同签名的 release APK 和元数据部署到 GitHub Pages 的 `/beta/qr-code-simple-beta.apk` 与 `/beta/version.json`。同一次 Pages 部署仍会保留 `coverage.html` 和 `coverage.json`。
 - Stable 自动检查默认关闭；“关于”页可手动检查 Stable。Beta 检查始终只能从“关于”页手动发起。下载后会校验元数据中的 SHA-256 与精确字节数，安装前还会校验 APK 包名、目标 `versionCode` 和签名证书集合是否与已安装应用一致。
 
-正式发布需在 GitHub Actions 配置 `RELEASE_KEYSTORE_BASE64`、`RELEASE_KEYSTORE_PASSWORD`、`RELEASE_KEYSTORE_ALIAS` secrets。Beta 与 Stable 必须持续使用同一密钥和 alias，才能正常覆盖安装。CI 会上传用于测试的 `debug-apk`，但**不会**上传 `debug-keystore` artifact；debug 签名 APK 不能作为正式更新基线。
+`app/debug.keystore` 是主分支 Debug、Beta 与 Stable APK 的签名基线。GitHub Actions 的 `RELEASE_KEYSTORE_BASE64`、`RELEASE_KEYSTORE_PASSWORD`、`RELEASE_KEYSTORE_ALIAS` 是可选覆盖；若配置，三项必须同时存在且证书必须与 Debug 证书完全一致，否则 CI 会拒绝发布。CI 会上传用于测试的 `debug-apk`，但**不会**上传 keystore 本身。
 
 本系统首轮发布目标为 `v0.2.6`：先把目标发布提交推到 `master` 并等待该分支 CI 完成，再为同一个、仍是当前 `origin/master` 的提交创建并推送 `v0.2.6` 标签。不要给旧提交打标签，否则 Stable 工作流会拒绝它。
 
@@ -381,13 +381,13 @@ app/src/main/res/
 
 ## 签名与安装问题
 
-CI 不上传 `debug-keystore` artifact。`debug-apk` 只是测试构建产物；它只有在签名与已安装应用一致时才能覆盖安装，不能替代正式发布所使用的持续签名密钥。
+CI 不上传 `debug-keystore` artifact。`debug-apk` 使用与 Beta/Stable 相同的固定证书，因此在 package/versionCode 允许时可以覆盖安装；应保持该证书连续，不能随意重新生成 keystore。
 
 如果遇到“应用未安装”或“签名不匹配”：
 
 ### 优先使用同一正式签名通道
 
-已安装正式版或 Beta 时，请使用由同一 `RELEASE_KEYSTORE_*` 密钥签发的 Stable canonical APK 或 Pages Beta APK。应用内更新会在启动系统安装器前拒绝包名、版本号或签名证书不匹配的 APK。
+已安装正式版或 Beta 时，请使用由 `app/debug.keystore` 基线或其证书相同的 `RELEASE_KEYSTORE_*` 签发的 Stable canonical APK 或 Pages Beta APK。应用内更新会在启动系统安装器前拒绝包名、版本号或签名证书不匹配的 APK。
 
 ### 调试构建仅用于兼容测试
 

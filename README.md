@@ -221,9 +221,9 @@ cd qr_code_simple
 # Install to a connected device
 ./gradlew :app:installDebug
 
-# Release build (R8 + shrinkResources). Locally, signs with RELEASE_KEYSTORE_FILE,
-# RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS when set; otherwise it falls
-# back to debug signing. CI beta/stable publication never permits that fallback.
+# Release build (R8 + shrinkResources). Locally it uses RELEASE_KEYSTORE_* when set,
+# otherwise the fixed app/debug.keystore. CI uses that same Debug certificate by
+# default; any configured RELEASE_KEYSTORE_* certificate must match it exactly.
 ./gradlew :app:assembleRelease :app:bundleRelease :app:writeVersionInfo
 
 # Lint and coverage floor (both gate CI)
@@ -234,11 +234,11 @@ cd qr_code_simple
 
 Gradle requires a full, non-shallow Git checkout. `versionCode` is `git rev-list --count HEAD`; `versionName` is the nearest strict `vMAJOR.MINOR.PATCH` tag without the `v`, with `+N` when `N` commits are ahead. With no matching `v*` tag it uses `0.0.0+<commit-count>`. Each build also exposes the eight-character `BuildConfig.GIT_HASH` and packages a generated `CHANGELOG.txt` for the About page.
 
-- A pushed stable tag must be exactly `vMAJOR.MINOR.PATCH` and point to the current `origin/master`. Its workflow validates the debug build, unit tests, lint, and coverage gate, then requires the release-signing secrets before publishing `qr-code-simple-<version>.apk`, `qr-code-simple-<version>.aab`, `version.json`, the compatibility alias `app-release.apk`, and any usable delta patches to GitHub Releases.
-- A push to `master` publishes beta only after the regular build job and emulator instrumented tests pass. It publishes a release-signed APK and metadata at `/beta/qr-code-simple-beta.apk` and `/beta/version.json` on GitHub Pages. The same Pages deployment continues to host `coverage.html` and `coverage.json`.
+- A pushed stable tag must be exactly `vMAJOR.MINOR.PATCH` and point to the current `origin/master`. Its workflow validates the debug build, unit tests, lint, and coverage gate, then publishes `qr-code-simple-<version>.apk`, `qr-code-simple-<version>.aab`, `version.json`, the compatibility alias `app-release.apk`, and any usable delta patches to GitHub Releases with the same certificate as the main-branch Debug APK.
+- A push to `master` publishes beta only after the regular build job and emulator instrumented tests pass. It publishes a matching-signature release APK and metadata at `/beta/qr-code-simple-beta.apk` and `/beta/version.json` on GitHub Pages. The same Pages deployment continues to host `coverage.html` and `coverage.json`.
 - Stable automatic update checks are off by default. The About page can manually check stable updates; beta checks are always a deliberate About-page action. Downloads require the published SHA-256 and exact size, then the APK package identity, target version code, and signer set must match the installed app.
 
-Production signing requires the GitHub Actions secrets `RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`, and `RELEASE_KEYSTORE_ALIAS`. Keep that key and alias continuous across beta and stable releases so Android can install updates. CI uploads a `debug-apk` test artifact, but does not upload a debug-keystore artifact; a debug-signed APK is not a production update baseline.
+`app/debug.keystore` is the signing baseline for main-branch Debug, Beta, and Stable APKs. The optional GitHub Actions secrets `RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`, and `RELEASE_KEYSTORE_ALIAS` must be supplied together and must contain the identical signing certificate; CI rejects mismatches. CI uploads a `debug-apk` test artifact, but does not upload the keystore itself.
 
 The first rollout of this system is `v0.2.6`: push the intended release commit to `master`, wait for the master CI run to complete, then tag that same current `origin/master` commit and push `v0.2.6`. Do not tag an older commit, because the stable workflow rejects tags that no longer equal `origin/master`.
 

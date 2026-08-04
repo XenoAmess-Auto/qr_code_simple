@@ -161,8 +161,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `ui/result/QRResultAdapter.kt` | 多扫描结果 RecyclerView 适配器 |
 | `docs/ui-testing-plan.md` | 全页面 UI/Adapter 测试补全计划 |
 | `app/build.gradle` | Git 派生的 `versionCode` / `versionName` / `GIT_HASH`、`CHANGELOG.txt` 生成和 `writeVersionInfo` 元数据任务 |
-| `.github/workflows/build.yml` | push/PR 验证、模拟器仪器测试、仅 master 的正式签名 Beta 发布，以及覆盖率和 Beta 通道的 Pages 部署 |
-| `.github/workflows/release.yml` | 严格 Stable 标签/`origin/master` 校验、正式签名 APK/AAB、`version.json`、GitHub Release 和可选增量补丁 |
+| `.github/workflows/build.yml` | push/PR 验证、模拟器仪器测试、仅 master 的与 Debug 同证书 Beta 发布，以及覆盖率和 Beta 通道的 Pages 部署 |
+| `.github/workflows/release.yml` | 严格 Stable 标签/`origin/master` 校验、与 Debug 同证书的 APK/AAB、`version.json`、GitHub Release 和可选增量补丁 |
 | `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的已校验 bsdiff 补丁与扁平升级链 |
 | `docs/versioning-and-update-system.md` | Git 版本模型、Stable/Beta 发布、`version.json`、签名连续性和首轮发布操作说明 |
 
@@ -170,8 +170,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 - 所有 Gradle 任务都要求完整、非浅克隆 Git 历史。`versionCode = git rev-list --count HEAD`；最近匹配的 `v*` 标签必须严格符合 `vMAJOR.MINOR.PATCH`，构建的 `versionName` 为无 `v` 的基础版本或 `+N` 提交后缀。完全没有匹配标签时才使用 `0.0.0+<提交数>`；不合法的最近 `v*` 标签会直接使构建失败。
 - `BuildConfig.GIT_HASH` 为 HEAD 的八位短 hash。`generateChangelog` 在每次预构建前从 `v*` 标签生成并打包 `CHANGELOG.txt`，About 页的“版本历史”读取该 asset；`writeVersionInfo` 写出 CI 使用的 `versionCode`、`versionName`、`gitHash`。
-- Stable 必须推送精确 `vMAJOR.MINOR.PATCH` 标签，且标签提交必须等于当前 `origin/master`。Release 工作流先执行 debug 构建、单元测试、lint、JaCoCo 报告和覆盖率门禁，再以正式密钥发布 canonical APK/AAB、`version.json`、`app-release.apk` 兼容别名和可选补丁。
-- 仅 master push 的 Beta 会等待常规 build 与 emulator `android-test` 成功，以同一正式密钥生成 APK；Pages 在 `/beta/` 下部署 Beta 元数据/APK，同时继续部署覆盖率报告。
+- Stable 必须推送精确 `vMAJOR.MINOR.PATCH` 标签，且标签提交必须等于当前 `origin/master`。Release 工作流先执行 debug 构建、单元测试、lint、JaCoCo 报告和覆盖率门禁，再以 Debug 基线证书发布 canonical APK/AAB、`version.json`、`app-release.apk` 兼容别名和可选补丁。
+- 仅 master push 的 Beta 会等待常规 build 与 emulator `android-test` 成功，以同一 Debug 基线证书生成 APK；Pages 在 `/beta/` 下部署 Beta 元数据/APK，同时继续部署覆盖率报告。
 - Stable 自动检查默认关闭，只检查 Stable；About 页有手动 Stable 和手动 Beta 按钮，Beta 没有自动检查。客户端必须通过 `version.json` 的 SHA-256、大小、APK 身份及签名校验后才请求系统安装器。
 
 完整 schema、增量限制、archive 保留策略及 `v0.2.6` 首轮发布顺序见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。
@@ -199,4 +199,4 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 生成稳定性：固定输入的 SVG 输出哈希受 `GenerationGoldenTest` 金样保护；生成逻辑或依赖升级导致图案变化时会失败，属预期变更时更新金样并在提交信息说明。
 - 测试在 JUnit Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）；当前 `build.gradle` 为 Jupiter 与 Vintage 配置 `6.1.2`。
 - CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径）。
-- Release 构建开启 R8 + shrinkResources；本地可通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 Gradle 属性注入正式签名，未配置时回退 debug 签名。CI 的 Stable 与 Beta 工作流不接受该回退，必须配置 `RELEASE_KEYSTORE_BASE64` / `_PASSWORD` / `_ALIAS` secrets，并保持同一密钥和 alias 连续使用。发布细节见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。
+- Release 构建开启 R8 + shrinkResources；`app/debug.keystore` 是主分支 Debug、Beta 与 Stable 的签名基线。本地可通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 Gradle 属性使用证书相同的 keystore；CI 可选的 `RELEASE_KEYSTORE_BASE64` / `_PASSWORD` / `_ALIAS` secrets 也会被证书比对。发布细节见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。

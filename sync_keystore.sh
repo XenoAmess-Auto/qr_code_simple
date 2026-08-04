@@ -1,8 +1,8 @@
 #!/bin/bash
 # sync_keystore.sh - Install the repository's development debug keystore locally.
 #
-# This does not manage the production signing key. Stable and Beta CI releases use
-# RELEASE_KEYSTORE_* secrets and must retain that certificate continuously.
+# This is the signing baseline for main-branch Debug, Beta, and Stable APKs.
+# Optional RELEASE_KEYSTORE_* CI secrets must contain this same certificate.
 
 set -e
 
@@ -31,7 +31,7 @@ case "${1:-}" in
         echo ""
         echo "Copies app/debug.keystore to ~/.android/debug.keystore for local debug builds."
         echo ""
-        echo "Production Stable/Beta signing is configured only with RELEASE_KEYSTORE_* secrets."
+        echo "Stable/Beta signing uses this certificate; optional RELEASE_KEYSTORE_* secrets must match it."
         exit 1
         ;;
 esac

@@ -35,7 +35,7 @@ git fetch --unshallow --tags
 ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 ```
 
-验证通过后，工作流要求以下 GitHub Actions secrets，缺少任一项即失败：
+验证通过后，工作流默认使用仓库中的固定 `app/debug.keystore`，因此 Stable、Beta 与主分支 Debug APK 使用同一证书。以下 GitHub Actions secrets 是可选覆盖；若使用，三项必须同时存在，且工作流会导出证书并确认其 SHA-256 与 `app/debug.keystore` 完全相同：
 
 | Secret | 用途 |
 |---|---|
@@ -61,7 +61,7 @@ git fetch --unshallow --tags
 
 - `build` 执行 debug 构建、JVM/Robolectric 单元测试、lint、JaCoCo 报告与覆盖率门禁。
 - `android-test` 在 API 35 模拟器上运行 `:app:connectedDebugAndroidTest`，失败时最多重试三次。
-- 只有两个 job 均成功，Beta 才会要求同一组发布签名 secrets，并构建 release-signed APK。
+- 只有两个 job 均成功，Beta 才会使用与 Debug 同证书的 release-signed APK。
 
 Beta 发布到 GitHub Pages 的固定路径：
 
@@ -77,7 +77,7 @@ Pages 的同一部署仍会生成并保留：
 /coverage.json
 ```
 
-因此 Beta 发布依赖签名 secrets；签名配置缺失会阻止 Beta job，也会使依赖该 job 的 Pages 部署无法发布新的覆盖率内容。
+因此 Beta 在没有 secrets 时也会使用固定 Debug 证书正常发布。若配置了不完整或证书不匹配的 `RELEASE_KEYSTORE_*`，工作流会失败，避免生成无法覆盖主分支 Debug APK 的包。
 
 ### Beta 存档和补丁
 
@@ -201,11 +201,11 @@ Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.
 
 ## 6. 签名连续性
 
-本地 release 构建可以通过 `RELEASE_KEYSTORE_FILE`、`RELEASE_KEYSTORE_PASSWORD`、`RELEASE_KEYSTORE_ALIAS` 环境变量或 Gradle 属性提供正式签名；未配置时构建脚本会回退 debug 签名，便于本地开发。
+本地 release 构建可以通过 `RELEASE_KEYSTORE_FILE`、`RELEASE_KEYSTORE_PASSWORD`、`RELEASE_KEYSTORE_ALIAS` 环境变量或 Gradle 属性提供与基线证书相同的 keystore；未配置时构建脚本使用 `app/debug.keystore`。
 
-该本地回退不适用于发布：Stable 和 Beta CI 都要求三项 `RELEASE_KEYSTORE_*` secrets。必须长期保留并复用同一发布密钥和 alias，特别是不能让 Beta 与 Stable 使用不同签名。否则 Android 无法覆盖安装，且客户端的 archive 签名集合校验会在启动安装器前拒绝更新。
+Stable 和 Beta CI 默认使用 `app/debug.keystore`，并在有可选 `RELEASE_KEYSTORE_*` secrets 时拒绝证书不匹配的配置。必须长期保留该基线证书，特别是不能让主分支 Debug、Beta 与 Stable 使用不同签名。否则 Android 无法覆盖安装，且客户端的 archive 签名集合校验会在启动安装器前拒绝更新。
 
-CI 的 `debug-apk` artifact 仅用于构建/测试诊断，**不包含也不上传** `debug-keystore` artifact。它不能作为官方 Stable/Beta 更新基线；更换签名时用户只能卸载旧 app 后重新安装，并会失去本地 app 数据。
+CI 的 `debug-apk` artifact 仅用于构建/测试诊断，**不包含也不上传** `debug-keystore` artifact。它与官方 Beta/Stable 使用相同证书；更换该证书时用户只能卸载旧 app 后重新安装，并会失去本地 app 数据。
 
 ## 7. 首轮发布：`v0.2.6`
 
