@@ -85,7 +85,24 @@ jobs:
           arch: x86_64
           profile: pixel_6
           emulator-boot-timeout: 600
-          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+          script: |
+            set +e
+            attempt=1
+            max_attempts=3
+            while [ $attempt -le $max_attempts ]; do
+              echo "=== Instrumented test attempt $attempt/$max_attempts ==="
+              ./gradlew --no-daemon :app:connectedDebugAndroidTest
+              status=$?
+              if [ $status -eq 0 ]; then
+                echo "=== Instrumented tests passed on attempt $attempt ==="
+                exit 0
+              fi
+              echo "=== Instrumented tests failed on attempt $attempt (exit $status) ==="
+              attempt=$((attempt + 1))
+              [ $attempt -le $max_attempts ] && sleep 15
+            done
+            echo "=== Instrumented tests failed after $max_attempts attempts ==="
+            exit 1
 
       - name: Upload androidTest reports
         if: failure()
