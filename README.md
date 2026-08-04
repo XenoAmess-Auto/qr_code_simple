@@ -49,7 +49,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **App Lock** - Fingerprint or password protection for sensitive history.
 - ✅ **Local Encryption** - SQLCipher (AES-256) on the history database.
 
-> **Privacy note**: The `INTERNET` permission is used only by two optional, default-off features: the silent blacklist update and app update checks (GitHub Releases). Everything else works fully offline.
+> **Privacy note**: The `INTERNET` permission is used only by two optional, default-off features: the silent blacklist update and app update checks. Stable checks use GitHub Releases; beta checks use this project's GitHub Pages endpoint and are manual-only from About. Everything else works fully offline.
 
 ### UI & UX
 
@@ -182,7 +182,7 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 - **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal / 2 of 5 / Code One / Grid Matrix / ...)
 - **CSV Parsing**: Apache Commons CSV 1.14.1
 - **Biometric**: androidx.biometric 1.1.0
-- **Tests**: JUnit 5 Platform (Vintage engine runs existing JUnit 4) + Robolectric 4.16.1 + instrumented tests on emulator (CI)
+- **Tests**: JUnit Platform (Jupiter + Vintage; Vintage runs existing JUnit 4) + Robolectric 4.16.1 + instrumented tests on emulator (CI)
 - **Performance**: Baseline Profile (cold-start journeys pre-compiled into the release build)
 
 The full file index and architectural notes live in [`docs/knowledge-base.md`](docs/knowledge-base.md).
@@ -196,6 +196,7 @@ The full file index and architectural notes live in [`docs/knowledge-base.md`](d
 - **Gradle 9.6.1** (already pinned via `gradle-wrapper.properties`)
 - **Android Studio Ladybug (2024.2.1) or newer** - AGP 9.2.1 will not load in older IDEs
 - **NDK** is **not** required to build; only the native libraries shipped through the WeChatQRCode / OpenCV AARs are used
+- **Full Git history and tags** - Android versions are derived from Git. Build from a clone, not a source archive or shallow checkout; recover a shallow clone with `git fetch --unshallow --tags`.
 
 Set `JAVA_HOME` to your JDK 21 install and put `sdk.dir=/path/to/Android/Sdk` into `local.properties`. `local.properties` is git-ignored.
 
@@ -208,6 +209,9 @@ Set `JAVA_HOME` to your JDK 21 install and put `sdk.dir=/path/to/Android/Sdk` in
 git clone https://github.com/XenoAmess-Auto/qr_code_simple.git
 cd qr_code_simple
 
+# Do not use --depth. Only if this checkout is shallow, run:
+# git fetch --unshallow --tags
+
 # Build Debug APK (use the wrapper, not a global gradle)
 ./gradlew :app:assembleDebug
 
@@ -217,18 +221,28 @@ cd qr_code_simple
 # Install to a connected device
 ./gradlew :app:installDebug
 
-# Release build (R8 + shrinkResources). Signs with RELEASE_KEYSTORE_* env vars
-# (RELEASE_KEYSTORE_FILE / _PASSWORD / _ALIAS) when set, otherwise falls back to debug signing.
-./gradlew :app:assembleRelease   # APK
-./gradlew :app:bundleRelease     # AAB for Play Console
+# Release build (R8 + shrinkResources). Locally, signs with RELEASE_KEYSTORE_FILE,
+# RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS when set; otherwise it falls
+# back to debug signing. CI beta/stable publication never permits that fallback.
+./gradlew :app:assembleRelease :app:bundleRelease :app:writeVersionInfo
 
 # Lint and coverage floor (both gate CI)
 ./gradlew :app:lintDebug :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 ```
 
-Pushing a `v*` tag triggers the release workflow (`.github/workflows/release.yml`): it builds the APK + AAB and creates a GitHub Release. Configure `RELEASE_KEYSTORE_BASE64` / `RELEASE_KEYSTORE_PASSWORD` / `RELEASE_KEYSTORE_ALIAS` secrets for production signing.
+## Versioning, Releases, and Updates
 
-If you see "App not installed" or signature mismatch errors, see `README_CN.md` → "签名问题解决方案" for three workarounds (download CI debug keystore, use CI-built APK, or uninstall and reinstall).
+Gradle requires a full, non-shallow Git checkout. `versionCode` is `git rev-list --count HEAD`; `versionName` is the nearest strict `vMAJOR.MINOR.PATCH` tag without the `v`, with `+N` when `N` commits are ahead. With no matching `v*` tag it uses `0.0.0+<commit-count>`. Each build also exposes the eight-character `BuildConfig.GIT_HASH` and packages a generated `CHANGELOG.txt` for the About page.
+
+- A pushed stable tag must be exactly `vMAJOR.MINOR.PATCH` and point to the current `origin/master`. Its workflow validates the debug build, unit tests, lint, and coverage gate, then requires the release-signing secrets before publishing `qr-code-simple-<version>.apk`, `qr-code-simple-<version>.aab`, `version.json`, the compatibility alias `app-release.apk`, and any usable delta patches to GitHub Releases.
+- A push to `master` publishes beta only after the regular build job and emulator instrumented tests pass. It publishes a release-signed APK and metadata at `/beta/qr-code-simple-beta.apk` and `/beta/version.json` on GitHub Pages. The same Pages deployment continues to host `coverage.html` and `coverage.json`.
+- Stable automatic update checks are off by default. The About page can manually check stable updates; beta checks are always a deliberate About-page action. Downloads require the published SHA-256 and exact size, then the APK package identity, target version code, and signer set must match the installed app.
+
+Production signing requires the GitHub Actions secrets `RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`, and `RELEASE_KEYSTORE_ALIAS`. Keep that key and alias continuous across beta and stable releases so Android can install updates. CI uploads a `debug-apk` test artifact, but does not upload a debug-keystore artifact; a debug-signed APK is not a production update baseline.
+
+The first rollout of this system is `v0.2.6`: push the intended release commit to `master`, wait for the master CI run to complete, then tag that same current `origin/master` commit and push `v0.2.6`. Do not tag an older commit, because the stable workflow rejects tags that no longer equal `origin/master`.
+
+See [`docs/versioning-and-update-system.md`](docs/versioning-and-update-system.md) for the complete publication procedure, `version.json` schema, beta archive, delta behavior, and rollout checks.
 
 ---
 
@@ -279,8 +293,13 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── SecurityManager.kt               # Malicious-link heuristics
 ├── SecurityBlacklist.kt             # Blacklist model + assets/override loading
 ├── BlacklistUpdater.kt              # Optional silent online blacklist update
-├── AppUpdateChecker.kt              # GitHub Releases update check + version compare
-├── AppUpdateManager.kt              # Update dialog, APK download & install (fallback to release page)
+├── AppUpdateChecker.kt              # Stable GitHub Release / beta Pages metadata fetcher
+├── UpdateDecider.kt                 # Trusted metadata parsing, version decisions, delta-chain validation
+├── AppUpdateManager.kt              # Update UI, verified download, fallback, and install orchestration
+├── ApkArchiveVerifier.kt            # Package, version-code, and signing-certificate verification
+├── ApkPatcher.kt                    # Bounded APK delta patch helpers
+├── IncrementalUpdater.kt            # Verified bsdiff-chain executor with full-download fallback
+├── ChainPlanner.kt                  # Chooses safe incremental versus full APK transport
 ├── PrivacySettingsActivity.kt       # Privacy mode toggle
 ├── DatabaseSecurityActivity.kt      # SQLCipher key rotation
 ├── QRCodeRestorationManager.kt      # Restoration variants (grayscale / contrast / binarization)

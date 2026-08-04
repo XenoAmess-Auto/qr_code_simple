@@ -14,6 +14,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate stable tag
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must be exactly vMAJOR.MINOR.PATCH; received '${GITHUB_REF_NAME}'." >&2
+            exit 1
+          fi
+          git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master
+          tag_commit="$(git rev-parse "${GITHUB_REF_NAME}^{commit}")"
+          master_commit="$(git rev-parse 'refs/remotes/origin/master^{commit}')"
+          if [ "${tag_commit}" != "${master_commit}" ]; then
+            echo "Stable release tag ${GITHUB_REF_NAME} must point at current origin/master." >&2
+            echo "tag=${tag_commit} master=${master_commit}" >&2
+            exit 1
+          fi
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5.6.0
@@ -28,41 +45,161 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 若配置了 RELEASE_KEYSTORE_BASE64 secret 则使用正式签名；
-      # 否则 release 构建回退到 debug 签名（见 app/build.gradle）。
-      - name: Decode release keystore (if configured)
+      - name: Verify release candidate
+        timeout-minutes: 60
+        run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
+
+      - name: Require and decode release keystore
         run: |
-          if [ -n "${KEYSTORE_BASE64}" ]; then
-            echo "${KEYSTORE_BASE64}" | base64 -d > "${RUNNER_TEMP}/release.keystore"
-            echo "RELEASE_KEYSTORE_FILE=${RUNNER_TEMP}/release.keystore" >> "${GITHUB_ENV}"
-          else
-            echo "No RELEASE_KEYSTORE_BASE64 secret; falling back to debug signing"
+          if [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEYSTORE_ALIAS}" ]; then
+            echo "Stable releases require RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS." >&2
+            exit 1
           fi
+          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/release.keystore"
+          test -s "${RUNNER_TEMP}/release.keystore"
+          chmod 600 "${RUNNER_TEMP}/release.keystore"
+          echo "RELEASE_KEYSTORE_FILE=${RUNNER_TEMP}/release.keystore" >> "${GITHUB_ENV}"
         env:
           KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
 
-      - name: Build release APK and AAB
+      - name: Build signed release APK and AAB
         timeout-minutes: 60
-        run: ./gradlew --no-daemon :app:assembleRelease :app:bundleRelease
+        run: ./gradlew --no-daemon :app:assembleRelease :app:bundleRelease :app:writeVersionInfo
         env:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           RELEASE_KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
 
-      - name: Get version from tag
-        id: version
-        run: echo "tag_version=${GITHUB_REF_NAME#v}" >> "${GITHUB_OUTPUT}"
-
-      - name: Report artifact sizes
+      - name: Prepare canonical release artifacts and manifest
+        id: artifacts
         run: |
-          ls -lh app/build/outputs/apk/release/*.apk || true
-          ls -lh app/build/outputs/bundle/release/*.aab || true
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import shutil
+          import subprocess
+          from pathlib import Path
+
+          def digest(path):
+              value = hashlib.sha256()
+              with path.open("rb") as source:
+                  for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                      value.update(chunk)
+              return value.hexdigest()
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          info = json.loads(Path("app/build/generated/version-info/version.json").read_text(encoding="utf-8"))
+          version_code = info.get("versionCode")
+          version_name = info.get("versionName")
+          git_hash = info.get("gitHash")
+          if type(version_code) is not int or version_code <= 0:
+              raise SystemExit("Gradle version-info contains an invalid versionCode")
+          if not isinstance(version_name, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version_name):
+              raise SystemExit("Stable Gradle versionName must be MAJOR.MINOR.PATCH without a v prefix")
+          if tag != f"v{version_name}":
+              raise SystemExit(f"Tag {tag} does not match Gradle versionName {version_name}")
+          if not isinstance(git_hash, str) or not re.fullmatch(r"[0-9a-fA-F]{8}", git_hash):
+              raise SystemExit("Gradle version-info must contain an 8-character gitHash")
+
+          source_apk = Path("app/build/outputs/apk/release/app-release.apk")
+          source_aab = Path("app/build/outputs/bundle/release/app-release.aab")
+          if not source_apk.is_file() or not source_aab.is_file():
+              raise SystemExit("Signed release APK and AAB were not both produced")
+          apk = Path(f"qr-code-simple-{version_name}.apk")
+          aab = Path(f"qr-code-simple-{version_name}.aab")
+          legacy_apk = Path("app-release.apk")
+          shutil.copy2(source_apk, apk)
+          shutil.copy2(source_aab, aab)
+          shutil.copy2(apk, legacy_apk)
+
+          previous = subprocess.run(
+              ["git", "describe", "--tags", "--abbrev=0", "--match", "v*", f"{tag}^"],
+              check=False, capture_output=True, text=True,
+          ).stdout.strip()
+          revision_range = f"{previous}..{tag}" if previous else tag
+          changelog = subprocess.run(
+              ["git", "log", "--format=%s", "--no-decorate", "-n", "20", revision_range],
+              check=True, capture_output=True, text=True,
+          ).stdout.strip()
+          manifest = {
+              "aabFile": aab.name,
+              "apkFile": apk.name,
+              "apkSha256": digest(apk),
+              "apkSize": apk.stat().st_size,
+              "changelog": changelog,
+              "gitHash": git_hash,
+              "releaseTag": tag,
+              "versionCode": version_code,
+              "versionName": version_name,
+          }
+          Path("version.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              output.write(f"apk_name={apk.name}\n")
+              output.write(f"aab_name={aab.name}\n")
+              output.write(f"version_name={version_name}\n")
+          PY
+
+      - name: Install bsdiff for optional stable patches
+        continue-on-error: true
+        run: sudo apt-get update && sudo apt-get install -y bsdiff
+
+      - name: Generate optional stable delta chains
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/build_stable_delta_chains.py --tag "${GITHUB_REF_NAME}"
+
+      - name: Validate release metadata
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          metadata = json.loads(Path("version.json").read_text(encoding="utf-8"))
+          apk = Path(metadata.get("apkFile", ""))
+          if not apk.is_file():
+              raise SystemExit("version.json does not name a release APK")
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          if metadata.get("apkSha256") != digest or metadata.get("apkSize") != apk.stat().st_size:
+              raise SystemExit("version.json APK checksum or size is invalid")
+          if metadata.get("versionName") != os.environ["GITHUB_REF_NAME"][1:]:
+              raise SystemExit("version.json versionName does not match the release tag")
+          if type(metadata.get("versionCode")) is not int or not isinstance(metadata.get("gitHash"), str):
+              raise SystemExit("version.json is missing required version metadata")
+          PY
+
+      - name: Revalidate stable tag before publication
+        run: |
+          git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master
+          tag_commit="$(git rev-parse "${GITHUB_REF_NAME}^{commit}")"
+          master_commit="$(git rev-parse 'refs/remotes/origin/master^{commit}')"
+          if [ "${tag_commit}" != "${master_commit}" ]; then
+            echo "master advanced while validating ${GITHUB_REF_NAME}; refusing stale publication." >&2
+            echo "tag=${tag_commit} master=${master_commit}" >&2
+            exit 1
+          fi
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          shopt -s nullglob
+          assets=(
+            "${{ steps.artifacts.outputs.apk_name }}"
+            "${{ steps.artifacts.outputs.aab_name }}"
+            version.json
+            app-release.apk
+          )
+          assets+=(patch-*.bspatch)
           gh release create "${GITHUB_REF_NAME}" \
-            --title "v${{ steps.version.outputs.tag_version }}" \
+            --title "v${{ steps.artifacts.outputs.version_name }}" \
             --generate-notes \
-            app/build/outputs/apk/release/app-release.apk \
-            app/build/outputs/bundle/release/app-release.aab
+            "${assets[@]}"

@@ -70,7 +70,7 @@ class QRCodeApp : Application() {
             prefs.edit().putBoolean(KEY_BLACKLIST_AUTO_UPDATE, enabled).apply()
         }
 
-        /** 应用自动检查更新开关（默认关闭）。 */
+        /** 应用自动检查更新开关（默认关闭；开启后仅检查 stable 通道）。 */
         fun isAppUpdateAutoCheckEnabled(context: Context): Boolean {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             return prefs.getBoolean(KEY_APP_UPDATE_AUTO_CHECK, false)

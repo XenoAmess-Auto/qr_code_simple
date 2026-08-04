@@ -5,6 +5,12 @@ import android.os.Looper
 import androidx.appcompat.app.AlertDialog
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.security.MessageDigest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,28 +24,190 @@ import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
 
-/**
- * AppUpdateManager 自动检查节流与弹窗流程测试（注入假 fetcher，不触网）。
- */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = QRCodeApp::class)
 class AppUpdateManagerTest {
 
     private lateinit var context: Context
 
+    private class FakeConnection(
+        url: URL,
+        private val code: Int,
+        private val body: ByteArray
+    ) : HttpURLConnection(url) {
+        override fun getResponseCode(): Int = code
+        override fun getContentLengthLong(): Long = body.size.toLong()
+        override fun getInputStream(): InputStream = ByteArrayInputStream(body)
+        override fun disconnect() = Unit
+        override fun usingProxy(): Boolean = false
+        override fun connect() = Unit
+    }
+
     @Before
-    fun setup() {
+    fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        AppUpdateManager.checkerForTesting = null
+        AppUpdateManager.downloadConnectionFactoryForTesting = null
         QRCodeApp.setAppUpdateAutoCheckEnabled(context, false)
         prefs().edit().remove(KEY_LAST_CHECK).apply()
     }
 
     @After
     fun tearDown() {
-        AppUpdateManager.fetcherForTesting = null
+        AppUpdateManager.checkerForTesting = null
+        AppUpdateManager.downloadConnectionFactoryForTesting = null
         QRCodeApp.setAppUpdateAutoCheckEnabled(context, false)
-        prefs().edit().remove(KEY_LAST_CHECK).apply()
+        prefs().edit().remove(KEY_LAST_CHECK).remove(KEY_AUTO_CHECK).apply()
+        File(context.filesDir, "manager-download-test.apk").delete()
+        File(context.filesDir, "manager-download-test.apk.part").delete()
     }
+
+    @Test
+    fun `auto check is skipped when stable switch is disabled`() {
+        var fetchCount = 0
+        AppUpdateManager.checkerForTesting = { _, _, _ ->
+            fetchCount++
+            UpdateDecider.CheckOutcome.UpdateAvailable(newRelease())
+        }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
+            Thread.sleep(250)
+            flushMainLooper()
+        }
+
+        assertEquals(0, fetchCount)
+    }
+
+    @Test
+    fun `automatic check queries stable only and remains throttled for 24 hours`() {
+        QRCodeApp.setAppUpdateAutoCheckEnabled(context, true)
+        var observedChannel: UpdateDecider.Channel? = null
+        AppUpdateManager.checkerForTesting = { channel, _, _ ->
+            observedChannel = channel
+            UpdateDecider.CheckOutcome.UpdateAvailable(newRelease())
+        }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
+            assertTrue(waitFor { ShadowDialog.getLatestDialog() != null })
+        }
+
+        assertEquals(UpdateDecider.Channel.STABLE, observedChannel)
+        assertFalse(QRCodeApp.tryMarkAppUpdateChecked(context))
+    }
+
+    @Test
+    fun `manual beta check uses beta channel`() {
+        var observedChannel: UpdateDecider.Channel? = null
+        AppUpdateManager.checkerForTesting = { channel, _, _ ->
+            observedChannel = channel
+            UpdateDecider.CheckOutcome.UpdateAvailable(newRelease(channel = channel, versionName = "99.1.0"))
+        }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { AppUpdateManager.checkBetaUpdate(it) }
+            assertTrue(waitFor { ShadowDialog.getLatestDialog() != null })
+        }
+
+        assertEquals(UpdateDecider.Channel.BETA, observedChannel)
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(dialog)
+    }
+
+    @Test
+    fun `auto check defaults to disabled for absent preferences`() {
+        prefs().edit().remove(KEY_AUTO_CHECK).apply()
+
+        assertFalse(QRCodeApp.isAppUpdateAutoCheckEnabled(context))
+    }
+
+    @Test
+    fun `verified download publishes only exact sized and hashed artifact`() {
+        val payload = ByteArray(16 * 1024) { (it % 251).toByte() }
+        val destination = File(context.filesDir, "manager-download-test.apk")
+        AppUpdateManager.downloadConnectionFactoryForTesting = {
+            FakeConnection(URL("https://objects.githubusercontent.com/release.apk"), 200, payload)
+        }
+        val progress = mutableListOf<Int>()
+
+        val result = AppUpdateManager.downloadVerifiedArtifact(
+            url = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.6/update.apk",
+            endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
+            destination = destination,
+            expectedSizeBytes = payload.size.toLong(),
+            expectedSha256 = sha256(payload),
+            onProgress = { progress += it }
+        )
+
+        assertNotNull(result)
+        assertTrue(payload.contentEquals(destination.readBytes()))
+        assertFalse(File(context.filesDir, "manager-download-test.apk.part").exists())
+        assertTrue(progress.isNotEmpty() && progress.last() == 100)
+    }
+
+    @Test
+    fun `failed verification removes part and leaves prior complete artifact untouched`() {
+        val payload = byteArrayOf(1, 2, 3, 4)
+        val destination = File(context.filesDir, "manager-download-test.apk")
+        destination.writeBytes(byteArrayOf(9, 9))
+        AppUpdateManager.downloadConnectionFactoryForTesting = {
+            FakeConnection(URL("https://objects.githubusercontent.com/release.apk"), 200, payload)
+        }
+
+        val result = AppUpdateManager.downloadVerifiedArtifact(
+            url = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.6/update.apk",
+            endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
+            destination = destination,
+            expectedSizeBytes = payload.size.toLong(),
+            expectedSha256 = "0".repeat(64),
+            onProgress = {}
+        )
+
+        assertEquals(null, result)
+        assertTrue(byteArrayOf(9, 9).contentEquals(destination.readBytes()))
+        assertFalse(File(context.filesDir, "manager-download-test.apk.part").exists())
+    }
+
+    @Test
+    fun `artifact download rejects an untrusted source before opening a connection`() {
+        var opened = false
+        AppUpdateManager.downloadConnectionFactoryForTesting = {
+            opened = true
+            FakeConnection(it, 200, byteArrayOf(1))
+        }
+
+        val result = AppUpdateManager.downloadVerifiedArtifact(
+            url = "https://example.test/update.apk",
+            endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
+            destination = File(context.filesDir, "manager-download-test.apk"),
+            expectedSizeBytes = 1,
+            expectedSha256 = sha256(byteArrayOf(1)),
+            onProgress = {}
+        )
+
+        assertEquals(null, result)
+        assertFalse(opened)
+    }
+
+    private fun newRelease(
+        channel: UpdateDecider.Channel = UpdateDecider.Channel.STABLE,
+        versionName: String = "99.0.0"
+    ) = UpdateDecider.ReleaseInfo(
+        channel = channel,
+        versionCode = 999,
+        versionName = versionName,
+        changelog = "changes",
+        apkUrl = "https://example.test/update.apk",
+        apkSha256 = "a".repeat(64),
+        apkSizeBytes = 123,
+        releasePageUrl = if (channel == UpdateDecider.Channel.STABLE) {
+            "https://github.com/XenoAmess-Auto/qr_code_simple/releases/latest"
+        } else {
+            null
+        },
+        chain = null
+    )
 
     private fun prefs() = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
 
@@ -47,7 +215,7 @@ class AppUpdateManagerTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle()
     }
 
-    private fun waitFor(maxMs: Long = 3000, condition: () -> Boolean): Boolean {
+    private fun waitFor(maxMs: Long = 3_000, condition: () -> Boolean): Boolean {
         val start = System.currentTimeMillis()
         while (System.currentTimeMillis() - start < maxMs) {
             flushMainLooper()
@@ -57,92 +225,14 @@ class AppUpdateManagerTest {
         return false
     }
 
-    private fun newRelease(version: String = "99.0.0") = AppUpdateChecker.ReleaseInfo(
-        version = version,
-        changelog = "big changes",
-        htmlUrl = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/tag/v$version",
-        apkUrl = "https://example.com/app-release.apk",
-        apkSizeBytes = 123L
-    )
-
-    @Test
-    fun `auto check skipped when switch disabled`() {
-        var fetchCount = 0
-        AppUpdateManager.fetcherForTesting = { fetchCount++; newRelease() }
-
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
-            flushMainLooper()
-            Thread.sleep(300)
-            flushMainLooper()
+    private fun sha256(bytes: ByteArray): String {
+        return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {
+            "%02x".format(it.toInt() and 0xff)
         }
-        assertEquals(0, fetchCount)
-    }
-
-    @Test
-    fun `auto check skipped when throttled within 24h`() {
-        QRCodeApp.setAppUpdateAutoCheckEnabled(context, true)
-        prefs().edit().putLong(KEY_LAST_CHECK, System.currentTimeMillis()).apply()
-        var fetchCount = 0
-        AppUpdateManager.fetcherForTesting = { fetchCount++; newRelease() }
-
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
-            flushMainLooper()
-            Thread.sleep(300)
-            flushMainLooper()
-        }
-        assertEquals(0, fetchCount)
-    }
-
-    @Test
-    fun `auto check shows dialog when new version found`() {
-        QRCodeApp.setAppUpdateAutoCheckEnabled(context, true)
-        var fetchCount = 0
-        AppUpdateManager.fetcherForTesting = { fetchCount++; newRelease() }
-
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
-            assertTrue(
-                "Update dialog should appear",
-                waitFor { ShadowDialog.getLatestDialog() != null }
-            )
-        }
-        assertEquals(1, fetchCount)
-        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
-        assertNotNull(dialog)
-        // 检查时间已被记录，24h 内不会再次检查
-        assertFalse(QRCodeApp.tryMarkAppUpdateChecked(context))
-    }
-
-    @Test
-    fun `auto check silent when up to date`() {
-        QRCodeApp.setAppUpdateAutoCheckEnabled(context, true)
-        AppUpdateManager.fetcherForTesting = { newRelease("0.0.1") }
-
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
-            flushMainLooper()
-            Thread.sleep(300)
-            flushMainLooper()
-        }
-        assertEquals(null, ShadowDialog.getLatestDialog())
-    }
-
-    @Test
-    fun `tryMarkAppUpdateChecked throttles within 24h`() {
-        assertTrue(QRCodeApp.tryMarkAppUpdateChecked(context))
-        assertFalse(QRCodeApp.tryMarkAppUpdateChecked(context))
-    }
-
-    @Test
-    fun `auto check preference defaults to false`() {
-        assertFalse(QRCodeApp.isAppUpdateAutoCheckEnabled(context))
-        QRCodeApp.setAppUpdateAutoCheckEnabled(context, true)
-        assertTrue(QRCodeApp.isAppUpdateAutoCheckEnabled(context))
     }
 
     companion object {
         private const val KEY_LAST_CHECK = "app_update_last_check"
+        private const val KEY_AUTO_CHECK = "app_update_auto_check"
     }
 }

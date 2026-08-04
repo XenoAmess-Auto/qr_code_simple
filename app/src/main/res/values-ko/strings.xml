@@ -218,17 +218,28 @@
     <string name="license">MIT 라이선스에 따라 배포됨</string>
     <string name="buy_me_a_coffee">커피 한 잔 사주세요</string>
     <string name="check_update">업데이트 확인</string>
+    <string name="check_beta_update">베타 업데이트 확인</string>
     <string name="auto_check_update">자동 확인</string>
+    <string name="version_history">버전 기록</string>
+    <string name="version_history_title">버전 기록</string>
+    <string name="version_history_unavailable">패키지에 포함된 버전 기록을 사용할 수 없습니다.</string>
     <string name="update_available_title">새 버전 v%1$s 사용 가능</string>
+    <string name="beta_update_available_title">베타 버전 v%1$s 사용 가능</string>
     <string name="update_now">지금 업데이트</string>
     <string name="update_view_release_page">릴리스 페이지 열기</string>
     <string name="update_later">나중에</string>
     <string name="update_already_latest">최신 버전입니다</string>
+    <string name="beta_update_already_latest">최신 베타 버전입니다</string>
     <string name="update_check_failed">업데이트 확인 실패</string>
+    <string name="beta_update_check_failed">베타 업데이트 확인 실패</string>
     <string name="update_downloading">v%1$s 다운로드 중…</string>
+    <string name="update_progress_percent">%1$d%%</string>
+    <string name="update_incremental_progress_percent">증분 업데이트 적용 중: %1$d%%</string>
+    <string name="update_incremental_fallback">증분 업데이트에 실패했습니다. 전체 APK를 다운로드하는 중입니다…</string>
     <string name="update_install_permission_needed">이 출처의 앱 설치를 허용한 후 돌아와 주세요</string>
     <string name="update_install_failed_title">자동 업데이트 실패</string>
     <string name="update_install_failed_message">업데이트를 자동으로 설치할 수 없습니다. 릴리스 페이지에서 수동으로 다운로드할 수 있습니다.</string>
+    <string name="beta_update_install_failed_message">베타 업데이트를 설치할 수 없습니다. 나중에 다시 시도해 주세요.</string>
 
     <!-- 위젯 -->
     <string name="widget_quick_scan">빠른 스캔</string>

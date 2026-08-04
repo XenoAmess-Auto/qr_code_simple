@@ -65,6 +65,14 @@ class AboutFragment : Fragment() {
             AppUpdateManager.checkManually(requireActivity())
         }
 
+        binding.btnCheckBetaUpdate.setOnClickListener {
+            AppUpdateManager.checkBetaUpdate(requireActivity())
+        }
+
+        binding.btnVersionHistory.setOnClickListener {
+            showVersionHistory()
+        }
+
         binding.switchAutoUpdate.isChecked = QRCodeApp.isAppUpdateAutoCheckEnabled(requireContext())
         binding.switchAutoUpdate.setOnCheckedChangeListener { _, isChecked ->
             QRCodeApp.setAppUpdateAutoCheckEnabled(requireContext(), isChecked)
@@ -102,6 +110,22 @@ class AboutFragment : Fragment() {
             .show()
     }
 
+    private fun showVersionHistory() {
+        val history = readVersionHistory()?.trim().takeUnless { it.isNullOrEmpty() }
+            ?: getString(R.string.version_history_unavailable)
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.version_history_title)
+            .setMessage(history)
+            .setPositiveButton(R.string.close, null)
+            .show()
+    }
+
+    private fun readVersionHistory(): String? {
+        return versionHistoryLoaderForTesting?.invoke(requireContext()) ?: runCatching {
+            requireContext().assets.open(CHANGELOG_ASSET_NAME).bufferedReader().use { it.readText() }
+        }.getOrNull()
+    }
+
     private fun showRestartDialog() {
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.language))
@@ -132,5 +156,12 @@ class AboutFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val CHANGELOG_ASSET_NAME = "CHANGELOG.txt"
+
+        /** Keeps the UI test hermetic while production always reads the packaged asset. */
+        internal var versionHistoryLoaderForTesting: ((android.content.Context) -> String?)? = null
     }
 }

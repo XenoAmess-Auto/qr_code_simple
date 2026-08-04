@@ -4,7 +4,7 @@
 
 QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 包名：`com.xenoamess.qrcodesimple`
-- 当前版本：`0.2.5`
+- 版本由完整 Git 历史推导；本轮发布/更新系统的首个目标 Stable 标签为 `v0.2.6`。
 - 目标：支持超过 50 种条码格式的生成，其中可扫描的格式会继续保证生成与扫描回环。
 
 ## 2. 技术栈
@@ -20,7 +20,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | 二维码识别 | WeChatQRCode | 2.5.0 |
 | Micro QR | BoofCV | 1.4.0 |
 | 复杂格式生成 | OkapiBarcode | 0.5.6 |
-| 测试 | JUnit 5 Platform (Vintage) + Robolectric | 5.14.4 / 4.16.1 |
+| 测试 | JUnit Platform（Jupiter + Vintage）+ Robolectric | 6.1.2 / 4.16.1 |
 | 覆盖率 | JaCoCo + GitHub Pages | 0.8.12 / shields.io endpoint badge |
 
 ## 3. 支持格式总览
@@ -95,7 +95,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 保留策略：`PrivacySettingsActivity` 可配置自动清理（永久/30/90/365 天），存于 `app_settings`；`QRCodeApp.onCreate` 启动时执行一次 `deleteOlderThan`（收藏豁免），0 表示永久保留。
 - 平板双栏：`layout-sw600dp/fragment_history.xml` 为列表 + 详情双栏；`HistoryFragment.openHistoryDetail` 检测到 `detailPaneContainer` 时嵌入 `HistoryDetailFragment`，否则启动 `HistoryDetailActivity`。列表布局经 `<include android:id="@+id/listPart">` 在两种配置间复用（ViewBinding 生成嵌套绑定 `binding.listPart`）。
 - 备份导出支持明文 JSON / CSV 与加密备份（`QRBK1` magic + AES-256/GCM + PBKDF2 10 万次）；导入按内容自动识别（magic → 密码框，`{` / `[` → JSON，其余 → CSV）。
-- 恶意链接黑名单：`assets/security/blacklist.json` 内置（version 1），`PrivacySettingsActivity` 可开启静默在线更新（默认关；24h 节流；任何失败仅记日志）。开启需要 `INTERNET` 权限，这是应用唯一的网络用途。
+- 恶意链接黑名单：`assets/security/blacklist.json` 内置（version 1），`PrivacySettingsActivity` 可开启静默在线更新（默认关；24h 节流；任何失败仅记日志）。开启需要 `INTERNET` 权限；其他网络用途为用户手动检查更新，以及用户显式打开后的 Stable 自动检查。
 
 ## 5. 扫描引擎
 
@@ -129,8 +129,11 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `BackupCrypto.kt` | 备份加密原语（AES-256/GCM + PBKDF2，magic `QRBK1`） |
 | `SecurityBlacklist.kt` | 恶意链接黑名单模型；加载顺序 filesDir 覆盖 > assets 内置 > 代码兜底 |
 | `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
-| `AppUpdateChecker.kt` | 应用更新检查：GitHub `releases/latest` API（5s 超时 + 1MB 上限），纯函数 `isNewer` 版本比较；测试缝 `connectionFactoryForTesting` |
-| `AppUpdateManager.kt` | 更新编排：弹窗 → 安装权限（`REQUEST_INSTALL_PACKAGES`，API 26+ 需用户授权，返回后 `onHostResume` 续装）→ 下载 APK（私有 Downloads 目录，1GB 上限，进度对话框）→ FileProvider 调起系统安装器；任何失败回退打开 Release 页。自动检查默认关，24h 节流（`QRCodeApp.tryMarkAppUpdateChecked`），由 `MainActivity.onCreate` 触发；测试缝 `fetcherForTesting` |
+| `AppUpdateChecker.kt` | 更新元数据获取：Stable 使用 GitHub `releases/latest` 后再读取 Release 中的 `version.json`；Beta 固定读取 GitHub Pages。请求 5s 超时、1 MiB 上限，并校验初始和重定向后的受信 HTTPS 端点 |
+| `UpdateDecider.kt` | 纯解析/决策层：校验 `version.json`、Stable canonical asset、可信 URL 与增量链；以 `versionCode` 为主、语义版本仅处理同 code 的并列比较 |
+| `AppUpdateManager.kt` | 更新编排：Stable 自动检查默认关且 24h 节流；Beta 仅由 About 手动检查。下载到私有 `filesDir/updates`，按精确大小和 SHA-256 校验；增量失败或不安全时回退完整 APK；API 26+ 请求安装未知来源权限后继续安装 |
+| `ApkArchiveVerifier.kt` | 安装前校验 APK archive 的包名、目标 `versionCode` 和签名证书集合必须与已安装应用一致 |
+| `ApkPatcher.kt` / `IncrementalUpdater.kt` / `ChainPlanner.kt` | 已校验 bsdiff 增量链：只有基础 APK hash 匹配、补丁总量更小且输入低于 64 MiB 安全上限时才使用；否则完整下载 |
 | `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
 | `baselineprofile/` | Baseline Profile 生成模块（`:app:generateReleaseBaselineProfile` 在模拟器/真机上生成 `app/src/release/generated/baselineProfiles/baseline-prof.txt`，release 构建自动合并进 R8 art profile） |
 | `app/src/androidTest/` | 仪器测试（启动冒烟、MediaStore Q+、SQLCipher 真机加密、视频扫描全管线），CI `android-test` job 在 API 35 模拟器上运行 |
@@ -157,7 +160,21 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
 | `ui/result/QRResultAdapter.kt` | 多扫描结果 RecyclerView 适配器 |
 | `docs/ui-testing-plan.md` | 全页面 UI/Adapter 测试补全计划 |
-| `.github/workflows/build.yml` | CI 工作流（build + unit tests + JaCoCo coverage → GitHub Pages） |
+| `app/build.gradle` | Git 派生的 `versionCode` / `versionName` / `GIT_HASH`、`CHANGELOG.txt` 生成和 `writeVersionInfo` 元数据任务 |
+| `.github/workflows/build.yml` | push/PR 验证、模拟器仪器测试、仅 master 的正式签名 Beta 发布，以及覆盖率和 Beta 通道的 Pages 部署 |
+| `.github/workflows/release.yml` | 严格 Stable 标签/`origin/master` 校验、正式签名 APK/AAB、`version.json`、GitHub Release 和可选增量补丁 |
+| `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的已校验 bsdiff 补丁与扁平升级链 |
+| `docs/versioning-and-update-system.md` | Git 版本模型、Stable/Beta 发布、`version.json`、签名连续性和首轮发布操作说明 |
+
+## 6.1 版本、发布与应用更新
+
+- 所有 Gradle 任务都要求完整、非浅克隆 Git 历史。`versionCode = git rev-list --count HEAD`；最近匹配的 `v*` 标签必须严格符合 `vMAJOR.MINOR.PATCH`，构建的 `versionName` 为无 `v` 的基础版本或 `+N` 提交后缀。完全没有匹配标签时才使用 `0.0.0+<提交数>`；不合法的最近 `v*` 标签会直接使构建失败。
+- `BuildConfig.GIT_HASH` 为 HEAD 的八位短 hash。`generateChangelog` 在每次预构建前从 `v*` 标签生成并打包 `CHANGELOG.txt`，About 页的“版本历史”读取该 asset；`writeVersionInfo` 写出 CI 使用的 `versionCode`、`versionName`、`gitHash`。
+- Stable 必须推送精确 `vMAJOR.MINOR.PATCH` 标签，且标签提交必须等于当前 `origin/master`。Release 工作流先执行 debug 构建、单元测试、lint、JaCoCo 报告和覆盖率门禁，再以正式密钥发布 canonical APK/AAB、`version.json`、`app-release.apk` 兼容别名和可选补丁。
+- 仅 master push 的 Beta 会等待常规 build 与 emulator `android-test` 成功，以同一正式密钥生成 APK；Pages 在 `/beta/` 下部署 Beta 元数据/APK，同时继续部署覆盖率报告。
+- Stable 自动检查默认关闭，只检查 Stable；About 页有手动 Stable 和手动 Beta 按钮，Beta 没有自动检查。客户端必须通过 `version.json` 的 SHA-256、大小、APK 身份及签名校验后才请求系统安装器。
+
+完整 schema、增量限制、archive 保留策略及 `v0.2.6` 首轮发布顺序见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。
 
 ## 6.5 生成实现细节
 
@@ -180,6 +197,6 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 字符串资源需同时提供全部 5 种语言（`values` / `values-zh` / `values-de` / `values-ja` / `values-ko`）。`MissingTranslation` / `ExtraTranslation` 为 lint error；**5 种语言已全部 100% 对齐**（0.2.2 起）。`HardcodedText` 同为 error：布局真实文本必须走字符串资源，运行时占位文本用 `tools:text`。
 - `SecurityManager` 等无 Context 单例的文案经 `init(context)` 持有的 `appContext` 解析；未 init（单元测试）回退英文。
 - 生成稳定性：固定输入的 SVG 输出哈希受 `GenerationGoldenTest` 金样保护；生成逻辑或依赖升级导致图案变化时会失败，属预期变更时更新金样并在提交信息说明。
-- 测试在 JUnit 5 Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）。**JUnit 版本必须停留在 5.x**（6.x 移除了 Vintage Engine）。
-- CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径），随覆盖率提升逐步收紧。
-- Release 构建开启 R8 + shrinkResources；正式签名通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 gradle 属性注入，未配置时回退 debug 签名。推 `v*` 标签触发 `.github/workflows/release.yml` 产出 APK + AAB 并创建 GitHub Release。
+- 测试在 JUnit Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）；当前 `build.gradle` 为 Jupiter 与 Vintage 配置 `6.1.2`。
+- CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径）。
+- Release 构建开启 R8 + shrinkResources；本地可通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 Gradle 属性注入正式签名，未配置时回退 debug 签名。CI 的 Stable 与 Beta 工作流不接受该回退，必须配置 `RELEASE_KEYSTORE_BASE64` / `_PASSWORD` / `_ALIAS` secrets，并保持同一密钥和 alias 连续使用。发布细节见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。

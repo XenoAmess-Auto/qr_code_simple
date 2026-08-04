@@ -49,7 +49,7 @@
 - ✅ **应用锁** - 指纹 / 密码保护敏感历史。
 - ✅ **本地加密** - SQLCipher (AES-256) 加密历史数据库。
 
-> **隐私说明**：`INTERNET` 权限仅用于两个可选的、默认关闭的功能：黑名单静默在线更新与应用更新检查（GitHub Releases）；其余功能完全离线可用。
+> **隐私说明**：`INTERNET` 权限仅用于两个可选的、默认关闭的功能：黑名单静默在线更新与应用更新检查。Stable 检查使用 GitHub Releases；Beta 检查使用本项目 GitHub Pages 端点，且只能在“关于”页手动发起。其余功能完全离线可用。
 
 ### 界面与体验
 
@@ -184,7 +184,7 @@
 - **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix / ...）
 - **CSV 解析**：Apache Commons CSV 1.14.1
 - **生物认证**：androidx.biometric 1.1.0
-- **测试**：JUnit 5 Platform（Vintage 引擎运行既有 JUnit 4）+ Robolectric 4.16.1 + 模拟器仪器测试（CI）
+- **测试**：JUnit Platform（Jupiter + Vintage；Vintage 引擎运行既有 JUnit 4）+ Robolectric 4.16.1 + 模拟器仪器测试（CI）
 - **性能**：Baseline Profile（启动旅程预编译进 release 构建）
 
 完整文件索引和架构说明位于 [`docs/knowledge-base.md`](docs/knowledge-base.md)。
@@ -215,6 +215,7 @@
 - **Gradle 9.6.1**（已通过 `gradle-wrapper.properties` 锁定）
 - **Android Studio Ladybug (2024.2.1) 或更新版本** - AGP 9.2.1 无法在更老的 IDE 中加载
 - **NDK 编译非必需** - 仅通过 WeChatQRCode / OpenCV 的 AAR 引入原生库
+- **完整 Git 历史和标签** - Android 版本由 Git 推导。必须从克隆仓库构建，不能使用源码压缩包或浅克隆；浅克隆请先执行 `git fetch --unshallow --tags`。
 
 请将 `JAVA_HOME` 指向 JDK 21 安装目录，并在 `local.properties` 中写入 `sdk.dir=/path/to/Android/Sdk`。`local.properties` 已在 `.gitignore` 中。
 
@@ -229,6 +230,9 @@ git clone https://github.com/XenoAmess-Auto/qr_code_simple.git
 # 进入项目目录
 cd qr_code_simple
 
+# 不要使用 --depth；仅当当前仓库是浅克隆时执行：
+# git fetch --unshallow --tags
+
 # 构建 Debug 版本（始终使用 wrapper，不要用全局 gradle）
 ./gradlew :app:assembleDebug
 
@@ -238,18 +242,28 @@ cd qr_code_simple
 # 安装到设备
 ./gradlew :app:installDebug
 
-# Release 构建（R8 + shrinkResources）。设置 RELEASE_KEYSTORE_* 环境变量
-# （RELEASE_KEYSTORE_FILE / _PASSWORD / _ALIAS）时使用正式签名，否则回退 debug 签名。
-./gradlew :app:assembleRelease   # APK
-./gradlew :app:bundleRelease     # Play 用 AAB
+# Release 构建（R8 + shrinkResources）。本地设置 RELEASE_KEYSTORE_FILE、
+# RELEASE_KEYSTORE_PASSWORD、RELEASE_KEYSTORE_ALIAS 时使用正式签名，否则回退 debug 签名；
+# CI 的 Beta/Stable 发布不允许此回退。
+./gradlew :app:assembleRelease :app:bundleRelease :app:writeVersionInfo
 
 # Lint 与覆盖率门禁（均为 CI 门禁）
 ./gradlew :app:lintDebug :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 ```
 
-推送 `v*` 标签会触发 release 工作流（`.github/workflows/release.yml`）：构建 APK + AAB 并创建 GitHub Release。正式签名需配置 `RELEASE_KEYSTORE_BASE64` / `RELEASE_KEYSTORE_PASSWORD` / `RELEASE_KEYSTORE_ALIAS` secrets。
+## 版本、发布与更新
 
-如遇到"应用未安装"或"签名不匹配"错误，请参见下方"签名问题解决方案"。
+Gradle 必须在具有完整历史、非浅克隆的 Git 仓库中运行。`versionCode` 为 `git rev-list --count HEAD`；`versionName` 取最近的严格 `vMAJOR.MINOR.PATCH` 标签（移除 `v`），若领先该标签 `N` 个提交则为 `MAJOR.MINOR.PATCH+N`。没有任何匹配 `v*` 标签时回退为 `0.0.0+<提交数>`。每个构建还会写入八位 `BuildConfig.GIT_HASH`，并将生成的 `CHANGELOG.txt` 打包给“关于”页显示。
+
+- 推送 Stable 标签时，标签必须严格为 `vMAJOR.MINOR.PATCH`，且必须指向当时的 `origin/master`。工作流会执行 debug 构建、单元测试、lint 和覆盖率门禁，再要求正式签名 secrets，最后向 GitHub Releases 发布 `qr-code-simple-<version>.apk`、`qr-code-simple-<version>.aab`、`version.json`、兼容别名 `app-release.apk` 以及可用的增量补丁。
+- 仅 `master` 推送会在常规构建和模拟器仪器测试均通过后发布 Beta：以正式签名 APK 和元数据部署到 GitHub Pages 的 `/beta/qr-code-simple-beta.apk` 与 `/beta/version.json`。同一次 Pages 部署仍会保留 `coverage.html` 和 `coverage.json`。
+- Stable 自动检查默认关闭；“关于”页可手动检查 Stable。Beta 检查始终只能从“关于”页手动发起。下载后会校验元数据中的 SHA-256 与精确字节数，安装前还会校验 APK 包名、目标 `versionCode` 和签名证书集合是否与已安装应用一致。
+
+正式发布需在 GitHub Actions 配置 `RELEASE_KEYSTORE_BASE64`、`RELEASE_KEYSTORE_PASSWORD`、`RELEASE_KEYSTORE_ALIAS` secrets。Beta 与 Stable 必须持续使用同一密钥和 alias，才能正常覆盖安装。CI 会上传用于测试的 `debug-apk`，但**不会**上传 `debug-keystore` artifact；debug 签名 APK 不能作为正式更新基线。
+
+本系统首轮发布目标为 `v0.2.6`：先把目标发布提交推到 `master` 并等待该分支 CI 完成，再为同一个、仍是当前 `origin/master` 的提交创建并推送 `v0.2.6` 标签。不要给旧提交打标签，否则 Stable 工作流会拒绝它。
+
+完整发布流程、`version.json` schema、Beta 存档、增量更新和核验步骤见 [`docs/versioning-and-update-system.md`](docs/versioning-and-update-system.md)。
 
 ---
 
@@ -298,8 +312,13 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── SecurityManager.kt               # 恶意链接启发式判断
 ├── SecurityBlacklist.kt             # 黑名单模型与 assets/覆盖加载
 ├── BlacklistUpdater.kt              # 可选静默在线黑名单更新
-├── AppUpdateChecker.kt              # GitHub Releases 更新检查与版本比较
-├── AppUpdateManager.kt              # 更新弹窗、APK 下载与安装（失败回退下载页）
+├── AppUpdateChecker.kt              # Stable GitHub Release / Beta Pages 元数据获取
+├── UpdateDecider.kt                 # 可信元数据解析、版本决策与增量链校验
+├── AppUpdateManager.kt              # 更新 UI、校验下载、回退与安装编排
+├── ApkArchiveVerifier.kt            # 包名、版本号与签名证书校验
+├── ApkPatcher.kt                    # 有界 APK 增量补丁辅助
+├── IncrementalUpdater.kt            # 已校验 bsdiff 链执行器，失败回退完整 APK
+├── ChainPlanner.kt                  # 选择安全的增量或完整 APK 传输
 ├── PrivacySettingsActivity.kt       # 隐私模式开关
 ├── DatabaseSecurityActivity.kt      # SQLCipher 密钥轮换
 ├── QRCodeRestorationManager.kt      # 修复变体生成（灰度 / 对比度 / 二值化）
@@ -360,24 +379,23 @@ app/src/main/res/
 
 ---
 
-## 签名问题解决方案
+## 签名与安装问题
 
-如果安装 APK 时遇到"应用未安装"或"签名不匹配"错误：
+CI 不上传 `debug-keystore` artifact。`debug-apk` 只是测试构建产物；它只有在签名与已安装应用一致时才能覆盖安装，不能替代正式发布所使用的持续签名密钥。
 
-### 方案一：下载 CI 调试密钥库
-1. 前往 GitHub → Actions → 最新工作流运行
-2. 下载 `debug-keystore` 产物
-3. 安装到本地：
-   ```bash
-   unzip debug-keystore.zip -d /tmp/
-   mkdir -p ~/.android
-   cp /tmp/debug.keystore ~/.android/debug.keystore
-   ```
+如果遇到“应用未安装”或“签名不匹配”：
 
-### 方案二：使用 CI 构建的 APK
-从 GitHub Actions 下载 `debug-apk` 产物直接安装。
+### 优先使用同一正式签名通道
 
-### 方案三：卸载后重装
+已安装正式版或 Beta 时，请使用由同一 `RELEASE_KEYSTORE_*` 密钥签发的 Stable canonical APK 或 Pages Beta APK。应用内更新会在启动系统安装器前拒绝包名、版本号或签名证书不匹配的 APK。
+
+### 调试构建仅用于兼容测试
+
+可从 GitHub Actions 下载 `debug-apk` 进行测试，但不要将其作为 Stable/Beta 更新基线。
+
+### 更换签名时卸载后重装
+
+若必须改用不同签名的 APK，只能先卸载现有应用；这会删除本地应用数据：
 ```bash
 adb uninstall com.xenoamess.qrcodesimple
 adb install app-debug.apk

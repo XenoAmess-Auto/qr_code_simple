@@ -1,39 +1,17 @@
 #!/bin/bash
-# sync_keystore.sh - Sync debug keystore between CI and local development
+# sync_keystore.sh - Install the repository's development debug keystore locally.
 #
-# Usage:
-#   ./sync_keystore.sh generate  - Generate a new consistent debug keystore
-#   ./sync_keystore.sh install   - Install CI keystore to local ~/.android/
+# This does not manage the production signing key. Stable and Beta CI releases use
+# RELEASE_KEYSTORE_* secrets and must retain that certificate continuously.
 
 set -e
 
 KEYSTORE_FILE="app/debug.keystore"
 LOCAL_KEYSTORE="$HOME/.android/debug.keystore"
 
-function generate_keystore() {
-    echo "Generating consistent debug keystore..."
-    keytool -genkey -v \
-        -keystore "$KEYSTORE_FILE" \
-        -alias androiddebugkey \
-        -keyalg RSA \
-        -keysize 2048 \
-        -validity 10000 \
-        -storepass android \
-        -keypass android \
-        -dname "CN=Android Debug,O=Android,C=US"
-    
-    echo ""
-    echo "Keystore generated at: $KEYSTORE_FILE"
-    echo ""
-    echo "Base64 for GitHub Actions secret:"
-    base64 "$KEYSTORE_FILE"
-    echo ""
-    echo "Add the above base64 as DEBUG_KEYSTORE secret in GitHub repository settings"
-}
-
 function install_keystore() {
     if [ ! -f "$KEYSTORE_FILE" ]; then
-        echo "Error: $KEYSTORE_FILE not found. Run './sync_keystore.sh generate' first."
+        echo "Error: $KEYSTORE_FILE is missing from the repository checkout."
         exit 1
     fi
     
@@ -45,28 +23,15 @@ function install_keystore() {
 }
 
 case "${1:-}" in
-    generate)
-        generate_keystore
-        ;;
-    install)
+    ""|install)
         install_keystore
         ;;
     *)
-        echo "Usage: $0 {generate|install}"
+        echo "Usage: $0 [install]"
         echo ""
-        echo "Commands:"
-        echo "  generate  - Create a new debug.keystore in app/"
-        echo "  install   - Copy app/debug.keystore to ~/.android/debug.keystore"
+        echo "Copies app/debug.keystore to ~/.android/debug.keystore for local debug builds."
         echo ""
-        echo "To fix signature mismatch:"
-        echo "  1. If you have local keystore you want to use in CI:"
-        echo "     cp ~/.android/debug.keystore app/debug.keystore"
-        echo "     base64 app/debug.keystore  # Add to GitHub Secret DEBUG_KEYSTORE"
-        echo ""
-        echo "  2. If you want to use CI keystore locally:"
-        echo "     Download app-debug.apk from GitHub Actions"
-        echo "     unzip -p app-debug.apk META-INF/CERT.RSA | keytool -printcert"
-        echo "     # Then match that keystore locally"
+        echo "Production Stable/Beta signing is configured only with RELEASE_KEYSTORE_* secrets."
         exit 1
         ;;
 esac

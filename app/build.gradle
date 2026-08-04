@@ -1,3 +1,6 @@
+import groovy.json.JsonOutput
+import org.gradle.api.GradleException
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
@@ -21,15 +24,87 @@ class GlobalTestLogger implements org.gradle.api.tasks.testing.TestListener {
     }
 }
 
-static def getGitHash() {
+/**
+ * Version identifiers are derived from the complete Git history so every build has a
+ * monotonically increasing versionCode. A source archive or shallow checkout is not
+ * sufficient: fail early with instructions instead of silently publishing bad metadata.
+ */
+def runGit = { List<String> arguments, boolean allowFailure = false ->
+    def execution
+    def result
     try {
-        def process = "git rev-parse --short=8 HEAD".execute()
-        process.waitFor()
-        return process.exitValue() == 0 ? process.text.trim() : "unknown"
+        execution = providers.exec {
+            workingDir rootProject.projectDir
+            commandLine(*(['git'] + arguments))
+            ignoreExitValue = true
+        }
+        result = execution.result.get()
     } catch (Exception e) {
-        return "unknown"
+        throw new GradleException(
+                "Git-derived versioning requires the Git executable and a full repository. " +
+                        "Clone the repository instead of building from a source archive.", e)
     }
+
+    def commandResult = [
+            exitValue: result.exitValue,
+            output   : execution.standardOutput.asText.get().trim(),
+            error    : execution.standardError.asText.get().trim()
+    ]
+    if (commandResult.exitValue != 0 && !allowFailure) {
+        throw new GradleException(
+                "Git command failed while deriving the Android version: git ${arguments.join(' ')}\n" +
+                        "${commandResult.error}\n" +
+                        "Use a full clone with history and tags (for example: git fetch --unshallow --tags).")
+    }
+    commandResult
 }
+
+def repositoryCheck = runGit(['rev-parse', '--is-inside-work-tree'], true)
+if (repositoryCheck.exitValue != 0 || repositoryCheck.output != 'true') {
+    throw new GradleException(
+            "Git-derived versioning requires this build to run inside a Git repository. " +
+                    "Clone the repository with Git metadata, then retry.")
+}
+
+def shallowCheck = runGit(['rev-parse', '--is-shallow-repository'])
+if (shallowCheck.output == 'true') {
+    throw new GradleException(
+            "Git-derived versioning requires non-shallow history for versionCode. " +
+                    "Run 'git fetch --unshallow --tags' (or clone with fetch-depth: 0) and retry.")
+}
+
+def versionCodeResult = runGit(['rev-list', '--count', 'HEAD'])
+if (!(versionCodeResult.output ==~ /[1-9][0-9]*/)) {
+    throw new GradleException("Git returned an invalid commit count for versionCode: '${versionCodeResult.output}'")
+}
+def gitVersionCode = versionCodeResult.output.toInteger()
+
+def gitHashResult = runGit(['rev-parse', '--short=8', 'HEAD'])
+if (!(gitHashResult.output ==~ /[0-9a-fA-F]{8,}/)) {
+    throw new GradleException("Git returned an invalid hash for BuildConfig.GIT_HASH: '${gitHashResult.output}'")
+}
+def gitHash = gitHashResult.output.substring(0, 8)
+
+def describeResult = runGit(['describe', '--tags', '--long', '--match', 'v*'], true)
+def gitVersionName
+if (describeResult.exitValue == 0) {
+    def describeMatcher = describeResult.output =~ /^v(\d+\.\d+\.\d+)-(\d+)-g[0-9a-fA-F]+$/
+    if (!describeMatcher.matches()) {
+        throw new GradleException(
+                "Nearest v* tag must use vMAJOR.MINOR.PATCH for Android versionName; " +
+                        "got '${describeResult.output}'.")
+    }
+    def baseVersion = describeMatcher.group(1)
+    def commitsAhead = describeMatcher.group(2).toInteger()
+    gitVersionName = commitsAhead == 0 ? baseVersion : "${baseVersion}+${commitsAhead}"
+} else {
+    // The first build before any stable v* tag remains installable and identifiable.
+    gitVersionName = "0.0.0+${gitVersionCode}"
+}
+
+def changelogAssetsDir = layout.buildDirectory.dir('generated/changelog/assets')
+def changelogFile = changelogAssetsDir.map { it.file('CHANGELOG.txt') }
+def versionInfoFile = layout.buildDirectory.file('generated/version-info/version.json')
 
 jacoco {
     toolVersion = '0.8.12'
@@ -43,9 +118,9 @@ android {
         applicationId "com.xenoamess.qrcodesimple"
         minSdk 28
         targetSdk 35
-        versionCode 18
-        versionName "0.2.5"
-        buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
+        versionCode gitVersionCode
+        versionName gitVersionName
+        buildConfigField "String", "GIT_HASH", "\"${gitHash}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
@@ -98,6 +173,11 @@ android {
     buildFeatures {
         viewBinding true
         buildConfig true
+    }
+    sourceSets {
+        main {
+            assets.srcDir(changelogAssetsDir.get().asFile)
+        }
     }
     lint {
         // 存量问题（主要是历史翻译债务）记录在 baseline 中；
@@ -181,6 +261,10 @@ dependencies {
     // Apache Commons CSV
     implementation 'org.apache.commons:commons-csv:1.14.1'
 
+    // Incremental APK update client: bsdiff implementation and its bzip2 support.
+    implementation 'io.sigpipe:jbsdiff:1.0'
+    implementation 'org.apache.commons:commons-compress:1.28.0'
+
     // Apache POI - Excel import for batch generation
     def poi_version = '5.5.1'
     implementation "org.apache.poi:poi:$poi_version"
@@ -254,6 +338,65 @@ dependencies {
     // Baseline Profile 运行时安装器
     implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
     baselineProfile project(':baselineprofile')
+}
+
+// Package release history with the app without mutating source assets.
+tasks.register('generateChangelog') {
+    outputs.file(changelogFile)
+    // Git refs are external task inputs and can change without source changes.
+    outputs.upToDateWhen { false }
+    doLast {
+        def outputFile = changelogFile.get().asFile
+        outputFile.parentFile.mkdirs()
+
+        def tagsResult = runGit(['tag', '-l', 'v*', '--sort=-creatordate'], true)
+        def tags = tagsResult.exitValue == 0
+                ? tagsResult.output.readLines().findAll { !it.trim().isEmpty() }
+                : []
+        if (tags.isEmpty()) {
+            outputFile.setText('No matching v* tags are available in this repository.\n', 'UTF-8')
+            return
+        }
+
+        def changelog = new StringBuilder()
+        tags.eachWithIndex { String tag, int index ->
+            def dateResult = runGit(['log', '-1', '--format=%cs', tag], true)
+            def date = dateResult.exitValue == 0 && dateResult.output ? dateResult.output : 'unknown date'
+            changelog.append("## ${tag} (${date})\n")
+
+            def range = index + 1 < tags.size() ? "${tags[index + 1]}..${tag}" : tag
+            def subjectsResult = runGit(['log', '--format=%s', '--no-decorate', range], true)
+            if (subjectsResult.exitValue == 0 && subjectsResult.output) {
+                subjectsResult.output.readLines()
+                        .findAll { !it.trim().isEmpty() }
+                        .take(20)
+                        .each { subject -> changelog.append("- ${subject}\n") }
+            }
+            changelog.append('\n')
+        }
+        outputFile.setText(changelog.toString(), 'UTF-8')
+    }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn tasks.named('generateChangelog')
+}
+
+// Workflows consume this single deterministic source of truth instead of reimplementing version logic.
+tasks.register('writeVersionInfo') {
+    inputs.property('versionCode', gitVersionCode)
+    inputs.property('versionName', gitVersionName)
+    inputs.property('gitHash', gitHash)
+    outputs.file(versionInfoFile)
+    doLast {
+        def outputFile = versionInfoFile.get().asFile
+        outputFile.parentFile.mkdirs()
+        outputFile.setText(JsonOutput.toJson([
+                versionCode: gitVersionCode,
+                versionName: gitVersionName,
+                gitHash    : gitHash
+        ]) + '\n', 'UTF-8')
+    }
 }
 
 tasks.register('jacocoTestReport', JacocoReport) {

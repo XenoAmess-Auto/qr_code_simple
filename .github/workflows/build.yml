@@ -6,12 +6,17 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5.6.0
@@ -42,7 +47,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-report
+          name: coverage-report-${{ github.sha }}
           path: app/build/reports/jacoco/
           retention-days: 7
           if-no-files-found: warn
@@ -60,6 +65,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5.6.0
@@ -94,11 +101,178 @@ jobs:
           name: androidtest-reports
           path: app/build/reports/androidTests/
 
+  beta:
+    name: Build Beta Channel
+    runs-on: ubuntu-latest
+    needs: [build, android-test]
+    outputs:
+      is_current: ${{ steps.master_tip.outputs.is_current }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # The archive is mutable, so concurrent master pushes must update it in order.
+    concurrency:
+      group: qr-code-simple-beta-archive
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.6.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Require and decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
+        run: |
+          if [ -z "${KEYSTORE_BASE64}" ] || [ -z "${KEYSTORE_PASSWORD}" ] || [ -z "${KEYSTORE_ALIAS}" ]; then
+            echo "Beta APK signing requires RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, and RELEASE_KEYSTORE_ALIAS." >&2
+            exit 1
+          fi
+          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/release.keystore"
+          test -s "${RUNNER_TEMP}/release.keystore"
+          chmod 600 "${RUNNER_TEMP}/release.keystore"
+          echo "RELEASE_KEYSTORE_FILE=${RUNNER_TEMP}/release.keystore" >> "${GITHUB_ENV}"
+
+      - name: Build signed beta APK and write version info
+        timeout-minutes: 60
+        run: ./gradlew --no-daemon :app:assembleRelease :app:writeVersionInfo
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
+
+      - name: Confirm beta commit is still the master tip
+        id: master_tip
+        run: |
+          git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master
+          if [ "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/master)" ]; then
+            echo "is_current=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "is_current=false" >> "${GITHUB_OUTPUT}"
+            echo "Skipping stale beta commit ${GITHUB_SHA}; master has advanced."
+          fi
+
+      - name: Prepare beta channel files
+        if: steps.master_tip.outputs.is_current == 'true'
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+
+          def digest(path):
+              value = hashlib.sha256()
+              with path.open("rb") as source:
+                  for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                      value.update(chunk)
+              return value.hexdigest()
+
+          info = json.loads(Path("app/build/generated/version-info/version.json").read_text(encoding="utf-8"))
+          code = info.get("versionCode")
+          name = info.get("versionName")
+          git_hash = info.get("gitHash")
+          if type(code) is not int or code <= 0 or not isinstance(name, str) or name.startswith("v"):
+              raise SystemExit("Gradle version-info contains an invalid versionCode or versionName")
+          if not isinstance(git_hash, str) or len(git_hash) != 8:
+              raise SystemExit("Gradle version-info must contain an 8-character gitHash")
+
+          apk = Path("app/build/outputs/apk/release/app-release.apk")
+          if not apk.is_file():
+              raise SystemExit("Signed release APK was not produced")
+          beta_apk = Path("qr-code-simple-beta.apk")
+          beta_apk.write_bytes(apk.read_bytes())
+
+          tag = subprocess.run(
+              ["git", "describe", "--tags", "--abbrev=0", "--match", "v*"],
+              check=False, capture_output=True, text=True,
+          ).stdout.strip()
+          revision_range = f"{tag}..HEAD" if tag else "HEAD"
+          changelog = subprocess.run(
+              ["git", "log", "--format=%s", "--no-decorate", "-n", "20", revision_range],
+              check=True, capture_output=True, text=True,
+          ).stdout.strip()
+          manifest = {
+              "apkFile": beta_apk.name,
+              "apkSha256": digest(beta_apk),
+              "apkSize": beta_apk.stat().st_size,
+              "changelog": changelog,
+              "channel": "beta",
+              "gitHash": git_hash,
+              "versionCode": code,
+              "versionName": name,
+          }
+          Path("version.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Install bsdiff for optional beta patches
+        if: steps.master_tip.outputs.is_current == 'true'
+        continue-on-error: true
+        run: sudo apt-get update && sudo apt-get install -y bsdiff
+
+      - name: Generate optional beta delta chains
+        if: steps.master_tip.outputs.is_current == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/build_beta_delta_chains.py
+
+      - name: Validate beta metadata
+        if: steps.master_tip.outputs.is_current == 'true'
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          apk = Path("qr-code-simple-beta.apk")
+          metadata = json.loads(Path("version.json").read_text(encoding="utf-8"))
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          if metadata.get("apkFile") != apk.name or metadata.get("apkSha256") != digest:
+              raise SystemExit("beta version.json does not describe the generated APK")
+          if metadata.get("apkSize") != apk.stat().st_size:
+              raise SystemExit("beta version.json does not contain the generated APK size")
+          if type(metadata.get("versionCode")) is not int or not isinstance(metadata.get("versionName"), str):
+              raise SystemExit("beta version.json is missing version metadata")
+          PY
+
+      - name: Upload beta channel artifact
+        if: steps.master_tip.outputs.is_current == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: beta-channel-${{ github.sha }}
+          path: |
+            qr-code-simple-beta.apk
+            version.json
+            patch-beta-*.bspatch
+          retention-days: 7
+          if-no-files-found: error
+
   coverage-pages:
     name: Deploy Coverage Report to GitHub Pages
     runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/master'
+    needs: [build, beta]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.beta.outputs.is_current == 'true'
+    concurrency:
+      group: qr-code-simple-pages-deployment
+      cancel-in-progress: true
     permissions:
       contents: read
       pages: write
@@ -109,8 +283,14 @@ jobs:
       - name: Download coverage report
         uses: actions/download-artifact@v8
         with:
-          name: coverage-report
+          name: coverage-report-${{ github.sha }}
           path: coverage-report
+
+      - name: Download beta channel files
+        uses: actions/download-artifact@v8
+        with:
+          name: beta-channel-${{ github.sha }}
+          path: beta-channel
 
       - name: Generate coverage badge JSON
         run: |
@@ -152,6 +332,11 @@ jobs:
           mv pages/index.html pages/coverage.html
           # Remove any leftover index.html to keep the root slot free
           rm -f pages/index.html
+
+      - name: Add beta channel to Pages
+        run: |
+          mkdir -p pages/beta
+          cp beta-channel/version.json beta-channel/qr-code-simple-beta.apk pages/beta/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
