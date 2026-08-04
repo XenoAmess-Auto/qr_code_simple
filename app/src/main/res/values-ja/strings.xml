@@ -150,7 +150,7 @@
     <string name="version_with_prefix">v%1$s (%2$s)</string>
     <string name="buy_me_a_coffee">コーヒーを奢る</string>
     <string name="check_update">アップデートを確認</string>
-    <string name="check_beta_update">ベータ版のアップデートを確認</string>
+    <string name="check_beta_update">ベータ</string>
     <string name="auto_check_update">自動確認</string>
     <string name="version_history">バージョン履歴</string>
     <string name="version_history_title">バージョン履歴</string>

@@ -147,7 +147,7 @@
     <string name="later">Later</string>
     <string name="buy_me_a_coffee">Buy me a coffee</string>
     <string name="check_update">Check for updates</string>
-    <string name="check_beta_update">Check beta updates</string>
+    <string name="check_beta_update">Beta</string>
     <string name="auto_check_update">Auto-check</string>
     <string name="version_history">Version history</string>
     <string name="version_history_title">Version history</string>
