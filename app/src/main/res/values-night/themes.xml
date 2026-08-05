@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.QRCodeSimple" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="Theme.QRCodeSimple" parent="Theme.Material3.DynamicColors.Dark.NoActionBar">
         <item name="colorPrimary">@color/cyan_200</item>
         <item name="colorPrimaryVariant">@color/cyan_700</item>
         <item name="colorOnPrimary">@color/black</item>

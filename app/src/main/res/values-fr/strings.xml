@@ -950,4 +950,5 @@ https://another.com
 
     <string name="scan_vibration">Vibrer lors d\'un scan réussi</string>
 
+    <string name="export_excel">Exporter en Excel</string>
 </resources>

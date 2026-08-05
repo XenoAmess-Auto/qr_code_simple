@@ -164,6 +164,8 @@ class QRCodeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Android 12+ 跟随壁纸动态取色（低版本回退主题中的青色）
+        com.google.android.material.color.DynamicColors.applyToActivitiesIfAvailable(this)
 
         // 初始化标签管理器
         TagManager.init(this)
