@@ -479,4 +479,7 @@
     <string name="logo_shape_rounded">둥그 사각형</string>
     <string name="logo_shape_circle">원형</string>
     <string name="logo_corner_radius">모서리 반경</string>
+    <string name="scan_feedback">스캔 피드백</string>
+    <string name="scan_sound">스캔 성공 시 소리 재생</string>
+    <string name="scan_vibration">스캔 성공 시 진동</string>
 </resources>

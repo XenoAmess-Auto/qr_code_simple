@@ -81,6 +81,31 @@ class QRCodeApp : Application() {
             prefs.edit().putBoolean(KEY_APP_UPDATE_AUTO_CHECK, enabled).apply()
         }
 
+        private const val KEY_SCAN_SOUND_ENABLED = "scan_sound_enabled"
+        private const val KEY_SCAN_VIBRATION_ENABLED = "scan_vibration_enabled"
+
+        /** 扫码成功提示音开关（默认开）。 */
+        fun isScanSoundEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_SCAN_SOUND_ENABLED, true)
+        }
+
+        fun setScanSoundEnabled(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_SCAN_SOUND_ENABLED, enabled).apply()
+        }
+
+        /** 扫码成功震动开关（默认开）。 */
+        fun isScanVibrationEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_SCAN_VIBRATION_ENABLED, true)
+        }
+
+        fun setScanVibrationEnabled(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_SCAN_VIBRATION_ENABLED, enabled).apply()
+        }
+
         /**
          * 24h 节流：距上次检查不足 24h 返回 false；
          * 否则先记录本次检查时间（避免失败时每次启动都请求网络）并返回 true。

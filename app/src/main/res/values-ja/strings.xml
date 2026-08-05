@@ -441,4 +441,7 @@
     <string name="logo_shape_rounded">角丸四角</string>
     <string name="logo_shape_circle">円形</string>
     <string name="logo_corner_radius">角丸半径</string>
+    <string name="scan_feedback">スキャン時のフィードバック</string>
+    <string name="scan_sound">スキャン成功時にサウンドを再生</string>
+    <string name="scan_vibration">スキャン成功時にバイブレーション</string>
 </resources>

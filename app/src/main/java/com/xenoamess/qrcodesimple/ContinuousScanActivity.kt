@@ -1,11 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -117,28 +113,11 @@ class ContinuousScanActivity : AppCompatActivity() {
         updateCount()
 
         if (isVibrationEnabled) {
-            vibrate()
+            ScanFeedback.play(this)
         }
 
         if (isAutoSaveEnabled) {
             saveResult(scanResult)
-        }
-    }
-
-    private fun vibrate() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            val vibrator = vibratorManager.defaultVibrator
-            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(100)
-            }
         }
     }
 

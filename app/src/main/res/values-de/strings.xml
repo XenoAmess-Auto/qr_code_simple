@@ -467,4 +467,7 @@
     <string name="logo_shape_rounded">Abgerundet</string>
     <string name="logo_shape_circle">Kreis</string>
     <string name="logo_corner_radius">Eckenradius</string>
+    <string name="scan_feedback">Scan-Feedback</string>
+    <string name="scan_sound">Ton bei erfolgreichem Scan abspielen</string>
+    <string name="scan_vibration">Bei erfolgreichem Scan vibrieren</string>
 </resources>

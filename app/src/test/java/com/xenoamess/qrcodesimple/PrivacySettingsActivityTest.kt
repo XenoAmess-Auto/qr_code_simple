@@ -96,6 +96,31 @@ class PrivacySettingsActivityTest {
     }
 
     @Test
+    fun scanFeedbackSwitchesPersistAndToggle() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        assertTrue("sound defaults on", QRCodeApp.isScanSoundEnabled(context))
+        assertTrue("vibration defaults on", QRCodeApp.isScanVibrationEnabled(context))
+
+        onView(withId(R.id.switchScanSound)).perform(click())
+        onView(withId(R.id.switchScanVibration)).perform(click())
+        idleMain()
+
+        assertFalse(QRCodeApp.isScanSoundEnabled(context))
+        assertFalse(QRCodeApp.isScanVibrationEnabled(context))
+
+        scenario.onActivity { activity ->
+            assertFalse(activity.findViewById<Switch>(R.id.switchScanSound).isChecked)
+            assertFalse(activity.findViewById<Switch>(R.id.switchScanVibration).isChecked)
+        }
+
+        onView(withId(R.id.switchScanSound)).perform(click())
+        onView(withId(R.id.switchScanVibration)).perform(click())
+        idleMain()
+        assertTrue(QRCodeApp.isScanSoundEnabled(context))
+        assertTrue(QRCodeApp.isScanVibrationEnabled(context))
+    }
+
+    @Test
     fun enablingAppLockWithoutPinShowsSetPinDialog() {
         onView(withId(R.id.switchAppLock)).perform(click())
         idleMain()

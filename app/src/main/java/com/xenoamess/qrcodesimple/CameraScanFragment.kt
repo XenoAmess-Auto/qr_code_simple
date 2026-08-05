@@ -401,6 +401,7 @@ class CameraScanFragment : Fragment() {
 
     internal fun showResult(result: QRCodeScanner.ScanResult) {
         if (!isAdded) return
+        ScanFeedback.play(requireContext())
         scanResultListener?.let { listener ->
             activity?.runOnUiThread {
                 listener.onScanResult(result)

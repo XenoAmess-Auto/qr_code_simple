@@ -52,6 +52,8 @@ class PrivacySettingsActivity : AppCompatActivity() {
         updateAppLockUI()
         updateRetentionUI()
         binding.switchBlacklistAutoUpdate.isChecked = QRCodeApp.isBlacklistAutoUpdateEnabled(this)
+        binding.switchScanSound.isChecked = QRCodeApp.isScanSoundEnabled(this)
+        binding.switchScanVibration.isChecked = QRCodeApp.isScanVibrationEnabled(this)
     }
 
     private val retentionOptions = intArrayOf(0, 30, 90, 365)
@@ -92,6 +94,14 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
         binding.btnHistoryRetention.setOnClickListener {
             showRetentionDialog()
+        }
+
+        binding.switchScanSound.setOnCheckedChangeListener { _, isChecked ->
+            QRCodeApp.setScanSoundEnabled(this, isChecked)
+        }
+
+        binding.switchScanVibration.setOnCheckedChangeListener { _, isChecked ->
+            QRCodeApp.setScanVibrationEnabled(this, isChecked)
         }
 
         binding.switchBlacklistAutoUpdate.setOnCheckedChangeListener { _, isChecked ->

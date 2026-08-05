@@ -512,4 +512,7 @@
     <string name="logo_shape_rounded">Rounded</string>
     <string name="logo_shape_circle">Circle</string>
     <string name="logo_corner_radius">Corner radius</string>
+    <string name="scan_feedback">Scan feedback</string>
+    <string name="scan_sound">Play sound on successful scan</string>
+    <string name="scan_vibration">Vibrate on successful scan</string>
 </resources>
