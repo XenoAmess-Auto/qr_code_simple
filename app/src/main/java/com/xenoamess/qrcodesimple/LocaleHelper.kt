@@ -24,7 +24,8 @@ object LocaleHelper {
         Language("zh", "中文"),
         Language("ja", "日本語"),
         Language("ko", "한국어"),
-        Language("de", "Deutsch")
+        Language("de", "Deutsch"),
+        Language("fr", "Français")
     )
 
     data class Language(val code: String, val displayName: String)
