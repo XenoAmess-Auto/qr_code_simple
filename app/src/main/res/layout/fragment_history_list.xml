@@ -5,6 +5,40 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <!-- 统计卡片 -->
+    <LinearLayout
+        android:id="@+id/statsCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:drawable/dialog_holo_light_frame">
+
+        <TextView
+            android:id="@+id/tvStats7d"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvStats30d"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvStatsTop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
     <!-- 搜索栏 -->
     <androidx.appcompat.widget.SearchView
         android:id="@+id/searchView"

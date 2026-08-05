@@ -473,4 +473,8 @@
     <string name="scan_sound">扫码成功播放提示音</string>
     <string name="scan_vibration">扫码成功震动</string>
     <string name="export_excel">导出为 Excel</string>
+    <string name="stats_title">统计</string>
+    <string name="stats_7d">7 天：%1$d 次扫码</string>
+    <string name="stats_30d">30 天：%1$d 次扫码</string>
+    <string name="stats_top">热门：%1$s</string>
 </resources>

@@ -93,6 +93,34 @@ class HistoryFragment : Fragment() {
         }
     }
 
+    private fun refreshStats() {
+        if (!::repository.isInitialized) return
+        lifecycleScope.launch {
+            try {
+                val now = System.currentTimeMillis()
+                val day7 = now - 7L * 24 * 60 * 60 * 1000
+                val day30 = now - 30L * 24 * 60 * 60 * 1000
+                val count7 = repository.scannedCountSince(day7)
+                val count30 = repository.scannedCountSince(day30)
+                val top = repository.topScannedContents(3).takeIf { it.isNotEmpty() }
+                withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    listBinding.tvStats7d.text = getString(R.string.stats_7d, count7)
+                    listBinding.tvStats30d.text = getString(R.string.stats_30d, count30)
+                    listBinding.tvStatsTop.text = if (top.isNullOrEmpty()) {
+                        ""
+                    } else {
+                        getString(R.string.stats_top, top.joinToString("、") { it.content })
+                    }
+                }
+            } catch (_: Exception) {
+                // 统计是可选增强；失败时静默隐藏卡片
+                listBinding.tvStats7d.visibility = android.view.View.GONE
+                listBinding.tvStats30d.visibility = android.view.View.GONE
+                listBinding.tvStatsTop.visibility = android.view.View.GONE
+            }
+        }
+    }
+
     private fun showAppLockDialog() {
         if (AppLockManager.isBiometricEnabled() && AppLockManager.isBiometricAvailable(requireContext())) {
             AppLockManager.showBiometricPrompt(
@@ -256,6 +284,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun loadHistory() {
+        refreshStats()
         loadHistoryJob?.cancel()
         loadHistoryJob = lifecycleScope.launch {
             try {

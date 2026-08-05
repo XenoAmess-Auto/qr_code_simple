@@ -46,6 +46,34 @@ class HistoryRetentionTest {
     )
 
     @Test
+    fun `stats queries count scans within window and rank contents`() = runBlocking {
+        val now = System.currentTimeMillis()
+        val dao = db.historyDao()
+        dao.insert(item("https://hot.example.com", now - 1L * 24 * 60 * 60 * 1000))
+        dao.insert(item("https://hot.example.com", now - 6L * 24 * 60 * 60 * 1000))
+        dao.insert(item("https://old.example.com", now - 40L * 24 * 60 * 60 * 1000))
+        // 生成记录不应计入扫码统计
+        dao.insert(
+            HistoryItem(
+                content = "generated content",
+                type = HistoryType.QR_CODE,
+                timestamp = now,
+                isGenerated = true
+            )
+        )
+
+        val count7 = dao.countScannedSince(now - 7L * 24 * 60 * 60 * 1000)
+        val count30 = dao.countScannedSince(now - 30L * 24 * 60 * 60 * 1000)
+        assertEquals(2, count7)
+        assertEquals(2, count30)
+
+        val top = dao.topScannedContents(3)
+        assertEquals(2, top.size)
+        assertEquals("https://hot.example.com", top[0].content)
+        assertEquals(2, top[0].cnt)
+    }
+
+    @Test
     fun `deleteOlderThan removes expired non-favorite items only`() = runBlocking {
         val now = 1_700_000_000_000L
         val cutoff = now - 30L * 24 * 60 * 60 * 1000
