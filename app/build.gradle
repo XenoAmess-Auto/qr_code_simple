@@ -28,7 +28,7 @@ class GlobalTestLogger implements org.gradle.api.tasks.testing.TestListener {
  * monotonically increasing versionCode. A source archive or shallow checkout is not
  * sufficient: fail early with instructions instead of silently publishing bad metadata.
  */
-def runGit = { List<String> arguments, boolean allowFailure = false ->
+def Map runGit(List<String> arguments, boolean allowFailure = false) {
     def execution
     def result
     try {
@@ -345,6 +345,10 @@ dependencies {
 
 // Package release history with the app without mutating source assets.
 tasks.register('generateChangelog') {
+    // Capture at configuration time: the configuration cache forbids touching the script
+    // object from a task action during execution.
+    def projectProviders = providers
+    def projectRootDir = rootProject.projectDir
     outputs.file(changelogFile)
     // Git refs are external task inputs and can change without source changes.
     outputs.upToDateWhen { false }
@@ -352,7 +356,20 @@ tasks.register('generateChangelog') {
         def outputFile = changelogFile.get().asFile
         outputFile.parentFile.mkdirs()
 
-        def tagsResult = runGit(['tag', '-l', 'v*', '--sort=-creatordate'], true)
+        // Local runner created at execution time so the configuration cache never has to
+        // serialize a script-level closure captured by this task action.
+        def gitRun = { List<String> args, boolean allow = false ->
+            def exec = projectProviders.exec {
+                workingDir projectRootDir
+                commandLine(*(['git'] + args))
+                ignoreExitValue = true
+            }
+            def out = exec.standardOutput.asText.get().trim()
+            def err = exec.standardError.asText.get().trim()
+            [exitValue: exec.result.get().exitValue, output: out, error: err]
+        }
+
+        def tagsResult = gitRun(['tag', '-l', 'v*', '--sort=-creatordate'], true)
         def tags = tagsResult.exitValue == 0
                 ? tagsResult.output.readLines().findAll { !it.trim().isEmpty() }
                 : []
@@ -363,12 +380,12 @@ tasks.register('generateChangelog') {
 
         def changelog = new StringBuilder()
         tags.eachWithIndex { String tag, int index ->
-            def dateResult = runGit(['log', '-1', '--format=%cs', tag], true)
+            def dateResult = gitRun(['log', '-1', '--format=%cs', tag], true)
             def date = dateResult.exitValue == 0 && dateResult.output ? dateResult.output : 'unknown date'
             changelog.append("## ${tag} (${date})\n")
 
             def range = index + 1 < tags.size() ? "${tags[index + 1]}..${tag}" : tag
-            def subjectsResult = runGit(['log', '--format=%s', '--no-decorate', range], true)
+            def subjectsResult = gitRun(['log', '--format=%s', '--no-decorate', range], true)
             if (subjectsResult.exitValue == 0 && subjectsResult.output) {
                 subjectsResult.output.readLines()
                         .findAll { !it.trim().isEmpty() }
@@ -404,9 +421,12 @@ tasks.register('writeVersionInfo') {
 
 tasks.register('jacocoTestReport', JacocoReport) {
     dependsOn 'testDebugUnitTest'
+    // Capture at configuration time: the configuration cache forbids script-object access
+    // (project.delete) from a task action during execution.
+    def projectLayout = layout
 
     doFirst {
-        delete reports.html.outputLocation
+        projectLayout.buildDirectory.dir('reports/jacoco/html').get().asFile.deleteDir()
     }
 
     reports {
