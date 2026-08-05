@@ -6,6 +6,28 @@
 > 执行规则：每项独立 commit + push，CI 全绿为验收门槛；本地验证命令统一为
 > `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`（JDK 21）。
 
+## 执行状态（2026-08-05 更新）
+
+- [x] P0.1 Gradle 10 就绪：迁移 AGP 9 内置 Kotlin（移除 kotlin-android 插件 + kotlinOptions→compilerOptions）、清理 gradle.properties 全部旧 flag、显式 junit-platform-launcher、baselineprofile 插件升 1.5.0-beta01、jacoco 指向 built_in_kotlinc 输出（修复覆盖率塌陷）
+- [x] P0.2 version catalog（gradle/libs.versions.toml，全部依赖版本集中管理）
+- [x] P0.3 配置缓存（generateChangelog 内联 git 执行、jacoco doFirst 用捕获 layout）
+- [x] P0.4 弃用 API 清理（Locale/CSVFormat/overridePendingTransition/WifiConfiguration 全限定名/AppDatabase 文件级 Suppress；编译 0 警告）
+- [x] P1.1 HistoryDetailActivityTest 点击重试化（修复 CI 偶发 PerformException）
+- [x] P1.2 ReleasePathSmokeTest（SVG/CSV/Excel 导入/ZIP MediaStore 导出 instrumented）
+- [x] P1.3 覆盖盲区（ScannerOverlay/ScanRegion 已有测试；BatchResultActivity 由 P1.2 覆盖；processImage 记录为真实限制）
+- [x] P1.4 文档纠错（barcode-formats.md 过时注记移除）
+- [x] F1 法语 locale（431+61 条 100% 对齐，5 语言门禁生效——补漏 export_excel/stats 翻译时被 lint 捕获）
+- [x] F2 ACTION_PROCESS_TEXT 入口（长按文本→生成）
+- [x] F3 CSV 模板（已存在，确认无需新增）
+- [x] F4 历史统计卡片（7/30 天扫码数 + 热门 Top3，DAO 查询 + 测试）
+- [x] F5 扫描声音/震动开关（ScanFeedback helper，接入相机/连续扫描）
+- [x] F6 Material You 动态色（DynamicColors + 主题切换，低版本回退青色）
+- [x] F7 深链 qr-code-simple://generate?text=&format=
+- [x] F8 历史 Excel 导出（XSSFWorkbook + SAF，roundtrip 测试）
+- [ ] P3.1 v0.2.7 Stable 发布（等 CI 全绿后打 tag）
+- [ ] P3.2 商店上架评估
+- [ ] P3.3 通用 APK 体积优化调研
+
 ## P0 — 工程现代化（构建债，低风险高确定性）
 
 ### P0.1 Gradle 10 就绪清理
