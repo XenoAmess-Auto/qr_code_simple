@@ -59,35 +59,30 @@ object BarcodeGenerator {
                 ErrorCorrectionLevel.M -> 40
                 ErrorCorrectionLevel.Q -> 55
                 ErrorCorrectionLevel.H -> 70
-                else -> 33
             }
             AppBarcodeFormat.PDF417 -> when (ecLevel) {
                 ErrorCorrectionLevel.L -> 2
                 ErrorCorrectionLevel.M -> 4
                 ErrorCorrectionLevel.Q -> 6
                 ErrorCorrectionLevel.H -> 8
-                else -> 2
             }
             AppBarcodeFormat.HAN_XIN -> when (ecLevel) {
                 ErrorCorrectionLevel.L -> 1
                 ErrorCorrectionLevel.M -> 2
                 ErrorCorrectionLevel.Q -> 3
                 ErrorCorrectionLevel.H -> 4
-                else -> 1
             }
             AppBarcodeFormat.MICRO_QR -> when (ecLevel) {
                 ErrorCorrectionLevel.L -> MicroQrCode.ErrorLevel.L
                 ErrorCorrectionLevel.M -> MicroQrCode.ErrorLevel.M
                 ErrorCorrectionLevel.Q -> MicroQrCode.ErrorLevel.Q
                 ErrorCorrectionLevel.H -> MicroQrCode.ErrorLevel.Q
-                else -> MicroQrCode.ErrorLevel.M
             }
             AppBarcodeFormat.GRID_MATRIX -> when (ecLevel) {
                 ErrorCorrectionLevel.L -> 1
                 ErrorCorrectionLevel.M -> 2
                 ErrorCorrectionLevel.Q -> 3
                 ErrorCorrectionLevel.H -> 5
-                else -> 1
             }
             else -> null
         }

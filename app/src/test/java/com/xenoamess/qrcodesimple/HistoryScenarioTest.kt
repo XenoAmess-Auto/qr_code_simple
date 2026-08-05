@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.xenoamess.qrcodesimple
 
 import android.content.Intent

@@ -1,3 +1,7 @@
+// security-crypto EncryptedSharedPreferences/MasterKeys are deprecated at import level;
+// migration is a separate security-track upgrade, so the whole file is suppressed.
+@file:Suppress("DEPRECATION")
+
 package com.xenoamess.qrcodesimple.data
 
 import android.content.Context
@@ -133,6 +137,9 @@ abstract class AppDatabase : RoomDatabase() {
             return password
         }
 
+        // EncryptedSharedPreferences/MasterKeys are deprecated; migrating them is a
+        // security-crypto upgrade tracked separately from routine cleanup.
+        @Suppress("DEPRECATION")
         private fun getEncryptedSharedPreferences(context: Context): SharedPreferences {
             val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
 

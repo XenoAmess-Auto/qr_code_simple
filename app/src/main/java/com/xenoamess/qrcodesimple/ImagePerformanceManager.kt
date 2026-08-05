@@ -52,6 +52,7 @@ object ImagePerformanceManager {
                 return@withContext loadWithHeavyCompression(data, options)
             }
 
+            @Suppress("DEPRECATION")
             val decodeOptions = BitmapFactory.Options().apply {
                 inSampleSize = sampleSize
                 inPreferredConfig = options.preferredConfig

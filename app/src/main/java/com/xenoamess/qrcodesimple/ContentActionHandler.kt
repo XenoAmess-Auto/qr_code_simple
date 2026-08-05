@@ -7,7 +7,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.Uri
-import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSpecifier
 import android.net.wifi.WifiNetworkSuggestion
@@ -299,14 +298,14 @@ class ContentActionHandler(private val activity: Activity) {
                 ).show()
             }
             
-            val config = WifiConfiguration().apply {
+            val config = android.net.wifi.WifiConfiguration().apply {
                 SSID = "\"${wifi.ssid}\""
                 if (wifi.password.isNotEmpty()) {
                     when (wifi.encryption.uppercase()) {
                         "WEP" -> {
                             wepKeys[0] = "\"${wifi.password}\""
-                            allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
-                            allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40)
+                            allowedKeyManagement.set(android.net.wifi.WifiConfiguration.KeyMgmt.NONE)
+                            allowedGroupCiphers.set(android.net.wifi.WifiConfiguration.GroupCipher.WEP40)
                         }
                         "WPA", "WPA2" -> {
                             preSharedKey = "\"${wifi.password}\""
@@ -316,7 +315,7 @@ class ContentActionHandler(private val activity: Activity) {
                         }
                     }
                 } else {
-                    allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
+                    allowedKeyManagement.set(android.net.wifi.WifiConfiguration.KeyMgmt.NONE)
                 }
             }
 

@@ -35,6 +35,5 @@ fun BarcodeFormat.localizedNameWithEnglish(context: Context): CharSequence {
 
 private fun isEnglishLocale(context: Context): Boolean {
     val locale = context.resources.configuration.locales.get(0)
-        ?: context.resources.configuration.locale
     return locale.language.equals("en", ignoreCase = true)
 }

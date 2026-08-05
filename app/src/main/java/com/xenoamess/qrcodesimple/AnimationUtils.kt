@@ -142,6 +142,7 @@ object AnimationUtils {
     /**
      * Activity 进入动画
      */
+    @Suppress("DEPRECATION")
     fun Activity.overrideEnterAnimation() {
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
@@ -149,6 +150,7 @@ object AnimationUtils {
     /**
      * Activity 退出动画
      */
+    @Suppress("DEPRECATION")
     fun Activity.overrideExitAnimation() {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }

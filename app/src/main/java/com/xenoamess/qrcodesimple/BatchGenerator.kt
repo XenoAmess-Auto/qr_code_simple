@@ -49,7 +49,7 @@ object BatchGenerator {
                     .setSkipHeaderRecord(true)
                     .setIgnoreHeaderCase(true)
                     .setTrim(true)
-                    .build()
+                    .get()
                 val csvParser = CSVParser.parse(reader, csvFormat)
 
                 var lineNumber = 1
