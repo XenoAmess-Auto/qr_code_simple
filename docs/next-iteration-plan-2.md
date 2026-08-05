@@ -150,13 +150,23 @@
 - 打 `v0.2.7` tag → release workflow 验证：发布物 = ApkNormalized + apksigner34 重签；对 v0.2.6（无 libapkpatch.so）不出补丁（lib 守卫），v0.2.7 之后的版本开始有增量
 - 发布后验证 Beta/Stable 更新检查链路与签名连续性
 
-### P3.2 商店上架评估
+### P3.2 商店上架评估（结论）
 
-- Fastlane 元数据已有；评估 Google Play 上架（隐私政策、targetSdk、上传密钥）与 F-Droid 可复现构建
+- **Google Play**：可行且阻碍小。AAB 构建已存在；需 Play Console 账号、隐私政策 URL、数据安全表单、内容评级与 Play App Signing 上传密钥（可与 debug keystore 解耦）。Fastlane 元数据（en-US/zh-CN 描述、截图、changelog）已就绪。targetSdk 35 满足 Play 要求。
+- **F-Droid**：基本可行，有一个阻碍点——`libapkpatch.so` 是上游预编译二进制（MIT），F-Droid 构建通常要求纯源码；若上架 F-Droid 需评估：a) 在 F-Droid 构建变体剔除增量更新 native 库（增量仅自更新通道用，可开关）；b) 或向 F-Droid 提供 ApkDiffPatch 源码构建说明。建议优先 Play，F-Droid 作为后续选项。
 
-### P3.3 通用 APK 体积优化调研
+### P3.3 通用 APK 体积优化调研（结论）
 
-- 159MB 主要来自 4 ABI 原生库；调研 per-ABI 分发（AAB 已有）或在更新系统按 `Build.SUPPORTED_ABIS` 分发拆分包（先出方案）
+159MB 中约 125MB 是 `lib/`（4 ABI × OpenCV ~23-28MB + SQLCipher ~2-4MB + ML Kit/barhopper 等）。
+
+| 方案 | 收益 | 工作量 | 建议 |
+|---|---|---|---|
+| Play App Bundle（已有 AAB） | Play 下载按 ABI/语言拆分 | 0（已具备） | 上架即得 |
+| 自更新通道 per-ABI 分发 | 每包降至 ~50-60MB（单 ABI） | 中-大：发布侧 4 ABI 构建 + metadata 按 ABI 出条目；客户端 `Build.SUPPORTED_ABIS` 选择下载；补丁链按 ABI 独立维护 | 后续可选大项 |
+| 依赖瘦身（裁剪 OpenCV 模块） | 有限（WeChatQR 需要完整 opencv_java4） | 大且风险高 | 不推荐 |
+| 现有 R8 + shrinkResources + Baseline Profile | 已生效 | - | 保持 |
+
+结论：体积优化的现实路径是「Play 上架吃 AAB 红利 + 自更新按 ABI 分发」两步；后者需要为 4 个 ABI 各维护一套发布物与补丁链，建议等增量更新体系稳定（v0.2.7 首验）后再实施。
 
 ## 执行顺序
 
