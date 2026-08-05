@@ -6,5 +6,6 @@
     <locale android:name="ko"/>
     <locale android:name="de"/>
     <locale android:name="fr"/>
+    <locale android:name="ru"/>
     <locale android:name="es"/>
 </locale-config>
