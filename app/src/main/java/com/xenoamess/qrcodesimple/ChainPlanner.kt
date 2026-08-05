@@ -9,13 +9,12 @@ object ChainPlanner {
     }
 
     /**
-     * A chain is optional optimization only. Any uncertainty, including memory pressure risk,
-     * returns FullApk so the normal verified download path remains available.
+     * A chain is optional optimization only. Any uncertainty returns FullApk so the normal
+     * verified download path remains available.
      */
     fun choosePlan(
         chain: UpdateDecider.UpdateChain?,
         localApkSha256: String?,
-        localApkSizeBytes: Long,
         remoteApkSizeBytes: Long
     ): UpdatePlan {
         if (chain == null || chain.hops.isEmpty()) return UpdatePlan.FullApk
@@ -25,9 +24,6 @@ object ChainPlanner {
             return UpdatePlan.FullApk
         }
         if (remoteApkSizeBytes <= 0 || chain.totalSizeBytes >= remoteApkSizeBytes) {
-            return UpdatePlan.FullApk
-        }
-        if (!ApkPatcher.hasSafeIncrementalInputSize(localApkSizeBytes, chain.totalSizeBytes)) {
             return UpdatePlan.FullApk
         }
         return UpdatePlan.Incremental(chain)

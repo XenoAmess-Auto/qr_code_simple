@@ -113,14 +113,14 @@ class UpdateDeciderTest {
                         "fromApkSha256":"${"a".repeat(64)}",
                         "totalSize":300,
                         "hops":[
-                            {"toVersionCode":19,"url":"https://example.test/18-19.bspatch","size":100,"patchSha256":"${"c".repeat(64)}","resultSha256":"${"d".repeat(64)}"},
-                            {"toVersionCode":20,"url":"https://example.test/19-20.bspatch","size":200,"patchSha256":"${"e".repeat(64)}","resultSha256":"${"b".repeat(64)}"}
+                            {"toVersionCode":19,"url":"https://example.test/18-19.patch","size":100,"patchSha256":"${"c".repeat(64)}","resultSha256":"${"d".repeat(64)}"},
+                            {"toVersionCode":20,"url":"https://example.test/19-20.patch","size":200,"patchSha256":"${"e".repeat(64)}","resultSha256":"${"b".repeat(64)}"}
                         ]
                     },
                     "17":{
                         "fromApkSha256":"${"a".repeat(64)}",
                         "totalSize":100,
-                        "hops":[{"toVersionCode":20,"url":"https://example.test/bad.bspatch","size":100,"patchSha256":"bad","resultSha256":"${"b".repeat(64)}"}]
+                        "hops":[{"toVersionCode":20,"url":"https://example.test/bad.patch","size":100,"patchSha256":"bad","resultSha256":"${"b".repeat(64)}"}]
                     }
                 }
             }"""

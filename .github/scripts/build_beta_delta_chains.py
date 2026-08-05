@@ -2,11 +2,25 @@
 """Maintain the prerelease beta archive and verified beta APK upgrade chains.
 
 The archive keeps eight signed beta bases. New patches target the 1, 2, and 4
-most recent bases; older upgrades use flattened chains when the required patches
-are available. The Pages manifest always retains a full APK checksum and size.
+most recent bases using ApkDiffPatch single-hop direct patches; the Pages manifest
+always retains a full APK checksum and size.
+
+ApkDiffPatch (sisong/ApkDiffPatch v1.8.1, MIT) server-side generation:
+- the published beta APK is ApkNormalized(new APK) + apksigner 34.0.0 re-sign (done by
+  the workflow before this script runs)
+- ZipDiff generates a direct patch, ZipPatch replays it, and the result is compared
+  byte-for-byte with the published APK; mismatches drop that patch
+- only generate for from-versions whose APK contains libapkpatch.so; older clients
+  cannot apply ZiPat1 patches and safely fall back to the full download
+- drop patches not smaller than half the target APK; single-hop chains only
+- any failure drops only that entry and never blocks the beta publication
+
+Environment:
+  APKDIFF_BIN  directory containing ZipDiff/ZipPatch (default ".")
 """
 
 import argparse
+import filecmp
 import hashlib
 import json
 import os
@@ -15,13 +29,18 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 
 ARCHIVE_TAG = "beta-archive"
 HISTORY_FILE = "beta-history.json"
+APKDIFF_BIN = os.environ.get("APKDIFF_BIN", ".")
+ZIPDIFF = os.path.join(APKDIFF_BIN, "ZipDiff")
+ZIPPATCH = os.path.join(APKDIFF_BIN, "ZipPatch")
 MAX_KEEP = 8
 BACKOFF = (1, 2, 4)
+MIN_PATCH_RATIO = 0.5
 VERSION_NAME = re.compile(r"^\d+\.\d+\.\d+(?:\+\d+)?$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -86,6 +105,16 @@ def write_json(path: Path, value: dict) -> None:
     os.replace(temporary_path, path)
 
 
+def apk_has_native_lib(apk: Path) -> bool:
+    """Only from-versions bundling libapkpatch.so can apply ZiPat1 patches; older
+    clients fall back to the full download, keeping the update button always usable."""
+    try:
+        with zipfile.ZipFile(apk) as archive:
+            return any(name.endswith("libapkpatch.so") for name in archive.namelist())
+    except Exception:
+        return False
+
+
 def archive_assets() -> set[str]:
     result = gh("view", ARCHIVE_TAG, "--json", "assets")
     try:
@@ -112,7 +141,7 @@ def download_archive_asset(asset: str, destination: Path) -> Path | None:
 def patch_metadata(value: object, from_code: int, to_code: int) -> dict | None:
     if not isinstance(value, dict):
         return None
-    expected_name = f"patch-beta-{from_code}-to-{to_code}.bspatch"
+    expected_name = f"patch-beta-{from_code}-to-{to_code}.patch"
     size = positive_int(value.get("size"))
     patch_hash = valid_sha(value.get("patchSha256"))
     if value.get("file") != expected_name or size is None or patch_hash is None:
@@ -126,13 +155,13 @@ def create_patch(old_apk: Path, new_apk: Path, output_path: Path, new_hash: str,
         candidate = temporary_dir / output_path.name
         verified = temporary_dir / "verified.apk"
         try:
-            run(["bsdiff", str(old_apk), str(new_apk), str(candidate)])
-            run(["bspatch", str(old_apk), str(verified), str(candidate)])
-            if sha256(verified) != new_hash:
-                print(f"drop {output_path.name}: bspatch verification hash mismatch")
+            run([ZIPDIFF, str(old_apk), str(new_apk), str(candidate)])
+            run([ZIPPATCH, str(old_apk), str(candidate), str(verified)])
+            if not filecmp.cmp(new_apk, verified, shallow=False):
+                print(f"drop {output_path.name}: ZipPatch verification bytes differ")
                 return None
-            if candidate.stat().st_size >= new_size:
-                print(f"drop {output_path.name}: patch is not smaller than the target APK")
+            if candidate.stat().st_size >= new_size * MIN_PATCH_RATIO:
+                print(f"drop {output_path.name}: patch is not smaller than half the target APK")
                 return None
             shutil.move(str(candidate), str(output_path))
             return {
@@ -205,57 +234,6 @@ def sanitize_history(raw_history: object, assets: set[str]) -> dict[int, dict]:
     return history
 
 
-def build_chains(history: dict[int, dict], target_code: int) -> dict[str, dict]:
-    codes = sorted(history)
-    target_index = codes.index(target_code)
-    chains: dict[str, dict] = {}
-    for start_index in range(target_index):
-        source_code = codes[start_index]
-        source_hash = valid_sha(history[source_code].get("apkSha256"))
-        if source_hash is None:
-            continue
-        current_index = start_index
-        hops: list[dict] = []
-        complete = True
-        while current_index < target_index:
-            selected: tuple[int, dict] | None = None
-            step = 1
-            while current_index + step <= target_index:
-                next_index = current_index + step
-                from_code = codes[current_index]
-                to_code = codes[next_index]
-                candidate = patch_metadata(
-                    history[to_code].get("patches", {}).get(str(from_code)), from_code, to_code
-                )
-                if candidate is not None:
-                    selected = (next_index, candidate)
-                step *= 2
-            if selected is None:
-                complete = False
-                break
-            next_index, patch = selected
-            to_code = codes[next_index]
-            target_hash = valid_sha(history[to_code].get("apkSha256"))
-            if target_hash is None:
-                complete = False
-                break
-            hops.append({
-                "toVersionCode": to_code,
-                "url": f"https://github.com/{repository()}/releases/download/{ARCHIVE_TAG}/{patch['file']}",
-                "size": patch["size"],
-                "patchSha256": patch["patchSha256"],
-                "resultSha256": target_hash,
-            })
-            current_index = next_index
-        if complete and hops:
-            chains[str(source_code)] = {
-                "fromApkSha256": source_hash,
-                "totalSize": sum(hop["size"] for hop in hops),
-                "hops": hops,
-            }
-    return chains
-
-
 def managed_assets(entry: dict) -> set[str]:
     assets = {entry["apk"]}
     for patch in entry.get("patches", {}).values():
@@ -289,6 +267,10 @@ def main() -> None:
     # This is deliberately written before any remote operation so full beta metadata survives failures.
     write_json(arguments.metadata, metadata)
 
+    if not Path(ZIPDIFF).is_file() or not Path(ZIPPATCH).is_file():
+        print(f"ZipDiff/ZipPatch unavailable (APKDIFF_BIN='{APKDIFF_BIN}'); publishing full beta metadata without patches")
+        return
+
     if shutil.which("gh") is None:
         raise RuntimeError("gh is required to maintain beta-archive")
     ensure_archive()
@@ -306,26 +288,26 @@ def main() -> None:
 
         patches: dict[str, dict] = {}
         previous_codes = sorted(code for code in history if code < version_code)
-        if shutil.which("bsdiff") is None or shutil.which("bspatch") is None:
-            print("bsdiff/bspatch unavailable; publishing full beta metadata without new patches")
-        else:
-            for backoff in BACKOFF:
-                if backoff > len(previous_codes):
-                    continue
-                source_code = previous_codes[-backoff]
-                source = history[source_code]
-                old_apk = download_archive_asset(source["apk"], working_dir / f"apk-{source_code}")
-                if old_apk is None:
-                    print(f"skip beta {source_code}: archived APK could not be downloaded")
-                    continue
-                if sha256(old_apk) != source["apkSha256"]:
-                    print(f"skip beta {source_code}: archived APK hash disagrees with beta history")
-                    continue
-                patch_path = Path(f"patch-beta-{source_code}-to-{version_code}.bspatch")
-                patch = create_patch(old_apk, arguments.apk, patch_path, new_hash, new_size)
-                if patch is not None:
-                    patches[str(source_code)] = patch
-                    print(f"created {patch_path.name} ({patch['size']} bytes)")
+        for backoff in BACKOFF:
+            if backoff > len(previous_codes):
+                continue
+            source_code = previous_codes[-backoff]
+            source = history[source_code]
+            old_apk = download_archive_asset(source["apk"], working_dir / f"apk-{source_code}")
+            if old_apk is None:
+                print(f"skip beta {source_code}: archived APK could not be downloaded")
+                continue
+            if sha256(old_apk) != source["apkSha256"]:
+                print(f"skip beta {source_code}: archived APK hash disagrees with beta history")
+                continue
+            if not apk_has_native_lib(old_apk):
+                print(f"skip beta {source_code}: old APK has no libapkpatch.so, full download only")
+                continue
+            patch_path = Path(f"patch-beta-{source_code}-to-{version_code}.patch")
+            patch = create_patch(old_apk, arguments.apk, patch_path, new_hash, new_size)
+            if patch is not None:
+                patches[str(source_code)] = patch
+                print(f"created {patch_path.name} ({patch['size']} bytes)")
 
         archive_apk = f"beta-{version_code}.apk"
         staged_apk = working_dir / archive_apk
@@ -346,7 +328,25 @@ def main() -> None:
         kept_history = {code: history[code] for code in sorted(keep_codes)}
         pruned_history = {code: entry for code, entry in history.items() if code not in keep_codes}
 
-        chains = build_chains(kept_history, version_code)
+        # Single-hop direct chains: from version -> current version.
+        chains: dict[str, dict] = {}
+        for from_code, patch in patches.items():
+            source_hash = valid_sha(history[int(from_code)].get("apkSha256"))
+            if source_hash is None:
+                continue
+            chains[from_code] = {
+                "fromApkSha256": source_hash,
+                "totalSize": patch["size"],
+                "hops": [
+                    {
+                        "toVersionCode": version_code,
+                        "url": f"https://github.com/{repository()}/releases/download/{ARCHIVE_TAG}/{patch['file']}",
+                        "size": patch["size"],
+                        "patchSha256": patch["patchSha256"],
+                        "resultSha256": new_hash,
+                    }
+                ],
+            }
         metadata["patches"] = patches
         metadata["chains"] = chains
         metadata["apkSha256"] = new_hash
@@ -371,7 +371,7 @@ def main() -> None:
                 else:
                     print(f"could not prune beta {code} asset {asset}")
 
-    print(f"beta: {len(patches)} direct patch(es), {len(metadata['chains'])} upgrade chain(s)")
+    print(f"beta: {len(patches)} direct patch(es), {len(chains)} upgrade chain(s)")
 
 
 if __name__ == "__main__":

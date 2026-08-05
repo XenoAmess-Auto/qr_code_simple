@@ -6,8 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Executes a verified bsdiff chain. A null result is intentionally recoverable: callers download
- * the full APK through the normal verified path instead.
+ * Executes a verified delta chain (ApkDiffPatch). A null result is intentionally recoverable:
+ * callers download the full APK through the normal verified path instead.
  */
 class IncrementalUpdater(
     private val context: Context,
@@ -17,9 +17,9 @@ class IncrementalUpdater(
         hop: UpdateDecider.PatchHop,
         onProgress: (Int) -> Unit
     ) -> Boolean = { _, _, _, _ -> false },
-    internal var patcher: (base: File, patch: File, output: File, maxOutputBytes: Long) -> Unit =
-        { base, patch, output, maxOutputBytes ->
-            ApkPatcher.applyPatch(base, patch, output, maxOutputBytes)
+    internal var patcher: (base: File, patch: File, output: File) -> Unit =
+        { base, patch, output ->
+            ApkPatcher.applyPatch(context, base, patch, output)
         },
     internal var installedApkProvider: (Context) -> File? = { ApkPatcher.installedApkFile(it) }
 ) {
@@ -50,9 +50,6 @@ class IncrementalUpdater(
             if (!installedApk.isFile || !installedApk.canRead()) return@withContext null
             // Planner checks this before choosing a chain; retain an executor-side guard as defense
             // against callers or metadata changing between planning and execution.
-            if (!ApkPatcher.hasSafeIncrementalInputSize(installedApk.length(), chain.totalSizeBytes)) {
-                return@withContext null
-            }
             if (!ApkPatcher.sha256(installedApk)
                     .equals(chain.fromApkSha256, ignoreCase = true)
             ) {
@@ -62,7 +59,7 @@ class IncrementalUpdater(
             var currentApk = installedApk
             var downloadedBefore = 0L
             for ((index, hop) in chain.hops.withIndex()) {
-                val patchFile = File(workDirectory, "hop-$index.bspatch")
+                val patchFile = File(workDirectory, "hop-$index.patch")
                 val progressBeforeHop = downloadedBefore
                 val downloaded = downloader(hop.url, patchFile, hop) { hopPercent ->
                     val overall = (
@@ -77,10 +74,6 @@ class IncrementalUpdater(
                 if (!ApkPatcher.sha256(patchFile).equals(hop.patchSha256, ignoreCase = true)) {
                     return@withContext null
                 }
-                // The base grows after each hop, so enforce the real on-disk input size again.
-                if (!ApkPatcher.hasSafeIncrementalInputSize(currentApk.length(), patchFile.length())) {
-                    return@withContext null
-                }
 
                 val isLastHop = index == chain.hops.lastIndex
                 val output = if (isLastHop) {
@@ -89,7 +82,7 @@ class IncrementalUpdater(
                     File(workDirectory, "hop-$index.apk")
                 }
                 output.delete()
-                patcher(currentApk, patchFile, output, targetApkSizeBytes)
+                patcher(currentApk, patchFile, output)
                 if (!output.isFile ||
                     output.length() > targetApkSizeBytes ||
                     (isLastHop && output.length() != targetApkSizeBytes) ||

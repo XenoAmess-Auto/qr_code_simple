@@ -133,7 +133,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `UpdateDecider.kt` | 纯解析/决策层：校验 `version.json`、Stable canonical asset、可信 URL 与增量链；以 `versionCode` 为主、语义版本仅处理同 code 的并列比较 |
 | `AppUpdateManager.kt` | 更新编排：Stable 自动检查默认关且 24h 节流；Beta 仅由 About 手动检查。下载到私有 `filesDir/updates`，按精确大小和 SHA-256 校验；增量失败或不安全时回退完整 APK；API 26+ 请求安装未知来源权限后继续安装 |
 | `ApkArchiveVerifier.kt` | 安装前校验 APK archive 的包名、目标 `versionCode` 和签名证书集合必须与已安装应用一致 |
-| `ApkPatcher.kt` / `IncrementalUpdater.kt` / `ChainPlanner.kt` | 已校验 bsdiff 增量链：只有基础 APK hash 匹配、补丁总量更小且输入低于 64 MiB 安全上限时才使用；否则完整下载 |
+| `ApkPatcher.kt` / `IncrementalUpdater.kt` / `ChainPlanner.kt` | 已校验 ApkDiffPatch（`ZiPat1`，`libapkpatch.so` native）增量链：基础 APK hash 匹配、补丁总量更小且每跳 hash 校验通过才使用；否则完整下载 |
 | `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
 | `baselineprofile/` | Baseline Profile 生成模块（`:app:generateReleaseBaselineProfile` 在模拟器/真机上生成 `app/src/release/generated/baselineProfiles/baseline-prof.txt`，release 构建自动合并进 R8 art profile） |
 | `app/src/androidTest/` | 仪器测试（启动冒烟、MediaStore Q+、SQLCipher 真机加密、视频扫描全管线），CI `android-test` job 在 API 35 模拟器上运行 |
@@ -163,7 +163,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `app/build.gradle` | Git 派生的 `versionCode` / `versionName` / `GIT_HASH`、`CHANGELOG.txt` 生成和 `writeVersionInfo` 元数据任务 |
 | `.github/workflows/build.yml` | push/PR 验证、模拟器仪器测试、仅 master 的与 Debug 同证书 Beta 发布，以及覆盖率和 Beta 通道的 Pages 部署 |
 | `.github/workflows/release.yml` | 严格 Stable 标签/`origin/master` 校验、与 Debug 同证书的 APK/AAB、`version.json`、GitHub Release 和可选增量补丁 |
-| `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的已校验 bsdiff 补丁与扁平升级链 |
+| `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的 ApkDiffPatch 单跳补丁（ZipDiff + ZipPatch 回打自验 + libapkpatch.so 守卫） |
 | `docs/versioning-and-update-system.md` | Git 版本模型、Stable/Beta 发布、`version.json`、签名连续性和首轮发布操作说明 |
 
 ## 6.1 版本、发布与应用更新

@@ -1,23 +1,20 @@
 package com.xenoamess.qrcodesimple
 
-import io.sigpipe.jbsdiff.Patch
+import android.content.Context
 import java.io.File
-import java.io.FilterOutputStream
-import java.io.IOException
-import java.io.OutputStream
 import java.security.MessageDigest
 
-/** File helpers for verified APK delta updates. */
+/**
+ * File helpers for verified APK delta updates (ApkDiffPatch "ZiPat1" format).
+ */
 object ApkPatcher {
 
-    /**
-     * jbsdiff reads both the base APK and a patch into byte arrays. Keep their combined file input
-     * below 64 MiB, leaving headroom for the patcher's working buffers. This intentionally excludes
-     * the current approximately 122 MiB APK from incremental updates and uses the full APK instead.
-     */
-    const val MAX_INCREMENTAL_INPUT_BYTES = 64L * 1024L * 1024L
+    private const val APKDIFF_PATCH_MAGIC = "ZiPat1"
+    // ApkDiffPatch decompression memory ceiling; larger APKs stream through the temp file.
+    private const val MAX_UNCOMPRESS_MEMORY_BYTES = 128L * 1024 * 1024
+    private const val APKDIFF_THREAD_NUM = 2
 
-    fun installedApkFile(context: android.content.Context): File? {
+    fun installedApkFile(context: Context): File? {
         return try {
             context.applicationInfo.sourceDir
                 ?.let(::File)
@@ -42,55 +39,47 @@ object ApkPatcher {
         }
     }
 
-    fun hasSafeIncrementalInputSize(baseApkSizeBytes: Long, patchInputBytes: Long): Boolean {
-        if (baseApkSizeBytes <= 0 || patchInputBytes <= 0) return false
-        return baseApkSizeBytes < MAX_INCREMENTAL_INPUT_BYTES - patchInputBytes
-    }
-
-    /** Applies one patch after enforcing input and output bounds. */
-    fun applyPatch(
-        baseApk: File,
-        patchFile: File,
-        outputFile: File,
-        maxOutputBytes: Long
-    ) {
-        if (!hasSafeIncrementalInputSize(baseApk.length(), patchFile.length())) {
-            throw IOException("Incremental patch input exceeds the safe memory ceiling")
-        }
-        if (maxOutputBytes !in 1..UpdateDecider.MAX_ARTIFACT_BYTES) {
-            throw IOException("Incremental patch output ceiling is invalid")
+    /**
+     * Applies one ApkDiffPatch patch. The patch must be ZiPat1 format; anything else is
+     * rejected so callers fall back to the full APK. Native failures (including a missing
+     * libapkpatch.so) are wrapped in a plain IllegalStateException instead of an Error so
+     * the recoverable full-download fallback always works.
+     */
+    fun applyPatch(context: Context, baseApk: File, patchFile: File, outputFile: File) {
+        val magic = readMagic(patchFile)
+        if (!magic.startsWith(APKDIFF_PATCH_MAGIC)) {
+            throw IllegalArgumentException("unknown patch format: ${magic.take(8)}")
         }
         outputFile.parentFile?.mkdirs()
-        val baseBytes = baseApk.readBytes()
-        val patchBytes = patchFile.readBytes()
-        outputFile.outputStream().buffered().use { output ->
-            Patch.patch(baseBytes, patchBytes, BoundedOutputStream(output, maxOutputBytes))
+        val tmp = File(context.cacheDir, "apkpatch_tmp.bin")
+        try {
+            val rc = com.github.sisong.ApkPatch.patch(
+                baseApk.absolutePath,
+                patchFile.absolutePath,
+                outputFile.absolutePath,
+                MAX_UNCOMPRESS_MEMORY_BYTES,
+                tmp.absolutePath,
+                APKDIFF_THREAD_NUM
+            )
+            if (rc != 0) throw IllegalStateException("ApkDiffPatch apply failed rc=$rc")
+            if (!outputFile.isFile || outputFile.length() <= 0) {
+                throw IllegalStateException("ApkDiffPatch apply produced empty output")
+            }
+        } catch (e: Throwable) {
+            throw IllegalStateException(
+                "ApkDiffPatch apply failed: ${e.javaClass.simpleName}: ${e.message}",
+                e
+            )
+        } finally {
+            tmp.delete()
         }
     }
 
-    private class BoundedOutputStream(
-        output: OutputStream,
-        private val maxBytes: Long
-    ) : FilterOutputStream(output) {
-        private var writtenBytes = 0L
-
-        override fun write(byte: Int) {
-            reserve(1)
-            out.write(byte)
-            writtenBytes++
-        }
-
-        override fun write(bytes: ByteArray, offset: Int, length: Int) {
-            if (length == 0) return
-            reserve(length.toLong())
-            out.write(bytes, offset, length)
-            writtenBytes += length
-        }
-
-        private fun reserve(length: Long) {
-            if (length < 0 || writtenBytes > maxBytes - length) {
-                throw IOException("Incremental patch output exceeds the safe size limit")
-            }
+    private fun readMagic(file: File): String {
+        return file.inputStream().buffered().use { input ->
+            val buf = ByteArray(8)
+            val read = input.read(buf)
+            String(buf, 0, read.coerceAtLeast(0), Charsets.US_ASCII)
         }
     }
 }

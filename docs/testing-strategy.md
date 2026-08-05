@@ -74,7 +74,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 ├── UpdateDeciderTest.kt                 # Release/manifest 解析、可信端点、升级链
 ├── ApkArchiveVerifierTest.kt            # 包名、versionCode、签名证书集合匹配
 ├── ChainPlannerTest.kt                  # 增量与完整 APK 的安全选择
-├── IncrementalUpdaterTest.kt            # 多跳补丁、临时文件清理、64 MiB 防线
+├── IncrementalUpdaterTest.kt            # 多跳补丁、临时文件清理、失败回退全量
 ├── AboutFragmentUiTest.kt               # Stable/Beta 手动入口与打包 changelog
 ├── HistoryBackupManagerTest.kt
 ├── TagManagerTest.kt
@@ -137,7 +137,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 - Stable 测试要求 GitHub Release 的 `version.json`、标签和 `qr-code-simple-<version>.apk` 一致；只有不存在 canonical APK 候选时才允许旧 `app-release.apk` 兼容别名。
 - Beta 测试固定使用 Pages 的 `/beta/version.json` 和 `/beta/qr-code-simple-beta.apk`，并确认 Beta 只能手动检查。
 - 下载测试确认精确大小、SHA-256、HTTPS 可信端点和临时文件清理；`ApkArchiveVerifierTest` 覆盖 APK 包名、目标版本号和签名证书集合验证。
-- `ChainPlannerTest` 与 `IncrementalUpdaterTest` 覆盖 hash 匹配、补丁更小、64 MiB 输入上限、多跳结果 hash 和失败后完整 APK 回退所依赖的安全条件。
+- `ChainPlannerTest` 与 `IncrementalUpdaterTest` 覆盖 hash 匹配、补丁更小、多跳结果 hash 和失败后完整 APK 回退所依赖的安全条件；`ApkPatcherTest` 覆盖 ZiPat1 格式分派与 native 缺失时的受控异常；`IncrementalUpdateInstrumentedTest` 用预生成 ZiPat1 夹具在模拟器上验证 ART 打补丁字节一致。
 
 ## 6. UI 与 Adapter 测试
 
@@ -207,7 +207,7 @@ CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执
 - 覆盖率由 JaCoCo 生成（`./gradlew :app:jacocoTestReport`）。`app/build.gradle` 关闭 AGP 内置覆盖率，改用 Gradle JaCoCo 插件并开启 `includeNoLocationClasses = true`，使 Robolectric 加载的类也能被计入；同时排除 `jdk.internal.reflect.*` 避免 Gradle worker 序列化异常。
 - 覆盖率门禁：`jacocoTestCoverageVerification` 已接入 CI（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径）。
 - 更新通道：Stable 自动检查默认关闭且仅检查 Stable；Beta 只从 About 页按钮手动检查。`version.json` 的 SHA-256 和大小是必填安全边界，不允许为了兼容旧 metadata 删除它们。
-- 增量更新：补丁链只是优化。安装包与补丁输入无法保持在 64 MiB 安全上限内、基础 APK hash 不匹配、补丁验证失败或补丁不比完整 APK 小时，都必须走已校验的完整 APK 下载。
+- 增量更新：补丁链只是优化。基础 APK hash 不匹配、补丁验证失败或补丁不比完整 APK 小时，都必须走已校验的完整 APK 下载。补丁格式为 ApkDiffPatch `ZiPat1`（`libapkpatch.so` native 打补丁），发布物由 `ApkNormalized + apksigner 34.0.0` 重签产生。
 - 金样测试：`GenerationGoldenTest` 固定输入断言 SVG 输出 SHA-256，防止生成图案在依赖升级时静默变化；预期变更需更新金样并注明原因。
 - 场景测试套件（0.2.3）：`ContentActionScenarioTest`（各内容类型动作分发）、`ContentActionWifiModernTest`（API 29 WiFi 路径）、`BackupActivityFileRoundtripTest`（真实文件备份往返）、`HistoryScenarioTest` / `HistoryDetailScenarioTest`（筛选/搜索/标签/分享/详情操作）、`BatchFileScenarioTest`（CSV/Excel 导入 + ZIP/PNG 落盘）、`ScanRegionTouchTest`、`CameraScanScenarioTest`、`BlacklistUpdaterDownloadTest`、`AppShortcutManagerTest`、`CameraFocusManagerTest`。
 - Robolectric 测试要点：

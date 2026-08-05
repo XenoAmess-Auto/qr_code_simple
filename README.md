@@ -298,7 +298,7 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── AppUpdateManager.kt              # Update UI, verified download, fallback, and install orchestration
 ├── ApkArchiveVerifier.kt            # Package, version-code, and signing-certificate verification
 ├── ApkPatcher.kt                    # Bounded APK delta patch helpers
-├── IncrementalUpdater.kt            # Verified bsdiff-chain executor with full-download fallback
+├── IncrementalUpdater.kt            # Verified ApkDiffPatch (ZiPat1) chain executor with full-download fallback
 ├── ChainPlanner.kt                  # Chooses safe incremental versus full APK transport
 ├── PrivacySettingsActivity.kt       # Privacy mode toggle
 ├── DatabaseSecurityActivity.kt      # SQLCipher key rotation

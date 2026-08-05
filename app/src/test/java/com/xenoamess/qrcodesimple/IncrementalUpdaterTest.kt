@@ -2,10 +2,7 @@ package com.xenoamess.qrcodesimple
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
-import io.sigpipe.jbsdiff.Diff
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.RandomAccessFile
 import java.security.MessageDigest
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -34,6 +31,12 @@ class IncrementalUpdaterTest {
         patchByUrl.clear()
         updater = IncrementalUpdater(context).apply {
             installedApkProvider = { baseApk.takeIf { it.isFile } }
+            // Fake patcher: the patch bytes ARE the target bytes (mirrors the ApkDiffPatch
+            // contract where a valid patch reconstructs the target exactly).
+            patcher = { _, patch, output ->
+                output.parentFile?.mkdirs()
+                output.writeBytes(patch.readBytes())
+            }
         }
     }
 
@@ -53,8 +56,8 @@ class IncrementalUpdaterTest {
             for (index in 2_000 until 2_400) bytes[index] = (bytes[index] - 3).toByte()
         }
         baseApk.writeBytes(base)
-        val first = createHop(18, 19, base, middle)
-        val second = createHop(19, 20, middle, target)
+        val first = createHop(18, 19, middle)
+        val second = createHop(19, 20, target)
         val chain = UpdateDecider.UpdateChain(
             fromApkSha256 = sha256(base),
             totalSizeBytes = first.sizeBytes + second.sizeBytes,
@@ -83,7 +86,7 @@ class IncrementalUpdaterTest {
         val base = ByteArray(4 * 1024) { 1 }
         val target = base.copyOf().also { it[100] = 9 }
         baseApk.writeBytes(base)
-        val hop = createHop(18, 19, base, target).copy(patchSha256 = "0".repeat(64))
+        val hop = createHop(18, 19, target).copy(patchSha256 = "0".repeat(64))
         val chain = UpdateDecider.UpdateChain(
             fromApkSha256 = sha256(base),
             totalSizeBytes = hop.sizeBytes,
@@ -99,34 +102,11 @@ class IncrementalUpdaterTest {
     }
 
     @Test
-    fun `executor rejects oversized input even when called without planner`() = runBlocking {
-        RandomAccessFile(baseApk, "rw").use { it.setLength(ApkPatcher.MAX_INCREMENTAL_INPUT_BYTES) }
-        val hop = UpdateDecider.PatchHop(
-            toVersionCode = 19,
-            url = "https://example.test/unused.bspatch",
-            sizeBytes = 1,
-            patchSha256 = "a".repeat(64),
-            resultSha256 = "b".repeat(64)
-        )
-        val chain = UpdateDecider.UpdateChain(
-            fromApkSha256 = "c".repeat(64),
-            totalSizeBytes = 1,
-            hops = listOf(hop)
-        )
-        val output = File(context.filesDir, "updates/qr-code-simple-0.2.6.apk")
-
-        assertNull(updater.executeChain(chain, output, "b".repeat(64), 1) {})
-        assertFalse(output.exists())
-    }
-
-    @Test
-    fun `bounded patch output falls back before a valid oversized result is written`() = runBlocking {
+    fun `result hash failure cleans output and temp files`() = runBlocking {
         val base = ByteArray(4 * 1024) { 1 }
-        val target = base.copyOf().also { bytes ->
-            for (index in bytes.indices) bytes[index] = (index % 127).toByte()
-        }
+        val target = base.copyOf().also { it[100] = 9 }
         baseApk.writeBytes(base)
-        val hop = createHop(18, 19, base, target)
+        val hop = createHop(18, 19, target).copy(resultSha256 = "0".repeat(64))
         val chain = UpdateDecider.UpdateChain(
             fromApkSha256 = sha256(base),
             totalSizeBytes = hop.sizeBytes,
@@ -135,34 +115,40 @@ class IncrementalUpdaterTest {
         updater.downloader = fakeDownloader()
         val output = File(context.filesDir, "updates/qr-code-simple-0.2.6.apk")
 
-        assertNull(
-            updater.executeChain(
-                chain,
-                output,
-                sha256(target),
-                target.size.toLong() - 1
-            ) {}
-        )
+        assertNull(updater.executeChain(chain, output, sha256(target), target.size.toLong()) {})
         assertFalse(output.exists())
         assertFalse(File(output.parentFile, ".${output.name}.incremental.part").exists())
+        assertFalse(File(context.filesDir, "updates/incremental").exists())
+    }
+
+    @Test
+    fun `base hash mismatch rejects chain without patching`() = runBlocking {
+        baseApk.writeBytes(ByteArray(4 * 1024) { 1 })
+        val hop = createHop(18, 19, ByteArray(4 * 1024) { 2 })
+        val chain = UpdateDecider.UpdateChain(
+            fromApkSha256 = "f".repeat(64),
+            totalSizeBytes = hop.sizeBytes,
+            hops = listOf(hop)
+        )
+        val output = File(context.filesDir, "updates/qr-code-simple-0.2.6.apk")
+
+        assertNull(updater.executeChain(chain, output, "0".repeat(64), 1) {})
+        assertFalse(output.exists())
+        assertFalse(File(context.filesDir, "updates/incremental").exists())
     }
 
     private fun createHop(
         fromVersionCode: Long,
         toVersionCode: Long,
-        base: ByteArray,
         target: ByteArray
     ): UpdateDecider.PatchHop {
-        val url = "https://example.test/$fromVersionCode-$toVersionCode.bspatch"
-        val patchOutput = ByteArrayOutputStream()
-        Diff.diff(base, target, patchOutput)
-        val patch = patchOutput.toByteArray()
-        patchByUrl[url] = patch
+        val url = "https://example.test/$fromVersionCode-$toVersionCode.patch"
+        patchByUrl[url] = target
         return UpdateDecider.PatchHop(
             toVersionCode = toVersionCode,
             url = url,
-            sizeBytes = patch.size.toLong(),
-            patchSha256 = sha256(patch),
+            sizeBytes = target.size.toLong(),
+            patchSha256 = sha256(target),
             resultSha256 = sha256(target)
         )
     }

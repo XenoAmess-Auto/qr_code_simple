@@ -7,11 +7,10 @@ import org.junit.Test
 class ChainPlannerTest {
 
     @Test
-    fun `matching base and smaller safe chain selects incremental`() {
+    fun `matching base and smaller chain selects incremental`() {
         val plan = ChainPlanner.choosePlan(
             chain = chain(totalSizeBytes = 4L * MIB),
             localApkSha256 = "A".repeat(64),
-            localApkSizeBytes = 20L * MIB,
             remoteApkSizeBytes = 100L * MIB
         )
 
@@ -19,19 +18,14 @@ class ChainPlannerTest {
     }
 
     @Test
-    fun `missing base hash or oversized chain selects full apk`() {
+    fun `missing or mismatched base hash selects full apk`() {
         assertEquals(
             ChainPlanner.UpdatePlan.FullApk,
-            ChainPlanner.choosePlan(chain(), null, 20L * MIB, 100L * MIB)
+            ChainPlanner.choosePlan(chain(), null, 100L * MIB)
         )
         assertEquals(
             ChainPlanner.UpdatePlan.FullApk,
-            ChainPlanner.choosePlan(
-                chain(totalSizeBytes = 2L * MIB),
-                "a".repeat(64),
-                122L * MIB,
-                200L * MIB
-            )
+            ChainPlanner.choosePlan(chain(), "B".repeat(64), 100L * MIB)
         )
     }
 
@@ -39,7 +33,16 @@ class ChainPlannerTest {
     fun `chain no smaller than full apk selects full apk`() {
         assertEquals(
             ChainPlanner.UpdatePlan.FullApk,
-            ChainPlanner.choosePlan(chain(totalSizeBytes = 50L * MIB), "a".repeat(64), 8L * MIB, 50L * MIB)
+            ChainPlanner.choosePlan(chain(totalSizeBytes = 50L * MIB), "a".repeat(64), 50L * MIB)
+        )
+    }
+
+    @Test
+    fun `missing chain or empty hops selects full apk`() {
+        assertEquals(ChainPlanner.UpdatePlan.FullApk, ChainPlanner.choosePlan(null, "a".repeat(64), 100L * MIB))
+        assertEquals(
+            ChainPlanner.UpdatePlan.FullApk,
+            ChainPlanner.choosePlan(UpdateDecider.UpdateChain("a".repeat(64), 0L, emptyList()), "a".repeat(64), 100L * MIB)
         )
     }
 
@@ -49,7 +52,7 @@ class ChainPlannerTest {
         hops = listOf(
             UpdateDecider.PatchHop(
                 toVersionCode = 19,
-                url = "https://example.test/18-19.bspatch",
+                url = "https://example.test/18-19.patch",
                 sizeBytes = totalSizeBytes,
                 patchSha256 = "b".repeat(64),
                 resultSha256 = "c".repeat(64)

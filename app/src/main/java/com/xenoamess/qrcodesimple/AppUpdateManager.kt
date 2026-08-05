@@ -245,11 +245,7 @@ object AppUpdateManager {
     ): File? {
         val outputFile = updateOutputFile(activity, info) ?: return null
         val installedApk = ApkPatcher.installedApkFile(activity)
-        val localApkSha256 = if (
-            installedApk != null &&
-            info.chain != null &&
-            ApkPatcher.hasSafeIncrementalInputSize(installedApk.length(), info.chain.totalSizeBytes)
-        ) {
+        val localApkSha256 = if (installedApk != null && info.chain != null) {
             runCatching { ApkPatcher.sha256(installedApk) }.getOrNull()
         } else {
             null
@@ -257,7 +253,6 @@ object AppUpdateManager {
         val plan = ChainPlanner.choosePlan(
             chain = info.chain,
             localApkSha256 = localApkSha256,
-            localApkSizeBytes = installedApk?.length() ?: 0L,
             remoteApkSizeBytes = info.apkSizeBytes
         )
         if (plan is ChainPlanner.UpdatePlan.Incremental) {

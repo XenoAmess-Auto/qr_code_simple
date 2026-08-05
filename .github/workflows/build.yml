@@ -176,6 +176,57 @@ jobs:
             echo "Skipping stale beta commit ${GITHUB_SHA}; master has advanced."
           fi
 
+      # ========== ApkDiffPatch 增量补丁（v1.8.1，字节一致性需 apksigner 34）==========
+      - name: Install ApkDiffPatch toolchain
+        if: steps.master_tip.outputs.is_current == 'true'
+        run: |
+          mkdir -p apkdiff && cd apkdiff
+          gh release download v1.8.1 -R sisong/ApkDiffPatch -p '*bin_linux64*' --clobber
+          unzip -o -q ApkDiffPatch_v1.8.1_bin_linux64.zip
+          mv -f linux64/ApkNormalized linux64/ZipDiff linux64/ZipPatch ./
+          chmod +x ApkNormalized ZipDiff ZipPatch
+          echo "APKDIFF_BIN=$PWD" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # apksigner v35+ 会往首个 entry 插 padding extra field，ZipPatch 不还原 → 字节不一致
+      # → 签名失效（上游 issue #96/#107）。必须钉 build-tools 34.0.0，绝不能升级。
+      - name: Ensure apksigner 34
+        if: steps.master_tip.outputs.is_current == 'true'
+        run: |
+          APKSIGNER="$ANDROID_HOME/build-tools/34.0.0/apksigner"
+          if [ ! -x "$APKSIGNER" ]; then
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;34.0.0" >/dev/null 2>&1 || true
+          fi
+          if [ ! -x "$APKSIGNER" ]; then
+            echo "::warning::build-tools 34.0.0 不可用：本次 beta 仅全量，跳过增量补丁"
+            echo "APKSIGNER_OK=0" >> "$GITHUB_ENV"
+          else
+            echo "APKSIGNER=$APKSIGNER" >> "$GITHUB_ENV"
+            echo "APKSIGNER_OK=1" >> "$GITHUB_ENV"
+          fi
+
+      # 发布物 = ApkNormalized（确定性打包）+ apksigner34 重签。这是客户端实际安装的字节，
+      # apkSha256 必须对它计算。apksigner34 缺失时回退发布 AGP 签名原包（仍可安装，只是无增量）。
+      - name: Normalize and re-sign beta APK
+        if: steps.master_tip.outputs.is_current == 'true'
+        run: |
+          KEYSTORE="${RELEASE_KEYSTORE_FILE:-app/debug.keystore}"
+          PASSWORD="${RELEASE_KEYSTORE_PASSWORD:-android}"
+          ALIAS="${RELEASE_KEYSTORE_ALIAS:-androiddebugkey}"
+          if [ "${APKSIGNER_OK:-0}" = "1" ]; then
+            "$APKDIFF_BIN/ApkNormalized" app/build/outputs/apk/release/app-release.apk app-normalized.apk
+            "$APKSIGNER" sign --ks "$KEYSTORE" --ks-pass "pass:${PASSWORD}" --key-pass "pass:${PASSWORD}" \
+              --ks-key-alias "$ALIAS" \
+              --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+              --out app-published.apk app-normalized.apk
+          else
+            cp app/build/outputs/apk/release/app-release.apk app-published.apk
+          fi
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
+
       - name: Prepare beta channel files
         if: steps.master_tip.outputs.is_current == 'true'
         run: |
@@ -201,7 +252,7 @@ jobs:
           if not isinstance(git_hash, str) or len(git_hash) != 8:
               raise SystemExit("Gradle version-info must contain an 8-character gitHash")
 
-          apk = Path("app/build/outputs/apk/release/app-release.apk")
+          apk = Path("app-published.apk")
           if not apk.is_file():
               raise SystemExit("Signed release APK was not produced")
           beta_apk = Path("qr-code-simple-beta.apk")
@@ -232,16 +283,12 @@ jobs:
           )
           PY
 
-      - name: Install bsdiff for optional beta patches
-        if: steps.master_tip.outputs.is_current == 'true'
-        continue-on-error: true
-        run: sudo apt-get update && sudo apt-get install -y bsdiff
-
       - name: Generate optional beta delta chains
         if: steps.master_tip.outputs.is_current == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APKDIFF_BIN: ${{ env.APKDIFF_BIN }}
         run: python3 .github/scripts/build_beta_delta_chains.py
 
       - name: Validate beta metadata
@@ -271,7 +318,7 @@ jobs:
           path: |
             qr-code-simple-beta.apk
             version.json
-            patch-beta-*.bspatch
+            patch-beta-*.patch
           retention-days: 7
           if-no-files-found: error
 

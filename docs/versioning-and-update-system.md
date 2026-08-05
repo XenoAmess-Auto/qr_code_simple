@@ -51,9 +51,22 @@ git fetch --unshallow --tags
 | `qr-code-simple-<version>.aab` | canonical Stable AAB。 |
 | `version.json` | Stable 更新元数据。 |
 | `app-release.apk` | canonical APK 的兼容别名，不是新的独立构建。 |
-| `patch-<fromCode>-to-<toCode>.bspatch` | 可选的 Stable 增量补丁；没有可用历史、工具或补丁不划算时可以不存在。 |
+| `patch-<fromCode>-to-<toCode>.patch` | 可选的 Stable 增量补丁（ApkDiffPatch `ZiPat1` 格式）；没有可用历史、工具或补丁不划算时可以不存在。 |
 
 增量补丁生成失败不会使完整 APK/AAB 或 `version.json` 失效。Stable workflow 在创建 Release 前会再次确认 `version.json` 指向实际存在的 canonical APK，且 APK 的 SHA-256、字节数和标签版本一致。
+
+### 发布物与增量补丁（ApkDiffPatch）
+
+发布流程使用 ApkDiffPatch（`sisong/ApkDiffPatch` v1.8.1，MIT）生成增量补丁：
+
+1. **发布物 = `ApkNormalized(新 APK)` + `apksigner 34.0.0` 重签**。`ApkNormalized` 做确定性 zip 重打包，随后用与 AGP 相同的 keystore（默认 `app/debug.keystore`）重新签名 v1/v2/v3。这是客户端实际安装的字节，`apkSha256`/`apkSize` 必须对它计算。
+2. **apksigner 必须钉 34.0.0**：v35+ 会向首个 entry 的 local header 插入 padding extra field，ZipPatch 不还原 → 字节不一致 → 签名失效（上游 issue #96/#107）。34.0.0 不可用时降级为仅发布全量 APK。
+3. `ZipDiff(old.apk, 发布物, patch)` 生成直达补丁，`ZipPatch` 回打后与发布物逐字节 `cmp`，不一致丢弃。
+4. 补丁不小于发布物一半也丢弃；**单跳直达**，不再构建多跳链。
+5. **过渡安全**：只对「已装包内含 `libapkpatch.so`」的 from-版本生成补丁；旧客户端（无 native 库）自动全量下载，「检查更新」按钮始终可用。
+6. AAB 不做归一化重签，保持 AGP 产物。
+
+实测（v0.2.6 → 当前 master 构建）：ApkDiffPatch 补丁约 **3.6MB**（发布物 159MB 的 2.3%），且 154MB+ 的通用 APK 不再受旧 bsdiff 方案 64 MiB 内存上限限制，增量更新第一次真正可用。
 
 ## 3. Beta 通道和 GitHub Pages
 
@@ -84,8 +97,8 @@ Pages 的同一部署仍会生成并保留：
 `build_beta_delta_chains.py` 维护名为 `beta-archive` 的 GitHub **prerelease**。它固定为 prerelease，使 GitHub 的 `releases/latest` 继续只代表 Stable；首次创建时以仓库根提交为目标。
 
 - 存档最多保留 8 个已签名 Beta 基础 APK 和其历史元数据。
-- 新 Beta 会尝试针对最近第 1、2、4 个基础版本生成直接 `bsdiff` 补丁；补丁必须能回放到目标 APK、SHA-256 正确且小于完整 APK。
-- 存档元数据会在可用时生成扁平的多跳升级链。补丁和链都是优化，完整 Pages APK 及其 SHA-256/大小始终是可用的回退路径。
+- 新 Beta 会尝试针对最近第 1、2、4 个基础版本生成直接 ApkDiffPatch 补丁（与稳定版同一套归一化+apksigner34 重签管线）；补丁必须能回放到目标 APK、SHA-256 正确且小于发布物一半。
+- 补丁为单跳直达链，客户端格式统一为 `ZiPat1`。补丁和链都是优化，完整 Pages APK 及其 SHA-256/大小始终是可用的回退路径。
 
 ### 首个标签前的 Beta
 
@@ -146,7 +159,7 @@ Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.
   "hops": [
     {
       "toVersionCode": 123,
-      "url": "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.6/patch-122-to-123.bspatch",
+      "url": "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.6/patch-122-to-123.patch",
       "size": 345678,
       "patchSha256": "<patch-sha256>",
       "resultSha256": "<resulting-apk-sha256>"
@@ -194,10 +207,9 @@ Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.
 
 - 已安装 APK 的 SHA-256 等于 `fromApkSha256`。
 - 补丁链总下载量小于完整 APK。
-- 已安装 APK 与补丁输入的组合严格低于 64 MiB 安全上限。
 - 每个补丁的大小、SHA-256、每一跳输出 SHA-256，以及最终 APK SHA-256 均通过校验。
 
-补丁实现会将 base APK 和 patch 读入内存，所以 `ApkPatcher.MAX_INCREMENTAL_INPUT_BYTES` 固定为 64 MiB。当前体积较大的 APK 会直接走已校验的完整下载，而不会冒内存压力风险。链缺失、基础 hash 不匹配、补丁不够小、输入过大、下载失败或任一回放校验失败时，更新器都会清理临时文件并回退完整 APK。
+补丁格式为 ApkDiffPatch 的 `ZiPat1`（客户端内置 4 ABI `libapkpatch.so`，native 流式打补丁）。`ApkPatcher` 只接受 `ZiPat1` 头，其他格式一律拒绝；native 缺失或失败会包装成普通异常而不是崩溃。旧 bsdiff 方案的 64 MiB 内存上限已随 jbsdiff 一起移除，当前 150MB+ 的通用 APK 可以直接走增量。链缺失、基础 hash 不匹配、补丁不够小、下载失败或任一回放校验失败时，更新器都会清理临时文件并回退完整 APK。
 
 ## 6. 签名连续性
 

@@ -201,6 +201,14 @@
 - 覆盖率：指令 79.0% → 83.0%，行 73.7% → 78.6%；门禁提升至 0.80 / 0.75
 - 剩余低覆盖（真实限制）：CameraScanFragment.processImage（需真实相机帧）、VideoScanActivity 抽帧解码（需真实视频文件）、ScannerOverlayView 绘制、BatchResultActivity MediaStore 路径（Q+）
 
+## 增量更新迁移记录（ApkDiffPatch）
+
+- [x] 客户端：vendor `libapkpatch.so` + `libc++_shared.so`（4 ABI，来自 sisong/ApkDiffPatch v1.8.1 sdk），`ApkPatch.java` JNI 包装，`ApkPatcher` 重写为 ZiPat1 分派（native 缺失包装为受控异常），移除 jbsdiff 与 64 MiB 内存上限
+- [x] R8：`proguard-rules.pro` 增加 `-keep class com.github.sisong.ApkPatch { *; }`（release 开启混淆，JNI 绑定必须保留类名）
+- [x] 服务端：`build_stable_delta_chains.py` / `build_beta_delta_chains.py` 改为 ZipDiff 单跳直达 + ZipPatch 回打逐字节 cmp + `libapkpatch.so` 守卫；release/beta workflow 增加 ApkNormalized + apksigner 34.0.0 重签（apksigner v35+ 破坏字节一致性，必须钉 34）
+- [x] 试点验证（真实产物）：v0.2.6 → 当前 master 构建，ZipDiff 补丁 3.6MB（发布物 159MB 的 2.3%），ZipPatch 回打逐字节一致，重签证书与 debug keystore 一致（59e5cc89...）
+- [x] 过渡安全：只对含 `libapkpatch.so` 的已发布版本出补丁；v0.2.6 及更早用户下个版本全量升级，之后才有增量
+
 ## 第六轮执行记录（0.2.4，androidTest 基建 + 模拟器场景 + Baseline Profile）
 
 - [x] androidTest 基建：runner/rules/espresso + GrantPermissionRule 预授权（首启权限弹窗会挡住 RESUMED）；CI `android-test` job（android-emulator-runner, API 35, google_atd, x86_64, KVM；通用 debug/release APK 均打包 armv7a、arm64-v8a、x86、x86_64 OpenCV）

@@ -263,9 +263,8 @@ dependencies {
     // Apache Commons CSV
     implementation 'org.apache.commons:commons-csv:1.14.1'
 
-    // Incremental APK update client: bsdiff implementation and its bzip2 support.
-    implementation 'io.sigpipe:jbsdiff:1.0'
-    implementation 'org.apache.commons:commons-compress:1.28.0'
+    // Incremental APK update client: ApkDiffPatch native libraries (libapkpatch.so,
+    // vendored in src/main/jniLibs for all four ABIs) replace the former jbsdiff stack.
 
     // Apache POI - Excel import for batch generation
     def poi_version = '5.5.1'

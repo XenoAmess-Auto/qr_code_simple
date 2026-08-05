@@ -316,8 +316,8 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── UpdateDecider.kt                 # 可信元数据解析、版本决策与增量链校验
 ├── AppUpdateManager.kt              # 更新 UI、校验下载、回退与安装编排
 ├── ApkArchiveVerifier.kt            # 包名、版本号与签名证书校验
-├── ApkPatcher.kt                    # 有界 APK 增量补丁辅助
-├── IncrementalUpdater.kt            # 已校验 bsdiff 链执行器，失败回退完整 APK
+├── ApkPatcher.kt                    # ApkDiffPatch（ZiPat1）增量补丁应用与 APK 校验
+├── IncrementalUpdater.kt            # 已校验 ApkDiffPatch 链执行器，失败回退完整 APK
 ├── ChainPlanner.kt                  # 选择安全的增量或完整 APK 传输
 ├── PrivacySettingsActivity.kt       # 隐私模式开关
 ├── DatabaseSecurityActivity.kt      # SQLCipher 密钥轮换

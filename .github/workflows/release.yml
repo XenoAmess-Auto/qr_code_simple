@@ -80,6 +80,55 @@ jobs:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           RELEASE_KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
 
+      # ========== ApkDiffPatch 增量补丁（v1.8.1，字节一致性需 apksigner 34）==========
+      - name: Install ApkDiffPatch toolchain
+        run: |
+          mkdir -p apkdiff && cd apkdiff
+          gh release download v1.8.1 -R sisong/ApkDiffPatch -p '*bin_linux64*' --clobber
+          unzip -o -q ApkDiffPatch_v1.8.1_bin_linux64.zip
+          mv -f linux64/ApkNormalized linux64/ZipDiff linux64/ZipPatch ./
+          chmod +x ApkNormalized ZipDiff ZipPatch
+          echo "APKDIFF_BIN=$PWD" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # apksigner v35+ 会往首个 entry 插 padding extra field，ZipPatch 不还原 → 字节不一致
+      # → 签名失效（上游 issue #96/#107）。必须钉 build-tools 34.0.0，绝不能升级。
+      - name: Ensure apksigner 34
+        run: |
+          APKSIGNER="$ANDROID_HOME/build-tools/34.0.0/apksigner"
+          if [ ! -x "$APKSIGNER" ]; then
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;34.0.0" >/dev/null 2>&1 || true
+          fi
+          if [ ! -x "$APKSIGNER" ]; then
+            echo "::warning::build-tools 34.0.0 不可用：本次仅发布全量 APK，跳过增量补丁生成"
+            echo "APKSIGNER_OK=0" >> "$GITHUB_ENV"
+          else
+            echo "APKSIGNER=$APKSIGNER" >> "$GITHUB_ENV"
+            echo "APKSIGNER_OK=1" >> "$GITHUB_ENV"
+          fi
+
+      # 发布物 = ApkNormalized（确定性打包）+ apksigner34 重签。这是客户端实际安装的字节，
+      # apkSha256 必须对它计算。apksigner34 缺失时回退发布 AGP 签名原包（仍可安装，只是无增量）。
+      # 无 RELEASE_KEYSTORE_* secrets 时基线为 app/debug.keystore，与 Gradle 回退一致。
+      - name: Normalize and re-sign published APK
+        run: |
+          KEYSTORE="${RELEASE_KEYSTORE_FILE:-app/debug.keystore}"
+          PASSWORD="${RELEASE_KEYSTORE_PASSWORD:-android}"
+          ALIAS="${RELEASE_KEYSTORE_ALIAS:-androiddebugkey}"
+          if [ "${APKSIGNER_OK:-0}" = "1" ]; then
+            "$APKDIFF_BIN/ApkNormalized" app/build/outputs/apk/release/app-release.apk app-normalized.apk
+            "$APKSIGNER" sign --ks "$KEYSTORE" --ks-pass "pass:${PASSWORD}" --key-pass "pass:${PASSWORD}" \
+              --ks-key-alias "$ALIAS" \
+              --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+              --out app-published.apk app-normalized.apk
+          else
+            cp app/build/outputs/apk/release/app-release.apk app-published.apk
+          fi
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEYSTORE_ALIAS: ${{ secrets.RELEASE_KEYSTORE_ALIAS }}
+
       - name: Prepare canonical release artifacts and manifest
         id: artifacts
         run: |
@@ -113,7 +162,7 @@ jobs:
           if not isinstance(git_hash, str) or not re.fullmatch(r"[0-9a-fA-F]{8}", git_hash):
               raise SystemExit("Gradle version-info must contain an 8-character gitHash")
 
-          source_apk = Path("app/build/outputs/apk/release/app-release.apk")
+          source_apk = Path("app-published.apk")
           source_aab = Path("app/build/outputs/bundle/release/app-release.aab")
           if not source_apk.is_file() or not source_aab.is_file():
               raise SystemExit("Signed release APK and AAB were not both produced")
@@ -154,14 +203,11 @@ jobs:
               output.write(f"version_name={version_name}\n")
           PY
 
-      - name: Install bsdiff for optional stable patches
-        continue-on-error: true
-        run: sudo apt-get update && sudo apt-get install -y bsdiff
-
       - name: Generate optional stable delta chains
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APKDIFF_BIN: ${{ env.APKDIFF_BIN }}
         run: python3 .github/scripts/build_stable_delta_chains.py --tag "${GITHUB_REF_NAME}"
 
       - name: Validate release metadata
@@ -207,7 +253,7 @@ jobs:
             version.json
             app-release.apk
           )
-          assets+=(patch-*.bspatch)
+          assets+=(patch-*.patch)
           gh release create "${GITHUB_REF_NAME}" \
             --title "v${{ steps.artifacts.outputs.version_name }}" \
             --generate-notes \

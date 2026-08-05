@@ -6,6 +6,9 @@
 -keep class org.opencv.** { *; }
 -dontwarn org.opencv.**
 
+# ApkDiffPatch（增量更新 JNI；native 方法按 JNI 导出名绑定，禁止混淆）
+-keep class com.github.sisong.ApkPatch { *; }
+
 # Keep WeChatQRCode classes
 -keep class com.king.opencv.wechat.qrcode.** { *; }
 -dontwarn com.king.opencv.wechat.qrcode.**
