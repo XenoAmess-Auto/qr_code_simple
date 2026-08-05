@@ -31,6 +31,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 配置缓存跨 run 持久化：构建脚本未变时复用，显著缩短后续 run 的配置阶段
+      - name: Cache Gradle configuration cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/configuration-cache
+          key: gradle-config-cache-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle.properties', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-config-cache-
+
       - name: Build debug APK, run unit tests, lint and generate coverage report
         timeout-minutes: 60
         run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
@@ -77,6 +87,16 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
+
+      # 配置缓存跨 run 持久化：构建脚本未变时复用，显著缩短后续 run 的配置阶段
+      - name: Cache Gradle configuration cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/configuration-cache
+          key: gradle-config-cache-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle.properties', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-config-cache-
 
       - name: Enable KVM
         run: |
@@ -133,6 +153,16 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      # 配置缓存跨 run 持久化：构建脚本未变时复用，显著缩短后续 run 的配置阶段
+      - name: Cache Gradle configuration cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/configuration-cache
+          key: gradle-config-cache-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle.properties', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-config-cache-
 
       - name: Configure matching release signing
         env:
