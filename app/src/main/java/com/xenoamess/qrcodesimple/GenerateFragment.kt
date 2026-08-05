@@ -238,9 +238,16 @@ class GenerateFragment : Fragment() {
 
     private fun handleShareTextPrefill() {
         val intent = activity?.intent ?: return
-        if (intent.action != Intent.ACTION_SEND) return
-        if (intent.type?.startsWith("text/") != true) return
-        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+        val text = when (intent.action) {
+            Intent.ACTION_SEND -> {
+                if (intent.type?.startsWith("text/") != true) return
+                intent.getStringExtra(Intent.EXTRA_TEXT)
+            }
+            Intent.ACTION_PROCESS_TEXT -> {
+                intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+            }
+            else -> return
+        }
         if (!text.isNullOrBlank()) {
             loadFromHistory(text, null, null)
         }

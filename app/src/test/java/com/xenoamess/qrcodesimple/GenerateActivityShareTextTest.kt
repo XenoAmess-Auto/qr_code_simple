@@ -66,6 +66,23 @@ class GenerateActivityShareTextTest {
     }
 
     @Test
+    fun `process text prefill fills input from selection menu`() {
+        val selectedText = "https://example.com/process-text"
+        val intent = Intent(Intent.ACTION_PROCESS_TEXT).apply {
+            putExtra(Intent.EXTRA_PROCESS_TEXT, selectedText)
+        }
+        val activity = launch(intent)
+
+        val fragment = activity.supportFragmentManager
+            .findFragmentById(R.id.fragmentContainer) as GenerateFragment
+        val editText = fragment.requireView().findViewById<TextInputEditText>(R.id.etContent)
+        assertEquals(selectedText, editText.text?.toString())
+
+        val preview = fragment.requireView().findViewById<ImageView>(R.id.ivQRCode)
+        assertNotNull(preview.drawable)
+    }
+
+    @Test
     fun `plain launch does not prefill`() {
         val intent = Intent(ApplicationProvider.getApplicationContext(), GenerateActivity::class.java)
         val activity = launch(intent)
