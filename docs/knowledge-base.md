@@ -37,7 +37,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | UPC/EAN Extension / Pharmacode / Plessey / MSI Plessey / Telepen | ✅ | - |
 | Code 39 Extended / ITF-14 / Code 2 of 5 系列 / Code 11 / Code 16K / Code 32 / Code 49 / Codablock F / Channel Code / LOGMARS / NVE-18 / DPD Code / Pharmacode Two-Track / Pharmazentralnummer / Telepen Numeric / 各类邮政码 / GS1 DataBar Limited / Composite / EAN/UPC Add-On / Swiss QR Code / UPN QR Code / Aztec Rune / Code One / Grid Matrix | - | ✅ |
 
-> 说明： historically doc/barcode-formats.md claimed the last group was scan-only. That is now outdated; generation support was added for all OkapiBarcode formats, and the old 22 scannable formats remain fully roundtrippable.
+> 说明： 历史文档 doc/barcode-formats.md 已删除；其“仅扫描”表述已被本表取代——所有 OkapiBarcode 格式现均可生成，原 22 种可扫描格式保持完整回环。
 
 ## 4. 核心约定
 
