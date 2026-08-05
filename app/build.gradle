@@ -2,10 +2,10 @@ import groovy.json.JsonOutput
 import org.gradle.api.GradleException
 
 plugins {
-    id 'com.android.application'
-    id 'com.google.devtools.ksp'
-    id 'jacoco'
-    id 'androidx.baselineprofile'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.jacoco)
+    alias(libs.plugins.baselineprofile)
 }
 
 /**
@@ -221,129 +221,125 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.google.android.material:material:1.14.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
-    implementation 'androidx.activity:activity-ktx:1.10.1'
-    implementation 'androidx.fragment:fragment-ktx:1.8.9'
-    implementation 'androidx.recyclerview:recyclerview:1.4.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.11.0'
-    implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.activity.ktx
+    implementation libs.androidx.fragment.ktx
+    implementation libs.androidx.recyclerview
+    implementation libs.androidx.lifecycle.runtime.ktx
+    implementation libs.androidx.viewpager2
 
     // Room Database
-    def room_version = "2.7.1"
-    implementation "androidx.room:room-runtime:$room_version"
-    implementation "androidx.room:room-ktx:$room_version"
-    ksp "androidx.room:room-compiler:$room_version"
+    implementation libs.room.runtime
+    implementation libs.room.ktx
+    ksp libs.room.compiler
 
     // CameraX
-    def camerax_version = "1.3.3"
-    implementation "androidx.camera:camera-core:$camerax_version"
-    implementation "androidx.camera:camera-camera2:$camerax_version"
-    implementation "androidx.camera:camera-lifecycle:$camerax_version"
-    implementation "androidx.camera:camera-view:$camerax_version"
+    implementation libs.camera.core
+    implementation libs.camera.camera2
+    implementation libs.camera.lifecycle
+    implementation libs.camera.view
 
     // OpenCV + WeChatQRCode
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv:2.6.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv7a:2.6.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv-armv64:2.6.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv-x86:2.6.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:opencv-x86_64:2.6.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode:2.6.0'
-    implementation 'com.github.jenly1314.WeChatQRCode:wechat-qrcode-scanning:2.6.0'
+    implementation libs.wechat.opencv
+    implementation libs.wechat.opencv.armv7a
+    implementation libs.wechat.opencv.armv64
+    implementation libs.wechat.opencv.x86
+    implementation libs.wechat.opencv.x8664
+    implementation libs.wechat.qrcode
+    implementation libs.wechat.qrcode.scanning
 
     // ZXing - 支持多种条形码格式
-    implementation 'com.google.zxing:core:3.5.3'
+    implementation libs.zxing.core
 
     // ML Kit
-    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
-    implementation 'com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1'
+    implementation libs.mlkit.barcode.scanning
+    implementation libs.play.services.mlkit.barcode.scanning
 
     // Flexbox Layout
-    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    implementation libs.flexbox
 
     // Apache Commons CSV
-    implementation 'org.apache.commons:commons-csv:1.14.1'
+    implementation libs.commons.csv
 
     // Incremental APK update client: ApkDiffPatch native libraries (libapkpatch.so,
     // vendored in src/main/jniLibs for all four ABIs) replace the former jbsdiff stack.
 
     // Apache POI - Excel import for batch generation
-    def poi_version = '5.5.1'
-    implementation "org.apache.poi:poi:$poi_version"
-    implementation "org.apache.poi:poi-ooxml:$poi_version"
+    implementation libs.poi
+    implementation libs.poi.ooxml
 
     // Biometric
-    implementation 'androidx.biometric:biometric:1.1.0'
+    implementation libs.androidx.biometric
 
     // SQLCipher - 数据库加密
-    implementation 'net.zetetic:android-database-sqlcipher:4.5.4'
-    implementation 'androidx.sqlite:sqlite:2.7.0'
+    implementation libs.sqlcipher
+    implementation libs.androidx.sqlite
 
     // EncryptedSharedPreferences - 安全存储数据库密钥
-    implementation 'androidx.security:security-crypto:1.1.0'
+    implementation libs.androidx.security.crypto
 
     // ML Kit 传递依赖的 play-services-tasks / basement 高版本会在 Robolectric/CI 低核
     // 环境下留下非 daemon 线程导致测试 JVM 不退出。这里强制保持已知良好的旧版本。
     constraints {
-        implementation('com.google.android.gms:play-services-tasks') {
+        implementation(libs.play.services.tasks) {
             version {
-                strictly '18.2.0'
+                strictly libs.versions.play.services.tasks.get()
                 because 'prevent intermittent CI hang from non-daemon threads in play-services'
             }
         }
-        implementation('com.google.android.gms:play-services-basement') {
+        implementation(libs.play.services.basement) {
             version {
-                strictly '18.4.0'
+                strictly libs.versions.play.services.basement.get()
                 because 'prevent intermittent CI hang from non-daemon threads in play-services'
             }
         }
     }
 
     // BoofCV - Micro QR Code support
-    implementation 'org.boofcv:boofcv-core:1.4.0'
-    implementation 'org.boofcv:boofcv-android:1.4.0'
+    implementation libs.boofcv.core
+    implementation libs.boofcv.android
 
     // OkapiBarcode - RSS-14, RSS Expanded, MaxiCode generation
-    implementation 'uk.org.okapibarcode:okapibarcode:0.5.6'
+    implementation libs.okapibarcode
 
     // uCrop - image cropping for barcode styles
-    implementation 'com.github.yalantis:ucrop:2.2.11'
+    implementation libs.ucrop
 
     // Testing
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation libs.junit
+    testImplementation libs.kotlin.test
     // JUnit 5 Platform：现有 JUnit4/Robolectric 测试经 Vintage Engine 继续运行，
     // 新测试可使用 Jupiter 注解。JUnit 6 已移除 Vintage Engine，必须使用 5.x。
-    def junit5_version = '6.1.2'
-    testImplementation "org.junit.jupiter:junit-jupiter:$junit5_version"
-    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit5_version"
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.vintage.engine
     // AGP 9 built-in Kotlin no longer injects the JUnit Platform launcher that the removed
     // kotlin-android plugin used to add for useJUnitPlatform(); declare it explicitly.
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junit5_version"
-    testImplementation 'org.robolectric:robolectric:4.16.1'
-    testImplementation 'androidx.test:core:1.7.0'
-    testImplementation 'androidx.test:runner:1.7.0'
-    testImplementation 'androidx.test.ext:junit:1.3.0'
-    testImplementation 'androidx.test.espresso:espresso-core:3.7.0'
-    testImplementation 'androidx.test.espresso:espresso-contrib:3.7.0'
-    testImplementation 'androidx.fragment:fragment-testing:1.8.9'
-    debugImplementation 'androidx.fragment:fragment-testing:1.8.9'
+    testRuntimeOnly libs.junit.platform.launcher
+    testImplementation libs.robolectric
+    testImplementation libs.androidx.test.core
+    testImplementation libs.androidx.test.runner
+    testImplementation libs.androidx.test.ext.junit
+    testImplementation libs.espresso.core
+    testImplementation libs.espresso.contrib
+    testImplementation libs.androidx.fragment.testing
+    debugImplementation libs.androidx.fragment.testing
 
     // Instrumented tests (androidTest，模拟器/真机)
-    androidTestImplementation 'androidx.test:runner:1.7.0'
-    androidTestImplementation 'androidx.test:rules:1.7.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.7.0'
-    androidTestImplementation 'androidx.test:core:1.7.0'
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.espresso.contrib
+    androidTestImplementation libs.androidx.test.core
     // fragment-testing 会把 androidx.test:core 1.5.0 带进 debug 运行时，
     // 与 androidTest 的 1.7.0 冲突；统一抬到 1.7.0（仅 debug 构建，不进 release）。
-    debugImplementation 'androidx.test:core:1.7.0'
+    debugImplementation libs.androidx.test.core
 
     // Baseline Profile 运行时安装器
-    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
+    implementation libs.androidx.profileinstaller
     baselineProfile project(':baselineprofile')
 }
 
@@ -433,7 +429,7 @@ tasks.register('jacocoTestReport', JacocoReport) {
     ]
 
     def javaClasses = fileTree(dir: "${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes", excludes: fileFilter)
-    def kotlinClasses = fileTree(dir: "${buildDir}/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def kotlinClasses = fileTree(dir: "${buildDir}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes", excludes: fileFilter)
     def mainSrc = "${project.projectDir}/src/main/java"
 
     sourceDirectories.from = files([mainSrc])
@@ -459,7 +455,7 @@ tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
             '**/*$inlined$*.*'
     ]
     def javaClasses = fileTree(dir: "${buildDir}/intermediates/javac/debug/compileDebugJavaWithJavac/classes", excludes: fileFilter)
-    def kotlinClasses = fileTree(dir: "${buildDir}/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def kotlinClasses = fileTree(dir: "${buildDir}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes", excludes: fileFilter)
 
     sourceDirectories.from = files(["${project.projectDir}/src/main/java"])
     classDirectories.from = files([javaClasses, kotlinClasses])
