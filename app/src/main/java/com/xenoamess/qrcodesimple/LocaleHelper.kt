@@ -26,6 +26,7 @@ object LocaleHelper {
         Language("ko", "한국어"),
         Language("de", "Deutsch"),
         Language("fr", "Français"),
+        Language("pt", "Português"),
         Language("it", "Italiano"),
         Language("ru", "Русский"),
         Language("es", "Español")

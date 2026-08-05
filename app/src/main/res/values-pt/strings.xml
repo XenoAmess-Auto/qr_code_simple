@@ -1,0 +1,963 @@
+<resources>
+    <string name="app_name">QR Code Simple</string>
+
+
+    <!-- Tab titles -->
+    <string name="tab_realtime">Tempo real</string>
+
+    <string name="tab_image">Imagem</string>
+
+    <string name="tab_generate">Gerar</string>
+
+    <string name="tab_history">Histórico</string>
+
+    <string name="tab_about">Sobre</string>
+
+
+    <!-- Camera Scan -->
+    <string name="point_camera_at_qr_code">Aponte a câmera para o código QR</string>
+
+    <string name="scanning">A analisar…</string>
+
+    <string name="flash">Flash</string>
+
+    <string name="flash_on">Flash LIGADO</string>
+
+    <string name="flash_off">Flash DESLIGADO</string>
+
+    <string name="switch_camera">Trocar câmera</string>
+
+    <string name="back_camera">Câmera traseira</string>
+
+    <string name="front_camera">Câmera frontal</string>
+
+    <string name="front_camera_not_available">Câmera frontal indisponível</string>
+
+    <string name="camera_permission_required">Permissão de câmera necessária</string>
+
+    <string name="permissions_granted">Permissões concedidas</string>
+
+    <string name="permissions_denied">Algumas permissões negadas</string>
+
+
+    <!-- Image Scan -->
+    <string name="scan_image">Analisar imagem</string>
+
+    <string name="select_image_source">Selecionar origem da imagem</string>
+
+    <string name="from_gallery">Da galeria</string>
+
+    <string name="take_photo">Tirar foto</string>
+
+    <string name="from_file">De arquivo</string>
+
+
+    <!-- Generate QR -->
+    <string name="generate_qr">Gerar código QR</string>
+
+    <string name="select_barcode_format">Selecionar formato de código de barras</string>
+
+    <string name="enter_content">Introduzir o texto a codificar</string>
+
+    <string name="generate">Gerar</string>
+
+    <string name="clear">Limpar</string>
+
+    <string name="save">Salvar</string>
+
+    <string name="share">Partilhar</string>
+
+    <string name="share_barcode">Partilhar código de barras</string>
+
+    <string name="please_enter_content">Introduza um conteúdo</string>
+
+    <string name="please_generate_qr_first">Gere primeiro o código QR</string>
+
+    <string name="invalid_content_for_format">O conteúdo não corresponde ao formato de código de barras selecionado</string>
+
+    <string name="saved_to_gallery">Salvo na galeria: %1$s</string>
+
+    <string name="saved_to">Salvo em: %1$s</string>
+
+    <string name="failed_to_save">Falha ao salvar: %1$s</string>
+
+    <string name="failed_to_generate">Falha ao gerar o código QR: %1$s</string>
+
+    <string name="unknown_error">Erro desconhecido</string>
+
+
+    <!-- Results -->
+    <string name="scan_result">Resultado da análise</string>
+
+    <string name="scan_results">Resultados da análise</string>
+
+    <string name="close">Fechar</string>
+
+    <string name="no_qr_codes_found">Nenhum código QR encontrado nesta imagem</string>
+
+    <string name="checking_security">A verificar segurança…</string>
+
+    <string name="no_qr_codes_found_detail">Nenhum código QR encontrado (testados: WeChatQR, ZXing, ML Kit)</string>
+
+    <string name="scanning_more">A reconhecer mais…</string>
+
+    <string name="restoration_retrying">A tentar restaurar a imagem…</string>
+
+    <string name="restored_after_enhancement">Reconhecido após restauração da imagem</string>
+
+    <string name="shared_multiple_first_only">%1$d imagens partilhadas; apenas a primeira será processada</string>
+
+    <string name="history_retention">Eliminação automática do histórico</string>
+
+    <string name="history_retention_forever">Manter para sempre</string>
+
+    <string name="history_retention_days">%1$d dias</string>
+
+    <string name="history_retention_dialog_title">Eliminar histórico anterior a</string>
+
+    <string name="export_encrypted">Exportar cópia de segurança cifrada</string>
+
+    <string name="backup_password">Palavra-passe da cópia</string>
+
+    <string name="backup_password_confirm">Confirmar palavra-passe</string>
+
+    <string name="backup_password_mismatch">As palavras-passe não coincidem</string>
+
+    <string name="backup_password_required">Palavra-passe necessária</string>
+
+    <string name="backup_password_prompt_import">Esta cópia está cifrada. Introduza a palavra-passe para importar.</string>
+
+    <string name="backup_decrypt_failed">Falha de decifragem: palavra-passe errada ou arquivo danificado</string>
+
+    <string name="blacklist_auto_update">Atualizar automaticamente a lista negra de segurança (descarrega um pequeno arquivo em segundo plano)</string>
+
+    <string name="no_image_provided">Nenhuma imagem fornecida</string>
+
+    <string name="no_video_provided">Nenhum vídeo fornecido</string>
+
+    <string name="failed_to_load_image">Falha ao carregar a imagem</string>
+
+    <string name="detected_with">Detetado com: %1$s</string>
+
+    <string name="copied">Copiado</string>
+
+    <string name="copied_to_clipboard">Copiado para a área de transferência</string>
+
+    <string name="copied_n_items">%1$d item(ns) copiado(s)</string>
+
+    <string name="copied_all_n_items">Copiados todos os %1$d itens</string>
+
+    <string name="selected_n_of_m">Selecionados: %1$d/%2$d</string>
+
+    <string name="no_items_selected">Nenhum item selecionado</string>
+
+    <string name="share_qr_code_content">Partilhar conteúdo do código QR</string>
+
+    <string name="share_all_qr_code_content">Partilhar todo o conteúdo dos códigos QR</string>
+
+    <string name="qr_code_for">Código QR para: %1$s</string>
+
+    <string name="share_qr_code">Partilhar código QR</string>
+
+    <string name="generate_with_custom_style">Gerar com estilo personalizado</string>
+
+
+    <!-- Video Scan -->
+    <string name="invalid_video_duration">Duração de vídeo inválida</string>
+
+    <string name="scanning_video">A analisar vídeo…</string>
+
+    <string name="scanning_progress">Análise: %1$d%% (%2$d códigos encontrados, %3$d fotogramas processados)</string>
+
+    <string name="scan_complete">Análise concluída! %1$d código(s) QR encontrado(s)</string>
+
+    <string name="error_processing_video">Erro ao processar o vídeo: %1$s</string>
+
+
+    <!-- History -->
+    <string name="history">Histórico</string>
+
+    <string name="all">Tudo</string>
+
+    <string name="scanned">Analisado</string>
+
+    <string name="generated">Gerado</string>
+
+    <string name="no_history">Ainda sem histórico</string>
+
+    <string name="clear_all">Limpar tudo</string>
+
+    <string name="clear_history">Limpar histórico</string>
+
+    <string name="clear_history_confirm">Tem a certeza de que quer limpar todo o histórico?</string>
+
+    <string name="barcode_image">Imagem do código de barras</string>
+
+    <string name="history_detail">Detalhe do histórico</string>
+
+    <string name="add_to_favorites">Adicionar aos favoritos</string>
+
+    <string name="remove_from_favorites">Remover dos favoritos</string>
+
+    <string name="all_tags">Todas as etiquetas</string>
+
+    <string name="delete">Eliminar</string>
+
+    <string name="cancel">Cancelar</string>
+
+    <string name="edit">Editar</string>
+
+    <string name="edit_content">Editar conteúdo</string>
+
+    <string name="save_action">Salvar</string>
+
+    <string name="updated">Atualizado</string>
+
+    <string name="delete_item">Eliminar</string>
+
+    <string name="delete_item_confirm">Eliminar este item?</string>
+
+    <string name="deleted">Eliminado</string>
+
+    <string name="history_cleared">Histórico limpo</string>
+
+    <string name="copy">Copiar</string>
+
+    <string name="select_all">Selecionar tudo</string>
+
+    <string name="deselect_all">Desmarcar tudo</string>
+
+    <string name="delete_selected">Eliminar selecionados</string>
+
+    <string name="delete_selected_confirm">Eliminar %1$d item(ns)?</string>
+
+
+    <!-- History Type -->
+    <string name="type_generated">Gerado</string>
+
+    <string name="type_scanned">Analisado</string>
+
+    <string name="type_qr_code">Código QR</string>
+
+    <string name="type_barcode">Código de barras</string>
+
+    <string name="type_data_matrix">Data Matrix</string>
+
+    <string name="type_aztec">Aztec</string>
+
+    <string name="type_pdf417">PDF417</string>
+
+    <string name="type_text">Texto</string>
+
+
+    <!-- Continuous Scan -->
+    <string name="settings">Definições</string>
+
+    <string name="save_all">Salvar tudo</string>
+
+
+    <!-- About -->
+    <string name="about">Sobre</string>
+
+    <string name="version_with_prefix">v%1$s (%2$s)</string>
+
+    <string name="language">Idioma</string>
+
+    <string name="select_language">Selecionar idioma</string>
+
+    <string name="language_changed">Idioma alterado. Reinicie para aplicar.</string>
+
+    <string name="restart">Reiniciar</string>
+
+    <string name="later">Mais tarde</string>
+
+    <string name="buy_me_a_coffee">Ofereça-me um café</string>
+
+    <string name="check_update">Verificar atualizações</string>
+
+    <string name="check_beta_update">Beta</string>
+
+    <string name="auto_check_update">Verificação automática</string>
+
+    <string name="version_history">Histórico de versões</string>
+
+    <string name="version_history_title">Histórico de versões</string>
+
+    <string name="version_history_unavailable">Histórico de versões incluído indisponível.</string>
+
+    <string name="update_available_title">Nova versão v%1$s disponível</string>
+
+    <string name="beta_update_available_title">Versão beta v%1$s disponível</string>
+
+    <string name="update_now">Atualizar agora</string>
+
+    <string name="update_view_release_page">Ver página de versão</string>
+
+    <string name="update_later">Mais tarde</string>
+
+    <string name="update_already_latest">Já tem a versão mais recente</string>
+
+    <string name="beta_update_already_latest">Já tem a versão beta mais recente</string>
+
+    <string name="update_check_failed">Falha ao verificar atualizações</string>
+
+    <string name="beta_update_check_failed">Falha ao verificar atualizações beta</string>
+
+    <string name="update_downloading">A descarregar v%1$s…</string>
+
+    <string name="update_progress_percent">%1$d%%</string>
+
+    <string name="update_incremental_progress_percent">A aplicar atualização incremental: %1$d%%</string>
+
+    <string name="update_incremental_fallback">Atualização incremental falhou. A descarregar o APK completo…</string>
+
+    <string name="update_install_permission_needed">Permita a instalação de apps desta fonte e volte para continuar</string>
+
+    <string name="update_install_failed_title">Falha na atualização automática</string>
+
+    <string name="update_install_failed_message">A atualização não pôde ser instalada automaticamente. Pode descarregá-la manualmente na página de versão.</string>
+
+    <string name="beta_update_install_failed_message">Não foi possível instalar a atualização beta. Tente novamente mais tarde.</string>
+
+    <string name="sources">Fontes</string>
+
+    <string name="maintainer">Mantenedor: XenoAmess</string>
+
+    <string name="license">Licença Apache 2.0</string>
+
+    <string name="edit_qr_code_content">Editar conteúdo do código QR</string>
+
+    <string name="share_qr">Partilhar QR</string>
+
+
+    <!-- Menu -->
+    <string name="copy_all">Copiar tudo</string>
+
+    <string name="share_all">Partilhar tudo</string>
+
+
+    <!-- Content Descriptions -->
+    <string name="qr_code_image">Código QR</string>
+
+    <string name="processed_image">Imagem processada</string>
+
+
+    <!-- Content Type Labels -->
+    <string name="content_type_wifi">WiFi</string>
+
+    <string name="content_type_contact">Contacto</string>
+
+    <string name="content_type_calendar">Calendário</string>
+
+    <string name="content_type_email">E-mail</string>
+
+    <string name="content_type_location">Localização</string>
+
+    <string name="content_type_sms">SMS</string>
+
+    <string name="content_type_phone">Telefone</string>
+
+    <string name="content_type_url">URL</string>
+
+    <string name="content_type_text">Texto</string>
+
+
+    <!-- Action Buttons -->
+    <string name="action_connect_wifi">Ligar</string>
+
+    <string name="action_add_contact">Adicionar contacto</string>
+
+    <string name="action_add_event">Adicionar ao calendário</string>
+
+    <string name="action_send_email">Enviar e-mail</string>
+
+    <string name="action_open_url">Abrir</string>
+
+    <string name="action_open_map">Ver mapa</string>
+
+    <string name="action_call">Ligar</string>
+
+    <string name="action_send_sms">Enviar SMS</string>
+
+
+    <!-- WiFi Messages -->
+    <string name="wifi_invalid">Configuração WiFi inválida</string>
+
+    <string name="wifi_connecting">A ligar a %1$s…</string>
+
+    <string name="wifi_connected">Ligado a %1$s</string>
+
+    <string name="wifi_add_failed">Falha ao adicionar a rede WiFi</string>
+
+    <string name="wifi_permission_denied">Permissão WiFi negada</string>
+
+    <string name="wifi_manual_connect">Ligue-se a %1$s manualmente</string>
+
+    <string name="wifi_connect_title">Ligar ao WiFi</string>
+
+    <string name="wifi_connect_confirm">Ligar à rede «%1$s»?</string>
+
+    <string name="wifi_connect_button">Ligar</string>
+
+    <string name="wifi_request_sent">Pedido de ligação enviado para %1$s</string>
+
+    <string name="wifi_connection_failed">Falha ao ligar ao WiFi</string>
+
+    <string name="wifi_connection_error">Erro de ligação: %1$s</string>
+
+    <string name="wifi_enabling">A ativar WiFi…</string>
+
+    <string name="wifi_wep_not_supported">A cifragem WEP não é suportada no Android 10+. Ligue-se manualmente.</string>
+
+    <string name="wifi_suggestion_added">Sugestão WiFi adicionada para %1$s. Verifique as definições WiFi do sistema para ligar.</string>
+
+    <string name="wifi_suggestion_failed">Falha ao adicionar a sugestão WiFi</string>
+
+
+    <!-- Error Messages -->
+    <string name="no_app_found">Nenhuma app adequada encontrada</string>
+
+    <string name="no_calendar_app">Nenhuma app de calendário encontrada</string>
+
+    <string name="no_email_app">Nenhuma app de e-mail encontrada</string>
+
+    <string name="no_browser_found">Nenhum navegador encontrado</string>
+
+    <string name="no_map_app">Nenhuma app de mapas encontrada</string>
+
+    <string name="no_phone_app">Nenhuma app de telefone encontrada</string>
+
+    <string name="no_sms_app">Nenhuma app de SMS encontrada</string>
+
+
+    <!-- Phone -->
+    <string name="confirm_call">Ligar para este número?</string>
+
+    <string name="call">Ligar</string>
+
+
+    <!-- Batch Generate -->
+    <string name="batch_generate">Geração em lote</string>
+
+    <string name="batch_result">Resultado do lote</string>
+
+    <string name="import_csv_excel">Importar CSV/Excel</string>
+
+    <string name="download_template">Descarregar modelo</string>
+
+    <string name="generate_batch">Gerar lote</string>
+
+    <string name="save_all_zip">Salvar tudo em ZIP</string>
+
+    <string name="batch_template_saved">Modelo salvo</string>
+
+    <string name="batch_items_imported">%1$d itens importados</string>
+
+    <string name="batch_no_items">Nenhum item válido encontrado</string>
+
+    <string name="batch_generated_count">Gerados: %1$d/%2$d</string>
+
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_scan_short">Analisar</string>
+
+    <string name="shortcut_scan_long">Análise rápida</string>
+
+    <string name="shortcut_scan_disabled">Análise desativada</string>
+
+    <string name="shortcut_generate_short">Gerar</string>
+
+    <string name="shortcut_generate_long">Gerar código QR</string>
+
+    <string name="shortcut_generate_disabled">Geração desativada</string>
+
+    <string name="shortcut_history_short">Histórico</string>
+
+    <string name="shortcut_history_long">Ver histórico</string>
+
+    <string name="shortcut_history_disabled">Histórico desativado</string>
+
+    <string name="shortcut_batch_short">Lote</string>
+
+    <string name="shortcut_batch_long">Geração em lote</string>
+
+    <string name="shortcut_batch_disabled">Lote desativado</string>
+
+
+    <!-- Continuous Scan -->
+    <string name="continuous_scan">Análise contínua</string>
+
+
+    <!-- Privacy Settings -->
+    <string name="privacy_settings">Definições de privacidade</string>
+
+
+    <!-- Database Security -->
+    <string name="database_security">Segurança da base de dados</string>
+
+    <string name="encryption_enabled">Cifragem ativada</string>
+
+    <string name="reset_database">Repor base de dados</string>
+
+    <string name="reset_database_confirm">Isto eliminará todos os dados do histórico e reporá as chaves de cifragem. A ação é irreversível. Continuar?</string>
+
+    <string name="database_reset_success">Base de dados reposta. A app vai reiniciar.</string>
+
+    <string name="database_reset_failed">Falha ao repor a base de dados: %1$s</string>
+
+
+    <!-- Backup -->
+    <string name="backup_restore">Cópia de segurança e restauro</string>
+
+    <string name="export_json">Exportar como JSON</string>
+
+    <string name="export_csv">Exportar como CSV</string>
+
+    <string name="import_data">Importar dados</string>
+
+    <string name="export_success">Exportação bem-sucedida</string>
+
+    <string name="export_failed">Falha na exportação: %1$s</string>
+
+    <string name="import_failed">Falha na importação: %1$s</string>
+
+
+    <!-- Tags -->
+    <string name="tags">Etiquetas</string>
+
+    <string name="add_tag">Adicionar etiqueta</string>
+
+    <string name="edit_tags">Editar etiquetas</string>
+
+    <string name="tag_hint">Introduza etiquetas separadas por vírgulas</string>
+
+
+    <!-- Widget -->
+    <string name="widget_quick_scan">Análise rápida</string>
+
+    <string name="widget_quick_generate">Geração rápida</string>
+
+    <string name="widget_tap_to_scan">Toque para analisar</string>
+
+    <string name="widget_tap_to_generate">Toque para gerar</string>
+
+
+    <!-- Batch Operations -->
+    <string name="select_csv_file">Selecionar arquivo CSV</string>
+
+    <string name="share_zip">Partilhar ZIP</string>
+
+    <string name="stop_scanning">Parar análise</string>
+
+    <string name="success_count">Com êxito: %1$d</string>
+
+    <string name="total_generated">Total gerado: %1$d</string>
+
+    <string name="zip_saved">ZIP salvo: %1$s</string>
+
+    <string name="zip_save_failed">Falha ao salvar o ZIP</string>
+
+
+    <!-- Barcode Style -->
+    <string name="style">Estilo</string>
+
+    <string name="color_scheme">Esquema de cores</string>
+
+    <string name="ec_level">Correção de erros</string>
+
+    <string name="ec_level_l">L</string>
+
+    <string name="ec_level_m">M</string>
+
+    <string name="ec_level_q">Q</string>
+
+    <string name="ec_level_h">H</string>
+
+    <string name="foreground_color">Cor do primeiro plano</string>
+
+    <string name="background_color">Cor de fundo</string>
+
+    <string name="custom_color">Personalizada</string>
+
+    <string name="custom_image">Imagem personalizada</string>
+
+    <string name="foreground_image">Imagem do primeiro plano</string>
+
+    <string name="background_image">Imagem de fundo</string>
+
+    <string name="crop_image">Recortar imagem</string>
+
+    <string name="crop_ratio_free">Livre</string>
+
+    <string name="crop_ratio_square">Quadrado</string>
+
+    <string name="crop_ratio_4_3">4:3</string>
+
+    <string name="crop_ratio_3_4">3:4</string>
+
+    <string name="crop_ratio_16_9">16:9</string>
+
+    <string name="crop_ratio_9_16">9:16</string>
+
+    <string name="corner_radius">Raio dos cantos</string>
+
+    <string name="corner_radius_hint">Arredonda os cantos externos da imagem do código de barras</string>
+
+    <string name="module_shape">Forma dos módulos</string>
+
+    <string name="module_shape_square">Predefinida</string>
+
+    <string name="module_shape_circle">Círculo</string>
+
+    <string name="module_shape_rounded">Arredondada</string>
+
+    <string name="module_fill_ratio">Taxa de preenchimento dos módulos</string>
+
+    <string name="position_pattern_shape">Forma do padrão de posição</string>
+
+    <string name="position_pattern_square">Predefinida</string>
+
+    <string name="position_pattern_circle">Círculo</string>
+
+    <string name="position_pattern_follow">Seguir módulo</string>
+
+    <string name="gradient">Gradiente</string>
+
+    <string name="gradient_angle">Ângulo do gradiente</string>
+
+    <string name="gradient_angle_input">Ângulo:</string>
+
+    <string name="gradient_angle_hint">0-360</string>
+
+    <string name="add_gradient_stop">Adicionar ponto de gradiente</string>
+
+    <string name="logo_scale">Escala do logótipo</string>
+
+    <string name="add_logo">Adicionar logótipo</string>
+
+    <string name="remove">Remover</string>
+
+    <string name="logo_preview">Pré-visualização do logótipo</string>
+
+    <string name="failed_to_load_logo">Falha ao carregar o logótipo: %1$s</string>
+
+    <string name="hex_color_hint">#RRGGBB</string>
+
+    <string name="invalid_color_format">Formato de cor inválido</string>
+
+    <string name="pick_color">Escolher cor</string>
+
+
+    <!-- Generation validation -->
+    <string name="warning_barcode_not_scannable">O código de barras gerado não pode ser reconhecido por esta app. Verifique o conteúdo ou o formato.</string>
+
+    <string name="warning_barcode_content_mismatch">O resultado da análise não corresponde ao conteúdo original. Original: %1$s, Analisado: %2$s. Confirme se é aceitável.</string>
+
+    <string name="warning_generate_only_format">Este formato só pode ser gerado e não pode ser reconhecido por esta app.</string>
+
+    <string name="warning_scan_success">Análise verificada com sucesso</string>
+
+
+    <!-- App Lock -->
+    <string name="app_lock">Bloqueio da app</string>
+
+    <string name="app_lock_disabled">Bloqueio DESATIVADO</string>
+
+    <string name="app_lock_enabled">Bloqueio ATIVADO</string>
+
+    <string name="change_pin">Alterar PIN</string>
+
+    <string name="enter_pin">Introduzir PIN</string>
+
+    <string name="confirm_pin">Confirmar PIN</string>
+
+    <string name="set_pin">Definir PIN</string>
+
+    <string name="pin_set">PIN definido com sucesso</string>
+
+    <string name="pin_mismatch">Os PIN não coincidem</string>
+
+    <string name="pin_incorrect">PIN incorreto</string>
+
+    <string name="biometric_not_available">Autenticação biométrica indisponível</string>
+
+    <string name="set_pin_first">Defina primeiro um PIN</string>
+
+    <string name="unlock">Desbloquear</string>
+
+
+    <!-- Format hints -->
+    <string name="hint_ean_13">Introduza 13 dígitos (ex.: 1234567890123)</string>
+
+    <string name="hint_ean_8">Introduza 8 dígitos</string>
+
+    <string name="hint_upc_a">Introduza 12 dígitos</string>
+
+    <string name="hint_upc_e">Introduza 6-8 dígitos</string>
+
+    <string name="hint_code_39">Introduza caracteres alfanuméricos (0-9, A-Z, -, ., espaço, $, /, +, %)</string>
+
+    <string name="hint_code_128">Introduza qualquer carácter ASCII</string>
+
+
+    <!-- Missing defaults for translated-only resources -->
+
+    <!-- Chips -->
+    <string name="chip_all">Tudo</string>
+
+    <string name="chip_favorites">Favoritos</string>
+
+    <string name="chip_scanned">Analisado</string>
+
+    <string name="chip_generated">Gerado</string>
+
+    <string name="chip_type_qr">Código QR</string>
+
+    <string name="chip_type_barcode">Código de barras</string>
+
+    <string name="chip_content_link">Ligação</string>
+
+    <string name="chip_content_text">Texto</string>
+
+    <string name="chip_content_wifi">WiFi</string>
+
+    <string name="chip_content_contact">Contacto</string>
+
+    <string name="chip_format_qr">Código QR</string>
+
+    <string name="chip_format_ean13">EAN-13</string>
+
+    <string name="chip_format_code128">Code 128</string>
+
+    <string name="chip_format_code39">Code 39</string>
+
+    <string name="chip_sort_newest">Mais recentes</string>
+
+    <string name="chip_sort_oldest">Mais antigos</string>
+
+
+    <!-- Search -->
+    <string name="search">Pesquisar</string>
+
+    <string name="search_hint">Pesquisar por conteúdo…</string>
+
+    <string name="clear_search">Limpar pesquisa</string>
+
+
+    <!-- History -->
+    <string name="no_history_found">Nenhum histórico encontrado</string>
+
+    <string name="items_found">%1$d itens encontrados</string>
+
+
+    <!-- Notes -->
+    <string name="add_notes">Adicionar notas</string>
+
+    <string name="edit_notes">Editar notas</string>
+
+    <string name="notes_hint">Introduza notas para este item…</string>
+
+
+    <!-- Content Types -->
+    <string name="content_type_barcode">Código de barras</string>
+
+    <string name="content_type_event">Evento</string>
+
+    <string name="content_type_link">Ligação</string>
+
+
+    <!-- Batch/CSV -->
+    <string name="csv_file_empty">O arquivo CSV está vazio</string>
+
+    <string name="csv_file_selected">Arquivo CSV selecionado</string>
+
+    <string name="csv_parse_error">Erro de análise do CSV</string>
+
+    <string name="generating">A gerar %1$d/%2$d…</string>
+
+    <string name="generation_complete">Geração concluída</string>
+
+    <string name="generation_failed">Falha na geração: %1$s</string>
+
+    <string name="failed_count">Falhas: %1$d</string>
+
+    <string name="generating_zip">A gerar ZIP…</string>
+
+    <string name="download_zip">Descarregar ZIP</string>
+
+
+    <!-- Continuous Scan -->
+    <string name="results">Resultados</string>
+
+    <string name="auto_save">Salvamento automático</string>
+
+    <string name="deduplication">Desduplicação</string>
+
+
+    <!-- Privacy Settings -->
+    <string name="privacy_mode">Modo de privacidade</string>
+
+    <string name="privacy_mode_description">Os códigos QR analisados não serão guardados no histórico</string>
+
+    <string name="privacy_mode_enabled">Modo de privacidade ativado</string>
+
+    <string name="privacy_mode_disabled">Modo de privacidade desativado</string>
+
+
+    <!-- Dialogs -->
+    <string name="confirm">Confirmar</string>
+
+
+    <string name="cd_saved">Salvo</string>
+
+    <string name="cd_favorite">Favorito</string>
+
+    <string name="cd_color_picker">Seletor de cores</string>
+
+    <string name="scan_region">Área de análise</string>
+
+    <string name="scan_region_mode_on">Modo de área ativado: arraste para selecionar a área de descodificação</string>
+
+    <string name="scan_region_mode_off">Modo de área desativado: a descodificar fotogramas completos</string>
+
+    <string name="select_history_prompt">Selecione um item do histórico para ver os detalhes</string>
+
+    <!-- 安全检查（SecurityManager） -->
+    <string name="security_cannot_parse_domain">Não é possível analisar o domínio</string>
+
+    <string name="security_dangerous_link">Ligação perigosa</string>
+
+    <string name="security_domain_blacklisted">Este domínio está na lista negra e pode ser inseguro</string>
+
+    <string name="security_suspicious_link">Ligação suspeita</string>
+
+    <string name="security_insecure_link">Ligação insegura</string>
+
+    <string name="security_no_https">Esta ligação não utiliza cifragem HTTPS</string>
+
+    <string name="security_link_safe">A ligação parece segura</string>
+
+    <string name="security_no_obvious_risk">Nenhum risco de segurança evidente encontrado</string>
+
+    <string name="security_check_failed">Falha na verificação de segurança</string>
+
+    <string name="security_check_failed_detail">Não foi possível concluir a verificação de segurança: %1$s</string>
+
+    <string name="security_feature_ip">Usa um endereço IP em vez de um nome de domínio</string>
+
+    <string name="security_feature_long_url">O URL é muito longo e pode ocultar o destino real</string>
+
+    <string name="security_feature_at">Contém o símbolo @, que pode ser usado para enganar</string>
+
+    <string name="security_feature_complex_url">A estrutura do URL é complexa e pode envolver redirecionamentos</string>
+
+    <string name="security_feature_keywords">Contém várias palavras-chave sensíveis; possível phishing</string>
+
+    <string name="security_feature_short_url">Serviço de URLs curtos; o destino não pode ser inspecionado diretamente</string>
+
+    <string name="security_tip_safe">Esta ligação parece segura, mas mantenha-se prudente</string>
+
+    <string name="security_tip_low">Confirme a fonte antes de visitar esta ligação</string>
+
+    <string name="security_tip_medium">Esta ligação tem características suspeitas; tenha cuidado</string>
+
+    <string name="security_tip_high">Recomenda-se vivamente NÃO visitar esta ligação!</string>
+
+    <string name="security_tip_unknown">Segurança indeterminada; trate com cuidado</string>
+
+    <!-- 分享模板 -->
+    <string name="share_hint_scan_to_view">Analise para ver o conteúdo</string>
+
+    <string name="share_text_share">Partilha de texto</string>
+
+    <string name="share_hint_wifi">Analise para se ligar à rede Wi-Fi</string>
+
+    <string name="share_hint_contact">Analise para adicionar o contacto</string>
+
+    <string name="share_hint_email">Analise para enviar um e-mail</string>
+
+    <string name="share_hint_detail">Analise para mais detalhes</string>
+
+    <!-- 各页面零散硬编码 -->
+    <string name="no_valid_content">Nenhum conteúdo válido encontrado</string>
+
+    <string name="no_content_to_generate">Nenhum conteúdo para gerar</string>
+
+    <string name="pin_min_digits">O PIN deve ter pelo menos 4 dígitos</string>
+
+    <string name="added_to_favorites">Adicionado aos favoritos</string>
+
+    <string name="removed_from_favorites">Removido dos favoritos</string>
+
+    <string name="comma_separated_tags">Etiquetas separadas por vírgulas</string>
+
+    <string name="tags_saved">Etiquetas salvas</string>
+
+    <string name="saved">Salvo</string>
+
+    <!-- 布局硬编码 -->
+    <string name="export_label">Exportar</string>
+
+    <string name="template">Modelo</string>
+
+    <string name="hex">Hex</string>
+
+    <string name="data_management">Gestão de dados</string>
+
+    <string name="privacy_mode_off">Modo de privacidade DESATIVADO</string>
+
+    <string name="privacy_mode_active">Modo de privacidade ativo</string>
+
+    <string name="enter_content_hint">Introduza o conteúdo (um por linha)</string>
+
+    <string name="import_csv">Importar CSV</string>
+
+    <string name="sqlcipher_description">Os seus dados de histórico estão cifrados com SQLCipher (AES-256).</string>
+
+    <string name="batch_input_hint">https://example.com
+https://another.com
+...</string>
+
+    <string name="privacy_mode_info">• Os resultados de análise não serão guardados
+• O histórico de geração não será guardado
+• O histórico existente é preservado</string>
+
+    <string name="color_channel_r">R</string>
+
+    <string name="color_channel_g">V</string>
+
+    <string name="color_channel_b">A</string>
+
+    <string name="color_channel_a">A</string>
+
+    <string name="items_count">%1$d itens</string>
+
+    <string name="batch_import_errors">Importação concluída com %1$d erros</string>
+
+    <string name="logo_shape">Forma do logótipo</string>
+
+    <string name="logo_shape_square">Quadrado</string>
+
+    <string name="logo_shape_rounded">Arredondado</string>
+
+    <string name="logo_shape_circle">Círculo</string>
+
+    <string name="logo_corner_radius">Raio dos cantos</string>
+
+    <string name="scan_feedback">Feedback de análise</string>
+
+    <string name="scan_sound">Reproduzir som ao analisar com sucesso</string>
+
+    <string name="scan_vibration">Vibrar ao analisar com sucesso</string>
+
+    <string name="export_excel">Exportar como Excel</string>
+
+    <string name="stats_title">Estatísticas</string>
+
+    <string name="stats_7d">7 dias: %1$d análises</string>
+
+    <string name="stats_30d">30 dias: %1$d análises</string>
+
+    <string name="stats_top">Topo: %1$s</string>
+
+</resources>
