@@ -44,7 +44,8 @@ class ReleasePathSmokeTest {
     }
 
     @Test
-    fun batchCsvImportParsesRows() = runBlocking {
+    fun batchCsvImportParsesRows() {
+        runBlocking {
         val csvFile = File(context.filesDir, "release-smoke-batch.csv")
         csvFile.writeText(
             "content,format\n" +
@@ -59,10 +60,12 @@ class ReleasePathSmokeTest {
         assertEquals("https://csv-1.example.com", result.items[0].content)
         assertEquals(BarcodeFormat.QR_CODE, result.items[0].format)
         csvFile.delete()
+        }
     }
 
     @Test
-    fun batchExcelImportParsesRows() = runBlocking {
+    fun batchExcelImportParsesRows() {
+        runBlocking {
         val xlsxFile = File(context.filesDir, "release-smoke-batch.xlsx")
         XSSFWorkbook().use { workbook ->
             val sheet = workbook.createSheet("Batch")
@@ -84,6 +87,7 @@ class ReleasePathSmokeTest {
         assertEquals(0, result.errors.size)
         assertEquals("https://xlsx-1.example.com", result.items[0].content)
         xlsxFile.delete()
+        }
     }
 
     @Test
