@@ -951,4 +951,8 @@ https://another.com
     <string name="scan_vibration">Vibrer lors d\'un scan réussi</string>
 
     <string name="export_excel">Exporter en Excel</string>
+    <string name="stats_title">Statistiques</string>
+    <string name="stats_7d">7 jours : %1$d scans</string>
+    <string name="stats_30d">30 jours : %1$d scans</string>
+    <string name="stats_top">Top : %1$s</string>
 </resources>
