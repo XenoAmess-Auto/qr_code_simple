@@ -3,7 +3,6 @@ import org.gradle.api.GradleException
 
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
     id 'com.google.devtools.ksp'
     id 'jacoco'
     id 'androidx.baselineprofile'
@@ -110,6 +109,13 @@ jacoco {
     toolVersion = '0.8.12'
 }
 
+// AGP 9 built-in Kotlin: keep the bytecode target aligned with the Java toolchain.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+    }
+}
+
 android {
     namespace 'com.xenoamess.qrcodesimple'
     compileSdk 35
@@ -166,9 +172,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
         coreLibraryDesugaringEnabled false
-    }
-    kotlinOptions {
-        jvmTarget = '21'
     }
     buildFeatures {
         viewBinding true
@@ -316,6 +319,9 @@ dependencies {
     def junit5_version = '6.1.2'
     testImplementation "org.junit.jupiter:junit-jupiter:$junit5_version"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit5_version"
+    // AGP 9 built-in Kotlin no longer injects the JUnit Platform launcher that the removed
+    // kotlin-android plugin used to add for useJUnitPlatform(); declare it explicitly.
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junit5_version"
     testImplementation 'org.robolectric:robolectric:4.16.1'
     testImplementation 'androidx.test:core:1.7.0'
     testImplementation 'androidx.test:runner:1.7.0'
