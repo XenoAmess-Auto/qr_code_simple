@@ -121,7 +121,7 @@ class HistoryDetailActivityTest {
             waitFor { getViewText(scenario, R.id.tvContent) == "https://example.com" }
         )
 
-        onView(withId(R.id.btnShare)).perform(scrollTo(), click())
+        clickSafely(R.id.btnShare)
         flushMainLooper()
 
         scenario.onActivity { activity ->
@@ -132,6 +132,27 @@ class HistoryDetailActivityTest {
             assertEquals("https://example.com", sharedIntent?.getStringExtra(Intent.EXTRA_TEXT))
         }
         scenario.close()
+    }
+
+
+    /**
+     * Runs Espresso scrollTo+click with retries. Async data binding can leave the target
+     * momentarily non-clickable in CI; retrying here removes the flaky PerformException
+     * instead of masking the underlying assertion failures.
+     */
+    private fun clickSafely(viewId: Int, maxMs: Long = 3000) {
+        assertTrue(
+            "View $viewId never became clickable",
+            waitFor(maxMs = maxMs) {
+                try {
+                    onView(withId(viewId)).perform(scrollTo(), click())
+                    true
+                } catch (_: Throwable) {
+                    flushMainLooper()
+                    false
+                }
+            }
+        )
     }
 
     private fun waitFor(maxMs: Long = 1000, condition: () -> Boolean): Boolean {
@@ -151,7 +172,7 @@ class HistoryDetailActivityTest {
         resumeScenario(scenario)
 
         val beforeText = getFavoriteButtonText(scenario)
-        onView(withId(R.id.btnToggleFavorite)).perform(scrollTo(), click())
+        clickSafely(R.id.btnToggleFavorite)
         flushMainLooper()
 
         assertTrue(
