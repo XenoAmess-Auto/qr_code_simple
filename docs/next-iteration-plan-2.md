@@ -24,9 +24,9 @@
 - [x] F6 Material You 动态色（DynamicColors + 主题切换，低版本回退青色）
 - [x] F7 深链 qr-code-simple://generate?text=&format=
 - [x] F8 历史 Excel 导出（XSSFWorkbook + SAF，roundtrip 测试）
-- [ ] P3.1 v0.2.7 Stable 发布（等 CI 全绿后打 tag）
-- [ ] P3.2 商店上架评估
-- [ ] P3.3 通用 APK 体积优化调研
+- [x] P3.1 v0.2.7 Stable 发布（2026-08-05 已发布，版本 439，ApkDiffPatch 发布物就绪，下一版本首验增量）
+- [x] P3.2 商店上架评估（结论已写入本章：Play 可行优先；F-Droid 需处理预编译 .so）
+- [x] P3.3 通用 APK 体积优化调研（结论已写入本章：AAB 即得，per-ABI 为后续大项）
 
 ## P0 — 工程现代化（构建债，低风险高确定性）
 
