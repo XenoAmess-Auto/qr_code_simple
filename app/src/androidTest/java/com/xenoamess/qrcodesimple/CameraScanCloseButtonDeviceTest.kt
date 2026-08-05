@@ -34,6 +34,19 @@ class CameraScanCloseButtonDeviceTest {
         android.Manifest.permission.READ_MEDIA_VIDEO
     )
 
+
+    /** 轮询等待 CameraScanFragment 挂载完成（替代固定 sleep，消除 CI 偶发竞态）。 */
+    private fun waitForFragment(scenario: ActivityScenario<MainActivity>, maxMs: Long = 15_000): CameraScanFragment? {
+        val start = System.currentTimeMillis()
+        var fragment: CameraScanFragment? = null
+        while (System.currentTimeMillis() - start < maxMs) {
+            fragment = getFragment(scenario)
+            if (fragment != null) return fragment
+            android.os.SystemClock.sleep(200)
+        }
+        return fragment
+    }
+
     private fun getFragment(scenario: ActivityScenario<MainActivity>): CameraScanFragment? {
         var result: CameraScanFragment? = null
         scenario.onActivity { activity ->
@@ -59,8 +72,7 @@ class CameraScanCloseButtonDeviceTest {
     @Test
     fun closeResultButtonHidesCardInViewPager2() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            Thread.sleep(2000)
-            val fragment = getFragment(scenario)
+            val fragment = waitForFragment(scenario)
             assertNotNull("CameraScanFragment 应存在于 ViewPager2 position 0", fragment)
 
             showResultOnMain(fragment, "https://close-button-device-test.com")
@@ -79,8 +91,7 @@ class CameraScanCloseButtonDeviceTest {
     @Test
     fun cardReShowsWhenBackgroundThreadScansDifferentCode() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            Thread.sleep(2000)
-            val fragment = getFragment(scenario)
+            val fragment = waitForFragment(scenario)
             assertNotNull(fragment)
 
             // 显示卡片 A

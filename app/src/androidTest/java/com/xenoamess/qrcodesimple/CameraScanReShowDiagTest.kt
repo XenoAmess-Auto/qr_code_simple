@@ -38,11 +38,13 @@ class CameraScanReShowDiagTest {
     @Test
     fun closeThenCodeLeavesThenCodeReturnsShouldReShow() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            Thread.sleep(3000)
-
             var fragment: CameraScanFragment? = null
-            scenario.onActivity { activity ->
-                fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
+            val start = System.currentTimeMillis()
+            while (fragment == null && System.currentTimeMillis() - start < 15_000) {
+                scenario.onActivity { activity ->
+                    fragment = activity.supportFragmentManager.findFragmentByTag("f0") as? CameraScanFragment
+                }
+                if (fragment == null) android.os.SystemClock.sleep(200)
             }
             assertNotNull(fragment)
             val frag = fragment!!
