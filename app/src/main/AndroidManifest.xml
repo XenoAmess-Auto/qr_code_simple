@@ -83,6 +83,13 @@
                 <action android:name="android.intent.action.PROCESS_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!-- 深链：qr-code-simple://generate?text=...&format=... -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="qr-code-simple" android:host="generate" />
+            </intent-filter>
         </activity>
 
         <activity

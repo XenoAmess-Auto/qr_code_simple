@@ -83,6 +83,22 @@ class GenerateActivityShareTextTest {
     }
 
     @Test
+    fun `deep link prefill fills input and format`() {
+        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
+            "qr-code-simple://generate?text=https%3A%2F%2Fdeep.example.com&format=QR_CODE"
+        ))
+        val activity = launch(intent)
+
+        val fragment = activity.supportFragmentManager
+            .findFragmentById(R.id.fragmentContainer) as GenerateFragment
+        val editText = fragment.requireView().findViewById<TextInputEditText>(R.id.etContent)
+        assertEquals("https://deep.example.com", editText.text?.toString())
+
+        val preview = fragment.requireView().findViewById<ImageView>(R.id.ivQRCode)
+        assertNotNull(preview.drawable)
+    }
+
+    @Test
     fun `plain launch does not prefill`() {
         val intent = Intent(ApplicationProvider.getApplicationContext(), GenerateActivity::class.java)
         val activity = launch(intent)

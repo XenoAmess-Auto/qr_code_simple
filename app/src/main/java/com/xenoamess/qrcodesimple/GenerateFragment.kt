@@ -246,10 +246,17 @@ class GenerateFragment : Fragment() {
             Intent.ACTION_PROCESS_TEXT -> {
                 intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
             }
+            Intent.ACTION_VIEW -> {
+                // 深链：qr-code-simple://generate?text=...&format=...
+                val uri = intent.data ?: return
+                if (uri.scheme != "qr-code-simple" || uri.host != "generate") return
+                uri.getQueryParameter("text")
+            }
             else -> return
         }
         if (!text.isNullOrBlank()) {
-            loadFromHistory(text, null, null)
+            val format = (activity?.intent?.data)?.getQueryParameter("format")
+            loadFromHistory(text, format?.let { BarcodeFormat.fromString(it) }, null)
         }
     }
 
