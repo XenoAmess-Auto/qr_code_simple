@@ -90,6 +90,16 @@ class BackupActivity : AppCompatActivity() {
             exportLauncher.launch(intent)
         }
 
+        // 导出 Excel
+        binding.btnExportExcel.setOnClickListener {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                putExtra(Intent.EXTRA_TITLE, HistoryBackupManager.generateBackupFileName("xlsx"))
+            }
+            exportLauncher.launch(intent)
+        }
+
         // 导出加密备份
         binding.btnExportEncrypted.setOnClickListener {
             showExportPasswordDialog()
@@ -114,6 +124,13 @@ class BackupActivity : AppCompatActivity() {
                 if (password != null) {
                     // 加密备份：二进制写出
                     val data = HistoryBackupManager.exportEncryptedJson(this@BackupActivity, password)
+                    withContext(Dispatchers.IO) {
+                        contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            outputStream.write(data)
+                        }
+                    }
+                } else if (uri.toString().endsWith(".xlsx")) {
+                    val data = HistoryBackupManager.exportToXlsx(this@BackupActivity)
                     withContext(Dispatchers.IO) {
                         contentResolver.openOutputStream(uri)?.use { outputStream ->
                             outputStream.write(data)

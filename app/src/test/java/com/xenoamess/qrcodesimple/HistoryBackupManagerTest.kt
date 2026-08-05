@@ -155,6 +155,31 @@ class HistoryBackupManagerTest {
     }
 
     @Test
+    fun `export to xlsx writes readable workbook with items`() = runBlocking {
+        repository.insert(
+            HistoryItem(
+                content = "xlsx content",
+                type = HistoryType.QR_CODE,
+                isGenerated = false,
+                barcodeFormat = "QR_CODE",
+                notes = "xlsx note",
+                tags = "x,y"
+            )
+        )
+
+        val data = HistoryBackupManager.exportToXlsx(context)
+        assertTrue(data.isNotEmpty())
+
+        org.apache.poi.xssf.usermodel.XSSFWorkbook(org.apache.poi.util.IOUtils.toInputStream(data)).use { workbook ->
+            val sheet = workbook.getSheet("History")
+            assertEquals("content", sheet.getRow(0).getCell(0).stringCellValue)
+            assertEquals("xlsx content", sheet.getRow(1).getCell(0).stringCellValue)
+            assertEquals("QR_CODE", sheet.getRow(1).getCell(4).stringCellValue)
+            assertEquals("xlsx note", sheet.getRow(1).getCell(6).stringCellValue)
+        }
+    }
+
+    @Test
     fun `import from csv restores items`() = runBlocking {
         val csv = """
             content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags,styleJson

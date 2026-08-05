@@ -8,8 +8,10 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -167,6 +169,42 @@ object HistoryBackupManager {
         }
 
         csvBuilder.toString()
+    }
+
+    /**
+     * 导出为 XLSX（二进制 ByteArray，与 CSV 相同的列）。
+     */
+    suspend fun exportToXlsx(context: Context): ByteArray = withContext(Dispatchers.IO) {
+        val repository = HistoryRepository(context)
+        val items = repository.allHistory.first()
+
+        val headers = arrayOf(
+            "content", "type", "timestamp", "isGenerated", "barcodeFormat",
+            "isFavorite", "notes", "tags", "styleJson"
+        )
+        ByteArrayOutputStream().use { output ->
+            XSSFWorkbook().use { workbook ->
+                val sheet = workbook.createSheet("History")
+                val headerRow = sheet.createRow(0)
+                headers.forEachIndexed { index, header ->
+                    headerRow.createCell(index).setCellValue(header)
+                }
+                items.forEachIndexed { rowIndex, item ->
+                    val row = sheet.createRow(rowIndex + 1)
+                    row.createCell(0).setCellValue(item.content)
+                    row.createCell(1).setCellValue(item.type.name)
+                    row.createCell(2).setCellValue(item.timestamp.toDouble())
+                    row.createCell(3).setCellValue(item.isGenerated)
+                    row.createCell(4).setCellValue(item.barcodeFormat ?: "")
+                    row.createCell(5).setCellValue(item.isFavorite)
+                    row.createCell(6).setCellValue(item.notes ?: "")
+                    row.createCell(7).setCellValue(item.tags ?: "")
+                    row.createCell(8).setCellValue(item.styleJson ?: "")
+                }
+                workbook.write(output)
+            }
+            output.toByteArray()
+        }
     }
 
     /**

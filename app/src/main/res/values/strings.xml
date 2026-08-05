@@ -515,4 +515,5 @@
     <string name="scan_feedback">Scan feedback</string>
     <string name="scan_sound">Play sound on successful scan</string>
     <string name="scan_vibration">Vibrate on successful scan</string>
+    <string name="export_excel">Export as Excel</string>
 </resources>

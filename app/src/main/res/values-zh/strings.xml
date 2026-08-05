@@ -472,4 +472,5 @@
     <string name="scan_feedback">扫描反馈</string>
     <string name="scan_sound">扫码成功播放提示音</string>
     <string name="scan_vibration">扫码成功震动</string>
+    <string name="export_excel">导出为 Excel</string>
 </resources>
