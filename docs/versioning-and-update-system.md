@@ -146,7 +146,7 @@ Stable 和 Beta 都发布 JSON 对象。下列字段是客户端接受元数据�
 }
 ```
 
-Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.apk`，并额外包含 `"channel": "beta"`；没有 `releaseTag` 或 `aabFile`。
+Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.apk`，并额外包含 `"channel": "beta"`；没有 `releaseTag` 或 `aabFile`。Beta APK 本体由 `beta-archive` GitHub Release（`beta-<versionCode>.apk`）提供，GitHub Pages 只承载 `version.json` 元数据（Pages 不适合承载约 158MB 的二进制）。
 
 ### 增量链字段
 

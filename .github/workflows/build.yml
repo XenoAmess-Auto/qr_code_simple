@@ -433,7 +433,8 @@ jobs:
       - name: Add beta channel to Pages
         run: |
           mkdir -p pages/beta
-          cp beta-channel/version.json beta-channel/qr-code-simple-beta.apk pages/beta/
+          # Beta APK 本体由 beta-archive GitHub Release 提供（Pages 不适合承载 158MB 二进制）
+          cp beta-channel/version.json pages/beta/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

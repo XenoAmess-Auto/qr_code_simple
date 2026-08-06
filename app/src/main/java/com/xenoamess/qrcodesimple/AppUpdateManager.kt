@@ -280,11 +280,8 @@ object AppUpdateManager {
         }
         return downloadVerifiedArtifact(
             url = info.apkUrl,
-            endpointTrust = if (info.channel == UpdateDecider.Channel.STABLE) {
-                UpdateDecider.EndpointTrust.GITHUB_RELEASE
-            } else {
-                UpdateDecider.EndpointTrust.BETA_PAGES
-            },
+            // Stable 与 Beta 的 APK 均来自 GitHub Releases（beta-archive）；Pages 仅存元数据。
+            endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
             destination = outputFile,
             expectedSizeBytes = info.apkSizeBytes,
             expectedSha256 = info.apkSha256,

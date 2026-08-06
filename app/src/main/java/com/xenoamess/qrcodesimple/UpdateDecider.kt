@@ -13,8 +13,9 @@ object UpdateDecider {
     const val VERSION_JSON_ASSET_NAME = "version.json"
     const val LEGACY_APK_ASSET_NAME = "app-release.apk"
     const val CANONICAL_APK_PREFIX = "qr-code-simple-"
-    const val BETA_APK_URL =
-        "https://xenoamess-auto.github.io/qr_code_simple/beta/qr-code-simple-beta.apk"
+    const val BETA_ARCHIVE_TAG = "beta-archive"
+    const val BETA_APK_URL_PREFIX =
+        "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/$BETA_ARCHIVE_TAG/beta-"
 
     private const val GITHUB_API_HOST = "api.github.com"
     private const val GITHUB_RELEASES_HOST = "github.com"
@@ -272,7 +273,7 @@ object UpdateDecider {
             versionCode = metadata.versionCode,
             versionName = metadata.versionName,
             changelog = metadata.changelog.orEmpty(),
-            apkUrl = BETA_APK_URL,
+            apkUrl = "$BETA_APK_URL_PREFIX${metadata.versionCode}.apk",
             apkSha256 = metadata.apkSha256,
             apkSizeBytes = metadata.apkSizeBytes,
             releasePageUrl = null,
@@ -362,8 +363,8 @@ object UpdateDecider {
     }
 
     private fun isBetaPath(path: String?): Boolean {
-        return path == "/qr_code_simple/beta/version.json" ||
-            path == "/qr_code_simple/beta/qr-code-simple-beta.apk"
+        // Pages 只承载 beta 元数据；APK 本体由 beta-archive GitHub Release 提供
+        return path == "/qr_code_simple/beta/version.json"
     }
 
     private fun httpsUri(value: String): URI? {

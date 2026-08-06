@@ -133,7 +133,7 @@ class AppUpdateCheckerTest {
         assertTrue(outcome is UpdateDecider.CheckOutcome.UpdateAvailable)
         val info = (outcome as UpdateDecider.CheckOutcome.UpdateAvailable).info
         assertEquals(UpdateDecider.Channel.BETA, info.channel)
-        assertEquals(UpdateDecider.BETA_APK_URL, info.apkUrl)
+        assertEquals("${UpdateDecider.BETA_APK_URL_PREFIX}${info.versionCode}.apk", info.apkUrl)
         assertEquals(20L, info.versionCode)
     }
 
