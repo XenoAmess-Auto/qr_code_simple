@@ -519,4 +519,8 @@
     <string name="stats_title">Statistics</string>
     <string name="stats_7d">7 days: %1$d scans</string>
     <string name="stats_30d">30 days: %1$d scans</string>
+    <string name="theme_setting">Theme</string>
+    <string name="theme_system">Follow system</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

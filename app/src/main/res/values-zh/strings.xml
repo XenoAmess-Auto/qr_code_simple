@@ -476,4 +476,8 @@
     <string name="stats_title">统计</string>
     <string name="stats_7d">7 天：%1$d 次扫码</string>
     <string name="stats_30d">30 天：%1$d 次扫码</string>
+    <string name="theme_setting">主题</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_light">亮色</string>
+    <string name="theme_dark">暗色</string>
 </resources>

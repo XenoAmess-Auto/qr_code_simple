@@ -448,4 +448,8 @@
     <string name="stats_title">統計</string>
     <string name="stats_7d">7日間: %1$d 回スキャン</string>
     <string name="stats_30d">30日間: %1$d 回スキャン</string>
+    <string name="theme_setting">テーマ</string>
+    <string name="theme_system">システムに従う</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
 </resources>

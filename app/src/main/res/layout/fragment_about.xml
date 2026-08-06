@@ -47,6 +47,15 @@
             android:text="@string/language"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
+        <!-- Theme Selector -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTheme"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/theme_setting"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
         <!-- Privacy Settings -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrivacy"

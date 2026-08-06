@@ -959,4 +959,8 @@ https://another.com
     <string name="stats_30d">30 дней: %1$d сканирований</string>
 
 
+    <string name="theme_setting">Тема</string>
+    <string name="theme_system">Как в системе</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
 </resources>

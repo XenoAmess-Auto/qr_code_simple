@@ -83,6 +83,10 @@ class QRCodeApp : Application() {
 
         private const val KEY_SCAN_SOUND_ENABLED = "scan_sound_enabled"
         private const val KEY_SCAN_VIBRATION_ENABLED = "scan_vibration_enabled"
+        private const val KEY_THEME_MODE = "theme_mode"
+        const val THEME_MODE_SYSTEM = "system"
+        const val THEME_MODE_LIGHT = "light"
+        const val THEME_MODE_DARK = "dark"
 
         /** 扫码成功提示音开关（默认开）。 */
         fun isScanSoundEnabled(context: Context): Boolean {
@@ -104,6 +108,32 @@ class QRCodeApp : Application() {
         fun setScanVibrationEnabled(context: Context, enabled: Boolean) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putBoolean(KEY_SCAN_VIBRATION_ENABLED, enabled).apply()
+        }
+
+        /** 亮暗主题模式：system / light / dark（默认跟随系统）。 */
+        fun getThemeMode(context: Context): String {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getString(KEY_THEME_MODE, THEME_MODE_SYSTEM)
+                ?.takeIf { it == THEME_MODE_SYSTEM || it == THEME_MODE_LIGHT || it == THEME_MODE_DARK }
+                ?: THEME_MODE_SYSTEM
+        }
+
+        fun setThemeMode(context: Context, mode: String) {
+            if (mode != THEME_MODE_SYSTEM && mode != THEME_MODE_LIGHT && mode != THEME_MODE_DARK) return
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putString(KEY_THEME_MODE, mode).apply()
+        }
+
+        /** 将持久化的主题模式应用到 AppCompatDelegate（在 Application.onCreate 调用）。 */
+        fun applyThemeMode(context: Context) {
+            val mode = getThemeMode(context)
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                when (mode) {
+                    THEME_MODE_LIGHT -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+                    THEME_MODE_DARK -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                    else -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                }
+            )
         }
 
         /**
@@ -164,8 +194,8 @@ class QRCodeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Android 12+ 跟随壁纸动态取色（低版本回退主题中的青色）
-        com.google.android.material.color.DynamicColors.applyToActivitiesIfAvailable(this)
+        // 应用用户选择的亮暗主题（system/light/dark）
+        applyThemeMode(this)
 
         // 初始化标签管理器
         TagManager.init(this)

@@ -57,6 +57,10 @@ class AboutFragment : Fragment() {
             showLanguageDialog()
         }
 
+        binding.btnTheme.setOnClickListener {
+            showThemeDialog()
+        }
+
         binding.btnPrivacy.setOnClickListener {
             startActivity(Intent(requireContext(), PrivacySettingsActivity::class.java))
         }
@@ -85,6 +89,31 @@ class AboutFragment : Fragment() {
     private fun updateLanguageButton() {
         val currentLang = LocaleHelper.getCurrentLanguageDisplayName(requireContext())
         binding.btnLanguage.text = "${getString(R.string.language)}: $currentLang"
+    }
+
+    private fun showThemeDialog() {
+        val modes = listOf(
+            QRCodeApp.THEME_MODE_SYSTEM to getString(R.string.theme_system),
+            QRCodeApp.THEME_MODE_LIGHT to getString(R.string.theme_light),
+            QRCodeApp.THEME_MODE_DARK to getString(R.string.theme_dark)
+        )
+        val current = QRCodeApp.getThemeMode(requireContext())
+        val selectedIndex = modes.indexOfFirst { it.first == current }.coerceAtLeast(0)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.theme_setting))
+            .setSingleChoiceItems(modes.map { it.second }.toTypedArray(), selectedIndex) { dialog, which ->
+                val mode = modes[which].first
+                if (mode != current) {
+                    QRCodeApp.setThemeMode(requireContext(), mode)
+                    QRCodeApp.applyThemeMode(requireContext())
+                    // 主题切换立即生效，无需重启
+                    requireActivity().recreate()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun showLanguageDialog() {

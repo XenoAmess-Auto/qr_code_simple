@@ -474,4 +474,8 @@
     <string name="stats_title">Statistiken</string>
     <string name="stats_7d">7 Tage: %1$d Scans</string>
     <string name="stats_30d">30 Tage: %1$d Scans</string>
+    <string name="theme_setting">Design</string>
+    <string name="theme_system">System folgen</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
 </resources>

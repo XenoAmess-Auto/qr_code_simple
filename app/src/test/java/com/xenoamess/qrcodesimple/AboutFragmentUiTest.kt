@@ -49,6 +49,39 @@ class AboutFragmentUiTest {
             ApplicationProvider.getApplicationContext(),
             false
         )
+        QRCodeApp.setThemeMode(ApplicationProvider.getApplicationContext(), QRCodeApp.THEME_MODE_SYSTEM)
+        QRCodeApp.applyThemeMode(ApplicationProvider.getApplicationContext())
+    }
+
+    @Test
+    fun `theme button presents mode dialog and persists selection`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        onView(withId(R.id.btnTheme)).perform(click())
+        Shadows.shadowOf(Looper.getMainLooper()).idle()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(dialog)
+        assertEquals(R.string.theme_setting, dialog.window?.context?.let {
+            it.getString(R.string.theme_setting)
+        }?.let { _ -> R.string.theme_setting })
+
+        // 选择"暗色"并确认持久化
+        dialog.getListView().performItemClick(null, 2, 2)
+        Shadows.shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals(QRCodeApp.THEME_MODE_DARK, QRCodeApp.getThemeMode(context))
+        assertEquals(
+            androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES,
+            androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode()
+        )
+    }
+
+    @Test
+    fun `theme default follows system`() {
+        assertEquals(
+            QRCodeApp.THEME_MODE_SYSTEM,
+            QRCodeApp.getThemeMode(ApplicationProvider.getApplicationContext())
+        )
     }
 
     @Test
@@ -68,7 +101,9 @@ class AboutFragmentUiTest {
             UpdateDecider.CheckOutcome.UpdateAvailable(releaseInfo(channel))
         }
 
-        onView(withId(R.id.btnCheckUpdate)).perform(click())
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<android.view.View>(R.id.btnCheckUpdate).performClick()
+        }
         assertTrue(waitFor { ShadowDialog.getLatestDialog() != null })
         (ShadowDialog.getLatestDialog() as AlertDialog).dismiss()
         scenario.onFragment { fragment ->

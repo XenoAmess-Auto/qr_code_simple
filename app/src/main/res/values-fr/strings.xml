@@ -954,4 +954,8 @@ https://another.com
     <string name="stats_title">Statistiques</string>
     <string name="stats_7d">7 jours : %1$d scans</string>
     <string name="stats_30d">30 jours : %1$d scans</string>
+    <string name="theme_setting">Thème</string>
+    <string name="theme_system">Suivre le système</string>
+    <string name="theme_light">Clair</string>
+    <string name="theme_dark">Sombre</string>
 </resources>
