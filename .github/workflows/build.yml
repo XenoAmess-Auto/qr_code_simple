@@ -442,3 +442,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v5
+        with:
+          # The Pages artifact carries a ~158 MB beta APK; the default 600s upload
+          # timeout has been observed to expire on slow deploys.
+          timeout: 1200000
