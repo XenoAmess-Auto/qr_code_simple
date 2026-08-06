@@ -6,15 +6,10 @@ import kotlinx.coroutines.flow.Flow
 /**
  * 历史记录 DAO
  */
-data class ContentCount(val content: String, val cnt: Int)
-
 @Dao
 interface HistoryDao {
     @Query("SELECT COUNT(*) FROM history WHERE timestamp >= :since AND isGenerated = 0")
     suspend fun countScannedSince(since: Long): Int
-
-    @Query("SELECT content, COUNT(*) AS cnt FROM history WHERE isGenerated = 0 GROUP BY content ORDER BY cnt DESC LIMIT :limit")
-    suspend fun topScannedContents(limit: Int): List<ContentCount>
 
     
     @Query("SELECT * FROM history ORDER BY timestamp DESC")

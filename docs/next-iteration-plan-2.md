@@ -19,7 +19,7 @@
 - [x] F1 法语 locale（431+61 条 100% 对齐，5 语言门禁生效——补漏 export_excel/stats 翻译时被 lint 捕获）
 - [x] F2 ACTION_PROCESS_TEXT 入口（长按文本→生成）
 - [x] F3 CSV 模板（已存在，确认无需新增）
-- [x] F4 历史统计卡片（7/30 天扫码数 + 热门 Top3，DAO 查询 + 测试）
+- [x] F4 历史统计卡片（7/30 天扫码数；热门 Top3 已按用户要求移除）
 - [x] F5 扫描声音/震动开关（ScanFeedback helper，接入相机/连续扫描）
 - [x] F6 Material You 动态色（DynamicColors + 主题切换，低版本回退青色）
 - [x] F7 深链 qr-code-simple://generate?text=&format=

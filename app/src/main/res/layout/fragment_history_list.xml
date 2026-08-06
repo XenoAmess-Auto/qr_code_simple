@@ -29,14 +29,6 @@
             android:layout_height="wrap_content"
             android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/tvStatsTop"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:maxLines="2"
-            android:ellipsize="end" />
-
     </LinearLayout>
 
     <!-- 搜索栏 -->

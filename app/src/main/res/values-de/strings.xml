@@ -474,5 +474,4 @@
     <string name="stats_title">Statistiken</string>
     <string name="stats_7d">7 Tage: %1$d Scans</string>
     <string name="stats_30d">30 Tage: %1$d Scans</string>
-    <string name="stats_top">Top: %1$s</string>
 </resources>

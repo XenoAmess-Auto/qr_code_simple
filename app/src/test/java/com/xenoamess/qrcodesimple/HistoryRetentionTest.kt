@@ -67,10 +67,6 @@ class HistoryRetentionTest {
         assertEquals(2, count7)
         assertEquals(2, count30)
 
-        val top = dao.topScannedContents(3)
-        assertEquals(2, top.size)
-        assertEquals("https://hot.example.com", top[0].content)
-        assertEquals(2, top[0].cnt)
     }
 
     @Test

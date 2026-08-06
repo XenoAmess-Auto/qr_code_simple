@@ -448,5 +448,4 @@
     <string name="stats_title">統計</string>
     <string name="stats_7d">7日間: %1$d 回スキャン</string>
     <string name="stats_30d">30日間: %1$d 回スキャン</string>
-    <string name="stats_top">人気: %1$s</string>
 </resources>

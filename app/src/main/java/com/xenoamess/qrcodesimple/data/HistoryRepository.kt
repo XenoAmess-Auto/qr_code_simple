@@ -25,8 +25,6 @@ class HistoryRepository(private val context: Context) {
     
     suspend fun scannedCountSince(since: Long): Int = historyDao.countScannedSince(since)
 
-    suspend fun topScannedContents(limit: Int): List<ContentCount> = historyDao.topScannedContents(limit)
-
     suspend fun insert(item: HistoryItem): Long {
         // 隐私模式下不保存
         if (isPrivacyMode()) return -1
