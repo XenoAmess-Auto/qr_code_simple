@@ -72,7 +72,12 @@ class BatchResultAdapterTest {
         assertNotNull(adapter)
         assertEquals(2, adapter!!.itemCount)
 
-        val parent = LinearLayout(ApplicationProvider.getApplicationContext()).apply {
+        // item 布局含 ?attr/colorPrimary 等主题属性，parent 必须使用带主题的 context
+        val themedContext = androidx.appcompat.view.ContextThemeWrapper(
+            ApplicationProvider.getApplicationContext(),
+            R.style.Theme_QRCodeSimple
+        )
+        val parent = LinearLayout(themedContext).apply {
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
 
@@ -108,7 +113,12 @@ class BatchResultAdapterTest {
             }
         }
 
-        val parent = LinearLayout(ApplicationProvider.getApplicationContext()).apply {
+        // item 布局含 ?attr/colorPrimary 等主题属性，parent 必须使用带主题的 context
+        val themedContext = androidx.appcompat.view.ContextThemeWrapper(
+            ApplicationProvider.getApplicationContext(),
+            R.style.Theme_QRCodeSimple
+        )
+        val parent = LinearLayout(themedContext).apply {
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
         val holder = adapter!!.onCreateViewHolder(parent, 0)

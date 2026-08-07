@@ -50,6 +50,8 @@
             android:layout_marginTop="8dp"
             android:text="@string/save"
             android:textSize="12sp"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
     </LinearLayout>

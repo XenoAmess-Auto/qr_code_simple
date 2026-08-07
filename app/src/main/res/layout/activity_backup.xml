@@ -46,6 +46,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="@string/export_json"
+                    android:textColor="?attr/colorPrimary"
+
                     style="?android:attr/borderlessButtonStyle" />
 
                 <Button
@@ -54,6 +56,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="@string/export_csv"
+                    android:textColor="?attr/colorPrimary"
+
                     style="?android:attr/borderlessButtonStyle" />
 
                 <Button
@@ -62,6 +66,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="@string/export_excel"
+                    android:textColor="?attr/colorPrimary"
+
                     style="?android:attr/borderlessButtonStyle" />
 
                 <Button
@@ -69,6 +75,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/export_encrypted"
+                    android:textColor="?attr/colorPrimary"
+
                     style="?android:attr/borderlessButtonStyle" />
 
             </LinearLayout>
@@ -101,6 +109,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/import_data"
+                    android:textColor="?attr/colorPrimary"
+
                     style="?android:attr/borderlessButtonStyle" />
 
             </LinearLayout>

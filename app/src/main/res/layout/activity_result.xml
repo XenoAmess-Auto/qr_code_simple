@@ -75,6 +75,8 @@
                 android:layout_weight="1"
                 android:text="@string/select_all"
                 android:textSize="12sp"
+                android:textColor="?attr/colorPrimary"
+
                 style="?android:attr/borderlessButtonStyle" />
 
             <Button
@@ -84,6 +86,8 @@
                 android:layout_weight="1"
                 android:text="@string/deselect_all"
                 android:textSize="12sp"
+                android:textColor="?attr/colorPrimary"
+
                 style="?android:attr/borderlessButtonStyle" />
 
         </LinearLayout>

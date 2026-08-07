@@ -61,6 +61,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/save_all"
                     android:layout_marginStart="8dp"
+                    android:textColor="?attr/colorPrimary"
+
                     style="?android:attr/borderlessButtonStyle" />
 
             </LinearLayout>

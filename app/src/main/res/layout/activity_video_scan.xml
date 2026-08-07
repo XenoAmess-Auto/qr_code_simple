@@ -32,6 +32,8 @@
         android:layout_height="wrap_content"
         android:text="@string/stop_scanning"
         android:visibility="gone"
+        android:textColor="?attr/colorPrimary"
+
         style="?android:attr/borderlessButtonStyle"
         android:layout_marginBottom="8dp" />
 
@@ -79,6 +81,8 @@
                 android:layout_weight="1"
                 android:text="@string/select_all"
                 android:textSize="12sp"
+                android:textColor="?attr/colorPrimary"
+
                 style="?android:attr/borderlessButtonStyle" />
 
             <Button
@@ -88,6 +92,8 @@
                 android:layout_weight="1"
                 android:text="@string/deselect_all"
                 android:textSize="12sp"
+                android:textColor="?attr/colorPrimary"
+
                 style="?android:attr/borderlessButtonStyle" />
 
         </LinearLayout>

@@ -54,6 +54,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:text="@string/reset_database"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
         <!-- 导出备份按钮 -->
@@ -62,6 +64,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/backup_restore"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
     </LinearLayout>

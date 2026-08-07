@@ -227,6 +227,8 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/change_pin"
                 android:visibility="gone"
+                android:textColor="?attr/colorPrimary"
+
                 style="?android:attr/borderlessButtonStyle" />
 
         </LinearLayout>
@@ -269,6 +271,8 @@
                     android:id="@+id/btnHistoryRetention"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="?attr/colorPrimary"
+
                     style="?android:attr/borderlessButtonStyle" />
 
             </LinearLayout>
@@ -280,6 +284,7 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/clear_all"
                 android:textColor="@android:color/holo_red_dark"
+
                 style="?android:attr/borderlessButtonStyle" />
 
         </LinearLayout>

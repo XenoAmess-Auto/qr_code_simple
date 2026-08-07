@@ -18,6 +18,8 @@
             android:layout_weight="1"
             android:text="@string/tab_realtime"
             android:textSize="12sp"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
         <Button
@@ -27,6 +29,8 @@
             android:layout_weight="1"
             android:text="@string/tab_image"
             android:textSize="12sp"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
         <Button
@@ -36,6 +40,8 @@
             android:layout_weight="1"
             android:text="@string/tab_generate"
             android:textSize="12sp"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
         <Button
@@ -45,6 +51,8 @@
             android:layout_weight="1"
             android:text="@string/tab_history"
             android:textSize="12sp"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
         <Button
@@ -54,6 +62,8 @@
             android:layout_weight="1"
             android:text="@string/tab_about"
             android:textSize="12sp"
+            android:textColor="?attr/colorPrimary"
+
             style="?android:attr/borderlessButtonStyle" />
 
     </LinearLayout>
