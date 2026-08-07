@@ -51,7 +51,7 @@ git fetch --unshallow --tags
 | `qr-code-simple-<version>.aab` | canonical Stable AAB。 |
 | `version.json` | Stable 更新元数据。 |
 | `app-release.apk` | canonical APK 的兼容别名，不是新的独立构建。 |
-| `patch-<fromCode>-to-<toCode>.patch` | 可选的 Stable 增量补丁（ApkDiffPatch `ZiPat1` 格式）；没有可用历史、工具或补丁不划算时可以不存在。 |
+| `patch-<fromCode>-to-<toCode>.patch` | 可选的增量补丁（ApkDiffPatch `ZiPat1` 格式），来源覆盖历史 Stable 与最近 4 个已存档 Beta；没有可用历史、工具或补丁不划算时可以不存在。 |
 
 增量补丁生成失败不会使完整 APK/AAB 或 `version.json` 失效。Stable workflow 在创建 Release 前会再次确认 `version.json` 指向实际存在的 canonical APK，且 APK 的 SHA-256、字节数和标签版本一致。
 
@@ -65,6 +65,7 @@ git fetch --unshallow --tags
 4. 补丁不小于发布物一半也丢弃；**单跳直达**，不再构建多跳链。
 5. **过渡安全**：只对「已装包内含 `libapkpatch.so`」的 from-版本生成补丁；旧客户端（无 native 库）自动全量下载，「检查更新」按钮始终可用。
 6. AAB 不做归一化重签，保持 AGP 产物。
+7. **跨通道互转**：Stable 的补丁来源除最多 8 个历史 Stable 外，还包括 `beta-archive` 中最近 4 个已存档 Beta（`build_stable_delta_chains.py`）；Beta 的补丁来源除最近第 1、2、4 个 Beta 基外，还包括最近 2 个 Stable Release（`build_beta_delta_chains.py`）。两条通道的发布物走同一条归一化 + apksigner 34.0.0 + 同一基线证书管线，跨通道补丁因此可以字节级回放，Stable 与 Beta 客户端可以互相增量切换通道。
 
 实测（v0.2.6 → 当前 master 构建）：ApkDiffPatch 补丁约 **3.6MB**（发布物 159MB 的 2.3%），且 154MB+ 的通用 APK 不再受旧 bsdiff 方案 64 MiB 内存上限限制，增量更新第一次真正可用。
 
@@ -97,7 +98,7 @@ Pages 的同一部署仍会生成并保留：
 `build_beta_delta_chains.py` 维护名为 `beta-archive` 的 GitHub **prerelease**。它固定为 prerelease，使 GitHub 的 `releases/latest` 继续只代表 Stable；首次创建时以仓库根提交为目标。
 
 - 存档最多保留 8 个已签名 Beta 基础 APK 和其历史元数据。
-- 新 Beta 会尝试针对最近第 1、2、4 个基础版本生成直接 ApkDiffPatch 补丁（与稳定版同一套归一化+apksigner34 重签管线）；补丁必须能回放到目标 APK、SHA-256 正确且小于发布物一半。
+- 新 Beta 会尝试针对最近第 1、2、4 个基础版本以及最近 2 个 Stable Release 生成直接 ApkDiffPatch 补丁（与稳定版同一套归一化+apksigner34 重签管线）；补丁必须能回放到目标 APK、SHA-256 正确且小于发布物一半。跨通道补丁命名为 `patch-beta-<fromCode>-to-<toCode>.patch`，与其他 Beta 补丁一样作为 `beta-archive` 资产并随对应 Beta 条目一起被剪枝。
 - 补丁为单跳直达链，客户端格式统一为 `ZiPat1`。补丁和链都是优化，完整 Pages APK 及其 SHA-256/大小始终是可用的回退路径。
 
 ### 首个标签前的 Beta
@@ -210,6 +211,8 @@ Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.
 - 每个补丁的大小、SHA-256、每一跳输出 SHA-256，以及最终 APK SHA-256 均通过校验。
 
 补丁格式为 ApkDiffPatch 的 `ZiPat1`（客户端内置 4 ABI `libapkpatch.so`，native 流式打补丁）。`ApkPatcher` 只接受 `ZiPat1` 头，其他格式一律拒绝；native 缺失或失败会包装成普通异常而不是崩溃。旧 bsdiff 方案的 64 MiB 内存上限已随 jbsdiff 一起移除，当前 150MB+ 的通用 APK 可以直接走增量。链缺失、基础 hash 不匹配、补丁不够小、下载失败或任一回放校验失败时，更新器都会清理临时文件并回退完整 APK。
+
+`chains` 只按已安装 `versionCode` 查表，与来源通道无关：Stable 元数据可为已存档 Beta 提供链（补丁随 Stable Release 上传），Beta 元数据可为最近 Stable 提供链（补丁随 `beta-archive` 上传）。因此 Stable ↔ Beta 双向切换与通道内升级走同一条已验证增量路径；只有当目标 `versionCode` 严格大于本机时才构成更新，同提交重发的同 code 包不会被当作更新。
 
 ## 6. 签名连续性
 

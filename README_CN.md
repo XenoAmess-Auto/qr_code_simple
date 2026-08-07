@@ -255,7 +255,7 @@ cd qr_code_simple
 
 Gradle 必须在具有完整历史、非浅克隆的 Git 仓库中运行。`versionCode` 为 `git rev-list --count HEAD`；`versionName` 取最近的严格 `vMAJOR.MINOR.PATCH` 标签（移除 `v`），若领先该标签 `N` 个提交则为 `MAJOR.MINOR.PATCH+N`。没有任何匹配 `v*` 标签时回退为 `0.0.0+<提交数>`。每个构建还会写入八位 `BuildConfig.GIT_HASH`，并将生成的 `CHANGELOG.txt` 打包给“关于”页显示。
 
-- 推送 Stable 标签时，标签必须严格为 `vMAJOR.MINOR.PATCH`，且必须指向当时的 `origin/master`。工作流会执行 debug 构建、单元测试、lint 和覆盖率门禁，再以与主分支 Debug APK 相同的证书向 GitHub Releases 发布 `qr-code-simple-<version>.apk`、`qr-code-simple-<version>.aab`、`version.json`、兼容别名 `app-release.apk` 以及可用的增量补丁。
+- 推送 Stable 标签时，标签必须严格为 `vMAJOR.MINOR.PATCH`，且必须指向当时的 `origin/master`。工作流会执行 debug 构建、单元测试、lint 和覆盖率门禁，再以与主分支 Debug APK 相同的证书向 GitHub Releases 发布 `qr-code-simple-<version>.apk`、`qr-code-simple-<version>.aab`、`version.json`、兼容别名 `app-release.apk` 以及可用的增量补丁。增量补丁来源跨通道：Stable 同时覆盖最近 4 个已存档 Beta,Beta 同时覆盖最近 2 个 Stable，因此正式版与 Beta 之间可以双向增量切换。
 - 仅 `master` 推送会在常规构建和模拟器仪器测试均通过后发布 Beta：以相同签名的 release APK 和元数据部署到 GitHub Pages 的 `/beta/qr-code-simple-beta.apk` 与 `/beta/version.json`。同一次 Pages 部署仍会保留 `coverage.html` 和 `coverage.json`。
 - Stable 自动检查默认关闭；“关于”页可手动检查 Stable。Beta 检查始终只能从“关于”页手动发起。下载后会校验元数据中的 SHA-256 与精确字节数，安装前还会校验 APK 包名、目标 `versionCode` 和签名证书集合是否与已安装应用一致。
 

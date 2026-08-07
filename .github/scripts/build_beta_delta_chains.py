@@ -3,7 +3,9 @@
 
 The archive keeps eight signed beta bases. New patches target the 1, 2, and 4
 most recent bases using ApkDiffPatch single-hop direct patches; the Pages manifest
-always retains a full APK checksum and size.
+always retains a full APK checksum and size. The STABLE_CROSS_BASES most recent
+stable releases also get direct patches so stable clients can switch channels
+incrementally; those patches live in beta-archive alongside the beta bases.
 
 ApkDiffPatch (sisong/ApkDiffPatch v1.8.1, MIT) server-side generation:
 - the published beta APK is ApkNormalized(new APK) + apksigner 34.0.0 re-sign (done by
@@ -43,6 +45,10 @@ BACKOFF = (1, 2, 4)
 MIN_PATCH_RATIO = 0.5
 VERSION_NAME = re.compile(r"^\d+\.\d+\.\d+(?:\+\d+)?$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+# Cross-channel bases: recent stable releases also get direct patches to a new beta,
+# so stable clients can switch to the beta channel incrementally.
+STABLE_TAG = re.compile(r"^v\d+\.\d+\.\d+$")
+STABLE_CROSS_BASES = 2
 
 
 def sha256(path: Path) -> str:
@@ -129,13 +135,91 @@ def upload_asset(path: Path) -> None:
     print(f"uploaded {path.name}")
 
 
-def download_archive_asset(asset: str, destination: Path) -> Path | None:
+def download_release_asset(tag: str, asset: str, destination: Path) -> Path | None:
     destination.mkdir(parents=True, exist_ok=True)
     result = gh(
-        "download", ARCHIVE_TAG, "--pattern", asset, "--dir", str(destination), "--clobber", check=False
+        "download", tag, "--pattern", asset, "--dir", str(destination), "--clobber", check=False
     )
     candidate = destination / asset
     return candidate if result.returncode == 0 and candidate.is_file() else None
+
+
+def download_archive_asset(asset: str, destination: Path) -> Path | None:
+    return download_release_asset(ARCHIVE_TAG, asset, destination)
+
+
+def stable_cross_sources(target_code: int, workdir: Path) -> list[dict]:
+    """Return the most recent stable releases eligible for a direct patch to this beta,
+    newest releases first as returned by the GitHub API."""
+    result = run(["gh", "api", f"repos/{repository()}/releases?per_page=10"], check=False)
+    if result.returncode != 0:
+        print("skip stable cross bases: could not list releases")
+        return []
+    try:
+        releases = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        print("skip stable cross bases: could not parse the release list")
+        return []
+    if not isinstance(releases, list):
+        print("skip stable cross bases: unexpected release list payload")
+        return []
+
+    sources: list[dict] = []
+    seen_codes: set[int] = set()
+    for release in releases:
+        if len(sources) >= STABLE_CROSS_BASES:
+            break
+        if not isinstance(release, dict) or release.get("prerelease") is not False or release.get("draft") is not False:
+            continue
+        tag = release.get("tag_name")
+        if not isinstance(tag, str) or not STABLE_TAG.fullmatch(tag):
+            continue
+        assets = {
+            asset["name"]
+            for asset in release.get("assets", [])
+            if isinstance(asset, dict) and isinstance(asset.get("name"), str)
+        }
+        if "version.json" not in assets:
+            print(f"skip {tag}: no version.json release asset")
+            continue
+
+        metadata_path = download_release_asset(tag, "version.json", workdir / f"stable-{tag}")
+        if metadata_path is None:
+            print(f"skip {tag}: version.json could not be downloaded")
+            continue
+        try:
+            stable_metadata = read_json(metadata_path)
+        except Exception as error:
+            print(f"skip {tag}: invalid version.json ({error})")
+            continue
+
+        code = positive_int(stable_metadata.get("versionCode"))
+        name = stable_metadata.get("versionName")
+        if code is None or not isinstance(name, str) or not VERSION_NAME.fullmatch(name):
+            print(f"skip {tag}: invalid version metadata")
+            continue
+        if tag != f"v{name}":
+            print(f"skip {tag}: tag does not match versionName {name}")
+            continue
+        if code >= target_code:
+            print(f"skip {tag}: versionCode is not older than the target")
+            continue
+        if code in seen_codes:
+            continue
+        apk_hash = valid_sha(stable_metadata.get("apkSha256"))
+        canonical_apk = f"qr-code-simple-{name}.apk"
+        if apk_hash is None or canonical_apk not in assets:
+            print(f"skip {tag}: no canonical APK or checksum ({canonical_apk})")
+            continue
+
+        seen_codes.add(code)
+        sources.append({
+            "versionCode": code,
+            "tag": tag,
+            "apk": canonical_apk,
+            "apkSha256": apk_hash,
+        })
+    return sources
 
 
 def patch_metadata(value: object, from_code: int, to_code: int) -> dict | None:
@@ -309,6 +393,28 @@ def main() -> None:
                 patches[str(source_code)] = patch
                 print(f"created {patch_path.name} ({patch['size']} bytes)")
 
+        cross_hashes: dict[int, str] = {}
+        for source in stable_cross_sources(version_code, working_dir):
+            source_code = source["versionCode"]
+            old_apk = download_release_asset(
+                source["tag"], source["apk"], working_dir / f"apk-{source_code}"
+            )
+            if old_apk is None:
+                print(f"skip {source['tag']}: canonical APK could not be downloaded")
+                continue
+            if sha256(old_apk) != source["apkSha256"]:
+                print(f"skip {source['tag']}: APK hash disagrees with version.json")
+                continue
+            if not apk_has_native_lib(old_apk):
+                print(f"skip {source['tag']}({source_code}): old APK has no libapkpatch.so, full download only")
+                continue
+            patch_path = Path(f"patch-beta-{source_code}-to-{version_code}.patch")
+            patch = create_patch(old_apk, arguments.apk, patch_path, new_hash, new_size)
+            if patch is not None:
+                patches[str(source_code)] = patch
+                cross_hashes[source_code] = source["apkSha256"]
+                print(f"created {patch_path.name} ({patch['size']} bytes)")
+
         archive_apk = f"beta-{version_code}.apk"
         staged_apk = working_dir / archive_apk
         shutil.copyfile(arguments.apk, staged_apk)
@@ -329,9 +435,16 @@ def main() -> None:
         pruned_history = {code: entry for code, entry in history.items() if code not in keep_codes}
 
         # Single-hop direct chains: from version -> current version.
+        source_hashes: dict[int, str] = {}
+        for code, entry in history.items():
+            entry_hash = valid_sha(entry.get("apkSha256"))
+            if entry_hash is not None:
+                source_hashes[code] = entry_hash
+        source_hashes.update(cross_hashes)
+
         chains: dict[str, dict] = {}
         for from_code, patch in patches.items():
-            source_hash = valid_sha(history[int(from_code)].get("apkSha256"))
+            source_hash = source_hashes.get(int(from_code))
             if source_hash is None:
                 continue
             chains[from_code] = {

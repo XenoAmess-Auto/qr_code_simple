@@ -10,6 +10,8 @@ ApkDiffPatch (sisong/ApkDiffPatch v1.8.1, MIT) server-side generation:
   workflow before this script runs)
 - for each of the most recent MAX_KEEP historical released APKs, generate a direct patch
   with ZipDiff, then ZipPatch it back and compare byte-for-byte with the published APK
+- additionally patch from the BETA_CROSS_BASES most recent archived beta APKs
+  (beta-archive prerelease) so beta clients can switch to stable incrementally
 - only generate for from-versions whose APK contains libapkpatch.so; older clients cannot
   apply ZiPat1 patches and safely fall back to the full download
 - drop patches not smaller than half the target APK
@@ -41,6 +43,11 @@ ZIPDIFF = os.path.join(APKDIFF_BIN, "ZipDiff")
 ZIPPATCH = os.path.join(APKDIFF_BIN, "ZipPatch")
 MAX_KEEP = 8
 MIN_PATCH_RATIO = 0.5
+# Cross-channel bases: recent archived betas also get direct patches to a new stable,
+# so beta clients can switch channels incrementally.
+BETA_ARCHIVE_TAG = "beta-archive"
+BETA_HISTORY_FILE = "beta-history.json"
+BETA_CROSS_BASES = 4
 
 
 def sha256(path: Path) -> str:
@@ -165,6 +172,51 @@ def current_tag_from_git() -> str:
     return result.stdout.strip()
 
 
+def beta_cross_sources(target_code: int, workdir: Path) -> list[dict]:
+    """Return the most recent archived beta bases eligible for a direct patch to this
+    stable release, oldest-eligible ordering preserved by versionCode."""
+    result = gh("view", BETA_ARCHIVE_TAG, "--json", "assets", check=False)
+    if result.returncode != 0:
+        print("skip beta cross bases: beta-archive release is unavailable")
+        return []
+    try:
+        assets = {
+            asset["name"]
+            for asset in json.loads(result.stdout).get("assets", [])
+            if isinstance(asset, dict) and isinstance(asset.get("name"), str)
+        }
+    except json.JSONDecodeError:
+        print("skip beta cross bases: could not parse beta-archive assets")
+        return []
+
+    history_path = download_release_asset(BETA_ARCHIVE_TAG, BETA_HISTORY_FILE, workdir / "beta-history")
+    if history_path is None:
+        print("skip beta cross bases: beta-history.json could not be downloaded")
+        return []
+    try:
+        raw_history = read_json(history_path)
+    except Exception as error:
+        print(f"skip beta cross bases: invalid beta history ({error})")
+        return []
+
+    sources: list[dict] = []
+    for raw_code, raw_entry in raw_history.items():
+        try:
+            code = int(raw_code)
+        except (TypeError, ValueError):
+            continue
+        if code <= 0 or code >= target_code or not isinstance(raw_entry, dict):
+            continue
+        apk_name = f"beta-{code}.apk"
+        apk_hash = valid_sha(raw_entry.get("apkSha256") or raw_entry.get("sha256"))
+        apk_size = positive_int(raw_entry.get("apkSize") or raw_entry.get("size"))
+        if raw_entry.get("apk") != apk_name or apk_hash is None or apk_size is None or apk_name not in assets:
+            continue
+        sources.append({"versionCode": code, "apk": apk_name, "apkSha256": apk_hash})
+    sources.sort(key=lambda item: item["versionCode"])
+    return sources[-BETA_CROSS_BASES:]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metadata", type=Path, default=Path("version.json"))
@@ -205,6 +257,7 @@ def main() -> None:
         raise RuntimeError("gh is required to inspect historical stable releases")
 
     history: list[dict] = []
+    beta_sources: list[dict] = []
     seen_codes: set[int] = set()
     with tempfile.TemporaryDirectory(prefix="qr-code-simple-stable-history-") as temporary:
         history_dir = Path(temporary)
@@ -277,8 +330,30 @@ def main() -> None:
                 patches[str(source_code)] = patch
                 print(f"created {patch_path.name} ({patch['size']} bytes)")
 
+        beta_sources = beta_cross_sources(version_code, history_dir)
+        for source in beta_sources:
+            source_code = source["versionCode"]
+            old_apk = download_release_asset(
+                BETA_ARCHIVE_TAG, source["apk"], history_dir / f"apk-{source_code}"
+            )
+            if old_apk is None:
+                print(f"skip beta {source_code}: archived APK could not be downloaded")
+                continue
+            if sha256(old_apk) != source["apkSha256"]:
+                print(f"skip beta {source_code}: archived APK hash disagrees with beta history")
+                continue
+            if not apk_has_native_lib(old_apk):
+                print(f"skip beta {source_code}: old APK has no libapkpatch.so, full download only")
+                continue
+
+            patch_path = Path(f"patch-{source_code}-to-{version_code}.patch")
+            patch = create_patch(old_apk, new_apk, patch_path, new_hash, new_size)
+            if patch is not None:
+                patches[str(source_code)] = patch
+                print(f"created {patch_path.name} ({patch['size']} bytes)")
+
     chains: dict[str, dict] = {}
-    for source in history:
+    for source in history + beta_sources:
         source_hash = source.get("apkSha256")
         if valid_sha(source_hash) is None:
             continue

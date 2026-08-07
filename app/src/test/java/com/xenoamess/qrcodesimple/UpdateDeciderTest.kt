@@ -132,6 +132,67 @@ class UpdateDeciderTest {
     }
 
     @Test
+    fun `cross channel chains are surfaced and plannable`() {
+        val metadataJson = { patchUrl: String ->
+            """{
+                "versionCode":20,
+                "versionName":"0.2.7",
+                "apkSha256":"${"b".repeat(64)}",
+                "apkSize":1000,
+                "chains":{
+                    "18":{
+                        "fromApkSha256":"${"a".repeat(64)}",
+                        "totalSize":300,
+                        "hops":[
+                            {"toVersionCode":20,"url":"$patchUrl","size":300,"patchSha256":"${"c".repeat(64)}","resultSha256":"${"b".repeat(64)}"}
+                        ]
+                    }
+                }
+            }"""
+        }
+
+        // Beta install (code 18) updating to stable: patch hosted on the stable release.
+        val stableMetadata = UpdateDecider.parseVersionMetadata(
+            metadataJson(
+                "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.7/patch-18-to-20.patch"
+            )
+        )!!
+        val stableInfo = UpdateDecider.createStableReleaseInfo(
+            rawRelease(
+                canonical = listOf(
+                    UpdateDecider.ReleaseAsset(
+                        name = "qr-code-simple-0.2.7.apk",
+                        url = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.7/qr-code-simple-0.2.7.apk",
+                        sizeBytes = 1000
+                    )
+                ),
+                legacy = null
+            ).copy(tagName = "v0.2.7"),
+            stableMetadata,
+            localVersionCode = 18
+        )!!
+        assertNotNull(stableInfo.chain)
+
+        // Stable install (code 18) updating to beta: patch hosted on the beta-archive release.
+        val betaMetadata = UpdateDecider.parseVersionMetadata(
+            metadataJson(
+                "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/beta-archive/patch-beta-18-to-20.patch"
+            )
+        )!!
+        val betaInfo = UpdateDecider.createBetaReleaseInfo(betaMetadata, localVersionCode = 18)
+        assertNotNull(betaInfo.chain)
+
+        assertTrue(
+            ChainPlanner.choosePlan(stableInfo.chain, "a".repeat(64), stableInfo.apkSizeBytes)
+                is ChainPlanner.UpdatePlan.Incremental
+        )
+        assertTrue(
+            ChainPlanner.choosePlan(betaInfo.chain, "a".repeat(64), betaInfo.apkSizeBytes)
+                is ChainPlanner.UpdatePlan.Incremental
+        )
+    }
+
+    @Test
     fun `version code wins and equal codes use major minor patch fallback`() {
         val remote = releaseInfo(versionCode = 18, versionName = "0.3.0")
         assertTrue(

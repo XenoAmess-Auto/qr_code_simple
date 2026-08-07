@@ -163,7 +163,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `app/build.gradle` | Git 派生的 `versionCode` / `versionName` / `GIT_HASH`、`CHANGELOG.txt` 生成和 `writeVersionInfo` 元数据任务 |
 | `.github/workflows/build.yml` | push/PR 验证、模拟器仪器测试、仅 master 的与 Debug 同证书 Beta 发布，以及覆盖率和 Beta 通道的 Pages 部署 |
 | `.github/workflows/release.yml` | 严格 Stable 标签/`origin/master` 校验、与 Debug 同证书的 APK/AAB、`version.json`、GitHub Release 和可选增量补丁 |
-| `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的 ApkDiffPatch 单跳补丁（ZipDiff + ZipPatch 回打自验 + libapkpatch.so 守卫） |
+| `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的 ApkDiffPatch 单跳补丁（ZipDiff + ZipPatch 回打自验 + libapkpatch.so 守卫）；补丁源跨通道：Stable 覆盖最近 4 个已存档 Beta，Beta 覆盖最近 2 个 Stable，支持双向增量切换 |
 | `docs/versioning-and-update-system.md` | Git 版本模型、Stable/Beta 发布、`version.json`、签名连续性和首轮发布操作说明 |
 
 ## 6.1 版本、发布与应用更新
