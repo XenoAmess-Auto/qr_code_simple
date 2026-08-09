@@ -33,7 +33,7 @@ jobs:
 
       # 配置缓存跨 run 持久化：构建脚本未变时复用，显著缩短后续 run 的配置阶段
       - name: Cache Gradle configuration cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/configuration-cache
@@ -90,7 +90,7 @@ jobs:
 
       # 配置缓存跨 run 持久化：构建脚本未变时复用，显著缩短后续 run 的配置阶段
       - name: Cache Gradle configuration cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/configuration-cache
@@ -156,7 +156,7 @@ jobs:
 
       # 配置缓存跨 run 持久化：构建脚本未变时复用，显著缩短后续 run 的配置阶段
       - name: Cache Gradle configuration cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/configuration-cache
