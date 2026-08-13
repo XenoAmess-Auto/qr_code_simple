@@ -196,6 +196,9 @@
     <string name="shortcut_batch_short">대량</string>
     <string name="shortcut_batch_long">대량 생성</string>
     <string name="shortcut_batch_disabled">대량 생성이 비활성화되었습니다</string>
+    <string name="shortcut_continuous_short">연속</string>
+    <string name="shortcut_continuous_long">연속 스캔</string>
+    <string name="shortcut_continuous_disabled">연속 스캔이 비활성화되었습니다</string>
 
     <!-- 연속 스캔 -->
     <string name="continuous_scan">연속 스캔</string>

@@ -245,6 +245,9 @@
     <string name="shortcut_batch_short">一括</string>
     <string name="shortcut_batch_long">一括生成</string>
     <string name="shortcut_batch_disabled">一括生成は無効です</string>
+    <string name="shortcut_continuous_short">連続</string>
+    <string name="shortcut_continuous_long">連続スキャン</string>
+    <string name="shortcut_continuous_disabled">連続スキャンは無効です</string>
     <string name="continuous_scan">連続スキャン</string>
     <string name="privacy_settings">プライバシー設定</string>
     <string name="database_security">データベースセキュリティ</string>

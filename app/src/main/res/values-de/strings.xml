@@ -296,6 +296,9 @@
     <string name="shortcut_generate_disabled">Generieren ist deaktiviert</string>
     <string name="shortcut_history_disabled">Verlauf ist deaktiviert</string>
     <string name="shortcut_batch_disabled">Stapelverarbeitung ist deaktiviert</string>
+    <string name="shortcut_continuous_short">Dauerscan</string>
+    <string name="shortcut_continuous_long">Dauerscan</string>
+    <string name="shortcut_continuous_disabled">Dauerscan ist deaktiviert</string>
     <string name="database_security">Datenbanksicherheit</string>
     <string name="encryption_enabled">Verschlüsselung aktiviert</string>
     <string name="reset_database">Datenbank zurücksetzen</string>

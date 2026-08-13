@@ -314,6 +314,9 @@
     <string name="shortcut_batch_short">批量</string>
     <string name="shortcut_batch_long">批量生成</string>
     <string name="shortcut_batch_disabled">批量生成已停用</string>
+    <string name="shortcut_continuous_short">连扫</string>
+    <string name="shortcut_continuous_long">连续扫描</string>
+    <string name="shortcut_continuous_disabled">连续扫描已停用</string>
     <string name="continuous_scan">连续扫描</string>
     <string name="privacy_settings">隐私设置</string>
     <string name="database_security">数据库安全</string>

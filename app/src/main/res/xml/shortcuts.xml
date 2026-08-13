@@ -62,4 +62,19 @@
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
 
+    <!-- 连续扫描 -->
+    <shortcut
+        android:shortcutId="quick_continuous_scan"
+        android:enabled="true"
+        android:icon="@drawable/ic_continuous_scan"
+        android:shortcutShortLabel="@string/shortcut_continuous_short"
+        android:shortcutLongLabel="@string/shortcut_continuous_long"
+        android:shortcutDisabledMessage="@string/shortcut_continuous_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.xenoamess.qrcodesimple.ContinuousScanActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
 </shortcuts>

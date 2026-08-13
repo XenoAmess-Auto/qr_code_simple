@@ -482,6 +482,9 @@
     <string name="shortcut_batch_long">Generación por lotes</string>
 
     <string name="shortcut_batch_disabled">El lote está desactivado</string>
+    <string name="shortcut_continuous_short">Continuo</string>
+    <string name="shortcut_continuous_long">Escaneo continuo</string>
+    <string name="shortcut_continuous_disabled">El escaneo continuo está desactivado</string>
 
 
     <!-- Continuous Scan -->

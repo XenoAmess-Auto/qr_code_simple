@@ -210,6 +210,11 @@ class CameraScanFragment : Fragment() {
         binding.btnFlash.setOnClickListener { toggleFlash() }
         binding.btnSwitchCamera.setOnClickListener { switchCamera() }
         binding.btnScanRegion.setOnClickListener { toggleScanRegion() }
+        binding.btnContinuousScan.visibility =
+            if (activity is ContinuousScanActivity) View.GONE else View.VISIBLE
+        binding.btnContinuousScan.setOnClickListener {
+            startActivity(Intent(requireContext(), ContinuousScanActivity::class.java))
+        }
     }
     
     private fun onSmartActionClick() {

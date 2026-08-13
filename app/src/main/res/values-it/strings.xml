@@ -482,6 +482,9 @@
     <string name="shortcut_batch_long">Generazione batch</string>
 
     <string name="shortcut_batch_disabled">Batch disattivato</string>
+    <string name="shortcut_continuous_short">Continua</string>
+    <string name="shortcut_continuous_long">Scansione continua</string>
+    <string name="shortcut_continuous_disabled">Scansione continua disattivata</string>
 
 
     <!-- Continuous Scan -->

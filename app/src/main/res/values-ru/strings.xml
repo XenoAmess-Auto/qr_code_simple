@@ -482,6 +482,9 @@
     <string name="shortcut_batch_long">Пакетная генерация</string>
 
     <string name="shortcut_batch_disabled">Пакет отключён</string>
+    <string name="shortcut_continuous_short">Серия</string>
+    <string name="shortcut_continuous_long">Непрерывное сканирование</string>
+    <string name="shortcut_continuous_disabled">Непрерывное сканирование отключено</string>
 
 
     <!-- Continuous Scan -->

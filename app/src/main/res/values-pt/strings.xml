@@ -482,6 +482,9 @@
     <string name="shortcut_batch_long">Geração em lote</string>
 
     <string name="shortcut_batch_disabled">Lote desativado</string>
+    <string name="shortcut_continuous_short">Contínua</string>
+    <string name="shortcut_continuous_long">Análise contínua</string>
+    <string name="shortcut_continuous_disabled">Análise contínua desativada</string>
 
 
     <!-- Continuous Scan -->
