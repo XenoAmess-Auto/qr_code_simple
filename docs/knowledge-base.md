@@ -165,6 +165,13 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `.github/workflows/release.yml` | 严格 Stable 标签/`origin/master` 校验、与 Debug 同证书的 APK/AAB、`version.json`、GitHub Release 和可选增量补丁 |
 | `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的 ApkDiffPatch 单跳补丁（ZipDiff + ZipPatch 回打自验 + libapkpatch.so 守卫）；补丁源跨通道：Stable 覆盖最近 4 个已存档 Beta，Beta 覆盖最近 2 个 Stable，支持双向增量切换 |
 | `docs/versioning-and-update-system.md` | Git 版本模型、Stable/Beta 发布、`version.json`、签名连续性和首轮发布操作说明 |
+| `CrashLogger.kt` | 本地崩溃日志：全局未捕获异常写 filesDir/crash_logs（上限 10 份），About 页查看/分享/清除，不上报 |
+| `WebDavClient.kt` / `WebDavSyncManager.kt` | WebDAV 云同步：加密备份手动上传/恢复，密码经 EncryptedSharedPreferences 落盘 |
+| `NetworkUtils.kt` | 元数据 GET 的指数退避重试（默认 3 次）；大文件下载不走此路径 |
+| `DailyBuckets.kt` / `SimpleBarChartView.kt` | 历史页近 14 天扫码统计柱状图（自绘，无图表依赖） |
+| `BatchStyleHolder.kt` | 批量生成样式（预设 + Logo）的进程内交接，BatchResultActivity 读取即清除 |
+| `scanner/MlKitEngine.kt`（`src/playstore` / `src/fdroid`） | ML Kit 引擎隔离：默认构建用真实实现，`-Pfdroid` 用 stub 返回空结果 |
+| `docs/fdroid-readiness.md` | F-Droid 纯源码构建（`-Pfdroid`）说明与上架剩余人工步骤 |
 
 ## 6.1 版本、发布与应用更新
 

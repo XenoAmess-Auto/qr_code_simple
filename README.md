@@ -14,17 +14,20 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 - ✅ **50+ Barcode Formats** - Scan and generate QR Code, Data Matrix (including Chinese/UTF-8), Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, UPC/EAN Extension, and many more OkapiBarcode-only generate-only formats (Code 2 of 5 variants, postal codes, Codablock F, Grid Matrix, Code One, etc.).
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
-- ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with ZIP export.
+- ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with preset styles and center logo, ZIP export.
 - ✅ **Style Customization** - Foreground/background colors, multi-stop gradients, center logo (square / rounded-rect / circle with adjustable corner radius), module shapes, position patterns, corner radius, and error correction levels.
 - ✅ **QR Code Repair** - Automatic restoration retry for blurry or low-contrast codes (grayscale / contrast / binarization variants).
 
 ### History
 
 - ✅ **Full-text Search** - Search by content, time, or type.
+- ✅ **Advanced Filters** - Time range (today / last 7 days / last 30 days), type and barcode format filters, newest/oldest sort toggle.
+- ✅ **Stats Chart** - 14-day scan-count bar chart.
 - ✅ **Smart Categories** - Auto-classify into links, text, WiFi, contacts, and more.
 - ✅ **Favorites / Pinning** - Mark important items.
 - ✅ **Tag System** - Custom tag management.
-- ✅ **Import / Export** - JSON / CSV backup, plus optional password-encrypted backups (AES-256-GCM + PBKDF2).
+- ✅ **Import / Export** - JSON / CSV / Excel backup, plus optional password-encrypted backups (AES-256-GCM + PBKDF2); entry via About → Privacy Settings.
+- ✅ **WebDAV Cloud Sync** - Manually upload/restore the encrypted backup to a self-hosted WebDAV server (backup encrypted with the sync password, stored encrypted on device).
 - ✅ **Retention Policy** - Auto-delete history older than 30 / 90 / 365 days (favorites are kept).
 
 ### Scanning Experience
@@ -35,10 +38,13 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Scan Region Limit** - Toggle region mode and drag to decode only within the selected area.
 - ✅ **Video Scan** - Decode barcodes directly from video files.
 - ✅ **Share to Scan** - Share images or videos from any app straight into the scanner (gallery, file manager, etc.).
+- ✅ **Multi-code View** - Cycle through multiple codes detected in one frame; pick an image from the gallery right on the camera page.
+- ✅ **Scan Automation** - Optional toggles: auto-copy result, auto-open links verified SAFE/LOW by the security check (in Privacy Settings, default off).
 
 ### Share & Export
 
 - ✅ **Vector Export** - SVG format for lossless scaling.
+- ✅ **Raster Export Options** - PNG / JPEG / WebP at 512 / 1024 / 2048 px.
 - ✅ **Share Templates** - Generate share images with description text.
 - ✅ **Share to Generate** - Share plain text from any app to prefill and generate a code instantly.
 
@@ -47,18 +53,19 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Malicious Link Detection** - Local blacklist + URL suspicious-feature analysis, with an optional (default-off) silent online blacklist update.
 - ✅ **Privacy Mode** - Incognito scanning; nothing is written to history.
 - ✅ **App Lock** - Fingerprint or password protection for sensitive history.
-- ✅ **Local Encryption** - SQLCipher (AES-256) on the history database.
+- ✅ **Local Encryption** - SQLCipher (AES-256) on the history database (status & reset entry via About → Privacy Settings).
+- ✅ **Crash Logs** - Local-only crash logging; view, share or clear from the About page.
 
 > **Privacy note**: The `INTERNET` permission is used only by two optional, default-off features: the silent blacklist update and app update checks. Stable checks use GitHub Releases; beta checks use this project's GitHub Pages endpoint and are manual-only from About. Everything else works fully offline.
 
 ### UI & UX
 
-- ✅ **Material You** - Android 12+ dynamic colors.
-- ✅ **Landscape & Tablet** - Landscape optimized; two-pane list-detail history on tablets (sw600dp+).
+- ✅ **Light/Dark Theme** - System / light / dark theme switch.
+- ✅ **Landscape & Tablet** - Landscape optimized; two-pane history and generate pages, centered max-width About/scan-image on tablets (sw600dp+).
 - ✅ **Shortcuts** - Long-press the launcher icon to scan or generate.
 - ✅ **Quick Settings Tile** - One-tap camera scan from the notification shade.
 - ✅ **Home Widgets** - Quick Scan and Quick Generate widgets.
-- ✅ **Internationalization** - Complete translations in English, Simplified Chinese, Japanese, Korean, and German.
+- ✅ **Internationalization** - Complete translations in English, Simplified Chinese, Japanese, Korean, German, French, Spanish, Italian, Portuguese, and Russian.
 - ✅ **Animation** - Page transitions and scan-line animation.
 
 ### Technical
