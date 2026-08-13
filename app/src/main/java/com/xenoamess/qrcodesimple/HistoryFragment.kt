@@ -120,6 +120,8 @@ class HistoryFragment : Fragment() {
                         listBinding.statsBarChart.visibility = View.GONE
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // 统计是可选增强；失败时隐藏卡片并记日志
                 android.util.Log.w("HistoryFragment", "stats refresh failed: ${e.message}")
@@ -463,6 +465,8 @@ class HistoryFragment : Fragment() {
                     adapter.submitList(filtered)
                     updateEmptyState(filtered.isEmpty())
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 android.util.Log.e("HistoryFragment", "loadHistory failed", e)
                 withContext(Dispatchers.Main) {
