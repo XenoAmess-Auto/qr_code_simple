@@ -86,6 +86,25 @@ class BatchResultActivity : AppCompatActivity() {
         binding.recyclerView.adapter = adapter
     }
 
+    /** 从 Intent 恢复样式（styleJson + logo 缓存文件），读取后删除 logo 文件。 */
+    internal fun readStyleFromIntent(): AdvancedBarcodeGenerator.StyleConfig? {
+        val styleJson = intent.getStringExtra(BatchGenerateActivity.EXTRA_STYLE_JSON) ?: return null
+        var style = styleConfigFromJson(styleJson) ?: return null
+        val logoPath = intent.getStringExtra(BatchGenerateActivity.EXTRA_LOGO_PATH)
+        if (logoPath != null) {
+            val logoFile = java.io.File(logoPath)
+            try {
+                val logo = android.graphics.BitmapFactory.decodeFile(logoPath)
+                if (logo != null) {
+                    style = style.copy(logoBitmap = logo)
+                }
+            } finally {
+                logoFile.delete()
+            }
+        }
+        return style
+    }
+
     private suspend fun generateStyledBatch(
         items: List<BatchGenerator.BatchItem>,
         style: AdvancedBarcodeGenerator.StyleConfig,
@@ -104,7 +123,7 @@ class BatchResultActivity : AppCompatActivity() {
     }
 
     private fun generateBatch(contents: List<String>, format: BarcodeFormat) {
-        val style = BatchStyleHolder.consume()
+        val style = readStyleFromIntent()
         lifecycleScope.launch {
             binding.progressBar.visibility = View.VISIBLE
             binding.tvProgress.text = "0/${contents.size}"

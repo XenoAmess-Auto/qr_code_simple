@@ -349,10 +349,19 @@ class BatchGenerateActivity : AppCompatActivity() {
             putStringArrayListExtra(EXTRA_CONTENTS, ArrayList(items.map { it.content }))
             putExtra(EXTRA_FORMAT, selectedFormat.name)
         }
-        BatchStyleHolder.style = if (batchScheme == null && batchLogo == null) {
-            null
-        } else {
-            (batchScheme ?: AdvancedBarcodeGenerator.StyleConfig()).copy(logoBitmap = batchLogo)
+        // 样式经 Intent 传递（styleJson + logo 落缓存文件），进程被杀重建后不丢
+        if (batchScheme != null || batchLogo != null) {
+            val style = (batchScheme ?: AdvancedBarcodeGenerator.StyleConfig()).copy(logoBitmap = null)
+            intent.putExtra(EXTRA_STYLE_JSON, style.toJson())
+            batchLogo?.let { logo ->
+                runCatching {
+                    val logoFile = java.io.File(cacheDir, BATCH_LOGO_FILE)
+                    java.io.FileOutputStream(logoFile).use { out ->
+                        logo.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+                    }
+                    intent.putExtra(EXTRA_LOGO_PATH, logoFile.absolutePath)
+                }
+            }
         }
         startActivity(intent)
     }
@@ -365,5 +374,8 @@ class BatchGenerateActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_CONTENTS = "contents"
         const val EXTRA_FORMAT = "format"
+        const val EXTRA_STYLE_JSON = "style_json"
+        const val EXTRA_LOGO_PATH = "logo_path"
+        const val BATCH_LOGO_FILE = "batch_logo.png"
     }
 }

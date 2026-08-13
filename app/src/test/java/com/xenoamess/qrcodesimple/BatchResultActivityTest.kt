@@ -50,8 +50,15 @@ class BatchResultActivityTest {
 
     @Test
     fun batchGenerationWithStyleUsesStyledPipeline() {
-        BatchStyleHolder.style = AdvancedBarcodeGenerator.ColorSchemes.BLUE
-        val scenario = launchWith(listOf("https://styled.example"))
+        val intent = Intent(
+            ApplicationProvider.getApplicationContext(),
+            BatchResultActivity::class.java
+        ).apply {
+            putStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS, arrayListOf("https://styled.example"))
+            putExtra(BatchGenerateActivity.EXTRA_FORMAT, BarcodeFormat.QR_CODE.name)
+            putExtra(BatchGenerateActivity.EXTRA_STYLE_JSON, AdvancedBarcodeGenerator.ColorSchemes.BLUE.toJson())
+        }
+        val scenario = ActivityScenario.launch<BatchResultActivity>(intent)
         idleMain()
 
         assertTrue(
@@ -71,8 +78,6 @@ class BatchResultActivityTest {
             val text = activity.findViewById<TextView>(R.id.tvProgress).text.toString()
             assertTrue(text.contains("Generated: 1/1"))
         }
-        // holder 已被消费，避免泄漏到其它测试
-        assertTrue(BatchStyleHolder.style == null)
         scenario.close()
     }
 
