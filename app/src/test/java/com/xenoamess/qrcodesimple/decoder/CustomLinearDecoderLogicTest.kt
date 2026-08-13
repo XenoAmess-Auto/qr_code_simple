@@ -2,7 +2,7 @@ package com.xenoamess.qrcodesimple.decoder
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 /**
  * 自定义一维码解码器的逻辑单元测试。

@@ -2,7 +2,7 @@ package com.xenoamess.qrcodesimple.generator
 
 import com.xenoamess.qrcodesimple.BarcodeGenerator
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue

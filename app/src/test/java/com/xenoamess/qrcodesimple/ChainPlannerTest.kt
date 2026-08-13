@@ -2,7 +2,7 @@ package com.xenoamess.qrcodesimple
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class ChainPlannerTest {
 

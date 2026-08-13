@@ -1,7 +1,7 @@
 package com.xenoamess.qrcodesimple.decoder
 
 import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 /**
  * BarcodeScanUtils 的纯逻辑单元测试，不依赖 Android Bitmap。

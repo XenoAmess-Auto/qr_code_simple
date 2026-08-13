@@ -3,7 +3,7 @@ package com.xenoamess.qrcodesimple
 import com.google.zxing.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryType
 import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 /**
  * 条码格式与历史记录类型映射的自测
