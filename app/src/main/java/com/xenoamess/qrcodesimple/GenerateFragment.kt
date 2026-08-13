@@ -1090,6 +1090,10 @@ class GenerateFragment : Fragment() {
                 binding.ivQRCode.setImageBitmap(null)
             }
         }
+
+        binding.btnBatchGenerate.setOnClickListener {
+            startActivity(Intent(requireContext(), BatchGenerateActivity::class.java))
+        }
     }
 
     private fun buildCurrentStyleConfig(): AdvancedBarcodeGenerator.StyleConfig {

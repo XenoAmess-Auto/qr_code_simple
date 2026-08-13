@@ -159,6 +159,20 @@ class GenerateFragmentSaveTest {
     }
 
     @Test
+    fun `batch generate button launches BatchGenerateActivity`() {
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<Button>(R.id.btnBatchGenerate).performClick()
+        }
+        idleMain()
+
+        scenario.onFragment { fragment ->
+            val intent = Shadows.shadowOf(fragment.requireActivity()).nextStartedActivity
+            assertNotNull(intent)
+            assertEquals(BatchGenerateActivity::class.java.name, intent.component?.className)
+        }
+    }
+
+    @Test
     fun `generate writes history record`() {
         generateContent("history-record-content")
 
