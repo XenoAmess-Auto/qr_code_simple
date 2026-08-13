@@ -29,6 +29,18 @@ class ScanImageActivityShareTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle()
     }
 
+    /** processImage 路由经后台线程探测后回主线程跳转，轮询等待其完成。 */
+    private fun waitForStartedActivity(activity: android.app.Activity, maxMs: Long = 5000): Intent? {
+        val deadline = System.currentTimeMillis() + maxMs
+        while (System.currentTimeMillis() < deadline) {
+            idleMain()
+            val next = Shadows.shadowOf(activity).peekNextStartedActivity()
+            if (next != null) return Shadows.shadowOf(activity).nextStartedActivity
+            Thread.sleep(20)
+        }
+        return null
+    }
+
     /** 生成一个真实可解码的 PNG 临时文件，返回其 file Uri。 */
     private fun createTempImageUri(): Uri {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
@@ -51,7 +63,7 @@ class ScanImageActivityShareTest {
         idleMain()
         val activity = controller.get()
 
-        val next = Shadows.shadowOf(activity).nextStartedActivity
+        val next = waitForStartedActivity(activity)
         assertNotNull(next)
         assertEquals(ResultActivity::class.java.name, next!!.component?.className)
         assertEquals(imageUri.toString(), next.getStringExtra(ResultActivity.EXTRA_BITMAP_URI))
@@ -90,7 +102,7 @@ class ScanImageActivityShareTest {
         idleMain()
         val activity = controller.get()
 
-        val next = Shadows.shadowOf(activity).nextStartedActivity
+        val next = waitForStartedActivity(activity)
         assertNotNull(next)
         assertEquals(ResultActivity::class.java.name, next!!.component?.className)
         assertEquals(first.toString(), next.getStringExtra(ResultActivity.EXTRA_BITMAP_URI))
