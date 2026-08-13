@@ -79,8 +79,17 @@ object BlacklistUpdater {
     }
 
     private fun download(url: String): String? {
-        var connection: HttpURLConnection? = null
         return try {
+            NetworkUtils.withRetry(TAG) { downloadOnce(url) }
+        } catch (e: Exception) {
+            Log.w(TAG, "Download failed after retries", e)
+            null
+        }
+    }
+
+    private fun downloadOnce(url: String): String? {
+        var connection: HttpURLConnection? = null
+        try {
             connection = (connectionFactoryForTesting?.invoke(URL(url))
                 ?: URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = CONNECT_TIMEOUT_MS
@@ -91,16 +100,13 @@ object BlacklistUpdater {
                 Log.w(TAG, "Unexpected response code: ${connection.responseCode}")
                 return null
             }
-            connection.inputStream.use { input ->
+            return connection.inputStream.use { input ->
                 val bytes = readCapped(input, MAX_BYTES) ?: run {
                     Log.w(TAG, "Blacklist response too large")
                     return null
                 }
                 bytes.toString(Charsets.UTF_8)
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Download failed", e)
-            null
         } finally {
             connection?.disconnect()
         }

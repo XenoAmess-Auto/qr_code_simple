@@ -91,6 +91,23 @@ object AppUpdateChecker {
         if (!UpdateDecider.isTrustedInitialEndpoint(url, endpointTrust)) {
             return MetadataResult.Failure(UpdateDecider.UpdateCheckError.HTTP_RESPONSE)
         }
+        var result = fetchMetadataOnce(url, endpointTrust)
+        var attempt = 1
+        while (result is MetadataResult.Failure &&
+            result.error == UpdateDecider.UpdateCheckError.NETWORK &&
+            attempt < NetworkUtils.DEFAULT_MAX_ATTEMPTS
+        ) {
+            NetworkUtils.sleepBackoff(attempt - 1)
+            attempt++
+            result = fetchMetadataOnce(url, endpointTrust)
+        }
+        return result
+    }
+
+    private fun fetchMetadataOnce(
+        url: String,
+        endpointTrust: UpdateDecider.EndpointTrust
+    ): MetadataResult {
         var connection: HttpURLConnection? = null
         return try {
             connection = (connectionFactoryForTesting?.invoke(URL(url))

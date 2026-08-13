@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
+import android.util.Log
 import java.io.File
 import java.security.MessageDigest
 
@@ -8,6 +9,8 @@ import java.security.MessageDigest
  * File helpers for verified APK delta updates (ApkDiffPatch "ZiPat1" format).
  */
 object ApkPatcher {
+
+    private const val TAG = "ApkPatcher"
 
     private const val APKDIFF_PATCH_MAGIC = "ZiPat1"
     // ApkDiffPatch decompression memory ceiling; larger APKs stream through the temp file.
@@ -19,7 +22,8 @@ object ApkPatcher {
             context.applicationInfo.sourceDir
                 ?.let(::File)
                 ?.takeIf { it.isFile && it.canRead() }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "installedApkFile failed: ${e.message}")
             null
         }
     }

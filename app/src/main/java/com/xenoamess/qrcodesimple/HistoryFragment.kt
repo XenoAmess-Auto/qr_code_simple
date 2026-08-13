@@ -112,8 +112,9 @@ class HistoryFragment : Fragment() {
                     listBinding.tvStats7d.text = getString(R.string.stats_7d, count7)
                     listBinding.tvStats30d.text = getString(R.string.stats_30d, count30)
                 }
-            } catch (_: Exception) {
-                // 统计是可选增强；失败时静默隐藏卡片
+            } catch (e: Exception) {
+                // 统计是可选增强；失败时隐藏卡片并记日志
+                android.util.Log.w("HistoryFragment", "stats refresh failed: ${e.message}")
                 listBinding.tvStats7d.visibility = android.view.View.GONE
                 listBinding.tvStats30d.visibility = android.view.View.GONE
             }

@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
+import android.util.Log
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,6 +24,10 @@ class IncrementalUpdater(
         },
     internal var installedApkProvider: (Context) -> File? = { ApkPatcher.installedApkFile(it) }
 ) {
+
+    private companion object {
+        const val TAG = "IncrementalUpdater"
+    }
 
     suspend fun executeChain(
         chain: UpdateDecider.UpdateChain,
@@ -106,7 +111,8 @@ class IncrementalUpdater(
             }
             completed = outputFile.isFile
             outputFile.takeIf { completed }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "delta chain failed, caller falls back to full APK: ${e.message}")
             null
         } finally {
             workDirectory.deleteRecursively()

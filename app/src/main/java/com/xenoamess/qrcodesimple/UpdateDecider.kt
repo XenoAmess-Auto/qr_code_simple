@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.util.Log
 import java.net.URI
 import java.util.Locale
 import org.json.JSONArray
@@ -9,6 +10,8 @@ import org.json.JSONObject
  * Pure parsing and update-decision rules. Network and file operations deliberately live elsewhere.
  */
 object UpdateDecider {
+
+    private const val TAG = "UpdateDecider"
 
     const val VERSION_JSON_ASSET_NAME = "version.json"
     const val LEGACY_APK_ASSET_NAME = "app-release.apk"
@@ -177,7 +180,8 @@ object UpdateDecider {
                 canonicalApkAssets = canonicalApkAssets,
                 legacyApkAsset = legacyApkAsset
             )
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "metadata/endpoint rejected: ${e.message}")
             null
         }
     }
@@ -220,7 +224,8 @@ object UpdateDecider {
                 apkSizeBytes = apkSizeBytes,
                 chains = chains
             )
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "metadata/endpoint rejected: ${e.message}")
             null
         }
     }
@@ -375,7 +380,8 @@ object UpdateDecider {
                     uri.scheme.equals("https", ignoreCase = true) &&
                     uri.userInfo == null
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "metadata/endpoint rejected: ${e.message}")
             null
         }
     }
