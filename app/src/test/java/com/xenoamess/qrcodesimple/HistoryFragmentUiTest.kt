@@ -142,6 +142,22 @@ class HistoryFragmentUiTest {
         assertTrue(list.all { it.isGenerated })
     }
 
+    private fun waitForFirstContent(
+        scenario: FragmentScenario<HistoryFragment>,
+        expectedContent: String,
+        timeoutMs: Long = 5000
+    ): List<com.xenoamess.qrcodesimple.data.HistoryItem> {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        var list = emptyList<com.xenoamess.qrcodesimple.data.HistoryItem>()
+        while (System.currentTimeMillis() < deadline) {
+            flushMainLooper()
+            list = currentList(scenario)
+            if (list.firstOrNull()?.content == expectedContent) break
+            Thread.sleep(50)
+        }
+        return list
+    }
+
     @Test
     fun sortToggleReversesOrder() {
         runBlocking {
@@ -149,12 +165,11 @@ class HistoryFragmentUiTest {
             repository.insert(HistoryItem(content = "new", type = HistoryType.QR_CODE, timestamp = 2000L, isGenerated = false))
         }
         val scenario = launchFragment()
-        var list = waitForListSize(scenario, 2)
+        var list = waitForFirstContent(scenario, "new")
         assertEquals("new", list.first().content)
 
         onView(withId(R.id.btnSort)).perform(click())
-        waitForDiff()
-        list = waitForListSize(scenario, 2)
+        list = waitForFirstContent(scenario, "old")
         assertEquals("old", list.first().content)
     }
 
