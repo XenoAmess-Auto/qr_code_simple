@@ -77,6 +77,11 @@ class AboutFragment : Fragment() {
             showVersionHistory()
         }
 
+        // F-Droid 构建由 F-Droid 客户端分发更新，隐藏应用内自更新整行入口
+        if (BuildConfig.IS_FDROID) {
+            (binding.switchAutoUpdate.parent as? View)?.visibility = View.GONE
+        }
+
         binding.btnCrashLogs.setOnClickListener {
             showCrashLogsDialog()
         }

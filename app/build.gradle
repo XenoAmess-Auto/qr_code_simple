@@ -116,6 +116,8 @@ kotlin {
     }
 }
 
+def isFdroid = project.hasProperty('fdroid')
+
 android {
     namespace 'com.xenoamess.qrcodesimple'
     compileSdk 35
@@ -127,6 +129,10 @@ android {
         versionCode gitVersionCode
         versionName gitVersionName
         buildConfigField "String", "GIT_HASH", "\"${gitHash}\""
+        // F-Droid 构建（-Pfdroid）：剔除上游预编译 libapkpatch.so / libc++_shared.so，
+        // 自更新增量补丁随之缺席（完整下载路径也不可用——F-Droid 签名与本仓库基线不同），
+        // 同时隐藏应用内更新入口。
+        buildConfigField "boolean", "IS_FDROID", "${isFdroid}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
@@ -180,6 +186,10 @@ android {
     sourceSets {
         main {
             assets.srcDir(changelogAssetsDir.get().asFile)
+            // F-Droid：真实 ML Kit 引擎（src/playstore）不参与编译，由 fdroid 源集的 stub 顶替
+            def variantSrc = isFdroid ? 'src/fdroid/java' : 'src/playstore/java'
+            java.srcDirs += variantSrc
+            kotlin.srcDirs += variantSrc
         }
     }
     lint {
@@ -216,6 +226,9 @@ android {
     packagingOptions {
         jniLibs {
             pickFirsts += ['**/libc++_shared.so']
+            if (isFdroid) {
+                excludes += ['**/libapkpatch.so', '**/libc++_shared.so']
+            }
         }
     }
 }
@@ -254,9 +267,11 @@ dependencies {
     // ZXing - 支持多种条形码格式
     implementation libs.zxing.core
 
-    // ML Kit
-    implementation libs.mlkit.barcode.scanning
-    implementation libs.play.services.mlkit.barcode.scanning
+    // ML Kit（proprietary，F-Droid 构建剔除）
+    if (!isFdroid) {
+        implementation libs.mlkit.barcode.scanning
+        implementation libs.play.services.mlkit.barcode.scanning
+    }
 
     // Flexbox Layout
     implementation libs.flexbox

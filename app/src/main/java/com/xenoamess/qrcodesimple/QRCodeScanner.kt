@@ -3,10 +3,6 @@ package com.xenoamess.qrcodesimple
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
@@ -19,6 +15,7 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.decoder.CustomLinearBarcodeScanner
 import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
 import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinDecoder
+import com.xenoamess.qrcodesimple.scanner.MlKitEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -276,7 +273,7 @@ object QRCodeScanner {
             launchEngine("ZXing") { scanWithZXing(processedBitmap) }
 
             // 3. ML Kit
-            launchEngine("ML Kit") { scanWithMLKit(processedBitmap) }
+            launchEngine("ML Kit") { MlKitEngine.scan(processedBitmap) }
 
             // 4. BoofCV Micro QR
             launchEngine("BoofCV Micro QR") {
@@ -493,90 +490,5 @@ object QRCodeScanner {
         val matrix = android.graphics.Matrix()
         matrix.postRotate(degrees)
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-    }
-
-    /**
-     * 使用 ML Kit 扫描
-     */
-    private suspend fun scanWithMLKit(bitmap: Bitmap): List<ScanResult> = suspendCancellableCoroutine { continuation ->
-        val start = System.currentTimeMillis()
-        Log.d(TAG, "ML Kit engine started")
-        val image = InputImage.fromBitmap(bitmap, 0)
-        val resumed = AtomicBoolean(false)
-
-        val options = BarcodeScannerOptions.Builder()
-            .setBarcodeFormats(
-                // 二维码格式
-                Barcode.FORMAT_QR_CODE,
-                Barcode.FORMAT_DATA_MATRIX,
-                Barcode.FORMAT_AZTEC,
-                Barcode.FORMAT_PDF417,
-                // 一维条码格式
-                Barcode.FORMAT_CODE_128,
-                Barcode.FORMAT_CODE_39,
-                Barcode.FORMAT_CODE_93,
-                Barcode.FORMAT_EAN_13,
-                Barcode.FORMAT_EAN_8,
-                Barcode.FORMAT_UPC_A,
-                Barcode.FORMAT_UPC_E,
-                Barcode.FORMAT_CODABAR,
-                Barcode.FORMAT_ITF
-            )
-            .build()
-
-        val scanner = BarcodeScanning.getClient(options)
-
-        scanner.process(image)
-            .addOnSuccessListener { barcodes ->
-                val results = barcodes.mapNotNull { barcode ->
-                    barcode.rawValue?.let {
-                        ScanResult(it, Library.ML_KIT, mapMlKitFormat(barcode.format))
-                    }
-                }
-                Log.d(TAG, "ML Kit engine finished in ${System.currentTimeMillis() - start}ms, results=${results.size}")
-                if (resumed.compareAndSet(false, true)) {
-                    try {
-                        continuation.resume(results)
-                    } catch (e: IllegalStateException) {
-                        // already cancelled or resumed; ignore
-                    }
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "ML Kit processing failed", e)
-                Log.d(TAG, "ML Kit engine finished in ${System.currentTimeMillis() - start}ms, results=0")
-                if (resumed.compareAndSet(false, true)) {
-                    try {
-                        continuation.resume(emptyList())
-                    } catch (e: IllegalStateException) {
-                        // already cancelled or resumed; ignore
-                    }
-                }
-            }
-            .addOnCompleteListener {
-                scanner.close()
-            }
-    }
-
-    /**
-     * 将 ML Kit 条码格式映射为 ZXing 条码格式
-     */
-    private fun mapMlKitFormat(mlKitFormat: Int): BarcodeFormat {
-        return when (mlKitFormat) {
-            Barcode.FORMAT_QR_CODE -> BarcodeFormat.QR_CODE
-            Barcode.FORMAT_DATA_MATRIX -> BarcodeFormat.DATA_MATRIX
-            Barcode.FORMAT_AZTEC -> BarcodeFormat.AZTEC
-            Barcode.FORMAT_PDF417 -> BarcodeFormat.PDF_417
-            Barcode.FORMAT_CODE_128 -> BarcodeFormat.CODE_128
-            Barcode.FORMAT_CODE_39 -> BarcodeFormat.CODE_39
-            Barcode.FORMAT_CODE_93 -> BarcodeFormat.CODE_93
-            Barcode.FORMAT_EAN_13 -> BarcodeFormat.EAN_13
-            Barcode.FORMAT_EAN_8 -> BarcodeFormat.EAN_8
-            Barcode.FORMAT_UPC_A -> BarcodeFormat.UPC_A
-            Barcode.FORMAT_UPC_E -> BarcodeFormat.UPC_E
-            Barcode.FORMAT_CODABAR -> BarcodeFormat.CODABAR
-            Barcode.FORMAT_ITF -> BarcodeFormat.ITF
-            else -> BarcodeFormat.QR_CODE
-        }
     }
 }
