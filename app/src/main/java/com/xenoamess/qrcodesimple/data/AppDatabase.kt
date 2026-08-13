@@ -69,6 +69,8 @@ abstract class AppDatabase : RoomDatabase() {
 
             // Robolectric does not provide native SQLCipher support; run unencrypted in unit tests.
             if (!android.os.Build.FINGERPRINT.contains("robolectric")) {
+                // sqlcipher-android 4.6+（net.zetetic 新坐标）不再隐式加载 native 库，必须显式 loadLibrary
+                System.loadLibrary("sqlcipher")
                 val passphrase = getDatabasePassword(context)
                 builder.openHelperFactory(SupportOpenHelperFactory(passphrase.toByteArray()))
             }
