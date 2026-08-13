@@ -124,3 +124,6 @@ Native OpenCV is not loaded in Robolectric unit tests; `QRCodeApp.isWeChatQRCode
 
 ### Avoid `git credential fill` as a no-op
 Do not use `: | git credential fill` as a placeholder or no-op command. It always fails with `fatal: refusing to work with credential missing host field` and produces noisy output. Use a real no-op such as `true` or `:` (colon by itself) instead.
+
+### Requirement blacklist
+`docs/knowledge-base.md` section 8 lists explicitly rejected directions (e.g. Google Play distribution, upgrading apksigner past 34.0.0, per-ABI APK splits). Never re-propose them in reviews, gap analyses, or iteration plans.

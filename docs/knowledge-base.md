@@ -200,3 +200,11 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 测试在 JUnit Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）；当前 `build.gradle` 为 Jupiter 与 Vintage 配置 `6.1.2`。
 - CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径）。
 - Release 构建开启 R8 + shrinkResources；`app/debug.keystore` 是主分支 Debug、Beta 与 Stable 的签名基线。本地可通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 Gradle 属性使用证书相同的 keystore；CI 可选的 `RELEASE_KEYSTORE_BASE64` / `_PASSWORD` / `_ALIAS` secrets 也会被证书比对。发布细节见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。
+
+## 8. 需求黑名单（已明确拒绝，勿再提议）
+
+以下方向项目所有者已明确否决。任何梳理、评审或迭代计划中**不得再次提出**，也不要把它们列为"欠缺"或"待做"：
+
+1. **Google Play 分发**：不做。本项目只走 GitHub Release（Stable）+ GitHub Pages（Beta）自更新通道。不要提议 Play 上架、Play App Signing、AAB 上 Play 吃拆分红利、Play Console 相关任何事项。
+2. **apksigner / build-tools 升级**：永久钉死 **34.0.0**，这是有意为之而非技术债。v35+ 会向首个 entry 的 local header 插入 padding extra field，ZipPatch 不还原 → 增量补丁字节不一致 → 签名失效（上游 issue #96/#107）。CI 中"apksigner 钉 34.0.0 绝不能升级"的注释是正式决策，不要提议升级、不要把它列为脆弱点。
+3. **per-ABI 分发（APK 按 ABI 拆分）**：不做。虽与现有增量更新架构兼容，但补丁矩阵 ×4、CI 耗时 ×1.5-2.5、存档体积 ×1.7 的代价不被接受，APK 体积优化不走 ABI 拆分路线。不要提议 `splits.abi`、按 ABI 出多套发布物、版本元数据加 ABI 维度等相关方案。
