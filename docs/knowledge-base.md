@@ -216,3 +216,5 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 1. **Google Play 分发**：不做。本项目只走 GitHub Release（Stable）+ GitHub Pages（Beta）自更新通道。不要提议 Play 上架、Play App Signing、AAB 上 Play 吃拆分红利、Play Console 相关任何事项。
 2. **apksigner / build-tools 升级**：永久钉死 **34.0.0**，这是有意为之而非技术债。v35+ 会向首个 entry 的 local header 插入 padding extra field，ZipPatch 不还原 → 增量补丁字节不一致 → 签名失效（上游 issue #96/#107）。CI 中"apksigner 钉 34.0.0 绝不能升级"的注释是正式决策，不要提议升级、不要把它列为脆弱点。
 3. **per-ABI 分发（APK 按 ABI 拆分）**：不做。虽与现有增量更新架构兼容，但补丁矩阵 ×4、CI 耗时 ×1.5-2.5、存档体积 ×1.7 的代价不被接受，APK 体积优化不走 ABI 拆分路线。不要提议 `splits.abi`、按 ABI 出多套发布物、版本元数据加 ABI 维度等相关方案。
+4. **F-Droid 上架**：不做。政策要求剔除 WeChatQRCode/OpenCV 预编译库，另需发版对齐与 GitLab MR 人工流程，投入产出比不被接受。不要提议提交 fdroiddata、撰写上架 recipe 或评估其衍生方案。（`-Pfdroid` 构建开关仅作为代码能力保留，见 `docs/fdroid-readiness.md`，与上架无关。）
+5. **WeChatQRCode 启动时机改动**：不做。保持 `QRCodeApp.onCreate` 主线程同步初始化（`System.loadLibrary("opencv_java4")` + 检测器初始化），不要提议惰性初始化、后台线程加载或任何启动路径优化。

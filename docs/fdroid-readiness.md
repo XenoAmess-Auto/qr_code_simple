@@ -18,13 +18,9 @@
 
 验证：`assembleRelease -Pfdroid` 产物中无 `libapkpatch.so`、`libbarhopper_v3.so` 及 ML Kit 类。
 
-## 剩余人工步骤（无法在本仓库完成）
+## 不上架声明
 
-1. 向 [fdroiddata](https://gitlab.com/fdroid/fdroiddata) 提交 metadata MR。recipe 要点：
-   - `build.gradle` 调用加 `-Pfdroid`；
-   - 需要完整非浅克隆（versionCode/versionName 由 Git 历史推导，见 `docs/versioning-and-update-system.md`）；
-   - Fastlane 元数据已有 en-US / zh-CN（描述、截图、changelog），F-Droid 会直接消费 `fastlane/metadata/android/`。
-2. 首次提交建议附注：ML Kit 为 proprietary，已通过 `-Pfdroid` 剔除；`libapkpatch.so` 为 MIT 上游预编译，同开关剔除。
+F-Droid 上架（提交 fdroiddata MR）已列入需求黑名单（`docs/knowledge-base.md` 第 8 节），不做。`-Pfdroid` 开关仅作为纯源码构建能力保留，供第三方自行打包验证。
 
 ## 注意
 
