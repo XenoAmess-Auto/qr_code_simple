@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
@@ -116,6 +117,14 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
         binding.btnClearAllHistory.setOnClickListener {
             showClearHistoryDialog()
+        }
+
+        binding.btnBackupRestore.setOnClickListener {
+            startActivity(Intent(this, BackupActivity::class.java))
+        }
+
+        binding.btnDatabaseSecurity.setOnClickListener {
+            DatabaseSecurityActivity.start(this)
         }
 
         binding.switchAppLock.setOnCheckedChangeListener { _, isChecked ->

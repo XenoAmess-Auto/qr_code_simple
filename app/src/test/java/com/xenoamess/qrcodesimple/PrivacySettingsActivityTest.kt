@@ -200,6 +200,34 @@ class PrivacySettingsActivityTest {
         assertFalse(ShadowDialog.getLatestDialog()?.isShowing ?: false)
     }
 
+    @Test
+    fun backupRestoreButtonLaunchesBackupActivity() {
+        scenario.onActivity { activity ->
+            activity.findViewById<android.widget.Button>(R.id.btnBackupRestore).performClick()
+        }
+        idleMain()
+
+        scenario.onActivity { activity ->
+            val intent = Shadows.shadowOf(activity).nextStartedActivity
+            assertNotNull(intent)
+            assertEquals(BackupActivity::class.java.name, intent.component?.className)
+        }
+    }
+
+    @Test
+    fun databaseSecurityButtonLaunchesDatabaseSecurityActivity() {
+        scenario.onActivity { activity ->
+            activity.findViewById<android.widget.Button>(R.id.btnDatabaseSecurity).performClick()
+        }
+        idleMain()
+
+        scenario.onActivity { activity ->
+            val intent = Shadows.shadowOf(activity).nextStartedActivity
+            assertNotNull(intent)
+            assertEquals(DatabaseSecurityActivity::class.java.name, intent.component?.className)
+        }
+    }
+
     private fun AlertDialog.findAllEditTexts(): List<EditText> {
         val result = mutableListOf<EditText>()
         collectEditTexts(window?.decorView as? ViewGroup ?: return result, result)
