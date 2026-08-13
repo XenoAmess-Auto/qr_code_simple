@@ -307,6 +307,30 @@ object AppUpdateManager {
         ) {
             return null
         }
+        // 镜像轮询：可代理主机先走公共加速镜像，最后回退直连。
+        // 每个候选的下载结果都必须通过精确大小 + SHA-256 校验才会落盘，
+        // 因此镜像只影响可达性，不影响完整性；直连候选保持完整端点校验。
+        val candidates = UpdateMirrors.candidates(url)
+        candidates.forEachIndexed { index, candidate ->
+            val verifyResolvedEndpoint = index == candidates.lastIndex
+            val result = downloadVerifiedArtifactOnce(
+                candidate, endpointTrust, verifyResolvedEndpoint,
+                destination, expectedSizeBytes, expectedSha256, onProgress
+            )
+            if (result != null) return result
+        }
+        return null
+    }
+
+    private fun downloadVerifiedArtifactOnce(
+        url: String,
+        endpointTrust: UpdateDecider.EndpointTrust,
+        verifyResolvedEndpoint: Boolean,
+        destination: File,
+        expectedSizeBytes: Long,
+        expectedSha256: String,
+        onProgress: (Int) -> Unit
+    ): File? {
         val directory = destination.parentFile ?: return null
         val partFile = File(directory, "${destination.name}.part")
         var connection: HttpURLConnection? = null
@@ -324,7 +348,8 @@ object AppUpdateManager {
                 setRequestProperty("User-Agent", "qr_code_simple/${BuildConfig.VERSION_NAME}")
             }
             if (connection.responseCode != HttpURLConnection.HTTP_OK ||
-                !UpdateDecider.isTrustedResolvedEndpoint(connection.url.toString(), endpointTrust)
+                (verifyResolvedEndpoint &&
+                    !UpdateDecider.isTrustedResolvedEndpoint(connection.url.toString(), endpointTrust))
             ) {
                 return null
             }

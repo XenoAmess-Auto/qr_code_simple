@@ -56,7 +56,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Local Encryption** - SQLCipher (AES-256) on the history database (status & reset entry via About → Privacy Settings).
 - ✅ **Crash Logs** - Local-only crash logging; view, share or clear from the About page.
 
-> **Privacy note**: The `INTERNET` permission is used only by two optional, default-off features: the silent blacklist update and app update checks. Stable checks use GitHub Releases; beta checks use this project's GitHub Pages endpoint and are manual-only from About. Everything else works fully offline.
+> **Privacy note**: The `INTERNET` permission is used only by optional features: the silent blacklist update (default off), app update checks (Stable via GitHub Releases; beta via this project's GitHub Pages endpoint, manual-only from About), and WebDAV backup sync (user-triggered only). GitHub asset downloads may be attempted through public accelerating mirrors first; artifact integrity is guaranteed by SHA-256 and signature verification, never by mirror trust. Everything else works fully offline.
 
 ### UI & UX
 

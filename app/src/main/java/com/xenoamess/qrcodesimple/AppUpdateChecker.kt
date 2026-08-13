@@ -91,22 +91,33 @@ object AppUpdateChecker {
         if (!UpdateDecider.isTrustedInitialEndpoint(url, endpointTrust)) {
             return MetadataResult.Failure(UpdateDecider.UpdateCheckError.HTTP_RESPONSE)
         }
-        var result = fetchMetadataOnce(url, endpointTrust)
-        var attempt = 1
-        while (result is MetadataResult.Failure &&
-            result.error == UpdateDecider.UpdateCheckError.NETWORK &&
-            attempt < NetworkUtils.DEFAULT_MAX_ATTEMPTS
-        ) {
-            NetworkUtils.sleepBackoff(attempt - 1)
-            attempt++
-            result = fetchMetadataOnce(url, endpointTrust)
+        // 镜像轮询：github.com 等可代理主机的 URL 先走公共加速镜像，最后回退直连。
+        // 镜像候选跳过 resolved-endpoint 主机白名单（镜像跳转到自己的 CDN），
+        // 安全性由下游 SHA-256/大小/签名校验链兜底；直连候选保持完整端点校验。
+        val candidates = UpdateMirrors.candidates(url)
+        var lastResult: MetadataResult = MetadataResult.Failure(UpdateDecider.UpdateCheckError.NETWORK)
+        candidates.forEachIndexed { index, candidate ->
+            val verifyResolvedEndpoint = index == candidates.lastIndex
+            var result = fetchMetadataOnce(candidate, endpointTrust, verifyResolvedEndpoint)
+            var attempt = 1
+            while (result is MetadataResult.Failure &&
+                result.error == UpdateDecider.UpdateCheckError.NETWORK &&
+                attempt < NetworkUtils.DEFAULT_MAX_ATTEMPTS
+            ) {
+                NetworkUtils.sleepBackoff(attempt - 1)
+                attempt++
+                result = fetchMetadataOnce(candidate, endpointTrust, verifyResolvedEndpoint)
+            }
+            lastResult = result
+            if (result is MetadataResult.Success) return result
         }
-        return result
+        return lastResult
     }
 
     private fun fetchMetadataOnce(
         url: String,
-        endpointTrust: UpdateDecider.EndpointTrust
+        endpointTrust: UpdateDecider.EndpointTrust,
+        verifyResolvedEndpoint: Boolean = true
     ): MetadataResult {
         var connection: HttpURLConnection? = null
         return try {
@@ -120,7 +131,8 @@ object AppUpdateChecker {
                 setRequestProperty("User-Agent", "qr_code_simple/${BuildConfig.VERSION_NAME}")
             }
             if (connection.responseCode != HttpURLConnection.HTTP_OK ||
-                !UpdateDecider.isTrustedResolvedEndpoint(connection.url.toString(), endpointTrust)
+                (verifyResolvedEndpoint &&
+                    !UpdateDecider.isTrustedResolvedEndpoint(connection.url.toString(), endpointTrust))
             ) {
                 return MetadataResult.Failure(UpdateDecider.UpdateCheckError.HTTP_RESPONSE)
             }

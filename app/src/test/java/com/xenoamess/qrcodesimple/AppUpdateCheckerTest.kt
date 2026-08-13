@@ -169,6 +169,43 @@ class AppUpdateCheckerTest {
         assertTrue(!versionMetadataRequested)
     }
 
+    @Test
+    fun `metadata falls back from broken mirror to next mirror and keeps direct untouched`() {
+        val metadataUrl =
+            "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.6/version.json"
+        val seen = mutableListOf<String>()
+        AppUpdateChecker.connectionFactoryForTesting = { url ->
+            val text = url.toString()
+            seen.add(text)
+            when (text) {
+                AppUpdateChecker.LATEST_RELEASE_URL -> FakeConnection(
+                    url,
+                    200,
+                    releaseJson(metadataUrl = metadataUrl).toByteArray()
+                )
+                "https://ghfast.top/$metadataUrl" -> FakeConnection(url, 404, ByteArray(0))
+                // 镜像 2 正常返回，且其连接重定向到镜像自己的 CDN（非 GitHub 白名单主机）
+                "https://gh-proxy.com/$metadataUrl" -> FakeConnection(
+                    URL("https://cdn.gh-proxy.example/internal/version.json"),
+                    200,
+                    versionJson().toByteArray()
+                )
+                else -> error("Unexpected URL: $url")
+            }
+        }
+
+        val outcome = AppUpdateChecker.checkStable(localVersionCode = 18, localVersionName = "0.2.5")
+
+        assertTrue(outcome is UpdateDecider.CheckOutcome.UpdateAvailable)
+        val metadataRequests = seen.filter { it.endsWith("version.json") }
+        assertEquals(
+            listOf("https://ghfast.top/$metadataUrl", "https://gh-proxy.com/$metadataUrl"),
+            metadataRequests
+        )
+        // 镜像已成功，不再回退直连 github.com
+        assertTrue(metadataUrl !in seen)
+    }
+
     private fun releaseJson(
         metadataUrl: String,
         canonicalUrl: String =

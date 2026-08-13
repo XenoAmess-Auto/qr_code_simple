@@ -123,6 +123,39 @@ class AppUpdateManagerTest {
     }
 
     @Test
+    fun `verified download falls back through mirrors then verifies bytes`() {
+        val payload = ByteArray(8 * 1024) { (it % 251).toByte() }
+        val target = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.6/update.apk"
+        val destination = File(context.filesDir, "manager-mirror-download-test.apk")
+        val seen = mutableListOf<String>()
+        AppUpdateManager.downloadConnectionFactoryForTesting = { url ->
+            val text = url.toString()
+            seen.add(text)
+            when (text) {
+                "https://ghfast.top/$target" -> FakeConnection(url, 404, ByteArray(0))
+                "https://gh-proxy.com/$target" -> FakeConnection(url, 200, payload)
+                else -> error("Unexpected URL: $url")
+            }
+        }
+
+        val result = AppUpdateManager.downloadVerifiedArtifact(
+            url = target,
+            endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
+            destination = destination,
+            expectedSizeBytes = payload.size.toLong(),
+            expectedSha256 = sha256(payload),
+            onProgress = {}
+        )
+
+        assertNotNull(result)
+        assertTrue(payload.contentEquals(destination.readBytes()))
+        assertEquals(
+            listOf("https://ghfast.top/$target", "https://gh-proxy.com/$target"),
+            seen
+        )
+    }
+
+    @Test
     fun `verified download publishes only exact sized and hashed artifact`() {
         val payload = ByteArray(16 * 1024) { (it % 251).toByte() }
         val destination = File(context.filesDir, "manager-download-test.apk")

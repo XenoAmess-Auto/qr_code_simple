@@ -79,12 +79,18 @@ object BlacklistUpdater {
     }
 
     private fun download(url: String): String? {
-        return try {
-            NetworkUtils.withRetry(TAG) { downloadOnce(url) }
-        } catch (e: Exception) {
-            Log.w(TAG, "Download failed after retries", e)
-            null
+        // 镜像轮询：raw.githubusercontent.com 先走公共加速镜像，最后回退直连。
+        // 内容安全性由下游 schema + 版本校验兜底。
+        for (candidate in UpdateMirrors.candidates(url)) {
+            val result = try {
+                NetworkUtils.withRetry(TAG) { downloadOnce(candidate) }
+            } catch (e: Exception) {
+                Log.w(TAG, "Download failed after retries: $candidate", e)
+                null
+            }
+            if (result != null) return result
         }
+        return null
     }
 
     private fun downloadOnce(url: String): String? {

@@ -173,6 +173,12 @@ Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.
 
 ## 5. 客户端更新行为
 
+### 下载镜像加速（2026-08 起）
+
+`UpdateMirrors.candidates(url)` 把可代理主机（`github.com` / `objects.githubusercontent.com` / `raw.githubusercontent.com`）的 https URL 展开为 `[ghfast.top+url, gh-proxy.com+url, 原url]` 候选列表，更新元数据、APK、增量补丁与黑名单下载均按序轮询；`api.github.com`、`github.io`（Beta Pages）、http 与本地地址不参与镜像，保持直连。
+
+信任模型不变：初始 URL 仍须先过 `isTrustedInitialEndpoint`；镜像候选仅跳过 resolved-endpoint 主机白名单（镜像跳转到自己的 CDN），所有产物仍必须通过既有的精确大小 + SHA-256 + 包名/versionCode/签名集合校验才落盘或安装。镜像无法注入篡改内容（hash 不匹配即弃用），只影响可达性。
+
 ### Stable 与 Beta 的元数据来源
 
 | 通道 | 元数据来源 | APK 选择 |
