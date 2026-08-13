@@ -11,6 +11,9 @@ interface HistoryDao {
     @Query("SELECT COUNT(*) FROM history WHERE timestamp >= :since AND isGenerated = 0")
     suspend fun countScannedSince(since: Long): Int
 
+    @Query("SELECT timestamp FROM history WHERE timestamp >= :since AND isGenerated = 0")
+    suspend fun scannedTimestampsSince(since: Long): List<Long>
+
     
     @Query("SELECT * FROM history ORDER BY timestamp DESC")
     fun getAllHistory(): Flow<List<HistoryItem>>

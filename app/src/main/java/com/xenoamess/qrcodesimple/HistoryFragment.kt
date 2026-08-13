@@ -108,15 +108,24 @@ class HistoryFragment : Fragment() {
                 val day30 = now - 30L * 24 * 60 * 60 * 1000
                 val count7 = repository.scannedCountSince(day7)
                 val count30 = repository.scannedCountSince(day30)
+                val timestamps = repository.scannedTimestampsSince(now - 14L * 24 * 60 * 60 * 1000)
+                val buckets = DailyBuckets.bucketize(timestamps, 14, now)
                 withContext(kotlinx.coroutines.Dispatchers.Main) {
                     listBinding.tvStats7d.text = getString(R.string.stats_7d, count7)
                     listBinding.tvStats30d.text = getString(R.string.stats_30d, count30)
+                    if (timestamps.isNotEmpty()) {
+                        listBinding.statsBarChart.setData(buckets)
+                        listBinding.statsBarChart.visibility = View.VISIBLE
+                    } else {
+                        listBinding.statsBarChart.visibility = View.GONE
+                    }
                 }
             } catch (e: Exception) {
                 // 统计是可选增强；失败时隐藏卡片并记日志
                 android.util.Log.w("HistoryFragment", "stats refresh failed: ${e.message}")
                 listBinding.tvStats7d.visibility = android.view.View.GONE
                 listBinding.tvStats30d.visibility = android.view.View.GONE
+                listBinding.statsBarChart.visibility = View.GONE
             }
         }
     }

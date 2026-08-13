@@ -36,6 +36,13 @@
                 android:textSize="14sp"
                 android:textColor="?android:attr/textColorPrimary" />
 
+            <com.xenoamess.qrcodesimple.SimpleBarChartView
+                android:id="@+id/statsBarChart"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
