@@ -1050,6 +1050,9 @@ https://another.com
 
     <string name="stats_7d">7 dias: %1$d análises</string>
 
+
+    <string name="stats_summary">Últimos 7 dias: %1$d · Últimos 30 dias: %2$d</string>
+
     <string name="stats_30d">30 dias: %1$d análises</string>
 
 

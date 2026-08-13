@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 统计卡片（MaterialCardView 自动适配亮暗表面色） -->
+    <!-- 统计卡片：默认收起为单行摘要，点击展开明细（MaterialCardView 自动适配亮暗表面色） -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/statsCard"
         android:layout_width="match_parent"
@@ -22,26 +22,58 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <TextView
-                android:id="@+id/tvStats7d"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorPrimary" />
-
-            <TextView
-                android:id="@+id/tvStats30d"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorPrimary" />
-
-            <com.xenoamess.qrcodesimple.SimpleBarChartView
-                android:id="@+id/statsBarChart"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
-                android:layout_marginTop="8dp"
-                android:visibility="gone" />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvStatsSummary"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <ImageView
+                    android:id="@+id/ivStatsToggle"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_expand_more"
+                    android:importantForAccessibility="no" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/statsDetailContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvStats7d"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <TextView
+                    android:id="@+id/tvStats30d"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <com.xenoamess.qrcodesimple.SimpleBarChartView
+                    android:id="@+id/statsBarChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

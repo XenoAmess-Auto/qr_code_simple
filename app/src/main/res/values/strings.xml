@@ -596,6 +596,8 @@
     <string name="export_excel">Export as Excel</string>
     <string name="stats_title">Statistics</string>
     <string name="stats_7d">7 days: %1$d scans</string>
+
+    <string name="stats_summary">Last 7 days: %1$d · Last 30 days: %2$d</string>
     <string name="stats_30d">30 days: %1$d scans</string>
     <string name="theme_setting">Theme</string>
     <string name="theme_system">Follow system</string>

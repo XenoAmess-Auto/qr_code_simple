@@ -1050,6 +1050,9 @@ https://another.com
 
     <string name="stats_7d">7 giorni: %1$d scansioni</string>
 
+
+    <string name="stats_summary">Ultimi 7 giorni: %1$d · Ultimi 30 giorni: %2$d</string>
+
     <string name="stats_30d">30 giorni: %1$d scansioni</string>
 
 

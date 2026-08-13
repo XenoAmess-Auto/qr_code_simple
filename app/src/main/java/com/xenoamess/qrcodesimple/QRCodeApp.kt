@@ -85,6 +85,7 @@ class QRCodeApp : Application() {
         private const val KEY_SCAN_VIBRATION_ENABLED = "scan_vibration_enabled"
         private const val KEY_AUTO_OPEN_URL = "auto_open_url"
         private const val KEY_AUTO_COPY_RESULT = "auto_copy_result"
+        private const val KEY_HISTORY_STATS_EXPANDED = "history_stats_expanded"
         private const val KEY_THEME_MODE = "theme_mode"
         const val THEME_MODE_SYSTEM = "system"
         const val THEME_MODE_LIGHT = "light"
@@ -132,6 +133,17 @@ class QRCodeApp : Application() {
         fun setAutoCopyResultEnabled(context: Context, enabled: Boolean) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putBoolean(KEY_AUTO_COPY_RESULT, enabled).apply()
+        }
+
+        /** 历史页统计卡是否展开（默认收起为单行摘要）。 */
+        fun isHistoryStatsExpanded(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_HISTORY_STATS_EXPANDED, false)
+        }
+
+        fun setHistoryStatsExpanded(context: Context, expanded: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_HISTORY_STATS_EXPANDED, expanded).apply()
         }
 
         /** 亮暗主题模式：system / light / dark（默认跟随系统）。 */

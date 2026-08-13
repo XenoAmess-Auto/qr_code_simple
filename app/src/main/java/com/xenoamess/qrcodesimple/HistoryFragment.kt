@@ -76,6 +76,8 @@ class HistoryFragment : Fragment() {
             setupSearchView()
             setupClearButton()
             setupSortAndFilterButtons()
+            setupStatsToggle()
+            setupStatsToggle()
         } catch (e: Exception) {
             android.util.Log.e("HistoryFragment", "DB init failed", e)
             Toast.makeText(requireContext(), "History unavailable: ${e.message}", Toast.LENGTH_LONG).show()
@@ -99,6 +101,21 @@ class HistoryFragment : Fragment() {
         }
     }
 
+    private fun setupStatsToggle() {
+        listBinding.statsCard.setOnClickListener {
+            val expanded = !QRCodeApp.isHistoryStatsExpanded(requireContext())
+            QRCodeApp.setHistoryStatsExpanded(requireContext(), expanded)
+            applyStatsExpanded(expanded)
+        }
+        applyStatsExpanded(QRCodeApp.isHistoryStatsExpanded(requireContext()))
+    }
+
+    private fun applyStatsExpanded(expanded: Boolean) {
+        if (_binding == null) return
+        listBinding.statsDetailContainer.visibility = if (expanded) View.VISIBLE else View.GONE
+        listBinding.ivStatsToggle.rotation = if (expanded) 180f else 0f
+    }
+
     private fun refreshStats() {
         if (!::repository.isInitialized) return
         lifecycleScope.launch {
@@ -111,6 +128,7 @@ class HistoryFragment : Fragment() {
                 val timestamps = repository.scannedTimestampsSince(now - 14L * 24 * 60 * 60 * 1000)
                 val buckets = DailyBuckets.bucketize(timestamps, 14, now)
                 withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    listBinding.tvStatsSummary.text = getString(R.string.stats_summary, count7, count30)
                     listBinding.tvStats7d.text = getString(R.string.stats_7d, count7)
                     listBinding.tvStats30d.text = getString(R.string.stats_30d, count30)
                     if (timestamps.isNotEmpty()) {
@@ -123,11 +141,9 @@ class HistoryFragment : Fragment() {
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // 统计是可选增强；失败时隐藏卡片并记日志
+                // 统计是可选增强；失败时整卡隐藏并记日志
                 android.util.Log.w("HistoryFragment", "stats refresh failed: ${e.message}")
-                listBinding.tvStats7d.visibility = android.view.View.GONE
-                listBinding.tvStats30d.visibility = android.view.View.GONE
-                listBinding.statsBarChart.visibility = View.GONE
+                listBinding.statsCard.visibility = View.GONE
             }
         }
     }

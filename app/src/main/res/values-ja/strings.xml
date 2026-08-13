@@ -525,6 +525,8 @@
     <string name="export_excel">Excel としてエクスポート</string>
     <string name="stats_title">統計</string>
     <string name="stats_7d">7日間: %1$d 回スキャン</string>
+
+    <string name="stats_summary">過去 7 日間: %1$d ・ 過去 30 日間: %2$d</string>
     <string name="stats_30d">30日間: %1$d 回スキャン</string>
     <string name="theme_setting">テーマ</string>
     <string name="theme_system">システムに従う</string>

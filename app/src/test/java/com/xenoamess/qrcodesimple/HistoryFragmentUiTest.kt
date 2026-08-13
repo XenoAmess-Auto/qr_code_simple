@@ -42,6 +42,7 @@ class HistoryFragmentUiTest {
     fun setup() {
         repository = HistoryRepository(ApplicationProvider.getApplicationContext())
         runBlocking { repository.deleteAll() }
+        QRCodeApp.setHistoryStatsExpanded(ApplicationProvider.getApplicationContext(), false)
     }
 
     @After
@@ -101,6 +102,55 @@ class HistoryFragmentUiTest {
             Thread.sleep(50)
         }
         return list
+    }
+
+    @Test
+    fun statsCardCollapsedByDefault() {
+        launchFragment()
+        scenario?.onFragment { fragment ->
+            assertEquals(
+                android.view.View.GONE,
+                fragment.requireView().findViewById<android.view.View>(R.id.statsDetailContainer).visibility
+            )
+            assertEquals(
+                android.view.View.VISIBLE,
+                fragment.requireView().findViewById<android.view.View>(R.id.tvStatsSummary).visibility
+            )
+        }
+    }
+
+    @Test
+    fun statsCardTogglesExpansionOnClick() {
+        launchFragment()
+        onView(withId(R.id.statsCard)).perform(click())
+        waitForDiff()
+        scenario?.onFragment { fragment ->
+            assertEquals(
+                android.view.View.VISIBLE,
+                fragment.requireView().findViewById<android.view.View>(R.id.statsDetailContainer).visibility
+            )
+        }
+
+        onView(withId(R.id.statsCard)).perform(click())
+        waitForDiff()
+        scenario?.onFragment { fragment ->
+            assertEquals(
+                android.view.View.GONE,
+                fragment.requireView().findViewById<android.view.View>(R.id.statsDetailContainer).visibility
+            )
+        }
+    }
+
+    @Test
+    fun statsExpansionStatePersistsAcrossLaunch() {
+        QRCodeApp.setHistoryStatsExpanded(ApplicationProvider.getApplicationContext(), true)
+        launchFragment()
+        scenario?.onFragment { fragment ->
+            assertEquals(
+                android.view.View.VISIBLE,
+                fragment.requireView().findViewById<android.view.View>(R.id.statsDetailContainer).visibility
+            )
+        }
     }
 
     @Test
