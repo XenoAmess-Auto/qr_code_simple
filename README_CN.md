@@ -176,9 +176,9 @@
 
 - **语言**：Kotlin 2.2.21
 - **UI**：Jetpack Compose + XML 布局（viewBinding）
-- **数据库**：Room 2.7.1 + SQLCipher 4.5.4（加密）
+- **数据库**：Room 2.7.1 + SQLCipher 4.17.0（加密，sqlcipher-android 新坐标）
 - **异步**：Kotlin Coroutines
-- **相机**：CameraX 1.3.3
+- **相机**：CameraX 1.5.3
 - **条码识别**：ZXing 3.5.3、ML Kit 17.2.0、WeChatQRCode 2.6.0（OpenCV）
 - **Micro QR**：BoofCV 1.4.0
 - **复杂格式生成**：OkapiBarcode 0.5.6（RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / 邮政码 / Code 2 of 5 / Code One / Grid Matrix / ...）

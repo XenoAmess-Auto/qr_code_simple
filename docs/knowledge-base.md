@@ -13,8 +13,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 |------|---------|------|
 | 语言 | Kotlin | 2.2.21 |
 | UI | Jetpack Compose / XML Layout | - |
-| 相机 | CameraX | 1.3.3 |
-| 数据库 | Room + SQLCipher | 2.7.1 / 4.5.4 |
+| 相机 | CameraX | 1.5.3 |
+| 数据库 | Room + SQLCipher（sqlcipher-android 新坐标） | 2.7.1 / 4.17.0 |
 | 二维码识别 | ZXing | 3.5.3 |
 | 条码识别 | ML Kit | 17.2.0 |
 | 二维码识别 | WeChatQRCode | 2.5.0 |

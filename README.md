@@ -174,9 +174,9 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 
 - **Language**: Kotlin 2.2.21
 - **UI**: Jetpack Compose + XML Layouts (viewBinding)
-- **Database**: Room 2.7.1 + SQLCipher 4.5.4 (encrypted)
+- **Database**: Room 2.7.1 + SQLCipher 4.17.0 (encrypted, sqlcipher-android)
 - **Async**: Kotlin Coroutines
-- **Camera**: CameraX 1.3.3
+- **Camera**: CameraX 1.5.3
 - **Barcode Recognition**: ZXing 3.5.3, ML Kit 17.2.0, WeChatQRCode 2.6.0 (OpenCV)
 - **Micro QR**: BoofCV 1.4.0
 - **Complex Generation**: OkapiBarcode 0.5.6 (RSS-14 / RSS Expanded / MaxiCode / Data Matrix UTF-8 / postal / 2 of 5 / Code One / Grid Matrix / ...)

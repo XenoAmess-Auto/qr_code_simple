@@ -15,7 +15,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 /**
  * Room 数据库（支持加密）
@@ -70,7 +70,7 @@ abstract class AppDatabase : RoomDatabase() {
             // Robolectric does not provide native SQLCipher support; run unencrypted in unit tests.
             if (!android.os.Build.FINGERPRINT.contains("robolectric")) {
                 val passphrase = getDatabasePassword(context)
-                builder.openHelperFactory(SupportFactory(passphrase.toByteArray()))
+                builder.openHelperFactory(SupportOpenHelperFactory(passphrase.toByteArray()))
             }
 
             return builder.build()
