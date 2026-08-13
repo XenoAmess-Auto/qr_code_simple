@@ -95,6 +95,11 @@
     <string name="scan_results">Результаты сканирования</string>
 
     <string name="close">Закрыть</string>
+    <string name="crash_logs">Журналы сбоев</string>
+    <string name="crash_log_empty">Журналов сбоев нет</string>
+    <string name="crash_log_cleared">Журналы сбоев очищены</string>
+    <string name="clear_logs">Очистить журналы</string>
+    <string name="crash_log_count">Журналов сбоев: %1$d</string>
 
     <string name="no_qr_codes_found">QR-коды не найдены на этом изображении</string>
 

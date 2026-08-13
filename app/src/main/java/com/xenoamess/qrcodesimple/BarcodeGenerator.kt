@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.util.Log
 import android.graphics.Rect
 import android.graphics.RectF
 import boofcv.alg.fiducial.microqr.MicroQrCode
@@ -34,6 +35,8 @@ import kotlin.math.min
  * - 所有新增格式统一走 OkapiBarcode，渲染时自动绘制人眼可读数字。
  */
 object BarcodeGenerator {
+
+    private const val TAG = "BarcodeGenerator"
 
     data class BarcodeConfig(
         val format: AppBarcodeFormat = AppBarcodeFormat.QR_CODE,
@@ -128,7 +131,7 @@ object BarcodeGenerator {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "generateResult failed for ${config.format}", e)
             null
         }
     }
@@ -200,7 +203,7 @@ object BarcodeGenerator {
                 AppBarcodeFormat.UNKNOWN -> generateQRCode(content, config)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "generateBitmapOnly failed for ${config.format}", e)
             null
         }
     }

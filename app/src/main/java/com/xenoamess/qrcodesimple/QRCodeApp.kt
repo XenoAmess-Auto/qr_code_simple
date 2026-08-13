@@ -194,6 +194,9 @@ class QRCodeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // 安装本地崩溃日志记录（仅写 filesDir，不上报）
+        CrashLogger.install(this)
+
         // 应用用户选择的亮暗主题（system/light/dark）
         applyThemeMode(this)
 

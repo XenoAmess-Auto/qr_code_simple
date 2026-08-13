@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
@@ -24,6 +25,8 @@ import java.io.FileOutputStream
  * 分享图片模板生成器
  */
 object ShareTemplateGenerator {
+
+    private const val TAG = "ShareTemplateGenerator"
 
     data class TemplateConfig(
         val title: String,
@@ -146,7 +149,7 @@ object ShareTemplateGenerator {
 
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "generateShareImage failed", e)
             null
         }
     }
@@ -177,7 +180,7 @@ object ShareTemplateGenerator {
 
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "generatePlainQrImage failed", e)
             null
         }
     }

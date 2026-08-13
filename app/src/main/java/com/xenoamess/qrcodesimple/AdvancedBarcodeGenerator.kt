@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.util.Log
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
@@ -22,6 +23,8 @@ import kotlin.math.sin
  * 所有像素操作均使用 Bitmap.setPixel / setPixels，避免 Robolectric 下 Canvas 绘制不可靠的问题。
  */
 object AdvancedBarcodeGenerator {
+
+    private const val TAG = "AdvancedBarcodeGenerator"
 
     enum class ModuleShape { DEFAULT, CIRCLE, ROUNDED }
     enum class PositionPatternShape { DEFAULT, CIRCLE, FOLLOW_MODULE }
@@ -159,7 +162,7 @@ object AdvancedBarcodeGenerator {
                 else -> generateGenericWithStyle(content, format, width, height, style)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "generateStyled failed for $format", e)
             null
         }
     }

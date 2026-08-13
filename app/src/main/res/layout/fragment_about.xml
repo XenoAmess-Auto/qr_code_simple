@@ -114,6 +114,14 @@
             android:text="@string/version_history"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCrashLogs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="@string/crash_logs"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
         <!-- Buy me a coffee button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDonate"

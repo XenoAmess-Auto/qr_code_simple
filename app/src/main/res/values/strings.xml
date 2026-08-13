@@ -54,6 +54,11 @@
     <string name="scan_result">Scan Result</string>
     <string name="scan_results">Scan Results</string>
     <string name="close">Close</string>
+    <string name="crash_logs">Crash logs</string>
+    <string name="crash_log_empty">No crash logs</string>
+    <string name="crash_log_cleared">Crash logs cleared</string>
+    <string name="clear_logs">Clear logs</string>
+    <string name="crash_log_count">%1$d crash log(s)</string>
     <string name="no_qr_codes_found">No QR codes found in this image</string>
     <string name="checking_security">Checking security…</string>
     <string name="no_qr_codes_found_detail">No QR codes found (tried WeChatQR, ZXing, ML Kit)</string>

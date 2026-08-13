@@ -287,6 +287,11 @@
     <string name="unknown_error">未知错误</string>
     <string name="scan_result">扫描结果</string>
     <string name="close">关闭</string>
+    <string name="crash_logs">崩溃日志</string>
+    <string name="crash_log_empty">暂无崩溃日志</string>
+    <string name="crash_log_cleared">崩溃日志已清除</string>
+    <string name="clear_logs">清除日志</string>
+    <string name="crash_log_count">%1$d 份崩溃日志</string>
     <string name="checking_security">正在进行安全检查…</string>
     <string name="barcode_image">条码图片</string>
     <string name="history_detail">历史详情</string>

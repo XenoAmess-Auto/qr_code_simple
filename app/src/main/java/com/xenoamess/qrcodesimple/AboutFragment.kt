@@ -77,6 +77,10 @@ class AboutFragment : Fragment() {
             showVersionHistory()
         }
 
+        binding.btnCrashLogs.setOnClickListener {
+            showCrashLogsDialog()
+        }
+
         binding.switchAutoUpdate.isChecked = QRCodeApp.isAppUpdateAutoCheckEnabled(requireContext())
         binding.switchAutoUpdate.setOnCheckedChangeListener { _, isChecked ->
             QRCodeApp.setAppUpdateAutoCheckEnabled(requireContext(), isChecked)
@@ -147,6 +151,39 @@ class AboutFragment : Fragment() {
             .setMessage(history)
             .setPositiveButton(R.string.close, null)
             .show()
+    }
+
+    private fun showCrashLogsDialog() {
+        val ctx = requireContext()
+        val logs = CrashLogger.listLogs(ctx)
+        if (logs.isEmpty()) {
+            AlertDialog.Builder(ctx)
+                .setTitle(R.string.crash_logs)
+                .setMessage(R.string.crash_log_empty)
+                .setPositiveButton(R.string.close, null)
+                .show()
+            return
+        }
+        val content = CrashLogger.readLatest(ctx) ?: getString(R.string.crash_log_empty)
+        val header = getString(R.string.crash_log_count, logs.size)
+        AlertDialog.Builder(ctx)
+            .setTitle(R.string.crash_logs)
+            .setMessage("$header\n\n$content")
+            .setPositiveButton(R.string.share) { _, _ -> shareCrashLog(content) }
+            .setNegativeButton(R.string.clear_logs) { _, _ ->
+                CrashLogger.clear(ctx)
+                Toast.makeText(ctx, getString(R.string.crash_log_cleared), Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton(R.string.close, null)
+            .show()
+    }
+
+    private fun shareCrashLog(content: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, content)
+        }
+        startActivity(Intent.createChooser(intent, getString(R.string.share)))
     }
 
     private fun readVersionHistory(): String? {

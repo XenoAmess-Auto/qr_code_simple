@@ -95,6 +95,11 @@
     <string name="scan_results">Risultati scansione</string>
 
     <string name="close">Chiudi</string>
+    <string name="crash_logs">Log di arresto anomalo</string>
+    <string name="crash_log_empty">Nessun log di arresto anomalo</string>
+    <string name="crash_log_cleared">Log di arresto anomalo cancellati</string>
+    <string name="clear_logs">Cancella log</string>
+    <string name="crash_log_count">%1$d log di arresto anomalo</string>
 
     <string name="no_qr_codes_found">Nessun codice QR trovato in questa immagine</string>
 

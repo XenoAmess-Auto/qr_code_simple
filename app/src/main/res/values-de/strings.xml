@@ -213,6 +213,11 @@
     <string name="scan_result">Scan-Ergebnis</string>
     <string name="scan_results">Scan-Ergebnisse</string>
     <string name="close">Schließen</string>
+    <string name="crash_logs">Absturzprotokolle</string>
+    <string name="crash_log_empty">Keine Absturzprotokolle</string>
+    <string name="crash_log_cleared">Absturzprotokolle gelöscht</string>
+    <string name="clear_logs">Protokolle löschen</string>
+    <string name="crash_log_count">%1$d Absturzprotokoll(e)</string>
     <string name="no_qr_codes_found">Keine QR-Codes in diesem Bild gefunden</string>
     <string name="checking_security">Sicherheitsprüfung läuft…</string>
     <string name="no_qr_codes_found_detail">Keine QR-Codes gefunden (WeChatQR, ZXing, ML Kit versucht)</string>

@@ -95,6 +95,11 @@
     <string name="scan_results">Résultats du scan</string>
 
     <string name="close">Fermer</string>
+    <string name="crash_logs">Journaux de plantage</string>
+    <string name="crash_log_empty">Aucun journal de plantage</string>
+    <string name="crash_log_cleared">Journaux de plantage effacés</string>
+    <string name="clear_logs">Effacer les journaux</string>
+    <string name="crash_log_count">%1$d journal(aux) de plantage</string>
 
     <string name="no_qr_codes_found">Aucun code QR trouvé dans cette image</string>
 

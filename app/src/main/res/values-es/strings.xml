@@ -95,6 +95,11 @@
     <string name="scan_results">Resultados del escaneo</string>
 
     <string name="close">Cerrar</string>
+    <string name="crash_logs">Registros de fallos</string>
+    <string name="crash_log_empty">No hay registros de fallos</string>
+    <string name="crash_log_cleared">Registros de fallos eliminados</string>
+    <string name="clear_logs">Borrar registros</string>
+    <string name="crash_log_count">%1$d registro(s) de fallos</string>
 
     <string name="no_qr_codes_found">No se encontraron códigos QR en esta imagen</string>
 
