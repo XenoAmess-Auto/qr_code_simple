@@ -49,6 +49,34 @@ class BatchResultActivityTest {
     }
 
     @Test
+    fun batchGenerationWithStyleUsesStyledPipeline() {
+        BatchStyleHolder.style = AdvancedBarcodeGenerator.ColorSchemes.BLUE
+        val scenario = launchWith(listOf("https://styled.example"))
+        idleMain()
+
+        assertTrue(
+            "Styled generation should complete and render results",
+            waitFor {
+                var progressGone = false
+                var itemCount = 0
+                scenario.onActivity { activity ->
+                    progressGone = activity.findViewById<ProgressBar>(R.id.progressBar).visibility == View.GONE
+                    itemCount = activity.findViewById<RecyclerView>(R.id.recyclerView).adapter?.itemCount ?: 0
+                }
+                progressGone && itemCount == 1
+            }
+        )
+
+        scenario.onActivity { activity ->
+            val text = activity.findViewById<TextView>(R.id.tvProgress).text.toString()
+            assertTrue(text.contains("Generated: 1/1"))
+        }
+        // holder 已被消费，避免泄漏到其它测试
+        assertTrue(BatchStyleHolder.style == null)
+        scenario.close()
+    }
+
+    @Test
     fun emptyContentsFinishesActivity() {
         val scenario = launchWith(emptyList())
         idleMain()

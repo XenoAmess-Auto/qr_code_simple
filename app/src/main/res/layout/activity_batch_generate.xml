@@ -82,6 +82,24 @@
         android:layout_marginTop="8dp">
 
         <Button
+            android:id="@+id/btnBatchStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/style"
+            android:textColor="?attr/colorPrimary"
+
+            style="?android:attr/borderlessButtonStyle" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <Button
             android:id="@+id/btnGenerate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

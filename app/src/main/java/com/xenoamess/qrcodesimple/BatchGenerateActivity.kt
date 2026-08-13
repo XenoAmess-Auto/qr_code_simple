@@ -112,6 +112,147 @@ class BatchGenerateActivity : AppCompatActivity() {
         binding.btnClear.setOnClickListener {
             binding.etContent.text?.clear()
         }
+
+        binding.btnBatchStyle.setOnClickListener {
+            showBatchStyleDialog()
+        }
+    }
+
+    internal var batchScheme: AdvancedBarcodeGenerator.StyleConfig? = null
+    internal var batchLogo: android.graphics.Bitmap? = null
+
+    private val pickBatchLogoLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri ?: return@registerForActivityResult
+        try {
+            batchLogo = decodeLogoBitmap(uri)
+        } catch (e: Exception) {
+            android.util.Log.e("BatchGenerate", "logo decode failed", e)
+        }
+        updateBatchStyleButton()
+    }
+
+    private fun decodeLogoBitmap(uri: Uri): android.graphics.Bitmap? {
+        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        contentResolver.openInputStream(uri)?.use { input ->
+            android.graphics.BitmapFactory.decodeStream(input, null, bounds)
+        }
+        val maxDim = maxOf(bounds.outWidth, bounds.outHeight)
+        var sample = 1
+        while (maxDim / sample > 512) sample *= 2
+        val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+        return contentResolver.openInputStream(uri)?.use { input ->
+            android.graphics.BitmapFactory.decodeStream(input, null, opts)
+        }
+    }
+
+    private fun updateBatchStyleButton() {
+        val active = batchScheme != null || batchLogo != null
+        binding.btnBatchStyle.text = getString(R.string.style) + if (active) " ✓" else ""
+    }
+
+    private fun createSchemeDonut(scheme: AdvancedBarcodeGenerator.StyleConfig, selected: Boolean): android.graphics.drawable.Drawable {
+        val density = resources.displayMetrics.density
+        val outer = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(scheme.backgroundColor)
+            val primary = com.google.android.material.color.MaterialColors.getColor(
+                this@BatchGenerateActivity,
+                androidx.appcompat.R.attr.colorPrimary,
+                "BatchGenerateActivity"
+            )
+            setStroke(
+                (if (selected) 3 else 1) * density.toInt().coerceAtLeast(1),
+                if (selected) primary else android.graphics.Color.LTGRAY
+            )
+        }
+        val inner = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(scheme.gradientStops.firstOrNull()?.color ?: scheme.foregroundColor)
+        }
+        return android.graphics.drawable.LayerDrawable(arrayOf(outer, inner)).apply {
+            val inset = (12 * density).toInt()
+            setLayerInset(1, inset, inset, inset, inset)
+        }
+    }
+
+    private fun showBatchStyleDialog() {
+        val schemes = listOf(
+            AdvancedBarcodeGenerator.ColorSchemes.CLASSIC,
+            AdvancedBarcodeGenerator.ColorSchemes.BLUE,
+            AdvancedBarcodeGenerator.ColorSchemes.GREEN,
+            AdvancedBarcodeGenerator.ColorSchemes.RED,
+            AdvancedBarcodeGenerator.ColorSchemes.PURPLE,
+            AdvancedBarcodeGenerator.ColorSchemes.ORANGE,
+            AdvancedBarcodeGenerator.ColorSchemes.CYAN,
+            AdvancedBarcodeGenerator.ColorSchemes.DARK,
+            AdvancedBarcodeGenerator.ColorSchemes.QQ
+        )
+        val density = resources.displayMetrics.density
+        val donutSize = (48 * density).toInt()
+        val margin = (8 * density).toInt()
+
+        val root = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding((24 * density).toInt(), (16 * density).toInt(), (24 * density).toInt(), 0)
+        }
+        val row = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+        }
+        val scroll = android.widget.HorizontalScrollView(this).apply {
+            addView(row)
+        }
+        root.addView(scroll)
+
+        fun refreshDonuts() {
+            for (i in 0 until row.childCount) {
+                val child = row.getChildAt(i)
+                @Suppress("UNCHECKED_CAST")
+                val scheme = child.tag as AdvancedBarcodeGenerator.StyleConfig
+                child.background = createSchemeDonut(scheme, batchScheme == scheme)
+            }
+        }
+
+        schemes.forEach { scheme ->
+            val view = View(this).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(donutSize, donutSize).apply {
+                    setMargins(margin, margin, margin, margin)
+                }
+                tag = scheme
+                background = createSchemeDonut(scheme, batchScheme == scheme)
+                setOnClickListener {
+                    batchScheme = if (batchScheme == scheme) null else scheme
+                    refreshDonuts()
+                }
+            }
+            row.addView(view)
+        }
+
+        val btnLogo = android.widget.Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+            text = getString(R.string.logo) + if (batchLogo != null) " ✓" else ""
+            setOnClickListener { pickBatchLogoLauncher.launch("image/*") }
+        }
+        val btnClearLogo = android.widget.Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+            text = getString(R.string.clear)
+            setOnClickListener {
+                batchLogo = null
+                btnLogo.text = getString(R.string.logo)
+                updateBatchStyleButton()
+            }
+        }
+        val logoRow = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            addView(btnLogo, android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(btnClearLogo, android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        root.addView(logoRow)
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.style))
+            .setView(root)
+            .setPositiveButton(getString(R.string.apply)) { _, _ -> updateBatchStyleButton() }
+            .show()
     }
 
     internal fun importFromFile(uri: Uri) {
@@ -207,6 +348,11 @@ class BatchGenerateActivity : AppCompatActivity() {
         val intent = Intent(this, BatchResultActivity::class.java).apply {
             putStringArrayListExtra(EXTRA_CONTENTS, ArrayList(items.map { it.content }))
             putExtra(EXTRA_FORMAT, selectedFormat.name)
+        }
+        BatchStyleHolder.style = if (batchScheme == null && batchLogo == null) {
+            null
+        } else {
+            (batchScheme ?: AdvancedBarcodeGenerator.StyleConfig()).copy(logoBitmap = batchLogo)
         }
         startActivity(intent)
     }

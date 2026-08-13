@@ -1182,18 +1182,53 @@ class GenerateFragment : Fragment() {
 
     private fun showSaveFormatDialog() {
         val ctx = context ?: return
-        val items = arrayOf("PNG", getString(R.string.format_svg_vector))
+        val dialogView = layoutInflater.inflate(R.layout.dialog_save_options, null)
+        val rbFormatPng = dialogView.findViewById<android.widget.RadioButton>(R.id.rbFormatPng)
+        val rbFormatJpeg = dialogView.findViewById<android.widget.RadioButton>(R.id.rbFormatJpeg)
+        val rbFormatWebp = dialogView.findViewById<android.widget.RadioButton>(R.id.rbFormatWebp)
+        val rbFormatSvg = dialogView.findViewById<android.widget.RadioButton>(R.id.rbFormatSvg)
+        val rbSize512 = dialogView.findViewById<android.widget.RadioButton>(R.id.rbSize512)
+        val rbSize2048 = dialogView.findViewById<android.widget.RadioButton>(R.id.rbSize2048)
+        val tvSizeLabel = dialogView.findViewById<android.widget.TextView>(R.id.tvSizeLabel)
+        val rgSize = dialogView.findViewById<android.widget.RadioGroup>(R.id.rgSize)
+
+        // SVG 是矢量格式，尺寸选择无意义；选中时隐藏尺寸区
+        dialogView.findViewById<android.widget.RadioGroup>(R.id.rgFormat)
+            .setOnCheckedChangeListener { _, checkedId ->
+                val sizeVisible = if (checkedId == R.id.rbFormatSvg) View.GONE else View.VISIBLE
+                tvSizeLabel.visibility = sizeVisible
+                rgSize.visibility = sizeVisible
+            }
+
         MaterialAlertDialogBuilder(ctx)
             .setTitle(getString(R.string.save_format_title))
-            .setItems(items) { dialog, which ->
-                when (which) {
-                    0 -> saveBarcode()
-                    1 -> saveBarcodeAsSvg()
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                val size = when {
+                    rbSize512.isChecked -> 512
+                    rbSize2048.isChecked -> 2048
+                    else -> 1024
                 }
-                dialog.dismiss()
+                when {
+                    rbFormatSvg.isChecked -> saveBarcodeAsSvg()
+                    rbFormatJpeg.isChecked ->
+                        saveRasterBarcode(size, Bitmap.CompressFormat.JPEG, "image/jpeg", "jpg")
+                    rbFormatWebp.isChecked ->
+                        saveRasterBarcode(size, webpCompressFormat(), "image/webp", "webp")
+                    else -> saveRasterBarcode(size, Bitmap.CompressFormat.PNG, "image/png", "png")
+                }
             }
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
+
+    @Suppress("DEPRECATION")
+    private fun webpCompressFormat(): Bitmap.CompressFormat =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Bitmap.CompressFormat.WEBP_LOSSY
+        } else {
+            Bitmap.CompressFormat.WEBP
+        }
 
     private var pendingSvg: String? = null
 
@@ -1242,34 +1277,50 @@ class GenerateFragment : Fragment() {
         }
     }
 
-    private fun saveBarcode() {
+    private fun saveRasterBarcode(
+        size: Int,
+        compressFormat: Bitmap.CompressFormat,
+        mimeType: String,
+        extension: String
+    ) {
         val ctx = context ?: return
-        if (currentBitmap == null) {
-            generateBarcode()
-        }
-        val bitmap = currentBitmap
-        if (bitmap == null) {
+        val content = binding.etContent.text?.toString()?.trim()
+        if (content.isNullOrEmpty()) {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val validation = BarcodeGenerator.validateContent(content, selectedFormat)
+        if (!validation.isValid) {
+            Toast.makeText(ctx, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_SHORT).show()
             return
         }
         recordHistory()
 
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val prefix = selectedFormat.name.lowercase().replace("_", "")
-        val fileName = "${prefix}_$timeStamp.png"
-
         try {
+            val style = AdvancedBarcodeGenerator.sanitize(buildCurrentStyleConfig(), selectedFormat)
+            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, size, size, style)
+            if (bitmap == null) {
+                Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
+                return
+            }
+            currentBitmap = bitmap
+            binding.ivQRCode.setImageBitmap(bitmap)
+
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val prefix = selectedFormat.name.lowercase().replace("_", "")
+            val fileName = "${prefix}_$timeStamp.$extension"
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val contentValues = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
                     put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
                 }
 
                 val uri = ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
                 uri?.let {
                     ctx.contentResolver.openOutputStream(it)?.use { outputStream ->
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                        bitmap.compress(compressFormat, 100, outputStream)
                     }
                     Toast.makeText(ctx, getString(R.string.saved_to_gallery, fileName), Toast.LENGTH_SHORT).show()
                 }
@@ -1277,7 +1328,7 @@ class GenerateFragment : Fragment() {
                 val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 val file = File(picturesDir, fileName)
                 FileOutputStream(file).use { outputStream ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                    bitmap.compress(compressFormat, 100, outputStream)
                 }
                 Toast.makeText(ctx, getString(R.string.saved_to, file.absolutePath), Toast.LENGTH_SHORT).show()
             }

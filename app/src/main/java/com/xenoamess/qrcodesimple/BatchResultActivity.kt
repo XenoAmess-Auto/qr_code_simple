@@ -86,7 +86,25 @@ class BatchResultActivity : AppCompatActivity() {
         binding.recyclerView.adapter = adapter
     }
 
+    private suspend fun generateStyledBatch(
+        items: List<BatchGenerator.BatchItem>,
+        style: AdvancedBarcodeGenerator.StyleConfig,
+        onProgress: suspend (current: Int, total: Int) -> Unit
+    ): List<Pair<BatchGenerator.BatchItem, Bitmap?>> = withContext(Dispatchers.Default) {
+        items.mapIndexed { index, item ->
+            val bitmap = try {
+                val sanitized = AdvancedBarcodeGenerator.sanitize(style, item.format)
+                AdvancedBarcodeGenerator.generateStyled(item.content, item.format, 800, 800, sanitized)
+            } catch (e: Exception) {
+                null
+            }
+            onProgress(index + 1, items.size)
+            item to bitmap
+        }
+    }
+
     private fun generateBatch(contents: List<String>, format: BarcodeFormat) {
+        val style = BatchStyleHolder.consume()
         lifecycleScope.launch {
             binding.progressBar.visibility = View.VISIBLE
             binding.tvProgress.text = "0/${contents.size}"
@@ -99,10 +117,19 @@ class BatchResultActivity : AppCompatActivity() {
                 )
             }
 
-            val generated = BatchGenerator.generateBatch(items) { current, total ->
-                withContext(Dispatchers.Main) {
-                    binding.tvProgress.text = "$current/$total"
-                    binding.progressBar.progress = (current * 100 / total)
+            val generated = if (style == null) {
+                BatchGenerator.generateBatch(items) { current, total ->
+                    withContext(Dispatchers.Main) {
+                        binding.tvProgress.text = "$current/$total"
+                        binding.progressBar.progress = (current * 100 / total)
+                    }
+                }
+            } else {
+                generateStyledBatch(items, style) { current, total ->
+                    withContext(Dispatchers.Main) {
+                        binding.tvProgress.text = "$current/$total"
+                        binding.progressBar.progress = (current * 100 / total)
+                    }
                 }
             }
 

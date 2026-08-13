@@ -77,7 +77,7 @@ class GenerateFragmentSaveTest {
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
-        dialog.listView.performItemClick(null, 0, 0)
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         idleMain()
 
         val pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
@@ -98,7 +98,8 @@ class GenerateFragmentSaveTest {
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
-        dialog.listView.performItemClick(null, 1, 0)
+        dialog.findViewById<android.widget.RadioButton>(R.id.rbFormatSvg)!!.isChecked = true
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         idleMain()
 
         scenario.onFragment { fragment ->
