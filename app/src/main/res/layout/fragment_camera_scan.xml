@@ -56,6 +56,16 @@
             app:tint="@android:color/white" />
 
         <ImageButton
+            android:id="@+id/btnGallery"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_gallery"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/from_gallery"
+            app:tint="@android:color/white" />
+
+        <ImageButton
             android:id="@+id/btnContinuousScan"
             android:layout_width="44dp"
             android:layout_height="44dp"
@@ -180,6 +190,19 @@
                     android:text="@string/scan_result"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnNextResult"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingHorizontal="8dp"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorPrimary"
+                    android:visibility="gone"
+                    style="?android:attr/borderlessButtonStyle"
+                    tools:text="1/2" />
 
                 <ImageButton
                     android:id="@+id/btnCloseResult"

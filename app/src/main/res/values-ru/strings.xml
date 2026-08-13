@@ -841,6 +841,7 @@
     <string name="cd_color_picker">Выбор цвета</string>
 
     <string name="scan_region">Область сканирования</string>
+    <string name="result_counter">%1$d/%2$d</string>
 
     <string name="scan_region_mode_on">Режим области включён: перетащите, чтобы выбрать область декодирования</string>
 

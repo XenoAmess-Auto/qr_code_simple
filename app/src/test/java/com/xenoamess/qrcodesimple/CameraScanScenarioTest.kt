@@ -161,6 +161,35 @@ class CameraScanScenarioTest {
     }
 
     @Test
+    fun multiResultShowsCounterAndCycles() {
+        scenario.onFragment { fragment ->
+            val method = CameraScanFragment::class.java.getDeclaredMethod("handleNewResults", List::class.java)
+            method.isAccessible = true
+            val r1 = QRCodeScanner.ScanResult("first", QRCodeScanner.Library.ZXING)
+            val r2 = QRCodeScanner.ScanResult("second", QRCodeScanner.Library.ZXING)
+            method.invoke(fragment, listOf(r1, r2))
+        }
+        idleMain()
+
+        scenario.onFragment { fragment ->
+            val btnNext = fragment.requireView().findViewById<android.widget.Button>(R.id.btnNextResult)
+            assertEquals(View.VISIBLE, btnNext.visibility)
+            assertEquals("1/2", btnNext.text.toString())
+            assertEquals(
+                "first",
+                fragment.requireView().findViewById<TextView>(R.id.tvResult).text.toString()
+            )
+
+            btnNext.performClick()
+            assertEquals(
+                "second",
+                fragment.requireView().findViewById<TextView>(R.id.tvResult).text.toString()
+            )
+            assertEquals("2/2", btnNext.text.toString())
+        }
+    }
+
+    @Test
     fun showResultTwiceWithSameContentDoesNotReAnimateCard() {
         show("https://example.com")
 

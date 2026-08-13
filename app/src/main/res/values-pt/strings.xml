@@ -841,6 +841,7 @@
     <string name="cd_color_picker">Seletor de cores</string>
 
     <string name="scan_region">Área de análise</string>
+    <string name="result_counter">%1$d/%2$d</string>
 
     <string name="scan_region_mode_on">Modo de área ativado: arraste para selecionar a área de descodificação</string>
 

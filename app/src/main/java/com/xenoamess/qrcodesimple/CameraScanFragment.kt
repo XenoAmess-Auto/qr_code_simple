@@ -61,6 +61,7 @@ class CameraScanFragment : Fragment() {
     private val handler = Handler(Looper.getMainLooper())
     private val clearLastDetectedRunnable = Runnable {
         lastDetectedContent = null
+        lastResultSetKey = null
         hasPendingClear = false
     }
     private var camera: Camera? = null
@@ -70,6 +71,9 @@ class CameraScanFragment : Fragment() {
     private var maxZoom = 10f
     private var currentParsedContent: ParsedContent? = null
     private var scanResultListener: OnScanResultListener? = null
+    private var currentResults: List<QRCodeScanner.ScanResult> = emptyList()
+    private var currentResultIndex = 0
+    private var lastResultSetKey: String? = null
 
     /** 框选识别模式开关；开启后帧会裁剪到用户选择区域再识别。 */
     private var regionModeEnabled = false
@@ -214,6 +218,51 @@ class CameraScanFragment : Fragment() {
             if (activity is ContinuousScanActivity) View.GONE else View.VISIBLE
         binding.btnContinuousScan.setOnClickListener {
             startActivity(Intent(requireContext(), ContinuousScanActivity::class.java))
+        }
+
+        binding.btnGallery.visibility =
+            if (activity is ContinuousScanActivity) View.GONE else View.VISIBLE
+        binding.btnGallery.setOnClickListener { pickImageLauncher.launch("image/*") }
+
+        binding.btnNextResult.setOnClickListener {
+            if (currentResults.size > 1) {
+                currentResultIndex = (currentResultIndex + 1) % currentResults.size
+                displayResult(currentResults[currentResultIndex])
+            }
+        }
+    }
+
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        val ctx = context ?: return@registerForActivityResult
+        if (uri == null) return@registerForActivityResult
+        cameraExecutor?.execute {
+            try {
+                val bitmap = ctx.contentResolver.openInputStream(uri)?.use { input ->
+                    android.graphics.BitmapFactory.decodeStream(input)
+                }
+                if (bitmap == null) {
+                    activity?.runOnUiThread {
+                        Toast.makeText(ctx, getString(R.string.no_qr_codes_found), Toast.LENGTH_SHORT).show()
+                    }
+                    return@execute
+                }
+                val results = QRCodeScanner.scanSync(ctx, bitmap)
+                bitmap.recycle()
+                activity?.runOnUiThread {
+                    if (results.isEmpty()) {
+                        Toast.makeText(ctx, getString(R.string.no_qr_codes_found), Toast.LENGTH_SHORT).show()
+                    } else {
+                        handleNewResults(results)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Gallery scan failed", e)
+                activity?.runOnUiThread {
+                    Toast.makeText(ctx, getString(R.string.no_qr_codes_found), Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
     
@@ -402,6 +451,37 @@ class CameraScanFragment : Fragment() {
         binding.resultCard.clearAnimation()
         binding.resultCard.visibility = View.GONE
         currentParsedContent = null
+        currentResults = emptyList()
+        currentResultIndex = 0
+        binding.btnNextResult.visibility = View.GONE
+    }
+
+    private fun handleNewResults(results: List<QRCodeScanner.ScanResult>) {
+        if (hasPendingClear) {
+            handler.removeCallbacks(clearLastDetectedRunnable)
+            hasPendingClear = false
+        }
+        currentResults = results
+        currentResultIndex = 0
+        showResult(results[0])
+    }
+
+    private fun displayResult(result: QRCodeScanner.ScanResult) {
+        lastDetectedContent = result.text
+        binding.tvResult.text = result.text
+        updateSmartActionButton(result.text)
+        updateNextResultButton()
+    }
+
+    private fun updateNextResultButton() {
+        if (_binding == null) return
+        if (currentResults.size > 1) {
+            binding.btnNextResult.visibility = View.VISIBLE
+            binding.btnNextResult.text =
+                getString(R.string.result_counter, currentResultIndex + 1, currentResults.size)
+        } else {
+            binding.btnNextResult.visibility = View.GONE
+        }
     }
 
     internal fun showResult(result: QRCodeScanner.ScanResult) {
@@ -409,23 +489,32 @@ class CameraScanFragment : Fragment() {
         ScanFeedback.play(requireContext())
         scanResultListener?.let { listener ->
             activity?.runOnUiThread {
-                listener.onScanResult(result)
+                val toDeliver = if (currentResults.isEmpty()) listOf(result) else currentResults
+                toDeliver.forEach { listener.onScanResult(it) }
             }
             return
         }
         activity?.runOnUiThread {
-            if (result.text == lastDetectedContent) return@runOnUiThread
-            lastDetectedContent = result.text
-            binding.tvResult.text = result.text
+            val resultSetKey = if (currentResults.size > 1) {
+                currentResults.joinToString("\n") { it.deduplicationKey }
+            } else {
+                result.deduplicationKey
+            }
+            if (resultSetKey == lastResultSetKey) {
+                updateNextResultButton()
+                return@runOnUiThread
+            }
+            lastResultSetKey = resultSetKey
+            displayResult(result)
             AnimationUtils.scaleIn(binding.resultCard)
-
-            // 解析内容并更新智能操作按钮
-            updateSmartActionButton(result.text)
 
             if (result.text.isNotBlank()) {
                 lifecycleScope.launch {
                     try {
-                        historyRepository.insertScan(result.text, result.format.toHistoryType())
+                        val toInsert = if (currentResults.size > 1) currentResults else listOf(result)
+                        toInsert.forEach {
+                            historyRepository.insertScan(it.text, it.format.toHistoryType())
+                        }
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save history", e)
                     }
@@ -539,11 +628,7 @@ class CameraScanFragment : Fragment() {
 
             val results = QRCodeScanner.scanSync(requireContext(), scanBitmap)
             if (results.isNotEmpty()) {
-                if (hasPendingClear) {
-                    handler.removeCallbacks(clearLastDetectedRunnable)
-                    hasPendingClear = false
-                }
-                showResult(results[0])
+                handleNewResults(results)
             } else {
                 // 只在第一次没扫到码时 postDelayed,不重复 post。
                 // 否则 processImage 每 500ms 走一次 else 会不断 postDelayed,
