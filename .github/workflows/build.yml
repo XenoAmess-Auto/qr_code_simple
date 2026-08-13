@@ -5,6 +5,10 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  schedule:
+    # 每周一 06:37 UTC 兜底跑一次，及早发现依赖/环境漂移
+    - cron: '37 6 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: read
