@@ -110,4 +110,44 @@ class AppLockManagerTest {
         // Result depends on Robolectric shadow; just ensure no crash
         AppLockManager.isBiometricAvailable(context)
     }
+
+    @Test
+    fun `setPin stores salted pbkdf2 format`() {
+        AppLockManager.setPin("1234")
+        val prefs = ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("app_lock", Context.MODE_PRIVATE)
+        val stored = prefs.getString("password_hash", null)!!
+        assertTrue(stored.startsWith("pbkdf2$100000$"))
+        assertEquals(4, stored.split("$").size)
+    }
+
+    @Test
+    fun `legacy sha256 hash verifies and migrates to pbkdf2`() {
+        // 直接写入旧版裸 SHA-256 存储
+        val legacy = java.security.MessageDigest.getInstance("SHA-256")
+            .digest("1234".toByteArray())
+            .joinToString("") { "%02x".format(it) }
+        val prefs = ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("app_lock", Context.MODE_PRIVATE)
+        prefs.edit().putString("password_hash", legacy).apply()
+
+        assertTrue(AppLockManager.verifyPin("1234"))
+        assertFalse(AppLockManager.verifyPin("0000"))
+
+        val migrated = prefs.getString("password_hash", null)!!
+        assertTrue(migrated.startsWith("pbkdf2$"))
+        // 迁移后再次验证仍然通过
+        assertTrue(AppLockManager.verifyPin("1234"))
+    }
+
+    @Test
+    fun `tampered pbkdf2 record fails verification`() {
+        val prefs = ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("app_lock", Context.MODE_PRIVATE)
+        prefs.edit().putString("password_hash", "pbkdf2\$notanumber\$zz\$zz").apply()
+        assertFalse(AppLockManager.verifyPin("1234"))
+
+        prefs.edit().putString("password_hash", "pbkdf2\$-5\$00\$00").apply()
+        assertFalse(AppLockManager.verifyPin("1234"))
+    }
 }
