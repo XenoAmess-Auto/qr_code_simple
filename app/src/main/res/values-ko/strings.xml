@@ -528,6 +528,12 @@
     <string name="scan_feedback">스캔 피드백</string>
     <string name="scan_sound">스캔 성공 시 소리 재생</string>
     <string name="scan_vibration">스캔 성공 시 진동</string>
+
+    <string name="scan_automation">스캔 자동화</string>
+
+    <string name="auto_open_url">안전한 링크 자동 열기</string>
+
+    <string name="auto_copy_result">결과 자동 복사</string>
     <string name="export_excel">Excel로 내보내기</string>
     <string name="stats_title">통계</string>
     <string name="stats_7d">7일: %1$d회 스캔</string>

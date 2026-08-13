@@ -83,6 +83,8 @@ class QRCodeApp : Application() {
 
         private const val KEY_SCAN_SOUND_ENABLED = "scan_sound_enabled"
         private const val KEY_SCAN_VIBRATION_ENABLED = "scan_vibration_enabled"
+        private const val KEY_AUTO_OPEN_URL = "auto_open_url"
+        private const val KEY_AUTO_COPY_RESULT = "auto_copy_result"
         private const val KEY_THEME_MODE = "theme_mode"
         const val THEME_MODE_SYSTEM = "system"
         const val THEME_MODE_LIGHT = "light"
@@ -108,6 +110,28 @@ class QRCodeApp : Application() {
         fun setScanVibrationEnabled(context: Context, enabled: Boolean) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putBoolean(KEY_SCAN_VIBRATION_ENABLED, enabled).apply()
+        }
+
+        /** 扫到安全链接自动打开（默认关）。 */
+        fun isAutoOpenUrlEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_AUTO_OPEN_URL, false)
+        }
+
+        fun setAutoOpenUrlEnabled(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_AUTO_OPEN_URL, enabled).apply()
+        }
+
+        /** 扫码结果自动复制到剪贴板（默认关）。 */
+        fun isAutoCopyResultEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_AUTO_COPY_RESULT, false)
+        }
+
+        fun setAutoCopyResultEnabled(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_AUTO_COPY_RESULT, enabled).apply()
         }
 
         /** 亮暗主题模式：system / light / dark（默认跟随系统）。 */

@@ -561,6 +561,12 @@
     <string name="scan_feedback">Scan feedback</string>
     <string name="scan_sound">Play sound on successful scan</string>
     <string name="scan_vibration">Vibrate on successful scan</string>
+
+    <string name="scan_automation">Scan automation</string>
+
+    <string name="auto_open_url">Auto-open safe links</string>
+
+    <string name="auto_copy_result">Auto-copy result</string>
     <string name="export_excel">Export as Excel</string>
     <string name="stats_title">Statistics</string>
     <string name="stats_7d">7 days: %1$d scans</string>

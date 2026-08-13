@@ -62,6 +62,7 @@ class CameraScanFragment : Fragment() {
     private val clearLastDetectedRunnable = Runnable {
         lastDetectedContent = null
         lastResultSetKey = null
+        lastAutoActionContent = null
         hasPendingClear = false
     }
     private var camera: Camera? = null
@@ -473,6 +474,38 @@ class CameraScanFragment : Fragment() {
         updateNextResultButton()
     }
 
+    private var lastAutoActionContent: String? = null
+
+    /**
+     * 扫码后自动化：自动复制结果；自动打开经安全检查为 SAFE/LOW 的链接。
+     * 同一内容只触发一次，码离开画面 1s 后重置（与 lastDetectedContent 同生命周期）。
+     */
+    private fun applyAutoActions(result: QRCodeScanner.ScanResult) {
+        val ctx = context ?: return
+        if (result.text == lastAutoActionContent) return
+        lastAutoActionContent = result.text
+
+        if (QRCodeApp.isAutoCopyResultEnabled(ctx) && result.text.isNotBlank()) {
+            copyResult()
+        }
+
+        if (QRCodeApp.isAutoOpenUrlEnabled(ctx)) {
+            val parsed = ContentParser.parse(result.text)
+            if (parsed is ParsedContent.Url) {
+                val check = SecurityManager.checkUrl(parsed.url)
+                if (check.riskLevel == SecurityManager.RiskLevel.SAFE ||
+                    check.riskLevel == SecurityManager.RiskLevel.LOW
+                ) {
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(parsed.url)))
+                    } catch (e: Exception) {
+                        Log.w(TAG, "auto-open url failed: ${e.message}")
+                    }
+                }
+            }
+        }
+    }
+
     private fun updateNextResultButton() {
         if (_binding == null) return
         if (currentResults.size > 1) {
@@ -507,6 +540,7 @@ class CameraScanFragment : Fragment() {
             lastResultSetKey = resultSetKey
             displayResult(result)
             AnimationUtils.scaleIn(binding.resultCard)
+            applyAutoActions(result)
 
             if (result.text.isNotBlank()) {
                 lifecycleScope.launch {

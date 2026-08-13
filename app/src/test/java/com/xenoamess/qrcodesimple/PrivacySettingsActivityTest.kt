@@ -122,7 +122,10 @@ class PrivacySettingsActivityTest {
 
     @Test
     fun enablingAppLockWithoutPinShowsSetPinDialog() {
-        onView(withId(R.id.switchAppLock)).perform(click())
+        // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
+        scenario.onActivity { activity ->
+            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+        }
         idleMain()
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
@@ -133,7 +136,10 @@ class PrivacySettingsActivityTest {
 
     @Test
     fun cancellingSetPinDialogKeepsLockDisabled() {
-        onView(withId(R.id.switchAppLock)).perform(click())
+        // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
+        scenario.onActivity { activity ->
+            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+        }
         idleMain()
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
@@ -149,7 +155,10 @@ class PrivacySettingsActivityTest {
 
     @Test
     fun setPinAndEnableAppLock() {
-        onView(withId(R.id.switchAppLock)).perform(click())
+        // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
+        scenario.onActivity { activity ->
+            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+        }
         idleMain()
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
@@ -171,7 +180,10 @@ class PrivacySettingsActivityTest {
 
     @Test
     fun mismatchingPinDoesNotEnableLock() {
-        onView(withId(R.id.switchAppLock)).perform(click())
+        // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
+        scenario.onActivity { activity ->
+            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+        }
         idleMain()
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog

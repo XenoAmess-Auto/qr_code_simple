@@ -518,6 +518,12 @@
     <string name="scan_feedback">扫描反馈</string>
     <string name="scan_sound">扫码成功播放提示音</string>
     <string name="scan_vibration">扫码成功震动</string>
+
+    <string name="scan_automation">扫码自动化</string>
+
+    <string name="auto_open_url">自动打开安全链接</string>
+
+    <string name="auto_copy_result">自动复制结果</string>
     <string name="export_excel">导出为 Excel</string>
     <string name="stats_title">统计</string>
     <string name="stats_7d">7 天：%1$d 次扫码</string>

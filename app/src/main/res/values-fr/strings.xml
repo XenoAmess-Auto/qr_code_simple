@@ -996,6 +996,15 @@ https://another.com
 
     <string name="scan_vibration">Vibrer lors d\'un scan réussi</string>
 
+
+    <string name="scan_automation">Automatisation du scan</string>
+
+
+    <string name="auto_open_url">Ouvrir automatiquement les liens sûrs</string>
+
+
+    <string name="auto_copy_result">Copier automatiquement le résultat</string>
+
     <string name="export_excel">Exporter en Excel</string>
     <string name="stats_title">Statistiques</string>
     <string name="stats_7d">7 jours : %1$d scans</string>

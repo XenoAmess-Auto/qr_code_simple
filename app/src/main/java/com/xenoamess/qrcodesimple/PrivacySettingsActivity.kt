@@ -55,6 +55,8 @@ class PrivacySettingsActivity : AppCompatActivity() {
         binding.switchBlacklistAutoUpdate.isChecked = QRCodeApp.isBlacklistAutoUpdateEnabled(this)
         binding.switchScanSound.isChecked = QRCodeApp.isScanSoundEnabled(this)
         binding.switchScanVibration.isChecked = QRCodeApp.isScanVibrationEnabled(this)
+        binding.switchAutoOpenUrl.isChecked = QRCodeApp.isAutoOpenUrlEnabled(this)
+        binding.switchAutoCopyResult.isChecked = QRCodeApp.isAutoCopyResultEnabled(this)
     }
 
     private val retentionOptions = intArrayOf(0, 30, 90, 365)
@@ -103,6 +105,14 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
         binding.switchScanVibration.setOnCheckedChangeListener { _, isChecked ->
             QRCodeApp.setScanVibrationEnabled(this, isChecked)
+        }
+
+        binding.switchAutoOpenUrl.setOnCheckedChangeListener { _, isChecked ->
+            QRCodeApp.setAutoOpenUrlEnabled(this, isChecked)
+        }
+
+        binding.switchAutoCopyResult.setOnCheckedChangeListener { _, isChecked ->
+            QRCodeApp.setAutoCopyResultEnabled(this, isChecked)
         }
 
         binding.switchBlacklistAutoUpdate.setOnCheckedChangeListener { _, isChecked ->

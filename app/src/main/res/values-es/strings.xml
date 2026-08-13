@@ -996,6 +996,15 @@ https://another.com
 
     <string name="scan_vibration">Vibrar al escanear correctamente</string>
 
+
+    <string name="scan_automation">Automatización de escaneo</string>
+
+
+    <string name="auto_open_url">Abrir enlaces seguros automáticamente</string>
+
+
+    <string name="auto_copy_result">Copiar resultado automáticamente</string>
+
     <string name="export_excel">Exportar como Excel</string>
 
     <string name="stats_title">Estadísticas</string>
