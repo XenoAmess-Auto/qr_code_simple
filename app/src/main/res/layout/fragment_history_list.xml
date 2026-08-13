@@ -45,7 +45,7 @@
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:queryHint="Search history..." />
+        android:queryHint="@string/search_history_hint" />
 
     <!-- 过滤器 Tab -->
     <LinearLayout
@@ -88,6 +88,31 @@
             android:layout_weight="1"
             android:textColor="?attr/colorPrimary"
             android:text="@string/chip_favorites"
+            style="?android:attr/borderlessButtonStyle" />
+
+    </LinearLayout>
+
+    <!-- 排序 + 高级筛选 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnSort"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="?attr/colorPrimary"
+            style="?android:attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/btnAdvancedFilter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="?attr/colorPrimary"
+            android:text="@string/advanced_filter"
             style="?android:attr/borderlessButtonStyle" />
 
     </LinearLayout>

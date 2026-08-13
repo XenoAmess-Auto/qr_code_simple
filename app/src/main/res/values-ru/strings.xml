@@ -208,6 +208,18 @@
     <string name="remove_from_favorites">Убрать из избранного</string>
 
     <string name="all_tags">Все теги</string>
+    <string name="advanced_filter">Расширенный фильтр</string>
+    <string name="sort_order">Порядок сортировки</string>
+    <string name="filter_time_range">Период</string>
+    <string name="filter_time_all">За всё время</string>
+    <string name="filter_time_today">Сегодня</string>
+    <string name="filter_time_7d">Последние 7 дней</string>
+    <string name="filter_time_30d">Последние 30 дней</string>
+    <string name="filter_type">Тип</string>
+    <string name="filter_format">Формат</string>
+    <string name="filter_reset">Сбросить</string>
+    <string name="apply">Применить</string>
+    <string name="search_history_hint">Поиск по истории…</string>
 
     <string name="delete">Удалить</string>
 

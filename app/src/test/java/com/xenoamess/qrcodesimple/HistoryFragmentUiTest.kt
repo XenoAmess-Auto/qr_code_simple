@@ -143,6 +143,92 @@ class HistoryFragmentUiTest {
     }
 
     @Test
+    fun sortToggleReversesOrder() {
+        runBlocking {
+            repository.insert(HistoryItem(content = "old", type = HistoryType.QR_CODE, timestamp = 1000L, isGenerated = false))
+            repository.insert(HistoryItem(content = "new", type = HistoryType.QR_CODE, timestamp = 2000L, isGenerated = false))
+        }
+        val scenario = launchFragment()
+        var list = waitForListSize(scenario, 2)
+        assertEquals("new", list.first().content)
+
+        onView(withId(R.id.btnSort)).perform(click())
+        waitForDiff()
+        list = waitForListSize(scenario, 2)
+        assertEquals("old", list.first().content)
+    }
+
+    @Test
+    fun timeRangeFilterShowsOnlyRecent() {
+        val now = System.currentTimeMillis()
+        runBlocking {
+            repository.insert(HistoryItem(content = "recent", type = HistoryType.QR_CODE, timestamp = now, isGenerated = false))
+            repository.insert(
+                HistoryItem(
+                    content = "ancient",
+                    type = HistoryType.QR_CODE,
+                    timestamp = now - 40L * 24 * 60 * 60 * 1000,
+                    isGenerated = false
+                )
+            )
+        }
+        val scenario = launchFragment()
+        waitForListSize(scenario, 2)
+
+        onView(withId(R.id.btnAdvancedFilter)).perform(click())
+        waitForDiff()
+
+        val dialog = ShadowAlertDialog.getLatestAlertDialog() as android.app.AlertDialog
+        assertNotNull(dialog)
+        dialog.findViewById<android.widget.RadioButton>(R.id.rbTime7d).isChecked = true
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
+        waitForDiff()
+
+        val list = waitForListSize(scenario, 1)
+        assertEquals(1, list.size)
+        assertEquals("recent", list.first().content)
+    }
+
+    @Test
+    fun typeFilterShowsOnlyMatchingType() {
+        insertItems()
+        val scenario = launchFragment()
+        waitForListSize(scenario, 3)
+
+        onView(withId(R.id.btnAdvancedFilter)).perform(click())
+        waitForDiff()
+
+        val dialog = ShadowAlertDialog.getLatestAlertDialog() as android.app.AlertDialog
+        assertNotNull(dialog)
+        dialog.findViewById<android.widget.Button>(R.id.btnPickType).performClick()
+        waitForDiff()
+
+        val typeDialog = ShadowAlertDialog.getLatestAlertDialog() as android.app.AlertDialog
+        assertNotNull(typeDialog)
+        val listView = typeDialog.listView
+        var textIndex = -1
+        for (i in 0 until listView.adapter.count) {
+            if (listView.adapter.getItem(i).toString().equals("TEXT", ignoreCase = true) ||
+                listView.adapter.getItem(i).toString() == "纯文本" ||
+                listView.adapter.getItem(i).toString() == "Text"
+            ) {
+                textIndex = i
+                break
+            }
+        }
+        assertTrue("TEXT type should be listed", textIndex >= 0)
+        listView.performItemClick(listView.getChildAt(textIndex), textIndex, listView.adapter.getItemId(textIndex))
+        waitForDiff()
+
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
+        waitForDiff()
+
+        val list = waitForListSize(scenario, 1)
+        assertEquals(1, list.size)
+        assertEquals(HistoryType.TEXT, list.first().type)
+    }
+
+    @Test
     fun searchQueryFiltersList() {
         insertItems()
         val scenario = launchFragment()

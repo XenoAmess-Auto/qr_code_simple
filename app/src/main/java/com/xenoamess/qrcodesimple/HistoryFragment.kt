@@ -44,6 +44,11 @@ class HistoryFragment : Fragment() {
     private var currentTag: String? = null
     private var loadHistoryJob: Job? = null
 
+    private var sortNewestFirst = true
+    private var timeRangeDays = 0
+    private var typeFilter: HistoryType? = null
+    private var formatFilter: String? = null
+
     enum class FilterType {
         ALL, SCANNED, GENERATED, FAVORITE
     }
@@ -70,6 +75,7 @@ class HistoryFragment : Fragment() {
             setupTagFilter()
             setupSearchView()
             setupClearButton()
+            setupSortAndFilterButtons()
         } catch (e: Exception) {
             android.util.Log.e("HistoryFragment", "DB init failed", e)
             Toast.makeText(requireContext(), "History unavailable: ${e.message}", Toast.LENGTH_LONG).show()
@@ -221,6 +227,155 @@ class HistoryFragment : Fragment() {
         })
     }
 
+    private fun setupSortAndFilterButtons() {
+        updateSortButtonText()
+        listBinding.btnSort.setOnClickListener {
+            sortNewestFirst = !sortNewestFirst
+            updateSortButtonText()
+            loadHistory()
+        }
+        listBinding.btnAdvancedFilter.setOnClickListener {
+            showAdvancedFilterDialog()
+        }
+    }
+
+    private fun updateSortButtonText() {
+        listBinding.btnSort.text = getString(
+            R.string.sort_order
+        ) + ": " + getString(if (sortNewestFirst) R.string.chip_sort_newest else R.string.chip_sort_oldest)
+    }
+
+    private fun typeLabel(type: HistoryType): String = when (type) {
+        HistoryType.QR_CODE -> getString(R.string.type_qr_code)
+        HistoryType.BARCODE -> getString(R.string.type_barcode)
+        HistoryType.TEXT -> getString(R.string.type_text)
+        else -> type.name
+    }
+
+    private fun showAdvancedFilterDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_history_filter, null)
+        val rbSortNewest = dialogView.findViewById<android.widget.RadioButton>(R.id.rbSortNewest)
+        val rbSortOldest = dialogView.findViewById<android.widget.RadioButton>(R.id.rbSortOldest)
+        val rbTimeAll = dialogView.findViewById<android.widget.RadioButton>(R.id.rbTimeAll)
+        val rbTimeToday = dialogView.findViewById<android.widget.RadioButton>(R.id.rbTimeToday)
+        val rbTime7d = dialogView.findViewById<android.widget.RadioButton>(R.id.rbTime7d)
+        val rbTime30d = dialogView.findViewById<android.widget.RadioButton>(R.id.rbTime30d)
+        val btnPickType = dialogView.findViewById<Button>(R.id.btnPickType)
+        val btnPickFormat = dialogView.findViewById<Button>(R.id.btnPickFormat)
+
+        if (sortNewestFirst) rbSortNewest.isChecked = true else rbSortOldest.isChecked = true
+        when (timeRangeDays) {
+            1 -> rbTimeToday.isChecked = true
+            7 -> rbTime7d.isChecked = true
+            30 -> rbTime30d.isChecked = true
+            else -> rbTimeAll.isChecked = true
+        }
+
+        var pendingType = typeFilter
+        var pendingFormat = formatFilter
+        fun typeButtonText() = getString(R.string.filter_type) + ": " +
+            (pendingType?.let { typeLabel(it) } ?: getString(R.string.all))
+        fun formatButtonText() = getString(R.string.filter_format) + ": " +
+            (pendingFormat ?: getString(R.string.all))
+        btnPickType.text = typeButtonText()
+        btnPickFormat.text = formatButtonText()
+
+        btnPickType.setOnClickListener {
+            showTypePickDialog { picked ->
+                pendingType = picked
+                btnPickType.text = typeButtonText()
+            }
+        }
+        btnPickFormat.setOnClickListener {
+            showFormatPickDialog { picked ->
+                pendingFormat = picked
+                btnPickFormat.text = formatButtonText()
+            }
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.advanced_filter))
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.apply)) { _, _ ->
+                sortNewestFirst = rbSortNewest.isChecked
+                timeRangeDays = when {
+                    rbTimeToday.isChecked -> 1
+                    rbTime7d.isChecked -> 7
+                    rbTime30d.isChecked -> 30
+                    else -> 0
+                }
+                typeFilter = pendingType
+                formatFilter = pendingFormat
+                updateSortButtonText()
+                loadHistory()
+            }
+            .setNeutralButton(getString(R.string.filter_reset)) { _, _ ->
+                sortNewestFirst = true
+                timeRangeDays = 0
+                typeFilter = null
+                formatFilter = null
+                updateSortButtonText()
+                loadHistory()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun showTypePickDialog(onPick: (HistoryType?) -> Unit) {
+        lifecycleScope.launch {
+            val types = repository.getAllTypes()
+            val labels = listOf(getString(R.string.all)) + types.map { typeLabel(it) }
+            AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.filter_type))
+                .setSingleChoiceItems(labels.toTypedArray(), 0) { dialog, which ->
+                    onPick(if (which == 0) null else types[which - 1])
+                    dialog.dismiss()
+                }
+                .show()
+        }
+    }
+
+    private fun showFormatPickDialog(onPick: (String?) -> Unit) {
+        lifecycleScope.launch {
+            val formats = repository.getAllBarcodeFormats()
+            val labels = listOf(getString(R.string.all)) + formats
+            AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.filter_format))
+                .setSingleChoiceItems(labels.toTypedArray(), 0) { dialog, which ->
+                    onPick(if (which == 0) null else formats[which - 1])
+                    dialog.dismiss()
+                }
+                .show()
+        }
+    }
+
+    private fun startOfToday(): Long {
+        val cal = java.util.Calendar.getInstance()
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        cal.set(java.util.Calendar.MINUTE, 0)
+        cal.set(java.util.Calendar.SECOND, 0)
+        cal.set(java.util.Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    private fun applyAdvancedFilters(items: List<HistoryItem>): List<HistoryItem> {
+        var result = items
+        typeFilter?.let { t -> result = result.filter { it.type == t } }
+        formatFilter?.let { f -> result = result.filter { it.barcodeFormat == f } }
+        if (timeRangeDays > 0) {
+            val cutoff = if (timeRangeDays == 1) {
+                startOfToday()
+            } else {
+                System.currentTimeMillis() - timeRangeDays * 24L * 60 * 60 * 1000
+            }
+            result = result.filter { it.timestamp >= cutoff }
+        }
+        if (!sortNewestFirst) {
+            result = result.sortedBy { it.timestamp }
+        }
+        return result
+    }
+
     private fun setupClearButton() {
         listBinding.btnClearAll.setOnClickListener {
             AlertDialog.Builder(requireContext())
@@ -294,8 +449,9 @@ class HistoryFragment : Fragment() {
                 }
 
                 flow.collectLatest { items ->
-                    adapter.submitList(items)
-                    updateEmptyState(items.isEmpty())
+                    val filtered = applyAdvancedFilters(items)
+                    adapter.submitList(filtered)
+                    updateEmptyState(filtered.isEmpty())
                 }
             } catch (e: Exception) {
                 android.util.Log.e("HistoryFragment", "loadHistory failed", e)

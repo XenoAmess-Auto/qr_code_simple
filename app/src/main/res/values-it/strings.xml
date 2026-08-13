@@ -208,6 +208,18 @@
     <string name="remove_from_favorites">Rimuovi dai preferiti</string>
 
     <string name="all_tags">Tutti i tag</string>
+    <string name="advanced_filter">Filtro avanzato</string>
+    <string name="sort_order">Ordinamento</string>
+    <string name="filter_time_range">Intervallo di tempo</string>
+    <string name="filter_time_all">Tutto il periodo</string>
+    <string name="filter_time_today">Oggi</string>
+    <string name="filter_time_7d">Ultimi 7 giorni</string>
+    <string name="filter_time_30d">Ultimi 30 giorni</string>
+    <string name="filter_type">Tipo</string>
+    <string name="filter_format">Formato</string>
+    <string name="filter_reset">Reimposta</string>
+    <string name="apply">Applica</string>
+    <string name="search_history_hint">Cerca nella cronologia…</string>
 
     <string name="delete">Elimina</string>
 
