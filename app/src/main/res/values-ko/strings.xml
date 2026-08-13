@@ -66,6 +66,9 @@
     <string name="please_enter_content">콘텐츠를 입력해 주세요</string>
     <string name="please_generate_qr_first">먼저 QR 코드를 생성하세요</string>
     <string name="saved_to_gallery">갤러리에 저장됨: %1$s</string>
+    <string name="save_format_title">다른 이름으로 저장</string>
+    <string name="format_svg_vector">SVG (벡터)</string>
+    <string name="svg_saved">SVG가 저장되었습니다</string>
     <string name="saved_to">저장 위치: %1$s</string>
     <string name="failed_to_save">저장 실패: %1$s</string>
     <string name="failed_to_generate">QR 코드 생성 실패: %1$s</string>

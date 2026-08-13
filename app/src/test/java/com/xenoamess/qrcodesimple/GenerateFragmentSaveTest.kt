@@ -5,11 +5,13 @@ import android.os.Environment
 import android.os.Looper
 import android.widget.Button
 import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.flow.first
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -17,6 +19,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
 import java.io.File
 
 /**
@@ -62,11 +65,37 @@ class GenerateFragmentSaveTest {
         }
         idleMain()
 
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(dialog)
+        dialog.listView.performItemClick(null, 0, 0)
+        idleMain()
+
         val pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         val pngFiles = pictures.listFiles { f -> f.name.startsWith("qrcode_") && f.name.endsWith(".png") }
         assertNotNull(pngFiles)
         assertTrue(pngFiles!!.isNotEmpty())
         assertTrue(pngFiles.maxByOrNull { it.lastModified() }!!.length() > 0)
+    }
+
+    @Test
+    fun `save as svg launches create document`() {
+        generateContent("svg-test-content")
+
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<Button>(R.id.btnSave).performClick()
+        }
+        idleMain()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(dialog)
+        dialog.listView.performItemClick(null, 1, 0)
+        idleMain()
+
+        scenario.onFragment { fragment ->
+            val intent = Shadows.shadowOf(fragment.requireActivity()).nextStartedActivity
+            assertNotNull(intent)
+            assertEquals(Intent.ACTION_CREATE_DOCUMENT, intent?.action)
+        }
     }
 
     @Test

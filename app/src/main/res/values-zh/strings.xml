@@ -40,6 +40,9 @@
     <string name="please_generate_qr_first">请先生成二维码</string>
     <string name="invalid_content_for_format">内容与所选条码格式不匹配</string>
     <string name="saved_to_gallery">已保存到相册：%1$s</string>
+    <string name="save_format_title">保存为</string>
+    <string name="format_svg_vector">SVG（矢量图）</string>
+    <string name="svg_saved">SVG 已保存</string>
     <string name="saved_to">已保存到：%1$s</string>
     <string name="failed_to_save">保存失败：%1$s</string>
     <string name="failed_to_generate">生成二维码失败：%1$s</string>

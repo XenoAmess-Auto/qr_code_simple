@@ -76,6 +76,9 @@
     <string name="invalid_content_for_format">Le contenu ne correspond pas au format de code-barres sélectionné</string>
 
     <string name="saved_to_gallery">Enregistré dans la galerie : %1$s</string>
+    <string name="save_format_title">Enregistrer sous</string>
+    <string name="format_svg_vector">SVG (vectoriel)</string>
+    <string name="svg_saved">SVG enregistré</string>
 
     <string name="saved_to">Enregistré dans : %1$s</string>
 

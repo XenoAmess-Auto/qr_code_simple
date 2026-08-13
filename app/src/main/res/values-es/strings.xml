@@ -76,6 +76,9 @@
     <string name="invalid_content_for_format">El contenido no coincide con el formato de código de barras seleccionado</string>
 
     <string name="saved_to_gallery">Guardado en la galería: %1$s</string>
+    <string name="save_format_title">Guardar como</string>
+    <string name="format_svg_vector">SVG (vectorial)</string>
+    <string name="svg_saved">SVG guardado</string>
 
     <string name="saved_to">Guardado en: %1$s</string>
 

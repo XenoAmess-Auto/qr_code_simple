@@ -31,6 +31,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
@@ -1075,7 +1076,7 @@ class GenerateFragment : Fragment() {
         }
 
         binding.btnSave.setOnClickListener {
-            safe { saveBarcode() }
+            safe { showSaveFormatDialog() }
         }
 
         binding.btnShare.setOnClickListener {
@@ -1172,6 +1173,68 @@ class GenerateFragment : Fragment() {
         } catch (e: Exception) {
             Log.e(TAG, "generateBarcode failed", e)
             Toast.makeText(ctx, getString(R.string.failed_to_generate, e.message), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showSaveFormatDialog() {
+        val ctx = context ?: return
+        val items = arrayOf("PNG", getString(R.string.format_svg_vector))
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(getString(R.string.save_format_title))
+            .setItems(items) { dialog, which ->
+                when (which) {
+                    0 -> saveBarcode()
+                    1 -> saveBarcodeAsSvg()
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private var pendingSvg: String? = null
+
+    private val saveSvgLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("image/svg+xml")
+    ) { uri ->
+        val ctx = context ?: return@registerForActivityResult
+        val svg = pendingSvg
+        pendingSvg = null
+        if (uri == null || svg == null) return@registerForActivityResult
+        try {
+            ctx.contentResolver.openOutputStream(uri)?.use { output ->
+                output.write(svg.toByteArray(Charsets.UTF_8))
+            }
+            Toast.makeText(ctx, getString(R.string.svg_saved), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun saveBarcodeAsSvg() {
+        val ctx = context ?: return
+        val content = binding.etContent.text?.toString()?.trim()
+        if (content.isNullOrEmpty()) {
+            Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val validation = BarcodeGenerator.validateContent(content, selectedFormat)
+        if (!validation.isValid) {
+            Toast.makeText(ctx, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_SHORT).show()
+            return
+        }
+        recordHistory()
+
+        try {
+            val style = buildCurrentStyleConfig()
+            val config = SvgQRCodeGenerator.SvgConfig(
+                foregroundColor = String.format("#%06X", 0xFFFFFF and style.foregroundColor),
+                backgroundColor = String.format("#%06X", 0xFFFFFF and style.backgroundColor)
+            )
+            pendingSvg = SvgQRCodeGenerator.generateSVG(content, selectedFormat, config)
+            saveSvgLauncher.launch(SvgQRCodeGenerator.generateFileName(content, selectedFormat))
+        } catch (e: Exception) {
+            pendingSvg = null
+            Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 

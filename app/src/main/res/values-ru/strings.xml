@@ -76,6 +76,9 @@
     <string name="invalid_content_for_format">Содержимое не соответствует выбранному формату штрихкода</string>
 
     <string name="saved_to_gallery">Сохранено в галерею: %1$s</string>
+    <string name="save_format_title">Сохранить как</string>
+    <string name="format_svg_vector">SVG (векторный)</string>
+    <string name="svg_saved">SVG сохранён</string>
 
     <string name="saved_to">Сохранено в: %1$s</string>
 
