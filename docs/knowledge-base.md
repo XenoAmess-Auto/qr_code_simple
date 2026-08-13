@@ -11,13 +11,13 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 | 组件 | 技术/库 | 版本 |
 |------|---------|------|
-| 语言 | Kotlin | 2.2.21 |
+| 语言 | Kotlin | 2.3.21 |
 | UI | Jetpack Compose / XML Layout | - |
 | 相机 | CameraX | 1.5.3 |
 | 数据库 | Room + SQLCipher（sqlcipher-android 新坐标） | 2.7.1 / 4.17.0 |
 | 二维码识别 | ZXing | 3.5.3 |
 | 条码识别 | ML Kit | 17.2.0 |
-| 二维码识别 | WeChatQRCode | 2.5.0 |
+| 二维码识别 | WeChatQRCode | 2.6.0 |
 | Micro QR | BoofCV | 1.4.0 |
 | 复杂格式生成 | OkapiBarcode | 0.5.6 |
 | 测试 | JUnit Platform（Jupiter + Vintage）+ Robolectric | 6.1.2 / 4.16.1 |
@@ -194,7 +194,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - **仅生成格式**：允许只生成不扫描；在 `BarcodeFormat` 上标记 `isScannable = false`，并在生成页面向用户展示提示。
 - 每种可扫描新格式必须配套 roundtrip 单元测试；仅生成格式至少保证 `BarcodeGenerator.generate()` 成功的生成测试。
 - 新增枚举值时需同步更新 `toHistoryType()` 映射。
-- 字符串资源需同时提供全部 5 种语言（`values` / `values-zh` / `values-de` / `values-ja` / `values-ko`）。`MissingTranslation` / `ExtraTranslation` 为 lint error；**5 种语言已全部 100% 对齐**（0.2.2 起）。`HardcodedText` 同为 error：布局真实文本必须走字符串资源，运行时占位文本用 `tools:text`。
+- 字符串资源需同时提供全部 10 个 locale（`values` / `values-zh` / `values-de` / `values-ja` / `values-ko` / `values-fr` / `values-es` / `values-it` / `values-pt` / `values-ru`）。`MissingTranslation` / `ExtraTranslation` 为 lint error；**10 个 locale 已全部 100% 对齐**。`HardcodedText` 同为 error：布局真实文本必须走字符串资源，运行时占位文本用 `tools:text`。fastlane 元数据仅保留 en-US / zh-CN 两份，属有意留档（商店分发见第 8 节黑名单）。
 - `SecurityManager` 等无 Context 单例的文案经 `init(context)` 持有的 `appContext` 解析；未 init（单元测试）回退英文。
 - 生成稳定性：固定输入的 SVG 输出哈希受 `GenerationGoldenTest` 金样保护；生成逻辑或依赖升级导致图案变化时会失败，属预期变更时更新金样并在提交信息说明。
 - 测试在 JUnit Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）；当前 `build.gradle` 为 Jupiter 与 Vintage 配置 `6.1.2`。

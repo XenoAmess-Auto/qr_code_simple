@@ -2,11 +2,11 @@
 
 ## Project
 
-Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin-first with XML layouts and some Jetpack Compose. Build config is in `app/build.gradle`.
+Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin-first with XML layouts (ViewBinding; no Jetpack Compose). Build config is in `app/build.gradle`.
 
 ## Toolchain
 
-- Kotlin 2.2.21, Android Gradle Plugin 9.2.1, Gradle 9.6.1
+- Kotlin 2.3.21, Android Gradle Plugin 9.3.1, Gradle 9.7.0
 - `compileSdk 35`, `minSdk 28`, `targetSdk 35`
 - **JDK 21 required** (`sourceCompatibility/targetCompatibility = VERSION_21`, `jvmTarget = '21'`).
 - README and build config both require JDK 21.
@@ -27,7 +27,8 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 
 # Lint. Runs in CI and must stay clean (0 errors / 0 warnings / 0 hints).
 # MissingTranslation/ExtraTranslation are errors: new string resources must be
-# added to all 5 locales (values, values-zh, values-de, values-ja, values-ko).
+# added to all 10 locales (values, values-zh, values-de, values-ja, values-ko,
+# values-fr, values-es, values-it, values-pt, values-ru).
 # HardcodedText is an error: real layout texts use string resources, runtime
 # placeholders use tools:text. The baseline holds one intentional entry
 # (InconsistentLayout for the sw600dp two-pane variant).
