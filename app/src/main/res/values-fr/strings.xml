@@ -154,6 +154,45 @@
 
     <string name="backup_decrypt_failed">Échec du déchiffrement : mot de passe incorrect ou fichier corrompu</string>
 
+
+    <string name="webdav_sync">Synchronisation WebDAV</string>
+
+
+    <string name="webdav_url">URL du serveur</string>
+
+
+    <string name="webdav_username">Nom d\'utilisateur</string>
+
+
+    <string name="webdav_password">Mot de passe</string>
+
+
+    <string name="webdav_upload">Envoyer au serveur</string>
+
+
+    <string name="webdav_download">Restaurer depuis le serveur</string>
+
+
+    <string name="webdav_not_configured">Saisissez d\'abord l\'URL du serveur et le mot de passe</string>
+
+
+    <string name="webdav_upload_success">Envoyé au serveur</string>
+
+
+    <string name="webdav_restore_success">Restauré depuis le serveur</string>
+
+
+    <string name="webdav_auth_failed">Échec de l\'authentification : vérifiez le nom d\'utilisateur et le mot de passe</string>
+
+
+    <string name="webdav_not_found">Aucune sauvegarde sur le serveur</string>
+
+
+    <string name="webdav_network_error">Erreur réseau, réessayez plus tard</string>
+
+
+    <string name="webdav_encrypted_hint">La sauvegarde sera chiffrée avec ce mot de passe avant l\'envoi</string>
+
     <string name="blacklist_auto_update">Mettre à jour automatiquement la liste noire de sécurité (télécharge un petit fichier en arrière-plan)</string>
 
     <string name="no_image_provided">Aucune image fournie</string>

@@ -154,6 +154,45 @@
 
     <string name="backup_decrypt_failed">Falha de decifragem: palavra-passe errada ou arquivo danificado</string>
 
+
+    <string name="webdav_sync">Sincronização WebDAV</string>
+
+
+    <string name="webdav_url">URL do servidor</string>
+
+
+    <string name="webdav_username">Utilizador</string>
+
+
+    <string name="webdav_password">Palavra-passe</string>
+
+
+    <string name="webdav_upload">Enviar para o servidor</string>
+
+
+    <string name="webdav_download">Restaurar do servidor</string>
+
+
+    <string name="webdav_not_configured">Introduza primeiro o URL do servidor e a palavra-passe</string>
+
+
+    <string name="webdav_upload_success">Enviado para o servidor</string>
+
+
+    <string name="webdav_restore_success">Restaurado do servidor</string>
+
+
+    <string name="webdav_auth_failed">Falha de autenticação: verifique o utilizador e a palavra-passe</string>
+
+
+    <string name="webdav_not_found">Ainda não há cópia de segurança no servidor</string>
+
+
+    <string name="webdav_network_error">Erro de rede, tente novamente mais tarde</string>
+
+
+    <string name="webdav_encrypted_hint">A cópia de segurança será encriptada com esta palavra-passe antes do envio</string>
+
     <string name="blacklist_auto_update">Atualizar automaticamente a lista negra de segurança (descarrega um pequeno arquivo em segundo plano)</string>
 
     <string name="no_image_provided">Nenhuma imagem fornecida</string>

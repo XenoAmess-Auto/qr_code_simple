@@ -94,6 +94,32 @@
     <string name="backup_password_required">Password required</string>
     <string name="backup_password_prompt_import">This backup is encrypted. Enter the password to import.</string>
     <string name="backup_decrypt_failed">Decryption failed: wrong password or corrupted file</string>
+
+    <string name="webdav_sync">WebDAV Sync</string>
+
+    <string name="webdav_url">Server URL</string>
+
+    <string name="webdav_username">Username</string>
+
+    <string name="webdav_password">Password</string>
+
+    <string name="webdav_upload">Upload to server</string>
+
+    <string name="webdav_download">Restore from server</string>
+
+    <string name="webdav_not_configured">Enter server URL and password first</string>
+
+    <string name="webdav_upload_success">Uploaded to server</string>
+
+    <string name="webdav_restore_success">Restored from server</string>
+
+    <string name="webdav_auth_failed">Authentication failed: check username and password</string>
+
+    <string name="webdav_not_found">No backup on server yet</string>
+
+    <string name="webdav_network_error">Network error, please try again later</string>
+
+    <string name="webdav_encrypted_hint">The backup will be encrypted with this password before upload</string>
     <string name="blacklist_auto_update">Auto-update security blacklist (downloads a small list file in the background)</string>
     <string name="no_image_provided">No image provided</string>
     <string name="no_video_provided">No video provided</string>

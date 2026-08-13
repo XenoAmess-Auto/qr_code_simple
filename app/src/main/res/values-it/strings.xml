@@ -154,6 +154,45 @@
 
     <string name="backup_decrypt_failed">Decifratura non riuscita: password errata o file danneggiato</string>
 
+
+    <string name="webdav_sync">Sincronizzazione WebDAV</string>
+
+
+    <string name="webdav_url">URL del server</string>
+
+
+    <string name="webdav_username">Nome utente</string>
+
+
+    <string name="webdav_password">Password</string>
+
+
+    <string name="webdav_upload">Carica sul server</string>
+
+
+    <string name="webdav_download">Ripristina dal server</string>
+
+
+    <string name="webdav_not_configured">Inserisci prima URL del server e password</string>
+
+
+    <string name="webdav_upload_success">Caricato sul server</string>
+
+
+    <string name="webdav_restore_success">Ripristinato dal server</string>
+
+
+    <string name="webdav_auth_failed">Autenticazione non riuscita: controlla nome utente e password</string>
+
+
+    <string name="webdav_not_found">Nessun backup sul server</string>
+
+
+    <string name="webdav_network_error">Errore di rete, riprova più tardi</string>
+
+
+    <string name="webdav_encrypted_hint">Il backup verrà crittografato con questa password prima del caricamento</string>
+
     <string name="blacklist_auto_update">Aggiorna automaticamente la lista nera di sicurezza (scarica un piccolo file in background)</string>
 
     <string name="no_image_provided">Nessuna immagine fornita</string>

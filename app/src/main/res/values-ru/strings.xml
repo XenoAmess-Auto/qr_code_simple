@@ -154,6 +154,45 @@
 
     <string name="backup_decrypt_failed">Ошибка расшифровки: неверный пароль или повреждённый файл</string>
 
+
+    <string name="webdav_sync">Синхронизация WebDAV</string>
+
+
+    <string name="webdav_url">URL сервера</string>
+
+
+    <string name="webdav_username">Имя пользователя</string>
+
+
+    <string name="webdav_password">Пароль</string>
+
+
+    <string name="webdav_upload">Загрузить на сервер</string>
+
+
+    <string name="webdav_download">Восстановить с сервера</string>
+
+
+    <string name="webdav_not_configured">Сначала введите URL сервера и пароль</string>
+
+
+    <string name="webdav_upload_success">Загружено на сервер</string>
+
+
+    <string name="webdav_restore_success">Восстановлено с сервера</string>
+
+
+    <string name="webdav_auth_failed">Ошибка аутентификации: проверьте имя пользователя и пароль</string>
+
+
+    <string name="webdav_not_found">На сервере пока нет резервной копии</string>
+
+
+    <string name="webdav_network_error">Ошибка сети, повторите позже</string>
+
+
+    <string name="webdav_encrypted_hint">Резервная копия будет зашифрована этим паролем перед загрузкой</string>
+
     <string name="blacklist_auto_update">Автообновление списка безопасности (загружает небольшой файл в фоне)</string>
 
     <string name="no_image_provided">Изображение не предоставлено</string>

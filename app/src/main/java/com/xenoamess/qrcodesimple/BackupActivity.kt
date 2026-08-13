@@ -114,6 +114,57 @@ class BackupActivity : AppCompatActivity() {
             }
             importLauncher.launch(intent)
         }
+
+        setupWebdavViews()
+    }
+
+    private fun setupWebdavViews() {
+        // 回填已保存的配置（密码不回填，留空表示沿用已存密码）
+        val savedUrl = getSharedPreferences("app_settings", Context.MODE_PRIVATE).getString("webdav_url", null)
+        val savedUsername = getSharedPreferences("app_settings", Context.MODE_PRIVATE).getString("webdav_username", null)
+        binding.etWebdavUrl.setText(savedUrl ?: "")
+        binding.etWebdavUsername.setText(savedUsername ?: "")
+
+        binding.btnWebdavUpload.setOnClickListener { runWebdav(isUpload = true) }
+        binding.btnWebdavDownload.setOnClickListener { runWebdav(isUpload = false) }
+    }
+
+    internal fun runWebdav(isUpload: Boolean) {
+        val url = binding.etWebdavUrl.text?.toString()?.trim().orEmpty()
+        val username = binding.etWebdavUsername.text?.toString()?.trim().orEmpty()
+        val passwordText = binding.etWebdavPassword.text?.toString().orEmpty()
+
+        // 密码框留空 = 沿用本机已存密码；有输入则覆盖保存
+        val password: CharArray = if (passwordText.isNotEmpty()) {
+            passwordText.toCharArray()
+        } else {
+            WebDavSyncManager.loadConfig(this)?.password ?: CharArray(0)
+        }
+
+        if (url.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, getString(R.string.webdav_not_configured), Toast.LENGTH_SHORT).show()
+            return
+        }
+        WebDavSyncManager.saveConfig(this, url, username, password)
+
+        lifecycleScope.launch {
+            val outcome = if (isUpload) {
+                WebDavSyncManager.upload(this@BackupActivity)
+            } else {
+                WebDavSyncManager.download(this@BackupActivity)
+            }
+            val messageRes = when (outcome) {
+                WebDavSyncManager.Outcome.SUCCESS ->
+                    if (isUpload) R.string.webdav_upload_success else R.string.webdav_restore_success
+                WebDavSyncManager.Outcome.NOT_CONFIGURED -> R.string.webdav_not_configured
+                WebDavSyncManager.Outcome.AUTH_FAILED -> R.string.webdav_auth_failed
+                WebDavSyncManager.Outcome.NOT_FOUND -> R.string.webdav_not_found
+                WebDavSyncManager.Outcome.TOO_LARGE,
+                WebDavSyncManager.Outcome.NETWORK_ERROR -> R.string.webdav_network_error
+                WebDavSyncManager.Outcome.DECRYPT_FAILED -> R.string.backup_decrypt_failed
+            }
+            Toast.makeText(this@BackupActivity, getString(messageRes), Toast.LENGTH_LONG).show()
+        }
     }
 
     internal fun exportData(uri: Uri) {

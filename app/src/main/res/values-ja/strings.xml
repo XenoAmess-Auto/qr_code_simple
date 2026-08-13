@@ -58,6 +58,32 @@
     <string name="backup_password_required">パスワードを入力してください</string>
     <string name="backup_password_prompt_import">このバックアップは暗号化されています。インポートするパスワードを入力してください。</string>
     <string name="backup_decrypt_failed">復号に失敗しました：パスワードが違うか、ファイルが破損しています</string>
+
+    <string name="webdav_sync">WebDAV 同期</string>
+
+    <string name="webdav_url">サーバー URL</string>
+
+    <string name="webdav_username">ユーザー名</string>
+
+    <string name="webdav_password">パスワード</string>
+
+    <string name="webdav_upload">サーバーにアップロード</string>
+
+    <string name="webdav_download">サーバーから復元</string>
+
+    <string name="webdav_not_configured">先にサーバー URL とパスワードを入力してください</string>
+
+    <string name="webdav_upload_success">サーバーにアップロードしました</string>
+
+    <string name="webdav_restore_success">サーバーから復元しました</string>
+
+    <string name="webdav_auth_failed">認証に失敗しました：ユーザー名とパスワードを確認してください</string>
+
+    <string name="webdav_not_found">サーバーにバックアップがありません</string>
+
+    <string name="webdav_network_error">ネットワークエラー。後でもう一度お試しください</string>
+
+    <string name="webdav_encrypted_hint">バックアップはこのパスワードで暗号化してアップロードされます</string>
     <string name="blacklist_auto_update">セキュリティブラックリストの自動更新（バックグラウンドで小さなリストファイルをダウンロードします）</string>
 
     <string name="cd_saved">保存済み</string>

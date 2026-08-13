@@ -94,6 +94,32 @@
     <string name="backup_password_required">Passwort erforderlich</string>
     <string name="backup_password_prompt_import">Dieses Backup ist verschlüsselt. Zum Importieren Passwort eingeben.</string>
     <string name="backup_decrypt_failed">Entschlüsselung fehlgeschlagen: falsches Passwort oder beschädigte Datei</string>
+
+    <string name="webdav_sync">WebDAV-Sync</string>
+
+    <string name="webdav_url">Server-URL</string>
+
+    <string name="webdav_username">Benutzername</string>
+
+    <string name="webdav_password">Passwort</string>
+
+    <string name="webdav_upload">Zum Server hochladen</string>
+
+    <string name="webdav_download">Vom Server wiederherstellen</string>
+
+    <string name="webdav_not_configured">Bitte zuerst Server-URL und Passwort eingeben</string>
+
+    <string name="webdav_upload_success">Zum Server hochgeladen</string>
+
+    <string name="webdav_restore_success">Vom Server wiederhergestellt</string>
+
+    <string name="webdav_auth_failed">Authentifizierung fehlgeschlagen: Benutzername und Passwort prüfen</string>
+
+    <string name="webdav_not_found">Noch kein Backup auf dem Server</string>
+
+    <string name="webdav_network_error">Netzwerkfehler, bitte später erneut versuchen</string>
+
+    <string name="webdav_encrypted_hint">Das Backup wird vor dem Hochladen mit diesem Passwort verschlüsselt</string>
     <string name="blacklist_auto_update">Sicherheits-Blacklist automatisch aktualisieren (lädt im Hintergrund eine kleine Listendatei)</string>
     <string name="no_app_found">Keine geeignete App gefunden</string>
     <string name="no_calendar_app">Keine Kalender-App gefunden</string>
