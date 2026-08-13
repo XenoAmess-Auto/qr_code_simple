@@ -320,6 +320,9 @@
     <string name="save_all">모두 저장</string>
     <string name="about">정보</string>
     <string name="share_qr">QR 공유</string>
+    <string name="share_option_barcode_image">바코드 이미지</string>
+    <string name="share_option_card">공유 카드</string>
+    <string name="share_option_text">텍스트</string>
     <string name="qr_code_image">QR 코드</string>
     <string name="processed_image">처리된 이미지</string>
     <string name="content_type_calendar">일정</string>

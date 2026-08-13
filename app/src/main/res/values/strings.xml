@@ -177,6 +177,9 @@
     <string name="license">Apache License 2.0</string>
     <string name="edit_qr_code_content">Edit QR Code Content</string>
     <string name="share_qr">Share QR</string>
+    <string name="share_option_barcode_image">Barcode image</string>
+    <string name="share_option_card">Share card</string>
+    <string name="share_option_text">Text</string>
 
     <!-- Menu -->
     <string name="copy_all">Copy All</string>

@@ -331,6 +331,9 @@
     <string name="edit_qr_code_content">Modifier le contenu du code QR</string>
 
     <string name="share_qr">Partager le QR</string>
+    <string name="share_option_barcode_image">Image du code-barres</string>
+    <string name="share_option_card">Carte de partage</string>
+    <string name="share_option_text">Texte</string>
 
 
     <!-- Menu -->

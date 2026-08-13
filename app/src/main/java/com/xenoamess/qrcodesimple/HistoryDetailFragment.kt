@@ -138,7 +138,7 @@ class HistoryDetailFragment : Fragment() {
         bitmap?.let { binding.ivBarcode.setImageBitmap(it) }
 
         // 按钮
-        binding.btnShare.setOnClickListener { shareContent(item.content) }
+        binding.btnShare.setOnClickListener { showShareOptionsDialog(item) }
         binding.btnEdit.setOnClickListener { showEditDialog(item) }
         binding.btnDelete.setOnClickListener { deleteItem(item) }
         binding.btnToggleFavorite.text = if (item.isFavorite) {
@@ -203,6 +203,48 @@ class HistoryDetailFragment : Fragment() {
             putExtra(Intent.EXTRA_TEXT, content)
         }
         startActivity(Intent.createChooser(intent, getString(R.string.share)))
+    }
+
+    private fun showShareOptionsDialog(item: HistoryItem) {
+        val items = arrayOf(
+            getString(R.string.share_option_text),
+            getString(R.string.share_option_card)
+        )
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.share))
+            .setItems(items) { dialog, which ->
+                when (which) {
+                    0 -> shareContent(item.content)
+                    1 -> shareCard(item)
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun shareCard(item: HistoryItem) {
+        val ctx = context ?: return
+        val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
+        val rawStyle = item.styleJson?.let { styleConfigFromJson(it) } ?: AdvancedBarcodeGenerator.StyleConfig()
+        val style = AdvancedBarcodeGenerator.sanitize(rawStyle, format)
+        val bitmap = AdvancedBarcodeGenerator.generateStyled(item.content, format, 600, 600, style)
+        if (bitmap == null) {
+            Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
+            return
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val uri = ShareTemplateGenerator.generateShareImage(ctx, bitmap, item.content, item.type)
+            if (uri == null) {
+                Toast.makeText(ctx, getString(R.string.failed_to_save, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, getString(R.string.share)))
+        }
     }
 
     private fun showEditDialog(item: HistoryItem) {

@@ -124,6 +124,11 @@ class HistoryDetailActivityTest {
         clickSafely(R.id.btnShare)
         flushMainLooper()
 
+        val dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog() as android.app.AlertDialog
+        assertNotNull(dialog)
+        dialog.listView.performItemClick(dialog.listView.getChildAt(0), 0, dialog.listView.adapter.getItemId(0))
+        flushMainLooper()
+
         scenario.onActivity { activity ->
             val startedIntent = Shadows.shadowOf(activity).nextStartedActivity
             assertNotNull(startedIntent)

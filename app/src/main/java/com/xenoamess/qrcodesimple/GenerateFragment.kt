@@ -1080,7 +1080,7 @@ class GenerateFragment : Fragment() {
         }
 
         binding.btnShare.setOnClickListener {
-            safe { shareBarcode() }
+            safe { showShareFormatDialog() }
         }
 
         binding.btnClear.setOnClickListener {
@@ -1279,6 +1279,55 @@ class GenerateFragment : Fragment() {
             }
         } catch (e: Exception) {
             Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showShareFormatDialog() {
+        val ctx = context ?: return
+        val items = arrayOf(
+            getString(R.string.share_option_barcode_image),
+            getString(R.string.share_option_card)
+        )
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(getString(R.string.share))
+            .setItems(items) { dialog, which ->
+                when (which) {
+                    0 -> shareBarcode()
+                    1 -> shareBarcodeCard()
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun shareBarcodeCard() {
+        val ctx = context ?: return
+        if (currentBitmap == null) {
+            generateBarcode()
+        }
+        val bitmap = currentBitmap
+        if (bitmap == null) {
+            Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
+            return
+        }
+        recordHistory()
+        val content = binding.etContent.text?.toString()?.trim()
+        if (content.isNullOrEmpty()) return
+
+        lifecycleScope.launch {
+            val uri = ShareTemplateGenerator.generateShareImage(
+                ctx, bitmap, content, selectedFormat.toHistoryType()
+            )
+            if (uri == null) {
+                Toast.makeText(ctx, getString(R.string.failed_to_save, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
         }
     }
 

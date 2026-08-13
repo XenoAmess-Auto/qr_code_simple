@@ -180,6 +180,9 @@
     <string name="license">ライセンス</string>
     <string name="edit_qr_code_content">QRコードの内容を編集</string>
     <string name="share_qr">QRを共有</string>
+    <string name="share_option_barcode_image">バーコード画像</string>
+    <string name="share_option_card">共有カード</string>
+    <string name="share_option_text">テキスト</string>
     <string name="copy_all">すべてコピー</string>
     <string name="share_all">すべて共有</string>
     <string name="qr_code_image">QRコード</string>

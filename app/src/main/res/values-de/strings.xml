@@ -269,6 +269,9 @@
     <string name="about">Über</string>
     <string name="edit_qr_code_content">QR-Code-Inhalt bearbeiten</string>
     <string name="share_qr">QR teilen</string>
+    <string name="share_option_barcode_image">Barcode-Bild</string>
+    <string name="share_option_card">Teilen-Karte</string>
+    <string name="share_option_text">Text</string>
     <string name="copy_all">Alle kopieren</string>
     <string name="share_all">Alle teilen</string>
     <string name="qr_code_image">QR-Code</string>

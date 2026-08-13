@@ -159,6 +159,9 @@
     <string name="license">Apache License 2.0</string>
     <string name="edit_qr_code_content">编辑二维码内容</string>
     <string name="share_qr">分享二维码</string>
+    <string name="share_option_barcode_image">条码图片</string>
+    <string name="share_option_card">分享卡片</string>
+    <string name="share_option_text">文本</string>
 
     <!-- Menu -->
     <string name="copy_all">复制全部</string>

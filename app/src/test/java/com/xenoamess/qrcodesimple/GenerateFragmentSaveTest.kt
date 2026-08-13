@@ -33,8 +33,18 @@ class GenerateFragmentSaveTest {
 
     @Before
     fun setup() {
+        clearFileProviderCache()
         scenario = FragmentScenario.launchInContainer(GenerateFragment::class.java, themeResId = R.style.Theme_QRCodeSimple)
         idleMain()
+    }
+
+    private fun clearFileProviderCache() {
+        try {
+            val field = Class.forName("androidx.core.content.FileProvider").getDeclaredField("sCache")
+            field.isAccessible = true
+            (field.get(null) as java.util.HashMap<*, *>).clear()
+        } catch (_: Exception) {
+        }
     }
 
     @After
@@ -106,7 +116,37 @@ class GenerateFragmentSaveTest {
             fragment.requireView().findViewById<Button>(R.id.btnShare).performClick()
         }
         idleMain()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(dialog)
+        dialog.listView.performItemClick(dialog.listView.getChildAt(0), 0, dialog.listView.adapter.getItemId(0))
+        idleMain()
         Thread.sleep(300)
+        idleMain()
+
+        scenario.onFragment { fragment ->
+            val intent = Shadows.shadowOf(fragment.requireActivity()).nextStartedActivity
+            assertNotNull(intent)
+            assertTrue(
+                intent?.action == Intent.ACTION_CHOOSER || intent?.action == Intent.ACTION_SEND
+            )
+        }
+    }
+
+    @Test
+    fun `share card option launches chooser`() {
+        generateContent("share-card-content")
+
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<Button>(R.id.btnShare).performClick()
+        }
+        idleMain()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(dialog)
+        dialog.listView.performItemClick(null, 1, 0)
+        idleMain()
+        Thread.sleep(500)
         idleMain()
 
         scenario.onFragment { fragment ->

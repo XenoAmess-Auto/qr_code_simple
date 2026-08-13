@@ -331,6 +331,9 @@
     <string name="edit_qr_code_content">Изменить содержимое QR-кода</string>
 
     <string name="share_qr">Поделиться QR</string>
+    <string name="share_option_barcode_image">Изображение штрихкода</string>
+    <string name="share_option_card">Карточка для публикации</string>
+    <string name="share_option_text">Текст</string>
 
 
     <!-- Menu -->
