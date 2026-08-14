@@ -15,6 +15,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.xenoamess.qrcodesimple.SecurePrefs
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 /**
@@ -81,61 +82,52 @@ abstract class AppDatabase : RoomDatabase() {
         /**
          * 获取数据库密码。
          *
-         * 历史上密码曾以明文存在普通 SharedPreferences 里（commit c6d8b55），
-         * 后来改成 EncryptedSharedPreferences（commit c23484b）。
-         * 老用户升级后 EncryptedSharedPreferences 无法解密旧的明文条目 → 崩溃。
-         * 这里做三级回退：加密 prefs → 明文 prefs（迁移）→ 生成新密码。
+         * 历史链：明文 SharedPreferences（c6d8b55）→ EncryptedSharedPreferences（c23484b）
+         * → Keystore AES/GCM 自管加密（SecurePrefs，security-crypto 弃用后）。
+         * 读取顺序：SecurePrefs → 旧 EncryptedSharedPreferences（命中即迁移并删除）
+         * → 明文（命中即迁移并删除）→ 生成新密码。
          */
         private fun getDatabasePassword(context: Context): String {
-            // 1. 先尝试 EncryptedSharedPreferences（新方式）
+            // 1. 新格式：SecurePrefs（Keystore AES/GCM）
+            SecurePrefs.getString(context, PREFS_NAME, KEY_DB_PASSWORD)?.let { return it }
+
+            // 2. 旧 EncryptedSharedPreferences：命中后迁移到 SecurePrefs
             var password: String? = null
             try {
                 val encPrefs = getEncryptedSharedPreferences(context)
                 password = encPrefs.getString(KEY_DB_PASSWORD, null)
+                if (password != null) {
+                    Log.i(TAG, "Migrating DB password from EncryptedSharedPreferences to SecurePrefs")
+                    SecurePrefs.putString(context, PREFS_NAME, KEY_DB_PASSWORD, password)
+                    try {
+                        encPrefs.edit().remove(KEY_DB_PASSWORD).apply()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Could not remove legacy encrypted entry", e)
+                    }
+                    return password
+                }
             } catch (e: Exception) {
                 Log.w(TAG, "EncryptedSharedPreferences unavailable, trying legacy plain prefs", e)
             }
 
-            // 2. 回退到普通 SharedPreferences（老方式），并把密码迁移到加密 prefs
-            if (password == null) {
-                try {
-                    val plainPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    password = plainPrefs.getString(KEY_DB_PASSWORD, null)
-                    if (password != null) {
-                        Log.i(TAG, "Migrating DB password from plain to encrypted prefs")
-                        try {
-                            getEncryptedSharedPreferences(context)
-                                .edit()
-                                .putString(KEY_DB_PASSWORD, password)
-                                .apply()
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Could not migrate password to encrypted prefs, keeping plain", e)
-                        }
-                        plainPrefs.edit().remove(KEY_DB_PASSWORD).apply()
-                    }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Failed to read legacy plain prefs", e)
+            // 3. 明文存量：迁移到 SecurePrefs 后删除
+            try {
+                val plainPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                password = plainPrefs.getString(KEY_DB_PASSWORD, null)
+                if (password != null) {
+                    Log.i(TAG, "Migrating DB password from plain prefs to SecurePrefs")
+                    SecurePrefs.putString(context, PREFS_NAME, KEY_DB_PASSWORD, password)
+                    plainPrefs.edit().remove(KEY_DB_PASSWORD).apply()
+                    return password
                 }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to read legacy plain prefs", e)
             }
 
-            // 3. 都没有就生成新密码
-            if (password == null) {
-                password = generateRandomPassword()
-                Log.i(TAG, "Generating new DB password")
-                try {
-                    getEncryptedSharedPreferences(context)
-                        .edit()
-                        .putString(KEY_DB_PASSWORD, password)
-                        .apply()
-                } catch (e: Exception) {
-                    Log.w(TAG, "Could not save password to encrypted prefs, using plain", e)
-                    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                        .edit()
-                        .putString(KEY_DB_PASSWORD, password)
-                        .apply()
-                }
-            }
-
+            // 4. 都没有就生成新密码
+            password = generateRandomPassword()
+            Log.i(TAG, "Generating new DB password")
+            SecurePrefs.putString(context, PREFS_NAME, KEY_DB_PASSWORD, password)
             return password
         }
 

@@ -49,13 +49,7 @@ object WebDavSyncManager {
             .putString(KEY_URL, url.trim())
             .putString(KEY_USERNAME, username.trim())
             .apply()
-        try {
-            encryptedPrefs(context).edit().putString(KEY_PASSWORD, password.concatToString()).apply()
-        } catch (e: Exception) {
-            Log.w(TAG, "encrypted prefs unavailable, password kept in plain prefs", e)
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit().putString(KEY_PASSWORD, password.concatToString()).apply()
-        }
+        SecurePrefs.putString(context, PREFS_NAME, KEY_PASSWORD, password.concatToString())
     }
 
     fun loadConfig(context: Context): Config? {
@@ -94,19 +88,31 @@ object WebDavSyncManager {
         try {
             encryptedPrefs(context).edit().remove(KEY_PASSWORD).apply()
         } catch (e: Exception) {
-            Log.w(TAG, "failed to clear encrypted password: ${e.message}")
+            Log.w(TAG, "failed to clear legacy encrypted password: ${e.message}")
         }
     }
 
     private fun readPassword(context: Context): CharArray? {
+        // 新格式：SecurePrefs（Keystore AES/GCM）
+        SecurePrefs.getString(context, PREFS_NAME, KEY_PASSWORD)?.let { return it.toCharArray() }
+
+        // 旧 EncryptedSharedPreferences（webdav_secure）：命中后迁移并删除
         try {
-            val value = encryptedPrefs(context).getString(KEY_PASSWORD, null)
-            if (value != null) return value.toCharArray()
+            val legacy = encryptedPrefs(context).getString(KEY_PASSWORD, null)
+            if (legacy != null) {
+                Log.i(TAG, "Migrating WebDAV password to SecurePrefs")
+                SecurePrefs.putString(context, PREFS_NAME, KEY_PASSWORD, legacy)
+                try {
+                    encryptedPrefs(context).edit().remove(KEY_PASSWORD).apply()
+                } catch (e: Exception) {
+                    Log.w(TAG, "failed to remove legacy encrypted password: ${e.message}")
+                }
+                return legacy.toCharArray()
+            }
         } catch (e: Exception) {
-            Log.w(TAG, "encrypted prefs unavailable, reading plain fallback", e)
+            Log.w(TAG, "legacy encrypted prefs unavailable: ${e.message}")
         }
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_PASSWORD, null)?.toCharArray()
+        return null
     }
 
     /** 上传：以 WebDAV 密码加密导出全部历史，PUT 到远端固定文件名。 */
