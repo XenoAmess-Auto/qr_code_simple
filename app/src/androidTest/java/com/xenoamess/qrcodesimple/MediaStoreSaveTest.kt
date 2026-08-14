@@ -37,6 +37,12 @@ class MediaStoreSaveTest {
 
     @Test
     fun generatedBarcodePersistsViaMediaStore() {
+        // 该测试走 Q+ MediaStore 路径（RELATIVE_PATH 自 API 29 引入）；
+        // API 28 及以下生产代码走 legacy 外部存储直写，不在本测试覆盖范围
+        org.junit.Assume.assumeTrue(
+            "MediaStore RELATIVE_PATH path requires API 29+",
+            android.os.Build.VERSION.SDK_INT >= 29
+        )
         val context = InstrumentationRegistry.getInstrumentation().targetContext
 
         // 生成真实条码位图

@@ -125,20 +125,33 @@ class ReleasePathSmokeTest {
             }
 
             // The ZIP must be queryable through the MediaStore Downloads collection.
-            assertTrue(
-                "ZIP export must persist via MediaStore",
-                waitUntil {
-                    context.contentResolver.query(
-                        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                        arrayOf(MediaStore.Downloads.DISPLAY_NAME),
-                        "${MediaStore.Downloads.DISPLAY_NAME} LIKE ?",
-                        arrayOf("batch_qr_%"),
-                        null
-                    ).use { cursor ->
-                        cursor != null && cursor.moveToFirst()
+            if (android.os.Build.VERSION.SDK_INT >= 29) {
+                assertTrue(
+                    "ZIP export must persist via MediaStore",
+                    waitUntil {
+                        context.contentResolver.query(
+                            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                            arrayOf(MediaStore.Downloads.DISPLAY_NAME),
+                            "${MediaStore.Downloads.DISPLAY_NAME} LIKE ?",
+                            arrayOf("batch_qr_%"),
+                            null
+                        ).use { cursor ->
+                            cursor != null && cursor.moveToFirst()
+                        }
                     }
-                }
-            )
+                )
+            } else {
+                // API 28：MediaStore.Downloads 不存在（29+ 才有），生产代码此时直写公共 Downloads 目录
+                assertTrue(
+                    "ZIP export must land in public Downloads dir",
+                    waitUntil {
+                        val dir = android.os.Environment.getExternalStoragePublicDirectory(
+                            android.os.Environment.DIRECTORY_DOWNLOADS
+                        )
+                        dir?.listFiles { f -> f.name.startsWith("batch_qr_") }?.isNotEmpty() == true
+                    }
+                )
+            }
         }
     }
 
