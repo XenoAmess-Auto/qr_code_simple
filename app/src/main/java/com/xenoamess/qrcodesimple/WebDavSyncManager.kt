@@ -26,6 +26,8 @@ object WebDavSyncManager {
     private const val KEY_URL = "webdav_url"
     private const val KEY_USERNAME = "webdav_username"
     private const val KEY_PASSWORD = "webdav_password"
+    private const val KEY_AUTO_UPLOAD = "webdav_auto_upload"
+    private const val KEY_LAST_SYNC = "webdav_last_sync"
 
     const val REMOTE_FILE_NAME = "qr-code-simple-backup.qrbk"
 
@@ -67,6 +69,25 @@ object WebDavSyncManager {
 
     fun hasConfig(context: Context): Boolean = loadConfig(context) != null
 
+    /** 自动上传开关（默认关）：开启后主 Activity 退到后台时节流上传。 */
+    fun isAutoUploadEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(KEY_AUTO_UPLOAD, false)
+
+    fun setAutoUploadEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_AUTO_UPLOAD, enabled).apply()
+    }
+
+    fun getLastSync(context: Context): Long =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getLong(KEY_LAST_SYNC, 0L)
+
+    private fun markSynced(context: Context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
+    }
+
     fun clearConfig(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().remove(KEY_URL).remove(KEY_USERNAME).remove(KEY_PASSWORD).apply()
@@ -99,7 +120,10 @@ object WebDavSyncManager {
             return@withContext Outcome.NETWORK_ERROR
         }
         when (WebDavClient.upload(config.remoteFileUrl(), config.username, config.password, data)) {
-            WebDavClient.Result.SUCCESS -> Outcome.SUCCESS
+            WebDavClient.Result.SUCCESS -> {
+                markSynced(context)
+                Outcome.SUCCESS
+            }
             WebDavClient.Result.AUTH_FAILED -> Outcome.AUTH_FAILED
             WebDavClient.Result.NOT_FOUND -> Outcome.NOT_FOUND
             WebDavClient.Result.TOO_LARGE -> Outcome.TOO_LARGE

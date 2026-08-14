@@ -112,6 +112,15 @@
 
     <string name="webdav_sync">WebDAV 동기화</string>
 
+
+    <string name="webdav_auto_upload">변경 시 자동 업로드</string>
+
+
+    <string name="webdav_last_sync">마지막 동기화: %1$s</string>
+
+
+    <string name="webdav_never_synced">동기화 안 함</string>
+
     <string name="webdav_url">서버 URL</string>
 
     <string name="webdav_username">사용자 이름</string>

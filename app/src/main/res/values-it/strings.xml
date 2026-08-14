@@ -158,6 +158,18 @@
     <string name="webdav_sync">Sincronizzazione WebDAV</string>
 
 
+
+    <string name="webdav_auto_upload">Caricamento automatico alle modifiche</string>
+
+
+
+    <string name="webdav_last_sync">Ultima sincronizzazione: %1$s</string>
+
+
+
+    <string name="webdav_never_synced">Mai sincronizzato</string>
+
+
     <string name="webdav_url">URL del server</string>
 
 

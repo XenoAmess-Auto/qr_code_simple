@@ -86,6 +86,15 @@
 
     <string name="webdav_sync">WebDAV 同步</string>
 
+
+    <string name="webdav_auto_upload">改动后自动上传</string>
+
+
+    <string name="webdav_last_sync">上次同步：%1$s</string>
+
+
+    <string name="webdav_never_synced">从未同步</string>
+
     <string name="webdav_url">服务器地址</string>
 
     <string name="webdav_username">用户名</string>

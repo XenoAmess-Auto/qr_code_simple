@@ -14,6 +14,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ActivityMainBinding
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -71,6 +72,26 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // 用户从系统安装权限设置页返回后，继续待处理的自动安装
         AppUpdateManager.onHostResume(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        maybeAutoUploadWebdav()
+    }
+
+    /** WebDAV 自动上传：开启开关且配置齐全时，退后台节流上传（1 小时窗口内不重复）。 */
+    private fun maybeAutoUploadWebdav() {
+        if (!WebDavSyncManager.isAutoUploadEnabled(this)) return
+        if (!WebDavSyncManager.hasConfig(this)) return
+        val lastSync = WebDavSyncManager.getLastSync(this)
+        if (System.currentTimeMillis() - lastSync < 60L * 60 * 1000) return
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                WebDavSyncManager.upload(applicationContext)
+            } catch (e: Exception) {
+                android.util.Log.w("MainActivity", "webdav auto upload failed: ${e.message}")
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

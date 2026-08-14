@@ -125,8 +125,27 @@ class BackupActivity : AppCompatActivity() {
         binding.etWebdavUrl.setText(savedUrl ?: "")
         binding.etWebdavUsername.setText(savedUsername ?: "")
 
+        binding.switchWebdavAutoUpload.isChecked = WebDavSyncManager.isAutoUploadEnabled(this)
+        binding.switchWebdavAutoUpload.setOnCheckedChangeListener { _, isChecked ->
+            WebDavSyncManager.setAutoUploadEnabled(this, isChecked)
+        }
+        refreshWebdavLastSync()
+
         binding.btnWebdavUpload.setOnClickListener { runWebdav(isUpload = true) }
         binding.btnWebdavDownload.setOnClickListener { runWebdav(isUpload = false) }
+    }
+
+    private fun refreshWebdavLastSync() {
+        val lastSync = WebDavSyncManager.getLastSync(this)
+        binding.tvWebdavLastSync.text = getString(
+            R.string.webdav_last_sync,
+            if (lastSync > 0) {
+                java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+                    .format(java.util.Date(lastSync))
+            } else {
+                getString(R.string.webdav_never_synced)
+            }
+        )
     }
 
     internal fun runWebdav(isUpload: Boolean) {
@@ -164,6 +183,9 @@ class BackupActivity : AppCompatActivity() {
                 WebDavSyncManager.Outcome.DECRYPT_FAILED -> R.string.backup_decrypt_failed
             }
             Toast.makeText(this@BackupActivity, getString(messageRes), Toast.LENGTH_LONG).show()
+            if (outcome == WebDavSyncManager.Outcome.SUCCESS) {
+                refreshWebdavLastSync()
+            }
         }
     }
 
