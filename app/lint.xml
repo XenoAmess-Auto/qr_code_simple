@@ -24,7 +24,7 @@
     <issue id="UseCompatLoadingForDrawables" severity="ignore" />
     <issue id="NotifyDataSetChanged" severity="ignore" />
     <issue id="TypographyEllipsis" severity="ignore" />
-    <issue id="LabelFor" severity="ignore" />
+    <issue id="LabelFor" severity="error" />
     <issue id="PluralsCandidate" severity="ignore" />
     <issue id="Autofill" severity="ignore" />
     <issue id="UnusedAttribute" severity="ignore" />
@@ -39,7 +39,7 @@
         图片必须提供 contentDescription 或标记 importantForAccessibility="no"。
     -->
     <issue id="ContentDescription" severity="error" />
-    <issue id="ClickableViewAccessibility" severity="ignore" />
+    <issue id="ClickableViewAccessibility" severity="error" />
 
     <!--
         布局硬编码文本：主流程已清理（占位文本改 tools:text，真实文本走字符串资源），

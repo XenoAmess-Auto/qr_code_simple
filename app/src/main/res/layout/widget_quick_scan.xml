@@ -15,7 +15,7 @@
         android:layout_height="24dp"
         android:src="@drawable/ic_camera"
         app:tint="?attr/colorOnPrimary"
-        android:contentDescription="@null" />
+        android:importantForAccessibility="no" />
 
     <TextView
         android:id="@+id/tv_label"

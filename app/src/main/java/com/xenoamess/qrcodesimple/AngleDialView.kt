@@ -85,7 +85,17 @@ class AngleDialView @JvmOverloads constructor(
                 notifyAngle()
                 return true
             }
+            MotionEvent.ACTION_UP -> {
+                performClick()
+                return true
+            }
         }
         return super.onTouchEvent(event)
+    }
+
+    // ClickableViewAccessibility：本视图只有拖拽语义，无点击语义；performClick 透传不做事
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
     }
 }

@@ -104,7 +104,7 @@
                 android:layout_height="16dp"
                 android:layout_marginEnd="4dp"
                 android:src="@drawable/ic_security"
-                android:contentDescription="@null" />
+                android:importantForAccessibility="no" />
 
             <TextView
                 android:id="@+id/tvSecurityStatus"
