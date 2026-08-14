@@ -102,6 +102,16 @@ jobs:
   android-test:
     name: Instrumented Tests (Emulator)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 现役版本：API 35 google_atd（免首屏 Google UI 干扰 Espresso）
+          - api-level: 35
+            target: google_atd
+          # minSdk 兜底：API 28 AOSP
+          - api-level: 28
+            target: default
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -137,9 +147,9 @@ jobs:
       - name: Run instrumented tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: ${{ matrix.api-level }}
           # Test image avoids first-run Google UI surfaces stealing Espresso focus.
-          target: google_atd
+          target: ${{ matrix.target }}
           arch: x86_64
           profile: pixel_6
           emulator-boot-timeout: 600
