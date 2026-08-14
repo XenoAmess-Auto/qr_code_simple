@@ -478,7 +478,7 @@ tasks.register('jacocoTestReport', JacocoReport) {
     ])
 }
 
-// 覆盖率门禁：当前值 指令 83% / 行 78.6%（-PexcludeExtendedUiTests 口径），阈值随提升逐步收紧。
+// 覆盖率门禁：当前值 指令 80.9% / 行 77.1%（-PexcludeExtendedUiTests 口径），阈值随提升逐步收紧。
 tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
     dependsOn 'jacocoTestReport'
 
@@ -510,7 +510,7 @@ tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
             }
             limit {
                 counter = 'LINE'
-                minimum = 0.75
+                minimum = 0.76
             }
         }
     }
