@@ -161,6 +161,42 @@ class CameraScanScenarioTest {
     }
 
     @Test
+    fun favoriteResultButtonTogglesFavoriteInHistory() {
+        val repository = com.xenoamess.qrcodesimple.data.HistoryRepository(
+            androidx.test.core.app.ApplicationProvider.getApplicationContext()
+        )
+        val content = "https://fav-test-${System.nanoTime()}.example"
+        show(content)
+
+        // 等待异步写入历史记录
+        var item: com.xenoamess.qrcodesimple.data.HistoryItem? = null
+        var deadline = System.currentTimeMillis() + 5000
+        while (System.currentTimeMillis() < deadline) {
+            idleMain()
+            item = kotlinx.coroutines.runBlocking { repository.findByContent(content) }
+            if (item != null) break
+            Thread.sleep(50)
+        }
+        assertNotNull(item)
+
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<ImageButton>(R.id.btnFavoriteResult).performClick()
+        }
+
+        var favorite = false
+        deadline = System.currentTimeMillis() + 5000
+        while (System.currentTimeMillis() < deadline) {
+            idleMain()
+            favorite = kotlinx.coroutines.runBlocking {
+                repository.findByContent(content)?.isFavorite == true
+            }
+            if (favorite) break
+            Thread.sleep(50)
+        }
+        assertTrue(favorite)
+    }
+
+    @Test
     fun multiResultShowsCounterAndCycles() {
         scenario.onFragment { fragment ->
             val method = CameraScanFragment::class.java.getDeclaredMethod("handleNewResults", List::class.java)

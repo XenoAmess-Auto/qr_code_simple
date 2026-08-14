@@ -231,6 +231,9 @@ class CameraScanFragment : Fragment() {
                 displayResult(currentResults[currentResultIndex])
             }
         }
+
+        binding.btnFavoriteResult.setOnClickListener { toggleResultFavorite() }
+        binding.btnNoteResult.setOnClickListener { showResultNoteDialog() }
     }
 
     private val pickImageLauncher = registerForActivityResult(
@@ -472,6 +475,80 @@ class CameraScanFragment : Fragment() {
         binding.tvResult.text = result.text
         updateSmartActionButton(result.text)
         updateNextResultButton()
+        refreshResultFavoriteState(result.text)
+    }
+
+    /** 收藏状态随结果刷新：写入历史是异步的，查不到时稍候重试一次。 */
+    private fun refreshResultFavoriteState(content: String) {
+        binding.btnFavoriteResult.setImageResource(R.drawable.ic_star_border)
+        lifecycleScope.launch {
+            val item = findHistoryItemWithRetry(content)
+            if (_binding != null && binding.tvResult.text.toString() == content) {
+                updateFavoriteIcon(item?.isFavorite == true)
+            }
+        }
+    }
+
+    private suspend fun findHistoryItemWithRetry(content: String): com.xenoamess.qrcodesimple.data.HistoryItem? {
+        var item = historyRepository.findByContent(content)
+        if (item == null) {
+            kotlinx.coroutines.delay(400)
+            item = historyRepository.findByContent(content)
+        }
+        return item
+    }
+
+    private fun updateFavoriteIcon(isFavorite: Boolean) {
+        binding.btnFavoriteResult.setImageResource(
+            if (isFavorite) R.drawable.ic_star else R.drawable.ic_star_border
+        )
+    }
+
+    private fun toggleResultFavorite() {
+        val content = binding.tvResult.text?.toString() ?: return
+        if (content.isBlank() || content == getString(R.string.scanning)) return
+        lifecycleScope.launch {
+            val item = findHistoryItemWithRetry(content)
+            if (item == null) {
+                Toast.makeText(requireContext(), getString(R.string.no_history), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            historyRepository.toggleFavorite(item)
+            updateFavoriteIcon(!item.isFavorite)
+            Toast.makeText(
+                requireContext(),
+                getString(if (!item.isFavorite) R.string.added_to_favorites else R.string.removed_from_favorites),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun showResultNoteDialog() {
+        val content = binding.tvResult.text?.toString() ?: return
+        if (content.isBlank() || content == getString(R.string.scanning)) return
+        val ctx = context ?: return
+        lifecycleScope.launch {
+            val item = findHistoryItemWithRetry(content)
+            if (item == null) {
+                Toast.makeText(ctx, getString(R.string.no_history), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val editText = android.widget.EditText(ctx).apply {
+                setText(item.notes ?: "")
+                setSelection(item.notes?.length ?: 0)
+                hint = getString(R.string.add_notes)
+            }
+            android.app.AlertDialog.Builder(ctx)
+                .setTitle(getString(R.string.add_notes))
+                .setView(editText)
+                .setPositiveButton(getString(R.string.save_action)) { _, _ ->
+                    lifecycleScope.launch {
+                        historyRepository.addNotes(item.id, editText.text.toString())
+                    }
+                }
+                .setNegativeButton(getString(R.string.cancel), null)
+                .show()
+        }
     }
 
     private var lastAutoActionContent: String? = null

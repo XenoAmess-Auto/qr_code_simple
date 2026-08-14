@@ -27,6 +27,8 @@ class HistoryRepository(private val context: Context) {
 
     suspend fun scannedTimestampsSince(since: Long): List<Long> = historyDao.scannedTimestampsSince(since)
 
+    suspend fun findByContent(content: String): HistoryItem? = historyDao.findByContent(content)
+
     suspend fun insert(item: HistoryItem): Long {
         // 隐私模式下不保存
         if (isPrivacyMode()) return -1
