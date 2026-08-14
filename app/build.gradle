@@ -324,7 +324,7 @@ dependencies {
     implementation libs.okapibarcode
 
     // uCrop - image cropping for barcode styles
-    implementation libs.ucrop
+    implementation libs.imagecropper
 
     // Testing
     testImplementation libs.junit

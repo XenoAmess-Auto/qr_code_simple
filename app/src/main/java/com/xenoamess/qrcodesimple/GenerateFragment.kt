@@ -38,9 +38,10 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentGenerateBinding
-import com.yalantis.ucrop.UCrop
-import com.yalantis.ucrop.UCropActivity
-import com.yalantis.ucrop.model.AspectRatio
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -126,13 +127,13 @@ class GenerateFragment : Fragment() {
     }
 
     private val cropLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        CropImageContract()
     ) { result ->
         val type = pendingImageType
         pendingImageType = null
         if (type == null) return@registerForActivityResult
-        val resultUri = UCrop.getOutput(result.data ?: return@registerForActivityResult)
-        if (result.resultCode != android.app.Activity.RESULT_OK || resultUri == null) return@registerForActivityResult
+        val resultUri = result.uriContent
+        if (!result.isSuccessful || resultUri == null) return@registerForActivityResult
         loadImage(resultUri, MAX_STYLE_IMAGE_PX) { bitmap ->
             when (type) {
                 ImageType.FOREGROUND -> {
@@ -165,40 +166,17 @@ class GenerateFragment : Fragment() {
 
     private fun launchCrop(sourceUri: Uri, destinationUri: Uri) {
         try {
-            val free = AspectRatio(getString(R.string.crop_ratio_free), 0f, 0f)
-            val square = AspectRatio(getString(R.string.crop_ratio_square), 1f, 1f)
-            val ratio4_3 = AspectRatio(getString(R.string.crop_ratio_4_3), 4f, 3f)
-            val ratio3_4 = AspectRatio(getString(R.string.crop_ratio_3_4), 3f, 4f)
-            val ratio16_9 = AspectRatio(getString(R.string.crop_ratio_16_9), 16f, 9f)
-            val ratio9_16 = AspectRatio(getString(R.string.crop_ratio_9_16), 9f, 16f)
-
-            val options = UCrop.Options().apply {
-                setFreeStyleCropEnabled(true)
-                setAspectRatioOptions(
-                    0,
-                    square,
-                    free,
-                    ratio4_3,
-                    ratio3_4,
-                    ratio16_9,
-                    ratio9_16
+            val options = CropImageContractOptions(
+                uri = sourceUri,
+                cropImageOptions = CropImageOptions(
+                    customOutputUri = destinationUri,
+                    guidelines = CropImageView.Guidelines.ON,
+                    fixAspectRatio = false,
+                    activityTitle = getString(R.string.crop_image),
+                    outputCompressQuality = 100
                 )
-                setAllowedGestures(
-                    UCropActivity.ALL,
-                    UCropActivity.ALL,
-                    UCropActivity.ALL
-                )
-                setShowCropFrame(true)
-                setShowCropGrid(true)
-                setCompressionQuality(100)
-                setHideBottomControls(false)
-                setToolbarTitle(getString(R.string.crop_image))
-            }
-            val intent = UCrop.of(sourceUri, destinationUri)
-                .withOptions(options)
-                .getIntent(requireContext())
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            cropLauncher.launch(intent)
+            )
+            cropLauncher.launch(options)
         } catch (e: Exception) {
             Log.e(TAG, "launchCrop failed", e)
             pendingImageType = null
