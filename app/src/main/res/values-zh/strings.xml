@@ -355,6 +355,73 @@
     <string name="filter_format">格式</string>
     <string name="filter_reset">重置</string>
     <string name="apply">应用</string>
+
+    <string name="content_wizard">结构化内容</string>
+
+
+    <string name="wizard_wifi">WiFi</string>
+
+
+    <string name="wizard_sms">SMS</string>
+
+    <string name="wizard_contact">联系人</string>
+
+    <string name="wizard_calendar">日历事件</string>
+
+    <string name="wizard_email">邮件</string>
+
+    <string name="wizard_phone">电话</string>
+
+    <string name="wizard_geo">地理位置</string>
+
+    <string name="wizard_url">网址</string>
+
+    <string name="field_ssid">网络名称（SSID）</string>
+
+    <string name="field_encryption">加密方式</string>
+
+    <string name="field_name">姓名</string>
+
+    <string name="field_organization">公司/组织</string>
+
+    <string name="field_address">地址</string>
+
+    <string name="field_title">标题</string>
+
+    <string name="field_subject">主题</string>
+
+    <string name="field_body">正文</string>
+
+    <string name="field_message">内容</string>
+
+    <string name="field_number">号码</string>
+
+
+    <string name="field_phone">电话</string>
+
+
+    <string name="field_email">邮箱</string>
+
+
+    <string name="field_url">网址</string>
+
+    <string name="field_latitude">纬度</string>
+
+    <string name="field_longitude">经度</string>
+
+    <string name="field_query">搜索词</string>
+
+
+    <string name="field_location">地点</string>
+
+
+    <string name="field_description">描述</string>
+
+    <string name="field_start_time">开始时间</string>
+
+    <string name="field_end_time">结束时间</string>
+
+    <string name="field_all_day">全天</string>
     <string name="search_history_hint">搜索历史…</string>
     <string name="type_data_matrix">Data Matrix</string>
     <string name="type_aztec">Aztec</string>

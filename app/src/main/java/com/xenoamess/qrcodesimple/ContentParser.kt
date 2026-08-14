@@ -351,6 +351,9 @@ object ContentParser {
                 val minute = clean.substring(10, 12).toInt()
                 val calendar = java.util.Calendar.getInstance()
                 calendar.set(year, month, day, hour, minute)
+                // DTSTART 只精确到分钟：秒/毫秒清零，保证解析结果确定性
+                calendar.set(java.util.Calendar.SECOND, 0)
+                calendar.set(java.util.Calendar.MILLISECOND, 0)
                 calendar.timeInMillis
             } else {
                 0

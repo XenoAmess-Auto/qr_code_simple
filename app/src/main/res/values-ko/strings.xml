@@ -364,6 +364,73 @@
     <string name="filter_format">형식</string>
     <string name="filter_reset">초기화</string>
     <string name="apply">적용</string>
+
+    <string name="content_wizard">구조화된 콘텐츠</string>
+
+
+    <string name="wizard_wifi">WiFi</string>
+
+
+    <string name="wizard_sms">SMS</string>
+
+    <string name="wizard_contact">연락처</string>
+
+    <string name="wizard_calendar">캘린더 일정</string>
+
+    <string name="wizard_email">이메일</string>
+
+    <string name="wizard_phone">전화</string>
+
+    <string name="wizard_geo">위치</string>
+
+    <string name="wizard_url">URL</string>
+
+    <string name="field_ssid">네트워크 이름(SSID)</string>
+
+    <string name="field_encryption">암호화 방식</string>
+
+    <string name="field_name">이름</string>
+
+    <string name="field_organization">조직</string>
+
+    <string name="field_address">주소</string>
+
+    <string name="field_title">제목</string>
+
+    <string name="field_subject">주제</string>
+
+    <string name="field_body">본문</string>
+
+    <string name="field_message">메시지</string>
+
+    <string name="field_number">번호</string>
+
+
+    <string name="field_phone">전화번호</string>
+
+
+    <string name="field_email">이메일</string>
+
+
+    <string name="field_url">URL</string>
+
+    <string name="field_latitude">위도</string>
+
+    <string name="field_longitude">경도</string>
+
+    <string name="field_query">검색어</string>
+
+
+    <string name="field_location">장소</string>
+
+
+    <string name="field_description">설명</string>
+
+    <string name="field_start_time">시작</string>
+
+    <string name="field_end_time">종료</string>
+
+    <string name="field_all_day">종일</string>
     <string name="search_history_hint">기록 검색…</string>
     <string name="edit_content">내용 편집</string>
     <string name="updated">업데이트됨</string>

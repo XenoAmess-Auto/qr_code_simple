@@ -160,6 +160,46 @@ class GenerateFragmentSaveTest {
     }
 
     @Test
+    fun `content wizard wifi fills structured payload`() {
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<Button>(R.id.btnContentWizard).performClick()
+        }
+        idleMain()
+
+        val typeDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(typeDialog)
+        typeDialog.listView.performItemClick(typeDialog.listView.getChildAt(0), 0, 0)
+        idleMain()
+
+        val formDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotNull(formDialog)
+        val edits = mutableListOf<android.widget.EditText>()
+        collectEditTexts(formDialog.window?.decorView as? android.view.ViewGroup ?: return, edits)
+        assertTrue(edits.size >= 2)
+        edits[0].setText("TestNet")
+        edits[1].setText("pass123")
+        formDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        idleMain()
+
+        scenario.onFragment { fragment ->
+            val content = fragment.requireView()
+                .findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etContent)
+                .text?.toString() ?: ""
+            assertTrue(content.startsWith("WIFI:"))
+            assertTrue(content.contains("S:TestNet;"))
+            assertTrue(content.contains("P:pass123;"))
+        }
+    }
+
+    private fun collectEditTexts(root: android.view.ViewGroup, out: MutableList<android.widget.EditText>) {
+        for (i in 0 until root.childCount) {
+            val child = root.getChildAt(i)
+            if (child is android.widget.EditText) out.add(child)
+            if (child is android.view.ViewGroup) collectEditTexts(child, out)
+        }
+    }
+
+    @Test
     fun `batch generate button launches BatchGenerateActivity`() {
         scenario.onFragment { fragment ->
             fragment.requireView().findViewById<Button>(R.id.btnBatchGenerate).performClick()

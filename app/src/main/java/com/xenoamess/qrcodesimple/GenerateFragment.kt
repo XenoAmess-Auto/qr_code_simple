@@ -1094,6 +1094,239 @@ class GenerateFragment : Fragment() {
         binding.btnBatchGenerate.setOnClickListener {
             startActivity(Intent(requireContext(), BatchGenerateActivity::class.java))
         }
+
+        binding.btnContentWizard.setOnClickListener {
+            showContentWizard()
+        }
+    }
+
+    // ==================== 结构化内容向导 ====================
+
+    internal enum class WizardType { WIFI, CONTACT, CALENDAR, EMAIL, SMS, PHONE, GEO, URL }
+
+    private fun showContentWizard() {
+        val ctx = context ?: return
+        val labels = arrayOf(
+            getString(R.string.wizard_wifi),
+            getString(R.string.wizard_contact),
+            getString(R.string.wizard_calendar),
+            getString(R.string.wizard_email),
+            getString(R.string.wizard_sms),
+            getString(R.string.wizard_phone),
+            getString(R.string.wizard_geo),
+            getString(R.string.wizard_url)
+        )
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(getString(R.string.content_wizard))
+            .setItems(labels) { dialog, which ->
+                showWizardForm(WizardType.entries[which])
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    internal data class WizardField(
+        val key: String,
+        val labelRes: Int,
+        val inputType: Int = android.text.InputType.TYPE_CLASS_TEXT,
+        val defaultValue: String = ""
+    )
+
+    private fun wizardTextForm(
+        titleRes: Int,
+        fields: List<WizardField>,
+        build: (Map<String, String>) -> String
+    ) {
+        val ctx = context ?: return
+        val density = resources.displayMetrics.density
+        val container = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            val p = (20 * density).toInt()
+            setPadding(p, p / 2, p, 0)
+        }
+        val inputs = mutableMapOf<String, android.widget.EditText>()
+        for (field in fields) {
+            val edit = android.widget.EditText(ctx).apply {
+                hint = getString(field.labelRes)
+                inputType = field.inputType
+                if (field.defaultValue.isNotEmpty()) setText(field.defaultValue)
+            }
+            inputs[field.key] = edit
+            container.addView(edit)
+        }
+        val scroll = android.widget.ScrollView(ctx).apply { addView(container) }
+
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(getString(titleRes))
+            .setView(scroll)
+            .setPositiveButton(getString(R.string.apply)) { _, _ ->
+                val values = inputs.mapValues { it.value.text?.toString()?.trim() ?: "" }
+                binding.etContent.setText(build(values))
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun showWizardForm(type: WizardType) {
+        when (type) {
+            WizardType.WIFI -> wizardTextForm(
+                R.string.wizard_wifi,
+                listOf(
+                    WizardField("ssid", R.string.field_ssid),
+                    WizardField("password", R.string.webdav_password),
+                    WizardField("encryption", R.string.field_encryption, defaultValue = "WPA")
+                )
+            ) { v -> ContentBuilder.wifi(v["ssid"] ?: "", v["password"] ?: "", v["encryption"] ?: "WPA") }
+
+            WizardType.CONTACT -> wizardTextForm(
+                R.string.wizard_contact,
+                listOf(
+                    WizardField("name", R.string.field_name),
+                    WizardField("phone", R.string.field_phone, android.text.InputType.TYPE_CLASS_PHONE),
+                    WizardField("email", R.string.field_email, android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS),
+                    WizardField("organization", R.string.field_organization),
+                    WizardField("address", R.string.field_address)
+                )
+            ) { v ->
+                ContentBuilder.contactVCard(
+                    v["name"] ?: "", v["phone"] ?: "", v["email"] ?: "",
+                    v["organization"] ?: "", v["address"] ?: ""
+                )
+            }
+
+            WizardType.EMAIL -> wizardTextForm(
+                R.string.wizard_email,
+                listOf(
+                    WizardField("address", R.string.field_email, android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS),
+                    WizardField("subject", R.string.field_subject),
+                    WizardField("body", R.string.field_body)
+                )
+            ) { v -> ContentBuilder.email(v["address"] ?: "", v["subject"] ?: "", v["body"] ?: "") }
+
+            WizardType.SMS -> wizardTextForm(
+                R.string.wizard_sms,
+                listOf(
+                    WizardField("number", R.string.field_number, android.text.InputType.TYPE_CLASS_PHONE),
+                    WizardField("message", R.string.field_message)
+                )
+            ) { v -> ContentBuilder.sms(v["number"] ?: "", v["message"] ?: "") }
+
+            WizardType.PHONE -> wizardTextForm(
+                R.string.wizard_phone,
+                listOf(WizardField("number", R.string.field_number, android.text.InputType.TYPE_CLASS_PHONE))
+            ) { v -> ContentBuilder.phone(v["number"] ?: "") }
+
+            WizardType.GEO -> wizardTextForm(
+                R.string.wizard_geo,
+                listOf(
+                    WizardField("latitude", R.string.field_latitude, android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL or android.text.InputType.TYPE_NUMBER_FLAG_SIGNED),
+                    WizardField("longitude", R.string.field_longitude, android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL or android.text.InputType.TYPE_NUMBER_FLAG_SIGNED),
+                    WizardField("query", R.string.field_query)
+                )
+            ) { v ->
+                ContentBuilder.geo(
+                    v["latitude"]?.toDoubleOrNull() ?: 0.0,
+                    v["longitude"]?.toDoubleOrNull() ?: 0.0,
+                    v["query"] ?: ""
+                )
+            }
+
+            WizardType.URL -> wizardTextForm(
+                R.string.wizard_url,
+                listOf(WizardField("url", R.string.field_url, android.text.InputType.TYPE_TEXT_VARIATION_URI))
+            ) { v -> ContentBuilder.url(v["url"] ?: "") }
+
+            WizardType.CALENDAR -> showCalendarWizardForm()
+        }
+    }
+
+    private var wizardStartMillis = 0L
+    private var wizardEndMillis = 0L
+
+    private fun showCalendarWizardForm() {
+        val ctx = context ?: return
+        val density = resources.displayMetrics.density
+        val container = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            val p = (20 * density).toInt()
+            setPadding(p, p / 2, p, 0)
+        }
+
+        val etTitle = android.widget.EditText(ctx).apply { hint = getString(R.string.field_title) }
+        val etLocation = android.widget.EditText(ctx).apply { hint = getString(R.string.field_location) }
+        val etDescription = android.widget.EditText(ctx).apply { hint = getString(R.string.field_description) }
+
+        val now = java.util.Calendar.getInstance()
+        wizardStartMillis = now.timeInMillis
+        wizardEndMillis = now.timeInMillis + 60L * 60 * 1000
+
+        val timeFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+        val btnStart = android.widget.Button(ctx)
+        val btnEnd = android.widget.Button(ctx)
+        fun refreshTimeButtons() {
+            btnStart.text = getString(R.string.field_start_time) + ": " + timeFormat.format(java.util.Date(wizardStartMillis))
+            btnEnd.text = getString(R.string.field_end_time) + ": " + timeFormat.format(java.util.Date(wizardEndMillis))
+        }
+        refreshTimeButtons()
+        btnStart.setOnClickListener { pickDateTime(true) { refreshTimeButtons() } }
+        btnEnd.setOnClickListener { pickDateTime(false) { refreshTimeButtons() } }
+
+        val checkAllDay = android.widget.CheckBox(ctx).apply { text = getString(R.string.field_all_day) }
+
+        container.addView(etTitle)
+        container.addView(etLocation)
+        container.addView(etDescription)
+        container.addView(btnStart)
+        container.addView(btnEnd)
+        container.addView(checkAllDay)
+        val scroll = android.widget.ScrollView(ctx).apply { addView(container) }
+
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(getString(R.string.wizard_calendar))
+            .setView(scroll)
+            .setPositiveButton(getString(R.string.apply)) { _, _ ->
+                binding.etContent.setText(
+                    ContentBuilder.calendarEvent(
+                        etTitle.text?.toString()?.trim() ?: "",
+                        etLocation.text?.toString()?.trim() ?: "",
+                        etDescription.text?.toString()?.trim() ?: "",
+                        wizardStartMillis,
+                        wizardEndMillis.coerceAtLeast(wizardStartMillis),
+                        checkAllDay.isChecked
+                    )
+                )
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun pickDateTime(isStart: Boolean, onPicked: () -> Unit) {
+        val ctx = context ?: return
+        val cal = java.util.Calendar.getInstance()
+        cal.timeInMillis = if (isStart) wizardStartMillis else wizardEndMillis
+        android.app.DatePickerDialog(
+            ctx,
+            { _, year, month, day ->
+                cal.set(year, month, day)
+                android.app.TimePickerDialog(
+                    ctx,
+                    { _, hour, minute ->
+                        cal.set(java.util.Calendar.HOUR_OF_DAY, hour)
+                        cal.set(java.util.Calendar.MINUTE, minute)
+                        cal.set(java.util.Calendar.SECOND, 0)
+                        cal.set(java.util.Calendar.MILLISECOND, 0)
+                        if (isStart) wizardStartMillis = cal.timeInMillis else wizardEndMillis = cal.timeInMillis
+                        onPicked()
+                    },
+                    cal.get(java.util.Calendar.HOUR_OF_DAY),
+                    cal.get(java.util.Calendar.MINUTE),
+                    true
+                ).show()
+            },
+            cal.get(java.util.Calendar.YEAR),
+            cal.get(java.util.Calendar.MONTH),
+            cal.get(java.util.Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
     private fun buildCurrentStyleConfig(): AdvancedBarcodeGenerator.StyleConfig {

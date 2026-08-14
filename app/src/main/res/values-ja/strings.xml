@@ -186,6 +186,73 @@
     <string name="filter_format">形式</string>
     <string name="filter_reset">リセット</string>
     <string name="apply">適用</string>
+
+    <string name="content_wizard">構造化コンテンツ</string>
+
+
+    <string name="wizard_wifi">WiFi</string>
+
+
+    <string name="wizard_sms">SMS</string>
+
+    <string name="wizard_contact">連絡先</string>
+
+    <string name="wizard_calendar">カレンダーイベント</string>
+
+    <string name="wizard_email">メール</string>
+
+    <string name="wizard_phone">電話</string>
+
+    <string name="wizard_geo">位置情報</string>
+
+    <string name="wizard_url">URL</string>
+
+    <string name="field_ssid">ネットワーク名（SSID）</string>
+
+    <string name="field_encryption">暗号化方式</string>
+
+    <string name="field_name">名前</string>
+
+    <string name="field_organization">組織</string>
+
+    <string name="field_address">住所</string>
+
+    <string name="field_title">タイトル</string>
+
+    <string name="field_subject">件名</string>
+
+    <string name="field_body">本文</string>
+
+    <string name="field_message">メッセージ</string>
+
+    <string name="field_number">番号</string>
+
+
+    <string name="field_phone">電話番号</string>
+
+
+    <string name="field_email">メールアドレス</string>
+
+
+    <string name="field_url">URL</string>
+
+    <string name="field_latitude">緯度</string>
+
+    <string name="field_longitude">経度</string>
+
+    <string name="field_query">検索語</string>
+
+
+    <string name="field_location">場所</string>
+
+
+    <string name="field_description">説明</string>
+
+    <string name="field_start_time">開始</string>
+
+    <string name="field_end_time">終了</string>
+
+    <string name="field_all_day">終日</string>
     <string name="search_history_hint">履歴を検索…</string>
     <string name="edit">編集</string>
     <string name="edit_content">内容を編集</string>

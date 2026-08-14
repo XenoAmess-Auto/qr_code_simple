@@ -275,6 +275,73 @@
     <string name="filter_format">Formato</string>
     <string name="filter_reset">Repor</string>
     <string name="apply">Aplicar</string>
+
+    <string name="content_wizard">Conteúdo estruturado</string>
+
+
+    <string name="wizard_wifi">WiFi</string>
+
+
+    <string name="wizard_sms">SMS</string>
+
+    <string name="wizard_contact">Contato</string>
+
+    <string name="wizard_calendar">Evento de calendário</string>
+
+    <string name="wizard_email">E-mail</string>
+
+    <string name="wizard_phone">Telefone</string>
+
+    <string name="wizard_geo">Localização</string>
+
+    <string name="wizard_url">URL</string>
+
+    <string name="field_ssid">Nome da rede (SSID)</string>
+
+    <string name="field_encryption">Cifragem</string>
+
+    <string name="field_name">Nome</string>
+
+    <string name="field_organization">Organização</string>
+
+    <string name="field_address">Endereço</string>
+
+    <string name="field_title">Título</string>
+
+    <string name="field_subject">Assunto</string>
+
+    <string name="field_body">Corpo</string>
+
+    <string name="field_message">Mensagem</string>
+
+    <string name="field_number">Número</string>
+
+
+    <string name="field_phone">Telefone</string>
+
+
+    <string name="field_email">E-mail</string>
+
+
+    <string name="field_url">URL</string>
+
+    <string name="field_latitude">Latitude</string>
+
+    <string name="field_longitude">Longitude</string>
+
+    <string name="field_query">Consulta</string>
+
+
+    <string name="field_location">Local</string>
+
+
+    <string name="field_description">Descrição</string>
+
+    <string name="field_start_time">Início</string>
+
+    <string name="field_end_time">Fim</string>
+
+    <string name="field_all_day">Dia inteiro</string>
     <string name="search_history_hint">Pesquisar no histórico…</string>
 
     <string name="delete">Eliminar</string>
