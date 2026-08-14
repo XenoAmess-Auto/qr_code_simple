@@ -11,6 +11,7 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
