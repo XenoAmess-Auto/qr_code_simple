@@ -14,6 +14,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 - ✅ **50+ Barcode Formats** - Scan and generate QR Code, Data Matrix (including Chinese/UTF-8), Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, UPC/EAN Extension, and many more OkapiBarcode-only generate-only formats (Code 2 of 5 variants, postal codes, Codablock F, Grid Matrix, Code One, etc.).
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
+- ✅ **Structured Content Wizard** - Form-based generation for WiFi / contact / calendar event / email / SMS / phone / geo / URL codes.
 - ✅ **Batch Generation** - Import CSV or Excel data and generate barcodes in bulk, with preset styles and center logo, ZIP export.
 - ✅ **Style Customization** - Foreground/background colors, multi-stop gradients, center logo (square / rounded-rect / circle with adjustable corner radius), module shapes, position patterns, corner radius, and error correction levels.
 - ✅ **QR Code Repair** - Automatic restoration retry for blurry or low-contrast codes (grayscale / contrast / binarization variants).
@@ -27,7 +28,8 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Favorites / Pinning** - Mark important items.
 - ✅ **Tag System** - Custom tag management.
 - ✅ **Import / Export** - JSON / CSV / Excel backup, plus optional password-encrypted backups (AES-256-GCM + PBKDF2); entry via About → Privacy Settings.
-- ✅ **WebDAV Cloud Sync** - Manually upload/restore the encrypted backup to a self-hosted WebDAV server (backup encrypted with the sync password, stored encrypted on device).
+- ✅ **WebDAV Cloud Sync** - Upload/restore the encrypted backup to a self-hosted WebDAV server (backup encrypted with the sync password, password stored via Android Keystore), manual or throttled auto-upload.
+- ✅ **Quick Result Actions** - Favorite or annotate a scan result right from the camera result card.
 - ✅ **Retention Policy** - Auto-delete history older than 30 / 90 / 365 days (favorites are kept).
 
 ### Scanning Experience

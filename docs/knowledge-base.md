@@ -169,6 +169,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `WebDavClient.kt` / `WebDavSyncManager.kt` | WebDAV 云同步：加密备份手动上传/恢复，密码经 EncryptedSharedPreferences 落盘 |
 | `NetworkUtils.kt` | 元数据 GET 的指数退避重试（默认 3 次）；大文件下载不走此路径 |
 | `UpdateMirrors.kt` | GitHub 下载加速：可代理主机 URL 展开为公共镜像候选列表轮询；完整性由 SHA-256/签名校验兜底 |
+| `ContentBuilder.kt` | 结构化内容生成器（WiFi/vCard/VEVENT/mailto/sms/tel/geo），与 ContentParser 严格互逆，roundtrip 测试保护 |
+| `SecurePrefs.kt` | Keystore AES/GCM 自管加密键值存储（替代弃用的 EncryptedSharedPreferences；读旧格式透明迁移） |
 | `DailyBuckets.kt` / `SimpleBarChartView.kt` | 历史页近 14 天扫码统计柱状图（自绘，无图表依赖） |
 | `BatchStyleHolder.kt` | 批量生成样式（预设 + Logo）的进程内交接，BatchResultActivity 读取即清除 |
 | `scanner/MlKitEngine.kt`（`src/playstore` / `src/fdroid`） | ML Kit 引擎隔离：默认构建用真实实现，`-Pfdroid` 用 stub 返回空结果 |
