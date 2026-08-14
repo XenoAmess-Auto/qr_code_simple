@@ -26,6 +26,19 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class ReleasePathSmokeTest {
 
+    // API ≤28 写 MediaStore 需要 WRITE_EXTERNAL_STORAGE 运行时授权；33+ 由系统豁免
+    @get:Rule
+    val storagePermissionRule: androidx.test.rule.GrantPermissionRule =
+        androidx.test.rule.GrantPermissionRule.grant(
+            *buildList {
+                // WRITE_EXTERNAL_STORAGE 仅 API ≤32 存在（manifest maxSdk 限定），33+ 无需授权
+                if (android.os.Build.VERSION.SDK_INT <= 32) {
+                    add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+            }.toTypedArray()
+        )
+
+
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Test
