@@ -29,9 +29,16 @@ class CameraScanCloseButtonDeviceTest {
 
     @get:Rule
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
-        android.Manifest.permission.CAMERA,
-        android.Manifest.permission.READ_MEDIA_IMAGES,
-        android.Manifest.permission.READ_MEDIA_VIDEO
+        *buildList {
+            add(android.Manifest.permission.CAMERA)
+            // READ_MEDIA_IMAGES/VIDEO 仅 API 33+ 存在；API 28-32 用 READ_EXTERNAL_STORAGE
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                add(android.Manifest.permission.READ_MEDIA_IMAGES)
+                add(android.Manifest.permission.READ_MEDIA_VIDEO)
+            } else {
+                add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+        }.toTypedArray()
     )
 
 
