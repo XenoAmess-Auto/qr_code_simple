@@ -314,8 +314,8 @@ dependencies {
         implementation('org.apache.commons:commons-lang3:3.20.0') {
             because 'GHSA-j288-q9x7-2f5v: uncontrolled recursion in commons-lang3 < 3.18.0 (ships via commons-compress ← POI; parses user-imported Excel files)'
         }
-        implementation('org.apache.logging.log4j:log4j-api:2.25.5') {
-            because 'GHSA log4j-api < 2.25.5: MapMessage JSON float encoding (ships via POI; log4j-core absent so path unreachable, bump to silence and stay safe)'
+        implementation('org.apache.logging.log4j:log4j-api:2.26.1') {
+            because 'GHSA log4j-api < 2.26.1: MapMessage JSON float encoding (ships via POI; log4j-core absent so path unreachable, bump to silence and stay safe)'
         }
     }
 
