@@ -279,7 +279,6 @@
 
     <string name="all_tags">Все теги</string>
     <string name="advanced_filter">Расширенный фильтр</string>
-    <string name="more_actions">Другие действия</string>
     <string name="filter_button">Фильтры</string>
     <string name="sort_order">Порядок сортировки</string>
     <string name="filter_time_range">Период</string>

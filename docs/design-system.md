@@ -128,7 +128,7 @@ Arbitrary 20-24dp cards and full-width pills are not the default style.
 
 - Prefer flat rows with dividers or restrained outlined panels.
 - Keep at most one frequent direct row action; move secondary actions to overflow where practical.
-- History rows place favorite and overflow beside the content block; secondary actions must not create a separate action row.
+- History rows place their six icon actions in a compact 3x2 grid beside the content block; actions must not create a separate row below the content.
 - Interactive icons expose at least a 48dp target and state-aware descriptions.
 - Barcode previews use a deliberate light substrate so codes remain readable in dark mode.
 

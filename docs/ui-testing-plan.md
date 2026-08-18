@@ -59,7 +59,7 @@
 | 涉及文件 | `HistoryFragment.kt`、`HistoryAdapter.kt` |
 | 改动 | 1. 保持原有 UI 行为不变。<br>2. `HistoryFragment.loadHistory()` 增加 `loadHistoryJob` 取消，避免多个 Flow 收集器并发导致列表更新错乱。 |
 | 新增测试 | `HistoryAdapterTest.kt`、`HistoryFragmentUiTest.kt` |
-| 测试点（Adapter） | 1. 不同 `HistoryType`（scanned/generated）的 item 绑定显示正确。<br>2. 收藏状态、笔记缩略显示正确。<br>3. 收藏直达按钮、条目点击和更多菜单中的备注、编辑、分享、二维码分享、删除均触发正确回调。 |
+| 测试点（Adapter） | 1. 不同 `HistoryType`（scanned/generated）的 item 绑定显示正确。<br>2. 收藏状态、笔记缩略显示正确。<br>3. 右侧 3x2 紧凑操作网格中的收藏、备注、编辑、分享、二维码分享、删除及条目点击均触发正确回调。 |
 | 测试点（Fragment） | 1. 顶部四个筛选 chip（All/Scanned/Generated/Favorite）点击后过滤列表。<br>2. 搜索框输入文本后列表过滤。<br>3. tag chip 点击过滤。<br>4. 空状态时显示 empty view。<br>5. 长按进入多选模式，支持全选、复制已选、删除已选。 |
 
 ### 批次 3：结果页 ✅

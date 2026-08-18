@@ -58,21 +58,66 @@
 
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/btnFavorite"
-        android:layout_width="@dimen/touch_target_min"
-        android:layout_height="@dimen/touch_target_min"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/add_to_favorites"
-        android:src="@drawable/ic_star_border" />
+    <GridLayout
+        android:id="@+id/historyActionGrid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:columnCount="3"
+        android:rowCount="2">
 
-    <ImageButton
-        android:id="@+id/btnMore"
-        android:layout_width="@dimen/touch_target_min"
-        android:layout_height="@dimen/touch_target_min"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/more_actions"
-        android:src="@drawable/ic_more_vert"
-        app:tint="@color/app_text_secondary" />
+        <ImageButton
+            android:id="@+id/btnFavorite"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/add_to_favorites"
+            android:src="@drawable/ic_star_border" />
+
+        <ImageButton
+            android:id="@+id/btnNote"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/add_notes"
+            android:src="@drawable/ic_note"
+            app:tint="@color/app_text_secondary" />
+
+        <ImageButton
+            android:id="@+id/btnEdit"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/edit"
+            android:src="@drawable/ic_edit"
+            app:tint="@color/app_text_secondary" />
+
+        <ImageButton
+            android:id="@+id/btnShare"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/share"
+            android:src="@drawable/ic_share"
+            app:tint="@color/app_text_secondary" />
+
+        <ImageButton
+            android:id="@+id/btnShareQR"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/share_qr"
+            android:src="@drawable/ic_qr_code"
+            app:tint="@color/app_text_secondary" />
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/delete"
+            android:src="@drawable/ic_delete"
+            app:tint="@color/app_text_secondary" />
+
+    </GridLayout>
 
 </LinearLayout>

@@ -11,14 +11,12 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.utils.test.TestDataFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowPopupMenu
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -123,23 +121,18 @@ class HistoryAdapterTest : BaseAdapterTest() {
     }
 
     @Test
-    fun directAndOverflowActionsTriggerCorrectCallbacks() {
+    fun compactActionGridTriggersCorrectCallbacks() {
         val (adapter, clicked) = createAdapterWithTracking()
         val item = TestDataFactory.historyItem(content = "callback test")
         val holder = bindFirstItem(adapter, item)
-        val overflowActions = listOf(
-            R.id.action_history_note,
-            R.id.action_history_edit,
-            R.id.action_history_share,
-            R.id.action_history_share_qr,
-            R.id.action_history_delete
-        )
-        overflowActions.forEach { actionId ->
-            holder.itemView.findViewById<View>(R.id.btnMore).performClick()
-            val popup = ShadowPopupMenu.getLatestPopupMenu()
-            assertNotNull(popup)
-            assertTrue(popup.menu.performIdentifierAction(actionId, 0))
-        }
+        val actionGrid = holder.itemView.findViewById<android.widget.GridLayout>(R.id.historyActionGrid)
+        assertEquals(3, actionGrid.columnCount)
+        assertEquals(6, actionGrid.childCount)
+        holder.itemView.findViewById<View>(R.id.btnNote).performClick()
+        holder.itemView.findViewById<View>(R.id.btnEdit).performClick()
+        holder.itemView.findViewById<View>(R.id.btnShare).performClick()
+        holder.itemView.findViewById<View>(R.id.btnShareQR).performClick()
+        holder.itemView.findViewById<View>(R.id.btnDelete).performClick()
         holder.itemView.findViewById<View>(R.id.btnFavorite).performClick()
         holder.itemView.performClick()
         assertEquals(7, clicked.size)

@@ -3,7 +3,6 @@ package com.xenoamess.qrcodesimple
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -95,27 +94,13 @@ class HistoryAdapter(
                 binding.tvNotes.visibility = View.GONE
             }
 
+            binding.btnNote.setOnClickListener { onAddNote(item) }
+            binding.btnEdit.setOnClickListener { onEdit(item) }
+            binding.btnShare.setOnClickListener { onShare(item) }
+            binding.btnShareQR.setOnClickListener { onShareQR(item) }
+            binding.btnDelete.setOnClickListener { onDelete(item) }
             binding.btnFavorite.setOnClickListener { onFavorite(item) }
-            binding.btnMore.setOnClickListener { anchor -> showActions(anchor, item) }
             binding.root.setOnClickListener { onItemClick(item) }
-        }
-
-        private fun showActions(anchor: View, item: HistoryItem) {
-            PopupMenu(anchor.context, anchor).apply {
-                inflate(R.menu.menu_history_item)
-                setOnMenuItemClickListener { menuItem ->
-                    when (menuItem.itemId) {
-                        R.id.action_history_note -> onAddNote(item)
-                        R.id.action_history_edit -> onEdit(item)
-                        R.id.action_history_share -> onShare(item)
-                        R.id.action_history_share_qr -> onShareQR(item)
-                        R.id.action_history_delete -> onDelete(item)
-                        else -> return@setOnMenuItemClickListener false
-                    }
-                    true
-                }
-                show()
-            }
         }
     }
 
