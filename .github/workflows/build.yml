@@ -35,6 +35,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Test release helper scripts
+        run: python3 -m unittest discover -s .github/scripts/tests -p 'test_*.py'
+
       # 配置缓存跨 run 持久化：构建脚本未变时复用，显著缩短后续 run 的配置阶段
       - name: Cache Gradle configuration cache
         uses: actions/cache@v6
