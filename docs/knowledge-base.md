@@ -108,6 +108,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 按 `content` + `isGenerated` 去重：扫描记录和生成记录各自独立。同一文本扫描重复时更新 `timestamp` 置顶；生成重复时更新最新参数/格式/时间/样式；不新增多条。备份导入时同样按此规则合并，避免重复记录。
 - 生成、保存、分享按钮均会触发历史记录写入/更新。
 - 历史列表的二维码分享使用原始 `barcodeFormat` 和 `styleJson` 重新生成图片，保持与生成时一致。
+- 历史列表项采用紧凑横向结构，收藏与更多操作位于内容右侧；备注、编辑、分享、二维码分享和删除收纳在更多菜单中，不再占用独立操作行。
 - 历史详情页提供“自定义样式生成”按钮，可将文本带入 `GenerateFragment` 重新选择样式。
 - 保留策略：`PrivacySettingsActivity` 可配置自动清理（永久/30/90/365 天），存于 `app_settings`；`QRCodeApp.onCreate` 启动时执行一次 `deleteOlderThan`（收藏豁免），0 表示永久保留。
 - 平板双栏：`layout-sw600dp/fragment_history.xml` 为列表 + 详情双栏；`HistoryFragment.openHistoryDetail` 检测到 `detailPaneContainer` 时嵌入 `HistoryDetailFragment`，否则启动 `HistoryDetailActivity`。列表布局经 `<include android:id="@+id/listPart">` 在两种配置间复用（ViewBinding 生成嵌套绑定 `binding.listPart`）。

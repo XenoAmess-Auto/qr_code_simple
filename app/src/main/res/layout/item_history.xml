@@ -4,126 +4,75 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:orientation="vertical"
-    android:padding="12dp"
     android:gravity="center_vertical"
-    android:minHeight="@dimen/editorial_row_min_height">
+    android:minHeight="@dimen/editorial_row_min_height"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="6dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="6dp">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:orientation="vertical">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/ivFavorite"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_star"
-                android:visibility="gone"
-                android:contentDescription="@string/cd_favorite"
-                android:layout_marginEnd="4dp"
-                app:tint="@color/app_primary" />
-
-            <TextView
-                android:id="@+id/tvContent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="@color/app_text_primary"
-                android:maxLines="3"
-                android:ellipsize="end" />
-
-        </LinearLayout>
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/app_text_primary"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/tvType"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/app_primary"
-            android:layout_marginTop="4dp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tvNotes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/app_text_secondary"
-            android:layout_marginTop="2dp"
-            android:visibility="gone"
-            android:maxLines="2"
-            android:ellipsize="end" />
+            android:textSize="11sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
+            android:layout_marginTop="1dp"
             android:textColor="@color/app_text_secondary"
-            android:layout_marginTop="2dp" />
+            android:textSize="11sp" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end|center_vertical"
-        android:orientation="horizontal">
+    <ImageButton
+        android:id="@+id/btnFavorite"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/add_to_favorites"
+        android:src="@drawable/ic_star_border" />
 
-        <ImageButton
-            android:id="@+id/btnFavorite"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:src="@drawable/ic_star_border"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/chip_favorites" />
-
-        <ImageButton
-            android:id="@+id/btnNote"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:src="@drawable/ic_note"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/add_notes" />
-
-        <ImageButton
-            android:id="@+id/btnEdit"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:src="@drawable/ic_edit"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/edit" />
-
-        <ImageButton
-            android:id="@+id/btnShare"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:src="@drawable/ic_share"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/share" />
-
-        <ImageButton
-            android:id="@+id/btnShareQR"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:src="@drawable/ic_qr_code"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/share_qr" />
-
-        <ImageButton
-            android:id="@+id/btnDelete"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:src="@drawable/ic_delete"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/delete" />
-
-    </LinearLayout>
+    <ImageButton
+        android:id="@+id/btnMore"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/more_actions"
+        android:src="@drawable/ic_more_vert"
+        app:tint="@color/app_text_secondary" />
 
 </LinearLayout>

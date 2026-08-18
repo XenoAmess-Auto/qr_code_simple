@@ -3,6 +3,7 @@ package com.xenoamess.qrcodesimple
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -78,8 +79,13 @@ class HistoryAdapter(
             
             binding.tvTime.text = dateFormat.format(Date(item.timestamp))
 
-            // 收藏图标
-            binding.ivFavorite.visibility = if (item.isFavorite) View.VISIBLE else View.GONE
+            binding.btnFavorite.setImageResource(if (item.isFavorite) R.drawable.ic_star else R.drawable.ic_star_border)
+            binding.btnFavorite.imageTintList = context.getColorStateList(
+                if (item.isFavorite) R.color.app_primary else R.color.app_text_secondary
+            )
+            binding.btnFavorite.contentDescription = context.getString(
+                if (item.isFavorite) R.string.remove_from_favorites else R.string.add_to_favorites
+            )
             
             // 备注预览
             if (!item.notes.isNullOrEmpty()) {
@@ -89,14 +95,27 @@ class HistoryAdapter(
                 binding.tvNotes.visibility = View.GONE
             }
 
-            // 按钮点击
-            binding.btnEdit.setOnClickListener { onEdit(item) }
-            binding.btnShare.setOnClickListener { onShare(item) }
-            binding.btnShareQR.setOnClickListener { onShareQR(item) }
-            binding.btnDelete.setOnClickListener { onDelete(item) }
             binding.btnFavorite.setOnClickListener { onFavorite(item) }
-            binding.btnNote.setOnClickListener { onAddNote(item) }
+            binding.btnMore.setOnClickListener { anchor -> showActions(anchor, item) }
             binding.root.setOnClickListener { onItemClick(item) }
+        }
+
+        private fun showActions(anchor: View, item: HistoryItem) {
+            PopupMenu(anchor.context, anchor).apply {
+                inflate(R.menu.menu_history_item)
+                setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_history_note -> onAddNote(item)
+                        R.id.action_history_edit -> onEdit(item)
+                        R.id.action_history_share -> onShare(item)
+                        R.id.action_history_share_qr -> onShareQR(item)
+                        R.id.action_history_delete -> onDelete(item)
+                        else -> return@setOnMenuItemClickListener false
+                    }
+                    true
+                }
+                show()
+            }
         }
     }
 

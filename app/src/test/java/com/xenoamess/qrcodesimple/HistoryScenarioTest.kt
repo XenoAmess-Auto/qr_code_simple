@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import org.robolectric.shadows.ShadowPopupMenu
 import java.util.concurrent.TimeUnit
 
 /**
@@ -207,7 +208,8 @@ class HistoryScenarioTest {
             val rv = fragment.requireView().findViewById<RecyclerView>(R.id.recyclerView)
             val holder = rv.findViewHolderForAdapterPosition(0)
             assertNotNull(holder)
-            holder!!.itemView.findViewById<View>(R.id.btnShareQR).performClick()
+            holder!!.itemView.findViewById<View>(R.id.btnMore).performClick()
+            ShadowPopupMenu.getLatestPopupMenu().menu.performIdentifierAction(R.id.action_history_share_qr, 0)
         }
         // 等协程生成位图并拉起分享
         val deadline = System.currentTimeMillis() + 5000

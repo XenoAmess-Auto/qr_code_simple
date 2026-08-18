@@ -279,6 +279,7 @@
 
     <string name="all_tags">Todas las etiquetas</string>
     <string name="advanced_filter">Filtro avanzado</string>
+    <string name="more_actions">Más acciones</string>
     <string name="filter_button">Filtros</string>
     <string name="sort_order">Orden</string>
     <string name="filter_time_range">Intervalo de tiempo</string>

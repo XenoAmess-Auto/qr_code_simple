@@ -11,12 +11,14 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.utils.test.TestDataFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowPopupMenu
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -100,13 +102,13 @@ class HistoryAdapterTest : BaseAdapterTest() {
     }
 
     @Test
-    fun favoriteIconVisibleForFavoriteItem() {
+    fun favoriteButtonReflectsFavoriteItem() {
         val (adapter, _) = createAdapterWithTracking()
         val item = TestDataFactory.historyItem(isFavorite = true)
         val holder = bindFirstItem(adapter, item)
         assertEquals(
-            View.VISIBLE,
-            holder.itemView.findViewById<View>(R.id.ivFavorite).visibility
+            context.getString(R.string.remove_from_favorites),
+            holder.itemView.findViewById<View>(R.id.btnFavorite).contentDescription
         )
     }
 
@@ -121,16 +123,24 @@ class HistoryAdapterTest : BaseAdapterTest() {
     }
 
     @Test
-    fun buttonsTriggerCorrectCallbacks() {
+    fun directAndOverflowActionsTriggerCorrectCallbacks() {
         val (adapter, clicked) = createAdapterWithTracking()
         val item = TestDataFactory.historyItem(content = "callback test")
         val holder = bindFirstItem(adapter, item)
-        holder.itemView.findViewById<View>(R.id.btnEdit).performClick()
-        holder.itemView.findViewById<View>(R.id.btnShare).performClick()
-        holder.itemView.findViewById<View>(R.id.btnShareQR).performClick()
-        holder.itemView.findViewById<View>(R.id.btnDelete).performClick()
+        val overflowActions = listOf(
+            R.id.action_history_note,
+            R.id.action_history_edit,
+            R.id.action_history_share,
+            R.id.action_history_share_qr,
+            R.id.action_history_delete
+        )
+        overflowActions.forEach { actionId ->
+            holder.itemView.findViewById<View>(R.id.btnMore).performClick()
+            val popup = ShadowPopupMenu.getLatestPopupMenu()
+            assertNotNull(popup)
+            assertTrue(popup.menu.performIdentifierAction(actionId, 0))
+        }
         holder.itemView.findViewById<View>(R.id.btnFavorite).performClick()
-        holder.itemView.findViewById<View>(R.id.btnNote).performClick()
         holder.itemView.performClick()
         assertEquals(7, clicked.size)
         clicked.forEach { assertEquals("callback test", it.content) }

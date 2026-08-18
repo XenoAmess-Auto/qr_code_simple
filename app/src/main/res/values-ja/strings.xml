@@ -187,6 +187,7 @@
     <string name="remove_from_favorites">お気に入りから削除</string>
     <string name="all_tags">すべてのタグ</string>
     <string name="advanced_filter">詳細フィルター</string>
+    <string name="more_actions">その他の操作</string>
     <string name="filter_button">フィルター</string>
     <string name="sort_order">並べ替え</string>
     <string name="filter_time_range">期間</string>
