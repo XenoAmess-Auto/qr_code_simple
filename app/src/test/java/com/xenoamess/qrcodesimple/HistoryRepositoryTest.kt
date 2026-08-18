@@ -286,6 +286,41 @@ class HistoryRepositoryTest {
     }
 
     @Test
+    fun `repeated scan preserves user annotations`() = runBlocking {
+        repository.insertScan("annotated", HistoryType.QR_CODE, "QR_CODE")
+        val original = repository.allHistory.first().single()
+        repository.updateFavorite(original.id, true)
+        repository.addNotes(original.id, "keep note")
+        repository.setTags(original.id, listOf("keep-tag"))
+
+        repository.insertScan("annotated", HistoryType.BARCODE, "CODE_128")
+
+        val updated = repository.allHistory.first().single()
+        assertEquals(true, updated.isFavorite)
+        assertEquals("keep note", updated.notes)
+        assertEquals("keep-tag", updated.tags)
+        assertEquals(HistoryType.BARCODE, updated.type)
+        assertEquals("CODE_128", updated.barcodeFormat)
+    }
+
+    @Test
+    fun `repeated generation preserves user annotations while refreshing style`() = runBlocking {
+        repository.insertGenerate("generated", HistoryType.QR_CODE, "QR_CODE", "old-style")
+        val original = repository.allHistory.first().single()
+        repository.updateFavorite(original.id, true)
+        repository.addNotes(original.id, "keep note")
+
+        repository.insertGenerate("generated", HistoryType.DATA_MATRIX, "DATA_MATRIX", "new-style")
+
+        val updated = repository.allHistory.first().single()
+        assertEquals(true, updated.isFavorite)
+        assertEquals("keep note", updated.notes)
+        assertEquals(HistoryType.DATA_MATRIX, updated.type)
+        assertEquals("DATA_MATRIX", updated.barcodeFormat)
+        assertEquals("new-style", updated.styleJson)
+    }
+
+    @Test
     fun `combined history query applies every filter and tags use exact boundaries`() = runBlocking {
         repository.insertScan("match content", HistoryType.QR_CODE, "QR_CODE")
         repository.insertScan("cart content", HistoryType.QR_CODE, "QR_CODE")

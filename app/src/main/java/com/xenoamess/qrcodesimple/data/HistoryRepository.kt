@@ -43,14 +43,24 @@ class HistoryRepository(private val context: Context) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
 
-        historyDao.upsert(HistoryItem(content = content, type = type, isGenerated = false, barcodeFormat = barcodeFormat))
+        historyDao.upsertScan(
+            HistoryItem(content = content, type = type, isGenerated = false, barcodeFormat = barcodeFormat)
+        )
     }
     
     suspend fun insertGenerate(content: String, type: HistoryType = HistoryType.QR_CODE, barcodeFormat: String? = null, styleJson: String? = null) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
 
-        historyDao.upsert(HistoryItem(content = content, type = type, isGenerated = true, barcodeFormat = barcodeFormat, styleJson = styleJson))
+        historyDao.upsertGenerate(
+            HistoryItem(
+                content = content,
+                type = type,
+                isGenerated = true,
+                barcodeFormat = barcodeFormat,
+                styleJson = styleJson
+            )
+        )
     }
     
     suspend fun importHistoryItem(item: HistoryItem) {

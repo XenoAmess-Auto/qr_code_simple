@@ -119,8 +119,8 @@ class AppDatabaseTest {
         val dbName = "migration_4_5_test"
         createRawDatabase(dbName, 4, includeTags = true, includeStyleJson = true)
         val rawDb = SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(dbName), null)
-        rawDb.execSQL("INSERT INTO history (content, type, timestamp, isGenerated, isFavorite) VALUES ('same', 'QR_CODE', 1, 0, 0)")
         rawDb.execSQL("INSERT INTO history (content, type, timestamp, isGenerated, isFavorite) VALUES ('same', 'BARCODE', 2, 0, 0)")
+        rawDb.execSQL("INSERT INTO history (content, type, timestamp, isGenerated, isFavorite) VALUES ('same', 'QR_CODE', 1, 0, 0)")
         rawDb.close()
 
         val db = forceMigrate(dbName, AppDatabase.MIGRATION_4_5)
@@ -149,7 +149,8 @@ class AppDatabaseTest {
         val db = forceMigrate(
             dbName,
             AppDatabase.MIGRATION_2_3,
-            AppDatabase.MIGRATION_3_4
+            AppDatabase.MIGRATION_3_4,
+            AppDatabase.MIGRATION_4_5
         )
 
         assertTrue(columnExists(dbName, "tags"))
@@ -161,7 +162,11 @@ class AppDatabaseTest {
         val dbName = "migration_3_4_test"
         createRawDatabase(dbName, 3, includeTags = true)
 
-        val db = forceMigrate(dbName, AppDatabase.MIGRATION_3_4)
+        val db = forceMigrate(
+            dbName,
+            AppDatabase.MIGRATION_3_4,
+            AppDatabase.MIGRATION_4_5
+        )
 
         assertTrue(columnExists(dbName, "styleJson"))
         db.close()

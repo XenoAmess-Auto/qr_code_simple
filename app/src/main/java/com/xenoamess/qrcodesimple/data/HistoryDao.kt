@@ -47,6 +47,30 @@ interface HistoryDao {
         tags: String?
     )
 
+    @Query("""
+        UPDATE history SET type = :type, timestamp = :timestamp, barcodeFormat = :barcodeFormat
+        WHERE content = :content AND isGenerated = 0
+    """)
+    suspend fun updateScanByContent(
+        content: String,
+        type: HistoryType,
+        timestamp: Long,
+        barcodeFormat: String?
+    )
+
+    @Query("""
+        UPDATE history SET type = :type, timestamp = :timestamp, barcodeFormat = :barcodeFormat,
+            styleJson = :styleJson
+        WHERE content = :content AND isGenerated = 1
+    """)
+    suspend fun updateGenerateByContent(
+        content: String,
+        type: HistoryType,
+        timestamp: Long,
+        barcodeFormat: String?,
+        styleJson: String?
+    )
+
     @Transaction
     suspend fun upsert(item: HistoryItem): Long {
         val insertedId = insertIgnore(item)
@@ -56,6 +80,28 @@ interface HistoryDao {
             item.styleJson, item.isFavorite, item.notes, item.tags
         )
         return findByContentAndGenerated(item.content, item.isGenerated)?.id ?: -1L
+    }
+
+    @Transaction
+    suspend fun upsertScan(item: HistoryItem): Long {
+        val insertedId = insertIgnore(item)
+        if (insertedId != -1L) return insertedId
+        updateScanByContent(item.content, item.type, item.timestamp, item.barcodeFormat)
+        return findByContentAndGenerated(item.content, false)?.id ?: -1L
+    }
+
+    @Transaction
+    suspend fun upsertGenerate(item: HistoryItem): Long {
+        val insertedId = insertIgnore(item)
+        if (insertedId != -1L) return insertedId
+        updateGenerateByContent(
+            item.content,
+            item.type,
+            item.timestamp,
+            item.barcodeFormat,
+            item.styleJson
+        )
+        return findByContentAndGenerated(item.content, true)?.id ?: -1L
     }
     
     @Delete
@@ -114,7 +160,11 @@ interface HistoryDao {
     @Query("SELECT DISTINCT barcodeFormat FROM history WHERE barcodeFormat IS NOT NULL")
     suspend fun getAllBarcodeFormats(): List<String>
 
-    @Query("SELECT * FROM history WHERE tags LIKE '%' || :tag || '%' ORDER BY timestamp DESC")
+    @Query("""
+        SELECT * FROM history
+        WHERE tags = :tag OR tags LIKE :tag || ',%' OR tags LIKE '%,' || :tag OR tags LIKE '%,' || :tag || ',%'
+        ORDER BY timestamp DESC
+    """)
     fun getHistoryByTag(tag: String): Flow<List<HistoryItem>>
 
     @Query("""

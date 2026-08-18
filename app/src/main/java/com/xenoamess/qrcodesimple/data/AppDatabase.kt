@@ -183,7 +183,18 @@ abstract class AppDatabase : RoomDatabase() {
         /** Consolidates legacy duplicates before enforcing one row per history identity. */
         internal val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("DELETE FROM history WHERE id NOT IN (SELECT MAX(id) FROM history GROUP BY content, isGenerated)")
+                db.execSQL("""
+                    DELETE FROM history
+                    WHERE EXISTS (
+                        SELECT 1 FROM history AS newer
+                        WHERE newer.content = history.content
+                          AND newer.isGenerated = history.isGenerated
+                          AND (
+                              newer.timestamp > history.timestamp
+                              OR (newer.timestamp = history.timestamp AND newer.id > history.id)
+                          )
+                    )
+                """.trimIndent())
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_history_content_isGenerated ON history(content, isGenerated)")
             }
         }
