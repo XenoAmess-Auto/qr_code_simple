@@ -342,7 +342,7 @@ class BatchGenerateActivity : AppCompatActivity() {
             return
         }
 
-        val items = importedItems ?: BatchGenerator.parseSimpleBatch(text, selectedFormat)
+        val items = BatchGenerator.resolveBatchInput(text, selectedFormat, importedItems)
         if (items.isEmpty()) {
             Toast.makeText(this, getString(R.string.no_valid_content), Toast.LENGTH_SHORT).show()
             return

@@ -144,7 +144,8 @@ class BatchResultActivity : AppCompatActivity() {
                         backgroundColor = item.backgroundColor ?: android.graphics.Color.WHITE
                     ))
                 } else {
-                    AdvancedBarcodeGenerator.generateStyled(item.content, item.format, 800, 800, styleForItem(style, item))
+                    val itemStyle = AdvancedBarcodeGenerator.sanitize(styleForItem(style, item), item.format)
+                    AdvancedBarcodeGenerator.generateStyled(item.content, item.format, 800, 800, itemStyle)
                 } ?: throw IllegalStateException(getString(R.string.generation_returned_no_image))
                 val file = withContext(Dispatchers.IO) { writeCacheImage(bitmap, index) }
                 val thumbnail = withContext(Dispatchers.IO) { decodeThumbnail(file) }
@@ -173,7 +174,10 @@ class BatchResultActivity : AppCompatActivity() {
     private fun retry(position: Int) {
         val previous = results.getOrNull(position) ?: return
         lifecycleScope.launch {
-            results[position] = generateOne(previous.item, batchStyle, position)
+            val replacement = generateOne(previous.item, batchStyle, position)
+            previous.bitmap?.recycle()
+            previous.imageFile?.delete()
+            results[position] = replacement
             adapter.notifyItemChanged(position)
         }
     }
@@ -191,7 +195,7 @@ class BatchResultActivity : AppCompatActivity() {
     }
 
     private fun copySingleToMediaStore(source: File, fileName: String): String {
-        val fullName = "${fileName}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
+        val fullName = "${safeFileName(fileName)}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fullName)
@@ -220,9 +224,14 @@ class BatchResultActivity : AppCompatActivity() {
     }
 
     private fun writeZipToMediaStore(name: String, sourceResults: List<BatchResult>): String {
+        val usedNames = mutableMapOf<String, Int>()
         fun write(output: java.io.OutputStream) = ZipOutputStream(output).use { zip ->
             sourceResults.forEach { result -> result.imageFile?.takeIf(File::exists)?.let { file ->
-                zip.putNextEntry(ZipEntry("${result.fileName}.png"))
+                val baseName = safeFileName(result.fileName)
+                val occurrence = (usedNames[baseName] ?: 0) + 1
+                usedNames[baseName] = occurrence
+                val entryName = if (occurrence == 1) "$baseName.png" else "${baseName}_$occurrence.png"
+                zip.putNextEntry(ZipEntry(entryName))
                 FileInputStream(file).use { it.copyTo(zip) }
                 zip.closeEntry()
             } }
@@ -241,6 +250,20 @@ class BatchResultActivity : AppCompatActivity() {
         FileOutputStream(temporary).use(::write)
         if (!temporary.renameTo(target)) error(getString(R.string.unknown_error))
         return target.absolutePath
+    }
+
+    private fun safeFileName(value: String): String = value
+        .replace(Regex("[^A-Za-z0-9._-]+"), "_")
+        .trim('_', '.')
+        .ifEmpty { "barcode" }
+
+    override fun onDestroy() {
+        results.forEach { result ->
+            result.bitmap?.recycle()
+            result.imageFile?.delete()
+        }
+        batchStyle?.logoBitmap?.recycle()
+        super.onDestroy()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?) = menuInflater.inflate(R.menu.menu_batch_result, menu).let { true }

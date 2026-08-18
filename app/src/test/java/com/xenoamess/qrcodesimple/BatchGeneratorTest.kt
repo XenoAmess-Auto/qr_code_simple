@@ -247,4 +247,26 @@ class BatchGeneratorTest {
         val item = BatchGenerator.BatchItem("https://example.com", BarcodeFormat.CODE_128, 0xff123456.toInt(), 0xffabcdef.toInt(), "custom")
         assertEquals(listOf(item), BatchGenerator.itemsFromJson(BatchGenerator.itemsToJson(listOf(item))))
     }
+
+    @Test
+    fun `edited imported text falls back to current simple input`() {
+        val imported = listOf(
+            BatchGenerator.BatchItem(
+                content = "original",
+                format = BarcodeFormat.EAN_13,
+                fileName = "original-name"
+            )
+        )
+
+        val resolved = BatchGenerator.resolveBatchInput(
+            text = "edited",
+            selectedFormat = BarcodeFormat.CODE_128,
+            importedItems = imported
+        )
+
+        assertEquals(1, resolved.size)
+        assertEquals("edited", resolved.single().content)
+        assertEquals(BarcodeFormat.CODE_128, resolved.single().format)
+        assertEquals("batch_1", resolved.single().fileName)
+    }
 }

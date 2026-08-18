@@ -307,6 +307,14 @@ object BatchGenerator {
             }
     }
 
+    fun resolveBatchInput(
+        text: String,
+        selectedFormat: BarcodeFormat,
+        importedItems: List<BatchItem>?
+    ): List<BatchItem> = importedItems
+        ?.takeIf { imported -> text == imported.joinToString("\n") { it.content } }
+        ?: parseSimpleBatch(text, selectedFormat)
+
     /** Compact, primitive-only representation safe for Intent and process recreation. */
     fun itemsToJson(items: List<BatchItem>): String = JSONArray().apply {
         items.forEach { item ->
