@@ -78,6 +78,7 @@ class GenerateFragmentSaveTest {
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        Thread.sleep(3_000)
         idleMain()
 
         val pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
@@ -122,7 +123,7 @@ class GenerateFragmentSaveTest {
         assertNotNull(dialog)
         dialog.listView.performItemClick(dialog.listView.getChildAt(0), 0, dialog.listView.adapter.getItemId(0))
         idleMain()
-        Thread.sleep(300)
+        Thread.sleep(3_000)
         idleMain()
 
         scenario.onFragment { fragment ->
@@ -147,7 +148,7 @@ class GenerateFragmentSaveTest {
         assertNotNull(dialog)
         dialog.listView.performItemClick(null, 1, 0)
         idleMain()
-        Thread.sleep(500)
+        Thread.sleep(3_000)
         idleMain()
 
         scenario.onFragment { fragment ->

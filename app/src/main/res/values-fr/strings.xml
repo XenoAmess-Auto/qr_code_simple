@@ -1142,4 +1142,10 @@ https://another.com
     <string name="generation_returned_no_image">Le générateur n\'a renvoyé aucune image</string>
     <string name="retry">Réessayer</string>
     <string name="export_results">Exporter les résultats</string><string name="export_complete">Export terminé</string><string name="saved_items">%1$d éléments enregistrés</string><string name="clear_results_confirm">Effacer les %1$d résultats ?</string><string name="scan_auto_save">Enregistrement auto : %1$s</string><string name="scan_interval">Intervalle : %1$d ms</string><string name="scan_settings">Paramètres de scan</string><string name="scan_interval_title">Intervalle de scan</string><string name="enabled">Activé</string><string name="disabled">Désactivé</string><string name="no_results_to_export">Aucun résultat à exporter</string>
+    <string name="format_category_matrix">Matrice</string>
+    <string name="format_category_linear">Linéaire</string>
+    <string name="format_category_postal">Postal</string>
+    <string name="format_scannable">Scannable</string>
+    <string name="format_generate_only">Génération seule</string>
+    <string name="format_recent">Récent</string>
 </resources>

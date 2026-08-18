@@ -28,6 +28,7 @@ import androidx.core.content.FileProvider
 import androidx.core.view.doOnAttach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -46,6 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.collectLatest
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -58,6 +60,7 @@ class GenerateFragment : Fragment() {
     private var _binding: FragmentGenerateBinding? = null
     private val binding get() = _binding!!
     internal var currentBitmap: Bitmap? = null
+    private lateinit var generateViewModel: GenerateViewModel
     private lateinit var historyRepository: HistoryRepository
     internal var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
@@ -87,6 +90,8 @@ class GenerateFragment : Fragment() {
         private const val TAG = "GenerateFragment"
         private const val MAX_LOGO_PX = 512
         private const val MAX_STYLE_IMAGE_PX = 1024
+        // Exports use four times the preview pixels without making share latency excessive.
+        private const val OUTPUT_SIZE = 1024
     }
 
     private inline fun safe(block: () -> Unit) {
@@ -197,6 +202,8 @@ class GenerateFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         historyRepository = HistoryRepository(requireContext())
+        generateViewModel = ViewModelProvider(this)[GenerateViewModel::class.java]
+        observePreviewState()
 
         setupFormatSelector()
         setupStyleControls()
@@ -213,6 +220,59 @@ class GenerateFragment : Fragment() {
 
         // 系统分享入口：ACTION_SEND text/plain 时把分享文本带入并直接生成
         handleShareTextPrefill()
+        binding.etContent.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: android.text.Editable?) = generateBarcode()
+        })
+    }
+
+    private fun observePreviewState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            generateViewModel.previewState.collectLatest { state ->
+                if (_binding == null) return@collectLatest
+                when (state) {
+                    GeneratePreviewState.Empty -> Unit
+                    is GeneratePreviewState.Loading -> showGenerationWarning(null)
+                    is GeneratePreviewState.Invalid -> showGenerationWarning(state.message)
+                    is GeneratePreviewState.Failed -> {
+                        showGenerationWarning(getString(R.string.failed_to_generate, state.message ?: getString(R.string.unknown_error)))
+                    }
+                    is GeneratePreviewState.Ready -> {
+                        replacePreviewBitmap(state.bitmap)
+                        if (state.request.format.isScannable) {
+                            validateGeneratedBarcode(state.request, state.bitmap)
+                        } else {
+                            showGenerationWarning(getString(R.string.warning_generate_only_format))
+                        }
+                        recordHistory(state.request)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun replacePreviewBitmap(bitmap: Bitmap) {
+        val old = currentBitmap
+        currentBitmap = bitmap
+        binding.ivQRCode.setImageBitmap(bitmap)
+        if (old != null && old !== bitmap && !old.isRecycled) old.recycle()
+        AnimationUtils.fadeIn(binding.ivQRCode)
+    }
+
+    private fun showGenerationWarning(message: String?) {
+        binding.tvGenerationWarning.apply {
+            if (message == null) {
+                text = ""
+                visibility = View.GONE
+                background = null
+            } else {
+                text = message
+                background = resources.getDrawable(R.drawable.bg_warning, null)
+                setTextColor(resources.getColor(R.color.yellow_700, null))
+                visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun handleShareTextPrefill() {
@@ -243,7 +303,10 @@ class GenerateFragment : Fragment() {
 
     private fun setupFormatSelector() {
         val formats = BarcodeFormat.entries.filter { it != BarcodeFormat.UNKNOWN }
-        val adapter = BarcodeFormatAdapter(requireContext(), formats)
+        val recent = requireContext().getSharedPreferences("generate", 0)
+            .getStringSet("recent_formats", emptySet()).orEmpty()
+            .mapNotNull { name -> BarcodeFormat.entries.firstOrNull { it.name == name } }
+        val adapter = BarcodeFormatAdapter(requireContext(), formats, recent)
         binding.spinnerFormat.setAdapter(adapter)
         binding.spinnerFormat.threshold = 0
 
@@ -280,6 +343,7 @@ class GenerateFragment : Fragment() {
             safe {
                 val format = adapter.getItem(position) ?: return@safe
                 selectedFormat = format
+                rememberFormat(format)
                 pendingFormatBeforeFocus = null
                 binding.spinnerFormat.setText(format.localizedNameWithEnglish(requireContext()), false)
                 adapter.resetFilter()
@@ -984,6 +1048,23 @@ class GenerateFragment : Fragment() {
             else -> R.string.enter_content
         }
         binding.tilContent.hint = getString(hintRes)
+        binding.etContent.inputType = when (selectedFormat) {
+            BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+            BarcodeFormat.ITF, BarcodeFormat.ITF_14, BarcodeFormat.CODE_2_OF_5_STANDARD,
+            BarcodeFormat.CODE_2_OF_5_MATRIX, BarcodeFormat.CODE_2_OF_5_INDUSTRIAL,
+            BarcodeFormat.CODE_2_OF_5_IATA, BarcodeFormat.CODE_2_OF_5_DATALOGIC,
+            BarcodeFormat.CODE_2_OF_5_DEUTSCHE_POST_LEITCODE,
+            BarcodeFormat.CODE_2_OF_5_DEUTSCHE_POST_IDENTCODE -> android.text.InputType.TYPE_CLASS_NUMBER
+            else -> android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
+    }
+
+    private fun rememberFormat(format: BarcodeFormat) {
+        val prefs = requireContext().getSharedPreferences("generate", 0)
+        val names = prefs.getStringSet("recent_formats", emptySet()).orEmpty().toMutableList()
+        names.remove(format.name)
+        names.add(0, format.name)
+        prefs.edit().putStringSet("recent_formats", names.take(5).toSet()).apply()
     }
 
     private fun updateStyleControlsVisibility() {
@@ -1064,8 +1145,8 @@ class GenerateFragment : Fragment() {
         binding.btnClear.setOnClickListener {
             safe {
                 binding.etContent.text?.clear()
-                currentBitmap = null
-                binding.ivQRCode.setImageBitmap(null)
+                generateViewModel.invalidate()
+                clearPreviewBitmap()
             }
         }
 
@@ -1324,15 +1405,14 @@ class GenerateFragment : Fragment() {
         )
     }
 
-    private fun recordHistory() {
-        val content = binding.etContent.text?.toString()?.trim() ?: return
-        if (content.isEmpty()) return
-        val style = buildCurrentStyleConfig()
-        val sanitizedStyle = AdvancedBarcodeGenerator.sanitize(style, selectedFormat)
+    private fun recordHistory(request: GenerateRequest) {
+        val sanitizedStyle = AdvancedBarcodeGenerator.sanitize(request.style, request.format)
         val styleJson = sanitizedStyle.toJson()
         lifecycleScope.launch {
             try {
-                historyRepository.insertGenerate(content, selectedFormat.toHistoryType(), selectedFormat.name, styleJson)
+                historyRepository.insertGenerate(
+                    request.content, request.format.toHistoryType(), request.format.name, styleJson
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to save history", e)
             }
@@ -1340,55 +1420,40 @@ class GenerateFragment : Fragment() {
     }
 
     private fun generateBarcode() {
-        val ctx = context ?: return
         val content = binding.etContent.text?.toString()?.trim()
-        if (content.isNullOrEmpty()) return
-
-        // 每次重新生成前清除之前的告警/成功标记
-        binding.tvGenerationWarning.apply {
-            text = ""
-            visibility = View.GONE
-            background = null
+        if (content.isNullOrEmpty()) {
+            generateViewModel.invalidate()
+            clearPreviewBitmap()
+            return
         }
+        val request = GenerateRequest(content, selectedFormat, buildCurrentStyleConfig())
 
         val validation = BarcodeGenerator.validateContent(content, selectedFormat)
         if (!validation.isValid) {
-            binding.tvGenerationWarning.apply {
-                text = validation.errorMessage ?: getString(R.string.invalid_content_for_format)
-                background = resources.getDrawable(R.drawable.bg_warning, null)
-                setTextColor(resources.getColor(R.color.yellow_700, null))
-                visibility = View.VISIBLE
-            }
+            generateViewModel.invalidate()
+            clearPreviewBitmap()
+            showGenerationWarning(validation.errorMessage ?: getString(R.string.invalid_content_for_format))
             return
         }
+        generateViewModel.preview(request)
+    }
 
-        try {
-            val style = buildCurrentStyleConfig()
-            val sanitizedStyle = AdvancedBarcodeGenerator.sanitize(style, selectedFormat)
-            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, 800, 800, sanitizedStyle)
-            if (bitmap == null) {
-                Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
-                return
-            }
-            currentBitmap = bitmap
-            binding.ivQRCode.setImageBitmap(bitmap)
-            AnimationUtils.fadeIn(binding.ivQRCode)
-            if (selectedFormat.isScannable) {
-                validateGeneratedBarcode(content, selectedFormat, bitmap)
-            } else {
-                binding.tvGenerationWarning.apply {
-                    text = getString(R.string.warning_generate_only_format)
-                    background = resources.getDrawable(R.drawable.bg_warning, null)
-                    setTextColor(resources.getColor(R.color.yellow_700, null))
-                    visibility = View.VISIBLE
-                }
-            }
-
-            recordHistory()
-        } catch (e: Exception) {
-            Log.e(TAG, "generateBarcode failed", e)
-            Toast.makeText(ctx, getString(R.string.failed_to_generate, e.message), Toast.LENGTH_SHORT).show()
+    private fun currentRequest(): GenerateRequest? {
+        val content = binding.etContent.text?.toString()?.trim().orEmpty()
+        if (content.isEmpty()) return null
+        val request = GenerateRequest(content, selectedFormat, buildCurrentStyleConfig())
+        val validation = BarcodeGenerator.validateContent(content, selectedFormat)
+        if (!validation.isValid) {
+            Toast.makeText(context, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_SHORT).show()
+            return null
         }
+        return request
+    }
+
+    private fun clearPreviewBitmap() {
+        binding.ivQRCode.setImageBitmap(null)
+        currentBitmap?.takeUnless { it.isRecycled }?.recycle()
+        currentBitmap = null
     }
 
     private fun showSaveFormatDialog() {
@@ -1462,26 +1527,20 @@ class GenerateFragment : Fragment() {
 
     private fun saveBarcodeAsSvg() {
         val ctx = context ?: return
-        val content = binding.etContent.text?.toString()?.trim()
-        if (content.isNullOrEmpty()) {
+        val request = currentRequest() ?: run {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
-        val validation = BarcodeGenerator.validateContent(content, selectedFormat)
-        if (!validation.isValid) {
-            Toast.makeText(ctx, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_SHORT).show()
-            return
-        }
-        recordHistory()
 
         try {
-            val style = buildCurrentStyleConfig()
+            val style = request.style
             val config = SvgQRCodeGenerator.SvgConfig(
                 foregroundColor = String.format("#%06X", 0xFFFFFF and style.foregroundColor),
                 backgroundColor = String.format("#%06X", 0xFFFFFF and style.backgroundColor)
             )
-            pendingSvg = SvgQRCodeGenerator.generateSVG(content, selectedFormat, config)
-            saveSvgLauncher.launch(SvgQRCodeGenerator.generateFileName(content, selectedFormat))
+            pendingSvg = SvgQRCodeGenerator.generateSVG(request.content, request.format, config)
+            recordHistory(request)
+            saveSvgLauncher.launch(SvgQRCodeGenerator.generateFileName(request.content, request.format))
         } catch (e: Exception) {
             pendingSvg = null
             Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
@@ -1495,56 +1554,43 @@ class GenerateFragment : Fragment() {
         extension: String
     ) {
         val ctx = context ?: return
-        val content = binding.etContent.text?.toString()?.trim()
-        if (content.isNullOrEmpty()) {
+        val request = currentRequest() ?: run {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
-        val validation = BarcodeGenerator.validateContent(content, selectedFormat)
-        if (!validation.isValid) {
-            Toast.makeText(ctx, validation.errorMessage ?: getString(R.string.invalid_content_for_format), Toast.LENGTH_SHORT).show()
-            return
-        }
-        recordHistory()
-
-        try {
-            val style = AdvancedBarcodeGenerator.sanitize(buildCurrentStyleConfig(), selectedFormat)
-            val bitmap = AdvancedBarcodeGenerator.generateStyled(content, selectedFormat, size, size, style)
-            if (bitmap == null) {
-                Toast.makeText(ctx, getString(R.string.failed_to_generate, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
-                return
-            }
-            currentBitmap = bitmap
-            binding.ivQRCode.setImageBitmap(bitmap)
-
+        lifecycleScope.launch {
+            val bitmap = generateOutputBitmap(request, size) ?: return@launch
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val prefix = selectedFormat.name.lowercase().replace("_", "")
+            val prefix = request.format.name.lowercase().replace("_", "")
             val fileName = "${prefix}_$timeStamp.$extension"
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-                }
-
-                val uri = ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                uri?.let {
-                    ctx.contentResolver.openOutputStream(it)?.use { outputStream ->
-                        bitmap.compress(compressFormat, 100, outputStream)
+            try {
+                val savedPath = withContext(Dispatchers.IO) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val values = ContentValues().apply {
+                            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+                        }
+                        ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)?.also { uri ->
+                            ctx.contentResolver.openOutputStream(uri)?.use { bitmap.compress(compressFormat, 100, it) }
+                        }?.toString()
+                    } else {
+                        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), fileName)
+                        FileOutputStream(file).use { bitmap.compress(compressFormat, 100, it) }
+                        file.absolutePath
                     }
+                }
+                bitmap.recycle()
+                recordHistory(request)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     Toast.makeText(ctx, getString(R.string.saved_to_gallery, fileName), Toast.LENGTH_SHORT).show()
+                } else if (savedPath != null) {
+                    Toast.makeText(ctx, getString(R.string.saved_to, savedPath), Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                val file = File(picturesDir, fileName)
-                FileOutputStream(file).use { outputStream ->
-                    bitmap.compress(compressFormat, 100, outputStream)
-                }
-                Toast.makeText(ctx, getString(R.string.saved_to, file.absolutePath), Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                if (!bitmap.isRecycled) bitmap.recycle()
+                Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
             }
-        } catch (e: Exception) {
-            Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1568,26 +1614,21 @@ class GenerateFragment : Fragment() {
 
     private fun shareBarcodeCard() {
         val ctx = context ?: return
-        if (currentBitmap == null) {
-            generateBarcode()
-        }
-        val bitmap = currentBitmap
-        if (bitmap == null) {
+        val request = currentRequest() ?: run {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
-        recordHistory()
-        val content = binding.etContent.text?.toString()?.trim()
-        if (content.isNullOrEmpty()) return
-
         lifecycleScope.launch {
-            val uri = ShareTemplateGenerator.generateShareImage(
-                ctx, bitmap, content, selectedFormat.toHistoryType()
-            )
+            val bitmap = generateOutputBitmap(request) ?: return@launch
+            val uri = withContext(Dispatchers.IO) {
+                ShareTemplateGenerator.generateShareImage(ctx, bitmap, request.content, request.format.toHistoryType())
+            }
+            bitmap.recycle()
             if (uri == null) {
                 Toast.makeText(ctx, getString(R.string.failed_to_save, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return@launch
             }
+            recordHistory(request)
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/png"
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -1599,42 +1640,59 @@ class GenerateFragment : Fragment() {
 
     private fun shareBarcode() {
         val ctx = context ?: return
-        if (currentBitmap == null) {
-            generateBarcode()
-        }
-        val bitmap = currentBitmap
-        if (bitmap == null) {
+        val request = currentRequest() ?: run {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
-        recordHistory()
+        lifecycleScope.launch {
+            val bitmap = generateOutputBitmap(request) ?: return@launch
+            try {
+                val file = withContext(Dispatchers.IO) {
+                    val cachePath = File(ctx.cacheDir, "images")
+                    cachePath.mkdirs()
+                    File(cachePath, "barcode.png").also { output ->
+                        FileOutputStream(output).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                    }
+                }
+                bitmap.recycle()
 
-        try {
-            val cachePath = File(ctx.cacheDir, "images")
-            cachePath.mkdirs()
-            val file = File(cachePath, "barcode.png")
-            FileOutputStream(file).use { outputStream ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                val uri = FileProvider.getUriForFile(
+                    ctx,
+                    "${ctx.packageName}.fileprovider",
+                    file
+                )
+
+                recordHistory(request)
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
+            } catch (e: Exception) {
+                if (!bitmap.isRecycled) bitmap.recycle()
+                Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
             }
-
-            val uri = FileProvider.getUriForFile(
-                ctx,
-                "${ctx.packageName}.fileprovider",
-                file
-            )
-
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/png"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
-        } catch (e: Exception) {
-            Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun validateGeneratedBarcode(content: String, format: BarcodeFormat, bitmap: Bitmap) {
+    private suspend fun generateOutputBitmap(request: GenerateRequest, size: Int = OUTPUT_SIZE): Bitmap? {
+        val result = withContext(Dispatchers.Default) {
+            runCatching {
+                AdvancedBarcodeGenerator.generateStyled(
+                    request.content, request.format, size, size,
+                    AdvancedBarcodeGenerator.sanitize(request.style, request.format)
+                )
+            }
+        }
+        return result.getOrElse {
+            Log.e(TAG, "Output generation failed", it)
+            Toast.makeText(context, getString(R.string.failed_to_generate, it.message), Toast.LENGTH_SHORT).show()
+            null
+        }
+    }
+
+    private fun validateGeneratedBarcode(request: GenerateRequest, bitmap: Bitmap) {
         validationJob?.cancel()
         val ctx = context ?: return
         validationJob = lifecycleScope.launch(Dispatchers.Default) {
@@ -1642,14 +1700,14 @@ class GenerateFragment : Fragment() {
                 val results = QRCodeScanner.scanSync(ctx, bitmap)
                 val warning = when {
                     results.isEmpty() -> getString(R.string.warning_barcode_not_scannable)
-                    !results.any { matchResult(content, format, it) } -> {
-                        val scanned = results.firstOrNull()?.let { resultTextForFormat(format, it) } ?: ""
-                        getString(R.string.warning_barcode_content_mismatch, content, scanned)
+                    !results.any { matchResult(request.content, request.format, it) } -> {
+                        val scanned = results.firstOrNull()?.let { resultTextForFormat(request.format, it) } ?: ""
+                        getString(R.string.warning_barcode_content_mismatch, request.content, scanned)
                     }
                     else -> null
                 }
                 withContext(Dispatchers.Main) {
-                    if (_binding != null) {
+                    if (_binding != null && currentBitmap === bitmap && currentRequest() == request) {
                         binding.tvGenerationWarning.apply {
                             if (warning != null) {
                                 text = warning
@@ -1696,29 +1754,10 @@ class GenerateFragment : Fragment() {
         return text.replace("[", "(").replace("]", ")")
     }
 
-    private fun BarcodeFormat.toHistoryType(): HistoryType {
-        return when (this) {
-            BarcodeFormat.QR_CODE -> HistoryType.QR_CODE
-            BarcodeFormat.DATA_MATRIX -> HistoryType.DATA_MATRIX
-            BarcodeFormat.AZTEC -> HistoryType.AZTEC
-            BarcodeFormat.PDF417 -> HistoryType.PDF417
-            BarcodeFormat.RSS_14 -> HistoryType.RSS_14
-            BarcodeFormat.RSS_EXPANDED -> HistoryType.RSS_EXPANDED
-            BarcodeFormat.MAXICODE -> HistoryType.MAXICODE
-            BarcodeFormat.MICRO_QR -> HistoryType.MICRO_QR
-            BarcodeFormat.UPC_EAN_EXTENSION -> HistoryType.UPC_EAN_EXTENSION
-            BarcodeFormat.PHARMACODE -> HistoryType.PHARMACODE
-            BarcodeFormat.PLESSEY -> HistoryType.PLESSEY
-            BarcodeFormat.MSI_PLESSEY -> HistoryType.MSI_PLESSEY
-            BarcodeFormat.TELEPEN -> HistoryType.TELEPEN
-            BarcodeFormat.HAN_XIN -> HistoryType.HAN_XIN
-            else -> HistoryType.BARCODE
-        }
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         validationJob?.cancel()
+        binding.ivQRCode.setImageBitmap(null)
         _binding = null
     }
 }

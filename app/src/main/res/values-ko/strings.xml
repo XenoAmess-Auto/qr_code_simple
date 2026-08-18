@@ -655,4 +655,10 @@
     <string name="generation_returned_no_image">생성기가 이미지를 반환하지 않았습니다</string>
     <string name="retry">재시도</string>
     <string name="export_results">결과 내보내기</string><string name="export_complete">내보내기 완료</string><string name="saved_items">%1$d개 저장됨</string><string name="clear_results_confirm">결과 %1$d개를 모두 지울까요?</string><string name="scan_auto_save">자동 저장: %1$s</string><string name="scan_interval">스캔 간격: %1$dms</string><string name="scan_settings">스캔 설정</string><string name="scan_interval_title">스캔 간격</string><string name="enabled">사용</string><string name="disabled">사용 안 함</string><string name="no_results_to_export">내보낼 결과가 없습니다</string>
+    <string name="format_category_matrix">매트릭스</string>
+    <string name="format_category_linear">선형</string>
+    <string name="format_category_postal">우편</string>
+    <string name="format_scannable">스캔 가능</string>
+    <string name="format_generate_only">생성 전용</string>
+    <string name="format_recent">최근 사용</string>
 </resources>

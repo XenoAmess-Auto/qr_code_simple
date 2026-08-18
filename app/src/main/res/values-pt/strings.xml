@@ -1148,4 +1148,10 @@ https://another.com
     <string name="generation_returned_no_image">O gerador não retornou uma imagem</string>
     <string name="retry">Tentar novamente</string>
     <string name="export_results">Exportar resultados</string><string name="export_complete">Exportação concluída</string><string name="saved_items">%1$d itens guardados</string><string name="clear_results_confirm">Limpar todos os %1$d resultados?</string><string name="scan_auto_save">Guardar automaticamente: %1$s</string><string name="scan_interval">Intervalo: %1$d ms</string><string name="scan_settings">Definições de leitura</string><string name="scan_interval_title">Intervalo de leitura</string><string name="enabled">Ativado</string><string name="disabled">Desativado</string><string name="no_results_to_export">Sem resultados para exportar</string>
+    <string name="format_category_matrix">Matriz</string>
+    <string name="format_category_linear">Linear</string>
+    <string name="format_category_postal">Postal</string>
+    <string name="format_scannable">Digitalizável</string>
+    <string name="format_generate_only">Somente gerar</string>
+    <string name="format_recent">Recente</string>
 </resources>

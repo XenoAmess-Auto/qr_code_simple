@@ -11,8 +11,12 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 
 class BarcodeFormatAdapter(
     context: Context,
-    private val formats: List<BarcodeFormat>
+    formats: List<BarcodeFormat>,
+    recentFormats: List<BarcodeFormat> = emptyList()
 ) : ArrayAdapter<BarcodeFormat>(context, R.layout.item_barcode_format, ArrayList(formats)) {
+
+    private val recent = recentFormats.toSet()
+    private val formats = recentFormats.filter { it in formats } + formats.filter { it !in recent }
 
     private val localizedNames = formats.associateWith { it.localizedName(context) }
     private val englishNames = formats.associateWith { it.displayName }
@@ -80,17 +84,37 @@ class BarcodeFormatAdapter(
         val format = getItem(position) ?: return view
         text1.text = localizedNames[format]
         if (showEnglish && localizedNames[format] != englishNames[format]) {
-            text2.text = englishNames[format]
+            text2.text = detail(format)
             text2.visibility = View.VISIBLE
         } else {
-            text2.text = ""
-            text2.visibility = View.GONE
+            text2.text = detail(format)
+            text2.visibility = View.VISIBLE
         }
         return view
     }
 
     fun resetFilter() {
         formatFilter.filter(null)
+    }
+
+    private fun detail(format: BarcodeFormat): String {
+        val category = when (format) {
+            BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX, BarcodeFormat.AZTEC,
+            BarcodeFormat.PDF417, BarcodeFormat.MAXICODE, BarcodeFormat.MICRO_QR,
+            BarcodeFormat.HAN_XIN, BarcodeFormat.SWISS_QR_CODE, BarcodeFormat.UPN_QR_CODE,
+            BarcodeFormat.AZTEC_RUNE, BarcodeFormat.CODE_ONE, BarcodeFormat.GRID_MATRIX ->
+                context.getString(R.string.format_category_matrix)
+            BarcodeFormat.POSTNET, BarcodeFormat.ROYAL_MAIL_4_STATE, BarcodeFormat.USPS_ONE_CODE,
+            BarcodeFormat.USPS_PACKAGE, BarcodeFormat.JAPAN_POST, BarcodeFormat.KIX_CODE,
+            BarcodeFormat.KOREA_POST, BarcodeFormat.AUSTRALIA_POST -> context.getString(R.string.format_category_postal)
+            else -> context.getString(R.string.format_category_linear)
+        }
+        val availability = context.getString(
+            if (format.isScannable) R.string.format_scannable else R.string.format_generate_only
+        )
+        val recentLabel = if (format in recent) "${context.getString(R.string.format_recent)} · " else ""
+        val english = englishNames[format].orEmpty()
+        return "$recentLabel$category · $availability · $english"
     }
 
     private fun isEnglishLocale(context: Context): Boolean {
