@@ -47,7 +47,7 @@
 
         <activity
             android:name=".CameraScanActivity"
-            android:label="Camera Scan" />
+            android:label="@string/camera_scan" />
 
         <activity
             android:name=".ScanImageActivity"
@@ -94,11 +94,13 @@
 
         <activity
             android:name=".ResultActivity"
-            android:label="@string/scan_results" />
+            android:label="@string/scan_results"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".VideoScanActivity"
-            android:label="Video Scan" />
+            android:label="@string/video_scan"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".BatchGenerateActivity"
@@ -106,7 +108,8 @@
 
         <activity
             android:name=".BatchResultActivity"
-            android:label="@string/batch_result" />
+            android:label="@string/batch_result"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <!-- 连续扫描模式 -->
         <activity

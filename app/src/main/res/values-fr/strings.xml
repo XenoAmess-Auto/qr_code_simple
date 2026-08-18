@@ -1,4 +1,6 @@
 <resources>
+    <string name="camera_scan">Scan de l’appareil photo</string>
+    <string name="video_scan">Scan de vidéo</string>
     <string name="app_name">QR Code Simple</string>
 
 

@@ -54,9 +54,6 @@ class VideoScanActivity : AppCompatActivity() {
         binding = ActivityVideoScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 设置沉浸式状态栏并处理安全区域
-        setupEdgeToEdge()
-
         historyRepository = HistoryRepository(this)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

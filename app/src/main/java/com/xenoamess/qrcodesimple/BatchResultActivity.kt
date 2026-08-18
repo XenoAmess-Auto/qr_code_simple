@@ -58,7 +58,6 @@ class BatchResultActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBatchResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupEdgeToEdge()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.batch_result)
         setupRecyclerView()

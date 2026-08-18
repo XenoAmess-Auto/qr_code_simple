@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="camera_scan">カメラスキャン</string>
+    <string name="video_scan">動画スキャン</string>
     <string name="app_name">QR Code Simple</string>
 
     <!-- タブ -->

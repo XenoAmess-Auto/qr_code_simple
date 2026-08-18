@@ -51,9 +51,6 @@ class ResultActivity : AppCompatActivity() {
         binding = ActivityResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 设置沉浸式状态栏并处理安全区域
-        setupEdgeToEdge()
-
         historyRepository = HistoryRepository(this)
         contentActionHandler = ContentActionHandler(this)
 
