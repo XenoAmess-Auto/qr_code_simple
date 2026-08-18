@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.core.content.FileProvider
 import com.xenoamess.qrcodesimple.data.HistoryType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -51,6 +52,8 @@ object ShareTemplateGenerator {
             description = getDefaultDescription(context, content, type)
         )
     ): Uri? = withContext(Dispatchers.IO) {
+        var outputBitmap: Bitmap? = null
+        var scaledQr: Bitmap? = null
         try {
             if (qrCodeBitmap.isRecycled) return@withContext null
 
@@ -62,6 +65,7 @@ object ShareTemplateGenerator {
             val totalHeight = headerHeight + qrSize + padding * 2 + footerHeight
 
             val bitmap = Bitmap.createBitmap(width, totalHeight, Bitmap.Config.ARGB_8888)
+            outputBitmap = bitmap
             val canvas = Canvas(bitmap)
 
             // 背景
@@ -117,7 +121,7 @@ object ShareTemplateGenerator {
             )
 
             // 绘制二维码
-            val scaledQr = Bitmap.createScaledBitmap(qrCodeBitmap, qrSize, qrSize, true)
+            scaledQr = Bitmap.createScaledBitmap(qrCodeBitmap, qrSize, qrSize, true)
             canvas.drawBitmap(scaledQr, qrLeft, qrTop, null)
 
             // 底部信息
@@ -143,14 +147,20 @@ object ShareTemplateGenerator {
             // 保存到文件目录
             val shareDir = File(context.filesDir, "share_images").apply { mkdirs() }
             val file = File(shareDir, "share_${System.currentTimeMillis()}.png")
-            FileOutputStream(file).use { out ->
+            val compressed = FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
+            check(compressed) { "Share image compression failed" }
 
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "generateShareImage failed", e)
             null
+        } finally {
+            scaledQr?.takeIf { it !== qrCodeBitmap && !it.isRecycled }?.recycle()
+            outputBitmap?.takeUnless { it.isRecycled }?.recycle()
         }
     }
 
@@ -162,11 +172,13 @@ object ShareTemplateGenerator {
         qrCodeBitmap: Bitmap,
         padding: Int = 40
     ): Uri? = withContext(Dispatchers.IO) {
+        var outputBitmap: Bitmap? = null
         try {
             if (qrCodeBitmap.isRecycled) return@withContext null
 
             val size = qrCodeBitmap.width + padding * 2
             val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            outputBitmap = bitmap
             val canvas = Canvas(bitmap)
             
             canvas.drawColor(Color.WHITE)
@@ -174,14 +186,19 @@ object ShareTemplateGenerator {
 
             val shareDir = File(context.filesDir, "share_images").apply { mkdirs() }
             val file = File(shareDir, "qr_${System.currentTimeMillis()}.png")
-            FileOutputStream(file).use { out ->
+            val compressed = FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
+            check(compressed) { "Share image compression failed" }
 
             FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "generatePlainQrImage failed", e)
             null
+        } finally {
+            outputBitmap?.takeUnless { it.isRecycled }?.recycle()
         }
     }
 

@@ -27,8 +27,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.core.view.doOnAttach
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -43,8 +45,11 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.collectLatest
@@ -83,6 +88,7 @@ class GenerateFragment : Fragment() {
     private var validationJob: Job? = null
     private var pendingImageType: ImageType? = null
     private var updatingAngleFromCode = false
+    private var restoringEditorState = false
 
     private enum class ImageType {
         FOREGROUND, BACKGROUND
@@ -205,11 +211,23 @@ class GenerateFragment : Fragment() {
 
         historyRepository = HistoryRepository(requireContext())
         generateViewModel = ViewModelProvider(this)[GenerateViewModel::class.java]
-        observePreviewState()
+        val restoredRequest = generateViewModel.latestRequest()
+        restoringEditorState = true
+        restoredRequest?.let {
+            selectedFormat = it.format
+            restoreStyleFields(it.style)
+        }
 
         setupFormatSelector()
         setupStyleControls()
         setupButtons()
+        restoredRequest?.let {
+            binding.etContent.setText(it.content)
+            binding.etContent.setSelection(it.content.length)
+            applyStyleConfig(it.style)
+        }
+        restoringEditorState = false
+        observePreviewState()
 
         // 处理从历史详情页跳转回生成页的参数
         val activity = requireActivity() as? MainActivity
@@ -231,23 +249,28 @@ class GenerateFragment : Fragment() {
 
     private fun observePreviewState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            generateViewModel.previewState.collectLatest { state ->
-                if (_binding == null) return@collectLatest
-                when (state) {
-                    GeneratePreviewState.Empty -> Unit
-                    is GeneratePreviewState.Loading -> showGenerationWarning(null)
-                    is GeneratePreviewState.Invalid -> showGenerationWarning(state.message)
-                    is GeneratePreviewState.Failed -> {
-                        showGenerationWarning(getString(R.string.failed_to_generate, state.message ?: getString(R.string.unknown_error)))
-                    }
-                    is GeneratePreviewState.Ready -> {
-                        replacePreviewBitmap(state.bitmap)
-                        if (state.request.format.isScannable) {
-                            validateGeneratedBarcode(state.request, state.bitmap)
-                        } else {
-                            showGenerationWarning(getString(R.string.warning_generate_only_format))
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                generateViewModel.previewState.collectLatest { state ->
+                    if (_binding == null) return@collectLatest
+                    when (state) {
+                        GeneratePreviewState.Empty -> Unit
+                        is GeneratePreviewState.Loading -> {
+                            clearPreviewBitmap()
+                            showGenerationWarning(null)
                         }
-                        recordHistory(state.request)
+                        is GeneratePreviewState.Invalid -> showGenerationWarning(state.message)
+                        is GeneratePreviewState.Failed -> {
+                            showGenerationWarning(getString(R.string.failed_to_generate, state.message ?: getString(R.string.unknown_error)))
+                        }
+                        is GeneratePreviewState.Ready -> {
+                            replacePreviewBitmap(state.bitmap)
+                            if (state.request.format.isScannable) {
+                                validateGeneratedBarcode(state.request, state.bitmap)
+                            } else {
+                                showGenerationWarning(getString(R.string.warning_generate_only_format))
+                            }
+                            recordHistory(state.request)
+                        }
                     }
                 }
             }
@@ -255,10 +278,8 @@ class GenerateFragment : Fragment() {
     }
 
     private fun replacePreviewBitmap(bitmap: Bitmap) {
-        val old = currentBitmap
         currentBitmap = bitmap
         binding.ivQRCode.setImageBitmap(bitmap)
-        if (old != null && old !== bitmap && !old.isRecycled) old.recycle()
         AnimationUtils.fadeIn(binding.ivQRCode)
     }
 
@@ -736,29 +757,16 @@ class GenerateFragment : Fragment() {
     }
 
     private fun applyStyleConfig(style: AdvancedBarcodeGenerator.StyleConfig) {
+        restoreStyleFields(style)
         selectedStyle = style
         selectedScheme = null
-        foregroundImageBitmap = null
-        backgroundImageBitmap = null
-        logoBitmap = null
-        cornerRadius = style.cornerRadius
-        logoScale = style.logoScale
-        logoShape = style.logoShape
-        logoCornerRadius = style.logoCornerRadius
-        moduleShape = style.moduleShape
-        moduleFillRatio = style.moduleFillRatio
-        positionPatternShape = style.positionPatternShape
-        gradientAngle = style.gradientAngle
-        gradientStops.clear()
-        gradientStops.addAll(style.gradientStops.map { AdvancedBarcodeGenerator.ColorStop(sanitizePosition(it.position), it.color) })
-        gradientEnabled = style.gradientStops.size >= 2
 
-        updateImagePreview(binding.viewFgImagePreview, null)
-        updateImagePreview(binding.viewBgImagePreview, null)
-        updateImagePreview(binding.ivLogoPreview, null)
-        binding.btnRemoveForegroundImage.visibility = View.GONE
-        binding.btnRemoveBackgroundImage.visibility = View.GONE
-        binding.logoScaleSection.visibility = View.GONE
+        updateImagePreview(binding.viewFgImagePreview, foregroundImageBitmap)
+        updateImagePreview(binding.viewBgImagePreview, backgroundImageBitmap)
+        updateImagePreview(binding.ivLogoPreview, logoBitmap)
+        binding.btnRemoveForegroundImage.visibility = if (foregroundImageBitmap == null) View.GONE else View.VISIBLE
+        binding.btnRemoveBackgroundImage.visibility = if (backgroundImageBitmap == null) View.GONE else View.VISIBLE
+        binding.logoScaleSection.visibility = if (logoBitmap == null) View.GONE else View.VISIBLE
 
         updateColorPreviews()
         updateStyleControlUIs()
@@ -776,6 +784,24 @@ class GenerateFragment : Fragment() {
         binding.seekBarLogoCornerRadius.value = logoCornerRadius * 100f
         binding.tvLogoCornerRadiusValue.text = "${(logoCornerRadius * 100).toInt()}%"
         updateHintForFormat()
+    }
+
+    private fun restoreStyleFields(style: AdvancedBarcodeGenerator.StyleConfig) {
+        selectedStyle = style
+        foregroundImageBitmap = style.foregroundBitmap
+        backgroundImageBitmap = style.backgroundBitmap
+        logoBitmap = style.logoBitmap
+        cornerRadius = style.cornerRadius
+        logoScale = style.logoScale
+        logoShape = style.logoShape
+        logoCornerRadius = style.logoCornerRadius
+        moduleShape = style.moduleShape
+        moduleFillRatio = style.moduleFillRatio
+        positionPatternShape = style.positionPatternShape
+        gradientAngle = style.gradientAngle
+        gradientStops.clear()
+        gradientStops.addAll(style.gradientStops.map { AdvancedBarcodeGenerator.ColorStop(sanitizePosition(it.position), it.color) })
+        gradientEnabled = style.gradientStops.size >= 2
     }
 
     fun loadFromHistory(content: String?, format: BarcodeFormat?, styleJson: String?) {
@@ -1415,6 +1441,8 @@ class GenerateFragment : Fragment() {
                 historyRepository.insertGenerate(
                     request.content, request.format.toHistoryType(), request.format.name, styleJson
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to save history", e)
             }
@@ -1422,6 +1450,7 @@ class GenerateFragment : Fragment() {
     }
 
     private fun generateBarcode() {
+        if (restoringEditorState) return
         val content = binding.etContent.text?.toString()?.trim()
         if (content.isNullOrEmpty()) {
             generateViewModel.invalidate()
@@ -1454,7 +1483,6 @@ class GenerateFragment : Fragment() {
 
     private fun clearPreviewBitmap() {
         binding.ivQRCode.setImageBitmap(null)
-        currentBitmap?.takeUnless { it.isRecycled }?.recycle()
         currentBitmap = null
     }
 
@@ -1560,16 +1588,18 @@ class GenerateFragment : Fragment() {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
-        val exportId = generateViewModel.beginExport()
-        lifecycleScope.launch {
-            val bitmap = generateOutputBitmap(request, size) ?: run {
-                generateViewModel.failExport(exportId, null)
-                return@launch
-            }
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val prefix = request.format.name.lowercase().replace("_", "")
-            val fileName = "${prefix}_$timeStamp.$extension"
+        val exportId = generateViewModel.beginExport() ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            var bitmap: Bitmap? = null
             try {
+                bitmap = generateOutputBitmap(request, size) ?: run {
+                    generateViewModel.failExport(exportId, null)
+                    return@launch
+                }
+                val outputBitmap = bitmap
+                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.getDefault()).format(Date())
+                val prefix = request.format.name.lowercase().replace("_", "")
+                val fileName = "${prefix}_${timeStamp}_$exportId.$extension"
                 val savedPath = withContext(Dispatchers.IO) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         val values = ContentValues().apply {
@@ -1577,16 +1607,25 @@ class GenerateFragment : Fragment() {
                             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
                             put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
                         }
-                        ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)?.also { uri ->
-                            ctx.contentResolver.openOutputStream(uri)?.use { bitmap.compress(compressFormat, 100, it) }
-                        }?.toString()
+                        val uri = ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                            ?: error("Unable to create MediaStore entry")
+                        try {
+                            val compressed = ctx.contentResolver.openOutputStream(uri)?.use {
+                                outputBitmap.compress(compressFormat, 100, it)
+                            } ?: false
+                            check(compressed) { "Bitmap compression failed" }
+                            uri.toString()
+                        } catch (throwable: Throwable) {
+                            ctx.contentResolver.delete(uri, null, null)
+                            throw throwable
+                        }
                     } else {
                         val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), fileName)
-                        FileOutputStream(file).use { bitmap.compress(compressFormat, 100, it) }
+                        val compressed = FileOutputStream(file).use { outputBitmap.compress(compressFormat, 100, it) }
+                        check(compressed) { "Bitmap compression failed" }
                         file.absolutePath
                     }
                 }
-                bitmap.recycle()
                 recordHistory(request)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     Toast.makeText(ctx, getString(R.string.saved_to_gallery, fileName), Toast.LENGTH_SHORT).show()
@@ -1594,10 +1633,14 @@ class GenerateFragment : Fragment() {
                     Toast.makeText(ctx, getString(R.string.saved_to, savedPath), Toast.LENGTH_SHORT).show()
                 }
                 generateViewModel.completeExport(exportId)
+            } catch (e: CancellationException) {
+                generateViewModel.cancelExport(exportId)
+                throw e
             } catch (e: Exception) {
-                if (!bitmap.isRecycled) bitmap.recycle()
                 generateViewModel.failExport(exportId, e.message)
                 Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+            } finally {
+                bitmap?.takeUnless { it.isRecycled }?.recycle()
             }
         }
     }
@@ -1626,29 +1669,37 @@ class GenerateFragment : Fragment() {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
-        val exportId = generateViewModel.beginExport()
-        lifecycleScope.launch {
-            val bitmap = generateOutputBitmap(request) ?: run {
-                generateViewModel.failExport(exportId, null)
-                return@launch
+        val exportId = generateViewModel.beginExport() ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            var bitmap: Bitmap? = null
+            try {
+                bitmap = generateOutputBitmap(request) ?: run {
+                    generateViewModel.failExport(exportId, null)
+                    return@launch
+                }
+                val uri = ShareTemplateGenerator.generateShareImage(
+                    ctx,
+                    bitmap,
+                    request.content,
+                    request.format.toHistoryType()
+                ) ?: error("Share image generation failed")
+                recordHistory(request)
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
+                generateViewModel.completeExport(exportId)
+            } catch (e: CancellationException) {
+                generateViewModel.cancelExport(exportId)
+                throw e
+            } catch (e: Exception) {
+                generateViewModel.failExport(exportId, e.message)
+                Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+            } finally {
+                bitmap?.takeUnless { it.isRecycled }?.recycle()
             }
-            val uri = withContext(Dispatchers.IO) {
-                ShareTemplateGenerator.generateShareImage(ctx, bitmap, request.content, request.format.toHistoryType())
-            }
-            bitmap.recycle()
-            if (uri == null) {
-                generateViewModel.failExport(exportId, null)
-                Toast.makeText(ctx, getString(R.string.failed_to_save, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-            recordHistory(request)
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/png"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
-            generateViewModel.completeExport(exportId)
         }
     }
 
@@ -1658,21 +1709,25 @@ class GenerateFragment : Fragment() {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
-        val exportId = generateViewModel.beginExport()
-        lifecycleScope.launch {
-            val bitmap = generateOutputBitmap(request) ?: run {
-                generateViewModel.failExport(exportId, null)
-                return@launch
-            }
+        val exportId = generateViewModel.beginExport() ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            var bitmap: Bitmap? = null
             try {
+                bitmap = generateOutputBitmap(request) ?: run {
+                    generateViewModel.failExport(exportId, null)
+                    return@launch
+                }
+                val outputBitmap = bitmap
                 val file = withContext(Dispatchers.IO) {
                     val cachePath = File(ctx.cacheDir, "images")
                     cachePath.mkdirs()
-                    File(cachePath, "barcode.png").also { output ->
-                        FileOutputStream(output).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                    File(cachePath, "barcode-$exportId.png").also { output ->
+                        val compressed = FileOutputStream(output).use {
+                            outputBitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+                        }
+                        check(compressed) { "Bitmap compression failed" }
                     }
                 }
-                bitmap.recycle()
 
                 val uri = FileProvider.getUriForFile(
                     ctx,
@@ -1688,36 +1743,50 @@ class GenerateFragment : Fragment() {
                 }
                 startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
                 generateViewModel.completeExport(exportId)
+            } catch (e: CancellationException) {
+                generateViewModel.cancelExport(exportId)
+                throw e
             } catch (e: Exception) {
-                if (!bitmap.isRecycled) bitmap.recycle()
                 generateViewModel.failExport(exportId, e.message)
                 Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+            } finally {
+                bitmap?.takeUnless { it.isRecycled }?.recycle()
             }
         }
     }
 
     private suspend fun generateOutputBitmap(request: GenerateRequest, size: Int = OUTPUT_SIZE): Bitmap? {
-        val result = withContext(Dispatchers.Default) {
-            runCatching {
-                AdvancedBarcodeGenerator.generateStyled(
-                    request.content, request.format, size, size,
-                    AdvancedBarcodeGenerator.sanitize(request.style, request.format)
-                )
+        var bitmap: Bitmap? = null
+        var failure: Throwable? = null
+        return try {
+            withContext(Dispatchers.Default) {
+                try {
+                    bitmap = AdvancedBarcodeGenerator.generateStyled(
+                        request.content, request.format, size, size,
+                        AdvancedBarcodeGenerator.sanitize(request.style, request.format)
+                    )
+                } catch (throwable: Throwable) {
+                    failure = throwable
+                }
             }
-        }
-        return result.getOrElse {
-            Log.e(TAG, "Output generation failed", it)
-            Toast.makeText(context, getString(R.string.failed_to_generate, it.message), Toast.LENGTH_SHORT).show()
-            null
+            currentCoroutineContext().ensureActive()
+            failure?.let {
+                Log.e(TAG, "Output generation failed", it)
+                Toast.makeText(context, getString(R.string.failed_to_generate, it.message), Toast.LENGTH_SHORT).show()
+            }
+            bitmap
+        } catch (e: CancellationException) {
+            bitmap?.takeUnless { it.isRecycled }?.recycle()
+            throw e
         }
     }
 
     private fun validateGeneratedBarcode(request: GenerateRequest, bitmap: Bitmap) {
         validationJob?.cancel()
         val ctx = context ?: return
-        validationJob = lifecycleScope.launch(Dispatchers.Default) {
+        validationJob = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
             try {
-                val results = QRCodeScanner.scanSync(ctx, bitmap)
+                val results = QRCodeScanner.scan(ctx, bitmap, QRCodeScanner.IMAGE_SCAN_CONFIG)
                 val warning = when {
                     results.isEmpty() -> getString(R.string.warning_barcode_not_scannable)
                     !results.any { matchResult(request.content, request.format, it) } -> {
@@ -1743,6 +1812,8 @@ class GenerateFragment : Fragment() {
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Validation failed", e)
             }

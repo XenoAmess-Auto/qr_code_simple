@@ -7,6 +7,7 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,31 +44,50 @@ class GenerateViewModel : ViewModel() {
     private var previewJob: Job? = null
     private var requestId = 0L
     private var exportId = 0L
+    private var previewBitmap: Bitmap? = null
+
+    fun latestRequest(): GenerateRequest? = when (val state = _previewState.value) {
+        GeneratePreviewState.Empty -> null
+        is GeneratePreviewState.Loading -> state.request
+        is GeneratePreviewState.Ready -> state.request
+        is GeneratePreviewState.Invalid -> state.request
+        is GeneratePreviewState.Failed -> state.request
+    }
 
     fun preview(request: GenerateRequest) {
         previewJob?.cancel()
         val id = ++requestId
+        clearPreviewBitmap()
         _previewState.value = GeneratePreviewState.Loading(request)
         previewJob = viewModelScope.launch {
             delay(PREVIEW_DEBOUNCE_MS)
-            val result = withContext(Dispatchers.Default) {
-                runCatching {
-                    AdvancedBarcodeGenerator.generateStyled(
-                        request.content, request.format, PREVIEW_SIZE, PREVIEW_SIZE,
-                        AdvancedBarcodeGenerator.sanitize(request.style, request.format)
-                    )
+            var generated: Bitmap? = null
+            var failure: Throwable? = null
+            try {
+                withContext(Dispatchers.Default) {
+                    try {
+                        generated = AdvancedBarcodeGenerator.generateStyled(
+                            request.content, request.format, PREVIEW_SIZE, PREVIEW_SIZE,
+                            AdvancedBarcodeGenerator.sanitize(request.style, request.format)
+                        )
+                    } catch (throwable: Throwable) {
+                        failure = throwable
+                    }
                 }
-            }
-            // Encoders are not cooperative; dispose a result that completed after cancellation.
-            if (id != requestId) {
-                result.getOrNull()?.recycle()
-                return@launch
-            }
-            val bitmap = result.getOrNull()
-            _previewState.value = when {
-                bitmap != null -> GeneratePreviewState.Ready(request, bitmap)
-                result.isFailure -> GeneratePreviewState.Failed(request, result.exceptionOrNull()?.message)
-                else -> GeneratePreviewState.Failed(request, null)
+                ensureActive()
+                if (id != requestId) return@launch
+                val bitmap = generated
+                _previewState.value = when {
+                    bitmap != null -> {
+                        previewBitmap = bitmap
+                        generated = null
+                        GeneratePreviewState.Ready(request, bitmap)
+                    }
+                    failure != null -> GeneratePreviewState.Failed(request, failure?.message)
+                    else -> GeneratePreviewState.Failed(request, null)
+                }
+            } finally {
+                generated?.takeUnless { it.isRecycled }?.recycle()
             }
         }
     }
@@ -75,10 +95,12 @@ class GenerateViewModel : ViewModel() {
     fun invalidate() {
         previewJob?.cancel()
         requestId++
+        clearPreviewBitmap()
         _previewState.value = GeneratePreviewState.Empty
     }
 
-    fun beginExport(): Long {
+    fun beginExport(): Long? {
+        if (_exportState.value is GenerateExportState.Running) return null
         val id = ++exportId
         _exportState.value = GenerateExportState.Running(id)
         return id
@@ -96,11 +118,20 @@ class GenerateViewModel : ViewModel() {
         }
     }
 
+    fun cancelExport(id: Long) {
+        if ((_exportState.value as? GenerateExportState.Running)?.id == id) {
+            _exportState.value = GenerateExportState.Idle
+        }
+    }
+
+    private fun clearPreviewBitmap() {
+        previewBitmap?.takeUnless { it.isRecycled }?.recycle()
+        previewBitmap = null
+    }
+
     override fun onCleared() {
         previewJob?.cancel()
-        (_previewState.value as? GeneratePreviewState.Ready)?.bitmap
-            ?.takeUnless { it.isRecycled }
-            ?.recycle()
+        clearPreviewBitmap()
     }
 
     private companion object {
