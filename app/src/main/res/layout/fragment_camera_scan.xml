@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/camera_panel">
 
     <!-- Camera Preview -->
     <androidx.camera.view.PreviewView
@@ -31,69 +32,70 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_gravity="top"
-        android:background="#88000000"
-        android:padding="12dp"
-        android:gravity="center_vertical">
+        android:background="@color/camera_scrim"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/point_camera_at_qr_code"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/white"
             android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/btnScanRegion"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:src="@drawable/ic_crop"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/scan_region"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnGallery"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
             android:src="@drawable/ic_gallery"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/from_gallery"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnContinuousScan"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
             android:src="@drawable/ic_continuous_scan"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/continuous_scan"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnFlash"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
             android:src="@drawable/ic_flash_off"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/flash"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnSwitchCamera"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
             android:src="@drawable/ic_switch_camera"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/switch_camera"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
     </LinearLayout>
 
@@ -110,9 +112,11 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="#CC000000">
+            app:cardBackgroundColor="@color/camera_panel"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/app_outline"
+            app:strokeWidth="1dp">
 
             <FrameLayout
                 android:layout_width="40dp"
@@ -132,9 +136,9 @@
                     app:trackHeight="6dp"
                     app:thumbRadius="8dp"
                     app:thumbColor="@android:color/white"
-                    app:trackColorActive="?attr/colorPrimary"
-                    app:trackColorInactive="@android:color/darker_gray"
-                    app:haloColor="?attr/colorPrimary"
+                    app:trackColorActive="@color/app_primary"
+                    app:trackColorInactive="@color/app_outline"
+                    app:haloColor="@color/app_primary"
                     app:haloRadius="16dp" />
 
             </FrameLayout>
@@ -152,10 +156,10 @@
         android:layout_marginStart="60dp"
         android:layout_marginTop="80dp"
         tools:text="1.0x"
-        android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/white"
         android:textStyle="bold"
-        android:background="#CC000000"
+        android:background="@color/camera_panel"
         android:paddingHorizontal="8dp"
         android:paddingVertical="4dp"
         android:visibility="gone" />
@@ -163,13 +167,12 @@
     <!-- Result Card (Bottom) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/resultCard"
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
-        android:visibility="gone"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp">
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -188,46 +191,48 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/scan_result"
-                    android:textSize="18sp"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/app_text_primary"
                     android:textStyle="bold" />
 
                 <ImageButton
                     android:id="@+id/btnFavoriteResult"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@drawable/ic_star_border"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/add_to_favorites" />
+                    android:contentDescription="@string/add_to_favorites"
+                    app:tint="@color/app_text_secondary" />
 
                 <ImageButton
                     android:id="@+id/btnNoteResult"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="4dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@drawable/ic_note"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/add_notes" />
+                    android:contentDescription="@string/add_notes"
+                    app:tint="@color/app_text_secondary" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnNextResult"
+                    style="@style/Widget.QRCodeSimple.Button.Text"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
+                    android:layout_height="48dp"
                     android:minWidth="0dp"
-                    android:minHeight="0dp"
+                    android:minHeight="48dp"
                     android:paddingHorizontal="8dp"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorPrimary"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
                     android:visibility="gone"
-                    style="?android:attr/borderlessButtonStyle"
                     tools:text="1/2" />
 
                 <ImageButton
                     android:id="@+id/btnCloseResult"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@drawable/ic_close"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/close" />
+                    android:contentDescription="@string/close"
+                    app:tint="@color/app_text_secondary" />
 
             </LinearLayout>
 
@@ -237,12 +242,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:background="?attr/colorPrimary"
+                android:background="@drawable/bg_app_metadata_badge"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
                 android:text="@string/chip_content_wifi"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="@color/app_on_primary_container"
                 android:visibility="gone" />
 
             <TextView
@@ -250,15 +255,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/scanning"
-                android:textSize="16sp"
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="12dp"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="@color/app_text_primary"
                 android:textIsSelectable="true"
                 android:accessibilityLiveRegion="polite" />
 
             <!-- Smart Action Button (WiFi Connect, etc.) -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSmartAction"
+                style="@style/Widget.QRCodeSimple.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
@@ -272,6 +279,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCopyResult"
+                    style="@style/Widget.QRCodeSimple.Button.Outlined"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -281,6 +289,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnShareResult"
+                    style="@style/Widget.QRCodeSimple.Button.Text"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"

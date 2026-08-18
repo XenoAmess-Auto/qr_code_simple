@@ -2,10 +2,10 @@ package com.xenoamess.qrcodesimple
 
 import android.content.Context
 import android.os.Looper
-import android.widget.Switch
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.android.material.switchmaterial.SwitchMaterial
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -46,7 +46,7 @@ class BackupActivityWebdavTest {
     @Test
     fun `auto upload switch persists`() {
         scenario?.onActivity { activity ->
-            val toggle = activity.findViewById<Switch>(R.id.switchWebdavAutoUpload)
+            val toggle = activity.findViewById<SwitchMaterial>(R.id.switchWebdavAutoUpload)
             assertFalse(toggle.isChecked)
             toggle.performClick()
         }

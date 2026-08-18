@@ -1,7 +1,6 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
-import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.RelativeSizeSpan
@@ -29,7 +28,12 @@ fun BarcodeFormat.localizedNameWithEnglish(context: Context): CharSequence {
         val start = length
         append(displayName)
         setSpan(RelativeSizeSpan(0.75f), start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        setSpan(ForegroundColorSpan(Color.GRAY), start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        setSpan(
+            ForegroundColorSpan(context.getColor(R.color.app_text_secondary)),
+            start,
+            length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
 }
 

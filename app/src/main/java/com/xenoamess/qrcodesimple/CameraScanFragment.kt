@@ -27,6 +27,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import com.xenoamess.qrcodesimple.ContentParser.ParsedContent
 import com.xenoamess.qrcodesimple.data.HistoryRepository
@@ -510,7 +511,7 @@ class CameraScanFragment : Fragment() {
                 setSelection(item.notes?.length ?: 0)
                 hint = getString(R.string.add_notes)
             }
-            android.app.AlertDialog.Builder(ctx)
+            MaterialAlertDialogBuilder(ctx)
                 .setTitle(getString(R.string.add_notes))
                 .setView(editText)
                 .setPositiveButton(getString(R.string.save_action)) { _, _ ->

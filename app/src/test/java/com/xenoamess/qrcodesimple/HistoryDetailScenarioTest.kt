@@ -5,7 +5,7 @@ import android.os.Looper
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle

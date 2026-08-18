@@ -136,9 +136,9 @@ object AppLockManager {
             })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Unlock QR Code Simple")
-            .setSubtitle("Use your biometric credential")
-            .setNegativeButtonText("Cancel")
+            .setTitle(activity.getString(R.string.app_lock))
+            .setSubtitle(activity.getString(R.string.unlock))
+            .setNegativeButtonText(activity.getString(R.string.cancel))
             .build()
 
         biometricPrompt.authenticate(promptInfo)

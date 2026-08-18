@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:background="@drawable/bg_about_version_badge"
+                android:background="@drawable/bg_app_metadata_badge"
                 android:fontFamily="monospace"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
@@ -317,8 +317,8 @@
                         android:id="@+id/switchAutoUpdate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:thumbTint="@color/about_switch_thumb"
-                        app:trackTint="@color/about_switch_track" />
+                        app:thumbTint="@color/app_switch_thumb"
+                        app:trackTint="@color/app_switch_track" />
                 </LinearLayout>
 
                 <View

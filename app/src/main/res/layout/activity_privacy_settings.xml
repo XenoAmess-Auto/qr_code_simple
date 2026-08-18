@@ -2,15 +2,20 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:descendantFocusability="beforeDescendants"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="@dimen/space_16">
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp">
@@ -25,13 +30,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/scan_feedback"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
                 android:layout_marginBottom="8dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -40,18 +45,22 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/scan_sound"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchScanSound"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
+                    app:thumbTint="@color/app_switch_thumb"
+                    app:trackTint="@color/app_switch_track" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -60,20 +69,24 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/scan_vibration"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchScanVibration"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
+                    app:thumbTint="@color/app_switch_thumb"
+                    app:trackTint="@color/app_switch_track" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp">
@@ -88,13 +101,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/scan_automation"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
                 android:layout_marginBottom="8dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -103,18 +116,22 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/auto_open_url"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchAutoOpenUrl"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
+                    app:thumbTint="@color/app_switch_thumb"
+                    app:trackTint="@color/app_switch_track" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -123,20 +140,24 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/auto_copy_result"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchAutoCopyResult"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
+                    app:thumbTint="@color/app_switch_thumb"
+                    app:trackTint="@color/app_switch_track" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp">
@@ -150,6 +171,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -163,29 +185,32 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/privacy_mode"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel" />
 
                     <TextView
                         android:id="@+id/tvPrivacyStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/privacy_mode_off"
-                        android:textSize="14sp"
+                        android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
                         android:layout_marginTop="4dp" />
 
                 </LinearLayout>
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchPrivacyMode"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
+                    app:thumbTint="@color/app_switch_thumb"
+                    app:trackTint="@color/app_switch_track" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginTop="16dp">
@@ -195,21 +220,25 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/blacklist_auto_update"
-                    android:textSize="16sp" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchBlacklistAutoUpdate"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
+                    app:thumbTint="@color/app_switch_thumb"
+                    app:trackTint="@color/app_switch_track" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardPrivacyInfo"
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -225,22 +254,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/privacy_mode_active"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorPrimary" />
+                android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
+                android:textColor="@color/app_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/privacy_mode_info"
-                android:textSize="14sp"
+                android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
                 android:layout_marginTop="8dp" />
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp">
@@ -254,6 +283,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -267,42 +297,43 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_lock"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel" />
 
                     <TextView
                         android:id="@+id/tvAppLockStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_lock_disabled"
-                        android:textSize="14sp"
+                        android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
                         android:layout_marginTop="4dp" />
 
                 </LinearLayout>
 
-                <Switch
+                <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchAppLock"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
+                    app:thumbTint="@color/app_switch_thumb"
+                    app:trackTint="@color/app_switch_track" />
 
             </LinearLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangePin"
+                style="@style/Widget.QRCodeSimple.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/change_pin"
-                android:visibility="gone"
-                android:textColor="?attr/colorPrimary"
-
-                style="?android:attr/borderlessButtonStyle" />
+                android:visibility="gone" />
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp">
@@ -317,12 +348,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/data_management"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginTop="16dp">
@@ -332,50 +363,43 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/history_retention"
-                    android:textSize="16sp" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnHistoryRetention"
+                    style="@style/Widget.QRCodeSimple.Button.Text"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="?attr/colorPrimary"
-
-                    style="?android:attr/borderlessButtonStyle" />
+                    android:layout_height="wrap_content" />
 
             </LinearLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBackupRestore"
+                style="@style/Widget.QRCodeSimple.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/backup_restore"
-                android:textColor="?attr/colorPrimary"
+                android:text="@string/backup_restore" />
 
-                style="?android:attr/borderlessButtonStyle" />
-
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDatabaseSecurity"
+                style="@style/Widget.QRCodeSimple.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/database_security"
-                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="@dimen/space_8"
+                android:text="@string/database_security" />
 
-                style="?android:attr/borderlessButtonStyle" />
-
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClearAllHistory"
+                style="@style/Widget.QRCodeSimple.Button.Destructive"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/clear_all"
-                android:textColor="@android:color/holo_red_dark"
-
-                style="?android:attr/borderlessButtonStyle" />
+                android:text="@string/clear_all" />
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>
 

@@ -48,6 +48,7 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 - **Default behavior: after finishing work, always stage, commit, and push changes yourself unless the user explicitly says not to.** Do not wait for a separate confirmation to commit.
 - Use `git add .`, `git commit -m "..."`, then `git push`. Write concise, repo-style commit messages. If the push is rejected, pull/rebase first and then push.
 - After finishing work, sync documentation and the knowledge base (`docs/`, `README.md`, `README_CN.md`) so they stay consistent with the code.
+- All new or modified UI must follow `docs/design-system.md`. Use the shared `app_*` semantic colors and `Widget.QRCodeSimple.*` styles; verify substantial visual changes with light/dark, locale, font-scale, and phone/tablet emulator screenshots.
 
 ## High-signal gotchas
 
@@ -105,7 +106,7 @@ BoofCV detector requires a quiet zone. `BarcodeGenerator` pads the raw BoofCV re
 Native OpenCV is not loaded in Robolectric unit tests; `QRCodeApp.isWeChatQRCodeInitialized` stays false and the scan pipeline falls through to ZXing/BoofCV/custom decoders.
 
 ### Docs
-`docs/` contains architecture notes. Keep `README.md`, `README_CN.md`, `docs/knowledge-base.md`, `docs/testing-strategy.md`, and `docs/versioning-and-update-system.md` consistent when relevant behavior changes.
+`docs/` contains architecture notes. Keep `README.md`, `README_CN.md`, `docs/knowledge-base.md`, `docs/design-system.md`, `docs/testing-strategy.md`, and `docs/versioning-and-update-system.md` consistent when relevant behavior changes.
 
 ### Versioning, releases, and updates
 

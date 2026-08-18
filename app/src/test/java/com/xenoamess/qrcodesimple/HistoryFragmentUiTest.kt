@@ -1,6 +1,8 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle
@@ -29,7 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowAlertDialog
+import org.robolectric.shadows.ShadowDialog
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -255,10 +257,10 @@ class HistoryFragmentUiTest {
         onView(withId(R.id.btnAdvancedFilter)).perform(click())
         waitForDiff()
 
-        val dialog = ShadowAlertDialog.getLatestAlertDialog() as android.app.AlertDialog
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
-        dialog.findViewById<android.widget.RadioButton>(R.id.rbTime7d).isChecked = true
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
+        dialog.findViewById<android.widget.RadioButton>(R.id.rbTime7d)!!.isChecked = true
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         waitForDiff()
 
         val list = waitForListSize(scenario, 1)
@@ -275,12 +277,12 @@ class HistoryFragmentUiTest {
         onView(withId(R.id.btnAdvancedFilter)).perform(click())
         waitForDiff()
 
-        val dialog = ShadowAlertDialog.getLatestAlertDialog() as android.app.AlertDialog
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
-        dialog.findViewById<android.widget.Button>(R.id.btnPickType).performClick()
+        dialog.findViewById<android.widget.Button>(R.id.btnPickType)!!.performClick()
         waitForDiff()
 
-        val typeDialog = ShadowAlertDialog.getLatestAlertDialog() as android.app.AlertDialog
+        val typeDialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(typeDialog)
         val listView = typeDialog.listView
         var textIndex = -1
@@ -297,7 +299,7 @@ class HistoryFragmentUiTest {
         listView.performItemClick(listView.getChildAt(textIndex), textIndex, listView.adapter.getItemId(textIndex))
         waitForDiff()
 
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         waitForDiff()
 
         val list = waitForListSize(scenario, 1)
@@ -342,14 +344,14 @@ class HistoryFragmentUiTest {
         insertItems()
         launchFragment()
         onView(withId(R.id.btnClearAll)).perform(click())
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
-        assertTrue(dialog!!.isShowing)
-        val title = Shadows.shadowOf(dialog).title
+        assertTrue(dialog.isShowing)
+        val title = dialog.findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.text
         val context: Context = ApplicationProvider.getApplicationContext()
         assertEquals(
             context.getString(R.string.clear_history),
-            title.toString()
+            title?.toString()
         )
     }
 }

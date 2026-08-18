@@ -12,6 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnAttach
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ActivityBatchGenerateBinding
 import kotlinx.coroutines.launch
@@ -166,7 +168,7 @@ class BatchGenerateActivity : AppCompatActivity() {
             )
             setStroke(
                 (if (selected) 3 else 1) * density.toInt().coerceAtLeast(1),
-                if (selected) primary else android.graphics.Color.LTGRAY
+                if (selected) primary else getColor(R.color.app_outline_variant)
             )
         }
         val inner = android.graphics.drawable.GradientDrawable().apply {
@@ -231,11 +233,11 @@ class BatchGenerateActivity : AppCompatActivity() {
             row.addView(view)
         }
 
-        val btnLogo = android.widget.Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+        val btnLogo = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
             text = getString(R.string.logo) + if (batchLogo != null) " ✓" else ""
             setOnClickListener { pickBatchLogoLauncher.launch("image/*") }
         }
-        val btnClearLogo = android.widget.Button(this, null, android.R.attr.borderlessButtonStyle).apply {
+        val btnClearLogo = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
             text = getString(R.string.clear)
             setOnClickListener {
                 batchLogo = null
@@ -250,7 +252,7 @@ class BatchGenerateActivity : AppCompatActivity() {
         }
         root.addView(logoRow)
 
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.style))
             .setView(root)
             .setPositiveButton(getString(R.string.apply)) { _, _ -> updateBatchStyleButton() }

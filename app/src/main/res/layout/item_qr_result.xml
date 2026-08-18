@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.QRCodeSimple.Panel"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp">
@@ -8,7 +9,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="@dimen/space_12">
 
         <!-- 顶部行：复选框 + 类型图标 + 内容 + 操作按钮 -->
         <LinearLayout
@@ -19,8 +21,8 @@
 
             <CheckBox
                 android:id="@+id/checkbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="@dimen/touch_target_min"
+                android:layout_height="@dimen/touch_target_min"
                 android:layout_marginEnd="8dp" />
 
             <ImageView
@@ -30,7 +32,7 @@
                 android:layout_marginEnd="8dp"
                 android:src="@drawable/ic_qr_code"
                 android:contentDescription="@null"
-                app:tint="?attr/colorPrimary" />
+                app:tint="@color/app_primary" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -42,15 +44,15 @@
                     android:id="@+id/tvTypeLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorPrimary"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
+                    android:textColor="@color/app_primary" />
 
                 <TextView
                     android:id="@+id/tvResult"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/app_text_primary"
                     android:maxLines="6"
                     android:ellipsize="end" />
 
@@ -63,27 +65,30 @@
 
                 <ImageButton
                     android:id="@+id/btnCopy"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
                     android:src="@drawable/ic_copy"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/copy" />
+                    android:contentDescription="@string/copy"
+                    app:tint="@color/app_text_secondary" />
 
                 <ImageButton
                     android:id="@+id/btnShare"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
                     android:src="@drawable/ic_share"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/share" />
+                    android:contentDescription="@string/share"
+                    app:tint="@color/app_text_secondary" />
 
                 <ImageButton
                     android:id="@+id/btnEdit"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
                     android:src="@drawable/ic_edit"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/edit" />
+                    android:contentDescription="@string/edit"
+                    app:tint="@color/app_text_secondary" />
 
             </LinearLayout>
         </LinearLayout>
@@ -110,8 +115,7 @@
                 android:id="@+id/tvSecurityStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata" />
 
         </LinearLayout>
 
@@ -127,4 +131,4 @@
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

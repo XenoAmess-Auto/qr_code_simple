@@ -1,6 +1,5 @@
 package com.xenoamess.qrcodesimple
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,6 +9,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.Chip
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.data.HistoryRepository
@@ -157,7 +157,7 @@ class HistoryDetailFragment : Fragment() {
             setSelection(item.tags?.length ?: 0)
             hint = getString(R.string.comma_separated_tags)
         }
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.edit_tags))
             .setView(editText)
             .setPositiveButton(getString(R.string.save_action)) { _, _ ->
@@ -210,7 +210,7 @@ class HistoryDetailFragment : Fragment() {
             getString(R.string.share_option_text),
             getString(R.string.share_option_card)
         )
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.share))
             .setItems(items) { dialog, which ->
                 when (which) {
@@ -252,7 +252,7 @@ class HistoryDetailFragment : Fragment() {
             setText(item.content)
             setSelection(item.content.length)
         }
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.edit))
             .setView(editText)
             .setPositiveButton(getString(R.string.save_action)) { _, _ ->
@@ -267,7 +267,7 @@ class HistoryDetailFragment : Fragment() {
     }
 
     private fun deleteItem(item: HistoryItem) {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.delete_item))
             .setMessage(getString(R.string.delete_item_confirm))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->

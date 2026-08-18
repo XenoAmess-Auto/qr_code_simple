@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
 import com.xenoamess.qrcodesimple.data.AppDatabase
 import com.xenoamess.qrcodesimple.databinding.ActivityDatabaseSecurityBinding
@@ -29,7 +29,6 @@ class DatabaseSecurityActivity : AppCompatActivity() {
         binding = ActivityDatabaseSecurityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 设置沉浸式状态栏并处理安全区域
         setupEdgeToEdge()
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -41,7 +40,7 @@ class DatabaseSecurityActivity : AppCompatActivity() {
     private fun setupViews() {
         // 显示加密状态
         binding.tvEncryptionStatus.text = getString(R.string.encryption_enabled)
-        binding.tvEncryptionStatus.setTextColor(getColor(android.R.color.holo_green_dark))
+        binding.tvEncryptionStatus.setTextColor(getColor(R.color.app_success))
 
         // 重置数据库按钮
         binding.btnResetDatabase.setOnClickListener {
@@ -55,7 +54,7 @@ class DatabaseSecurityActivity : AppCompatActivity() {
     }
 
     private fun showResetConfirmDialog() {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.reset_database)
             .setMessage(R.string.reset_database_confirm)
             .setPositiveButton(android.R.string.ok) { _: android.content.DialogInterface, _: Int ->

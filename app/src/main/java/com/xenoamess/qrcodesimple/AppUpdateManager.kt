@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -146,7 +147,7 @@ object AppUpdateManager {
 
     private fun showUpdateDialog(activity: Activity, info: UpdateDecider.ReleaseInfo) {
         val message = info.changelog.trim().take(500)
-        val builder = AlertDialog.Builder(activity)
+        val builder = MaterialAlertDialogBuilder(activity)
             .setTitle(
                 activity.getString(
                     if (info.channel == UpdateDecider.Channel.BETA) {
@@ -439,7 +440,7 @@ object AppUpdateManager {
     }
 
     private fun showInstallFailure(activity: Activity, info: UpdateDecider.ReleaseInfo) {
-        val builder = AlertDialog.Builder(activity)
+        val builder = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.update_install_failed_title)
         if (info.channel == UpdateDecider.Channel.STABLE && info.releasePageUrl != null) {
             builder
@@ -490,7 +491,7 @@ object AppUpdateManager {
                 )
             )
         }
-        progressDialog = AlertDialog.Builder(activity)
+        progressDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.update_downloading, info.versionName))
             .setView(content)
             .setCancelable(false)

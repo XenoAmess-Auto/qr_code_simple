@@ -143,6 +143,8 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 所有用户可见的 UI 页面、Fragment、Activity、Adapter 和自定义 View 均通过 Robolectric + Espresso 进行交互测试。全量计划见 `docs/ui-testing-plan.md`。
 
+视觉和交互验收以 [`docs/design-system.md`](design-system.md) 为准。新增或重做页面除行为测试外，还需检查：亮暗主题无默认紫色回退、文本/控件对比度、48dp 触控区、中英文与长文本、1.0x/1.3x 字体缩放、RTL 方向图标，以及手机和 `sw600dp` 布局。重大视觉改动必须在无头模拟器截取实际渲染结果，不能只依赖 XML 预览或“无裁切”判断。
+
 重点覆盖：
 
 - 下拉框与筛选：编辑输入、过滤、选择、非法输入回退。

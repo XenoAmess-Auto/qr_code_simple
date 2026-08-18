@@ -7,11 +7,11 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.FlexboxLayout
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.ContentActionHandler
 import com.xenoamess.qrcodesimple.QRCodeScanner
 import com.xenoamess.qrcodesimple.R
@@ -147,7 +147,7 @@ class QRResultAdapter(
         val binding = holder.binding
         binding.layoutSecurityIndicator.visibility = View.VISIBLE
         binding.tvSecurityStatus.text = holder.itemView.context.getString(R.string.checking_security)
-        binding.ivSecurityIcon.setColorFilter(android.graphics.Color.GRAY)
+        binding.ivSecurityIcon.setColorFilter(holder.itemView.context.getColor(R.color.app_text_secondary))
 
         lifecycleScope?.launch {
             val result = SecurityManager.checkUrl(content)
@@ -160,7 +160,7 @@ class QRResultAdapter(
                 result.riskLevel == SecurityManager.RiskLevel.MEDIUM
             ) {
                 binding.layoutSecurityIndicator.setOnClickListener {
-                    AlertDialog.Builder(context)
+                    MaterialAlertDialogBuilder(context)
                         .setTitle(result.message)
                         .setMessage(result.details + "\n\n" + SecurityManager.getSecurityTip(result))
                         .setPositiveButton(android.R.string.ok, null)
@@ -180,11 +180,20 @@ class QRResultAdapter(
         container.visibility = View.VISIBLE
 
         actions.forEach { action ->
-            val button = Button(container.context, null, android.R.attr.borderlessButtonStyle).apply {
+            val density = container.resources.displayMetrics.density
+            val button = MaterialButton(
+                container.context,
+                null,
+                com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
                 text = action.text
-                setCompoundDrawablesWithIntrinsicBounds(action.iconResId, 0, 0, 0)
-                compoundDrawablePadding = 8
-                setPadding(24, 12, 24, 12)
+                setIconResource(action.iconResId)
+                iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+                iconPadding = (8 * density).toInt()
+                minHeight = (48 * density).toInt()
+                cornerRadius = (8 * density).toInt()
+                insetTop = 0
+                insetBottom = 0
                 setOnClickListener { action.onClick() }
             }
             container.addView(button)
@@ -196,7 +205,7 @@ class QRResultAdapter(
         val editText = android.widget.EditText(context).apply {
             setText(currentText)
         }
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.edit_qr_code_content))
             .setView(editText)
             .setPositiveButton(context.getString(R.string.save_action)) { _, _ ->

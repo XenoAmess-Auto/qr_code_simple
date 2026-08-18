@@ -2,7 +2,7 @@
 
 package com.xenoamess.qrcodesimple
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -34,7 +34,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.shadows.ShadowDialog
 import java.io.File
 import java.io.FileOutputStream

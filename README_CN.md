@@ -70,6 +70,7 @@
 - ✅ **桌面小组件** - 快速扫描、快速生成小组件。
 - ✅ **国际化** - 英文、简体中文、日语、韩语、德语、法语、西班牙语、意大利语、葡萄牙语、俄语完整翻译。
 - ✅ **动画** - 页面过渡、扫描线动画。
+- ✅ **科技编辑式设计** - 亮色采用瓷白 / 墨黑 / 石油青，暗色采用蓝黑 / 炭青 / 冰青，统一使用克制描边面板与明确操作层级。规范见 [`docs/design-system.md`](docs/design-system.md)。
 
 ### 技术特性
 
@@ -185,8 +186,8 @@
 
 ## 技术栈
 
-- **语言**：Kotlin 2.2.21
-- **UI**：Jetpack Compose + XML 布局（viewBinding）
+- **语言**：Kotlin 2.3.21
+- **UI**：XML 布局 + ViewBinding（无 Jetpack Compose）
 - **数据库**：Room 2.7.1 + SQLCipher 4.17.0（加密，sqlcipher-android 新坐标）
 - **异步**：Kotlin Coroutines
 - **相机**：CameraX 1.5.3
@@ -223,8 +224,8 @@
 
 - **JDK 21**（`compileOptions` 和 `kotlinOptions.jvmTarget = '21'` 强制要求）
 - **Android SDK 35**（`compileSdk 35`、`targetSdk 35`、`minSdk 28`）
-- **Gradle 9.6.1**（已通过 `gradle-wrapper.properties` 锁定）
-- **Android Studio Ladybug (2024.2.1) 或更新版本** - AGP 9.2.1 无法在更老的 IDE 中加载
+- **Gradle 9.7.0**（已通过 `gradle-wrapper.properties` 锁定）
+- **支持 Android Gradle Plugin 9.3.1 的 Android Studio**
 - **NDK 编译非必需** - 仅通过 WeChatQRCode / OpenCV 的 AAR 引入原生库
 - **完整 Git 历史和标签** - Android 版本由 Git 推导。必须从克隆仓库构建，不能使用源码压缩包或浅克隆；浅克隆请先执行 `git fetch --unshallow --tags`。
 

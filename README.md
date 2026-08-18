@@ -70,6 +70,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Home Widgets** - Quick Scan and Quick Generate widgets.
 - ✅ **Internationalization** - Complete translations in English, Simplified Chinese, Japanese, Korean, German, French, Spanish, Italian, Portuguese, and Russian.
 - ✅ **Animation** - Page transitions and scan-line animation.
+- ✅ **Technology-Editorial Design** - Porcelain/ink/petroleum-cyan light surfaces and blue-black/charcoal/ice-cyan dark surfaces, with restrained outlined panels and consistent action hierarchy. See [`docs/design-system.md`](docs/design-system.md).
 
 ### Technical
 
@@ -183,8 +184,8 @@ The app supports **50+ barcode formats** for generation, with the scannable subs
 
 ## Tech Stack
 
-- **Language**: Kotlin 2.2.21
-- **UI**: Jetpack Compose + XML Layouts (viewBinding)
+- **Language**: Kotlin 2.3.21
+- **UI**: XML Layouts + ViewBinding (no Jetpack Compose)
 - **Database**: Room 2.7.1 + SQLCipher 4.17.0 (encrypted, sqlcipher-android)
 - **Async**: Kotlin Coroutines
 - **Camera**: CameraX 1.5.3
@@ -204,8 +205,8 @@ The full file index and architectural notes live in [`docs/knowledge-base.md`](d
 
 - **JDK 21** (required by `compileOptions` and `kotlinOptions.jvmTarget = '21'`)
 - **Android SDK 35** (`compileSdk 35`, `targetSdk 35`, `minSdk 28`)
-- **Gradle 9.6.1** (already pinned via `gradle-wrapper.properties`)
-- **Android Studio Ladybug (2024.2.1) or newer** - AGP 9.2.1 will not load in older IDEs
+- **Gradle 9.7.0** (already pinned via `gradle-wrapper.properties`)
+- **Android Studio with Android Gradle Plugin 9.3.1 support**
 - **NDK** is **not** required to build; only the native libraries shipped through the WeChatQRCode / OpenCV AARs are used
 - **Full Git history and tags** - Android versions are derived from Git. Build from a clone, not a source archive or shallow checkout; recover a shallow clone with `git fetch --unshallow --tags`.
 

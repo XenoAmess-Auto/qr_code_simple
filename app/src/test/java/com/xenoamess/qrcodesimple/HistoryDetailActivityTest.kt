@@ -124,7 +124,7 @@ class HistoryDetailActivityTest {
         clickSafely(R.id.btnShare)
         flushMainLooper()
 
-        val dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog() as android.app.AlertDialog
+        val dialog = org.robolectric.shadows.ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
         assertNotNull(dialog)
         dialog.listView.performItemClick(dialog.listView.getChildAt(0), 0, dialog.listView.adapter.getItemId(0))
         flushMainLooper()

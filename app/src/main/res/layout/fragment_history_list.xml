@@ -3,18 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_background"
     android:orientation="vertical">
 
     <!-- 统计卡片：默认收起为单行摘要，点击展开明细（MaterialCardView 自动适配亮暗表面色） -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/statsCard"
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginTop="8dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="1dp">
+        android:layout_marginTop="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -25,6 +25,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="48dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -33,15 +34,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textSize="14sp"
-                    android:textColor="?android:attr/textColorPrimary" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle"
+                    android:textColor="@color/app_text_primary" />
 
                 <ImageView
                     android:id="@+id/ivStatsToggle"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_expand_more"
-                    android:importantForAccessibility="no" />
+                    android:importantForAccessibility="no"
+                    app:tint="@color/app_text_secondary" />
 
             </LinearLayout>
 
@@ -57,15 +59,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:textSize="14sp"
-                    android:textColor="?android:attr/textColorPrimary" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
+                    android:textColor="@color/app_text_secondary" />
 
                 <TextView
                     android:id="@+id/tvStats30d"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp"
-                    android:textColor="?android:attr/textColorPrimary" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
+                    android:textColor="@color/app_text_secondary" />
 
                 <com.xenoamess.qrcodesimple.SimpleBarChartView
                     android:id="@+id/statsBarChart"
@@ -80,79 +82,96 @@
     </com.google.android.material.card.MaterialCardView>
 
     <!-- 搜索栏 -->
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchView"
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:queryHint="@string/search_history_hint" />
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="8dp">
+
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:queryHint="@string/search_history_hint" />
+
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- 过滤器 Tab -->
-    <LinearLayout
+    <GridLayout
         android:id="@+id/filterTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="4dp"
+        android:columnCount="2">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterAll"
+            style="@style/Widget.QRCodeSimple.Button.Text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="?attr/colorPrimary"
-            android:text="@string/all"
-            style="?android:attr/borderlessButtonStyle" />
+            android:layout_columnWeight="1"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:text="@string/all" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterScanned"
+            style="@style/Widget.QRCodeSimple.Button.Text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="?attr/colorPrimary"
-            android:text="@string/scanned"
-            style="?android:attr/borderlessButtonStyle" />
+            android:layout_columnWeight="1"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:text="@string/scanned" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterGenerated"
+            style="@style/Widget.QRCodeSimple.Button.Text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="?attr/colorPrimary"
-            android:text="@string/generated"
-            style="?android:attr/borderlessButtonStyle" />
+            android:layout_columnWeight="1"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:text="@string/generated" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterFavorite"
+            style="@style/Widget.QRCodeSimple.Button.Text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="?attr/colorPrimary"
-            android:text="@string/chip_favorites"
-            style="?android:attr/borderlessButtonStyle" />
+            android:layout_columnWeight="1"
+            android:minHeight="48dp"
+            android:singleLine="true"
+            android:text="@string/chip_favorites" />
 
-    </LinearLayout>
+    </GridLayout>
 
     <!-- 排序 + 高级筛选 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
         android:orientation="horizontal">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSort"
+            style="@style/Widget.QRCodeSimple.Button.Text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="?attr/colorPrimary"
-            style="?android:attr/borderlessButtonStyle" />
+            android:minHeight="48dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAdvancedFilter"
+            style="@style/Widget.QRCodeSimple.Button.Text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="?attr/colorPrimary"
-            android:text="@string/advanced_filter"
-            style="?android:attr/borderlessButtonStyle" />
+            android:minHeight="48dp"
+            android:text="@string/advanced_filter" />
 
     </LinearLayout>
 
@@ -187,17 +206,18 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:text="@string/no_history"
-        android:textSize="16sp"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="@color/app_text_secondary"
         android:visibility="gone" />
 
     <!-- 清除全部按钮 -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnClearAll"
+        style="@style/Widget.QRCodeSimple.Button.Destructive"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="@string/clear_all"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         app:icon="@drawable/ic_delete" />
 
 </LinearLayout>

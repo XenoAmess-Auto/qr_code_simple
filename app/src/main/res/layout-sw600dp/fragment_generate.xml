@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_background"
     android:orientation="horizontal"
     android:baselineAligned="false">
 
@@ -23,9 +24,11 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:hint="@string/select_barcode_format"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_marginTop="8dp">
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            app:boxStrokeColor="@color/app_primary"
+            app:hintTextColor="@color/app_text_secondary">
 
             <AutoCompleteTextView
                 android:id="@+id/spinnerFormat"
@@ -38,27 +41,27 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBatchGenerate"
+            style="@style/Widget.QRCodeSimple.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/batch_generate"
-            app:icon="@drawable/ic_batch"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" />
+            app:icon="@drawable/ic_batch" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnContentWizard"
+            style="@style/Widget.QRCodeSimple.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/content_wizard"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon" />
+            android:text="@string/content_wizard" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilContent"
+            style="@style/Widget.QRCodeSimple.TextInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/enter_content"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_marginTop="8dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -74,11 +77,10 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardStyle"
+            style="@style/Widget.QRCodeSimple.Panel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            android:layout_marginTop="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -90,9 +92,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/style"
-                    android:textSize="16sp"
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
+                    android:textColor="@color/app_text_primary"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="12dp" />
 
                 <TextView
@@ -100,7 +102,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/ec_level"
-                    android:textSize="12sp"
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
                     android:layout_marginBottom="4dp" />
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
@@ -187,11 +189,11 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnPickForegroundColor"
+                        style="@style/Widget.QRCodeSimple.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/foreground_color"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        android:text="@string/foreground_color" />
 
                 </LinearLayout>
 
@@ -212,11 +214,11 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnPickBackgroundColor"
+                        style="@style/Widget.QRCodeSimple.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/background_color"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        android:text="@string/background_color" />
 
                 </LinearLayout>
 
@@ -245,20 +247,20 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnPickForegroundImage"
+                        style="@style/Widget.QRCodeSimple.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/foreground_image"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        android:text="@string/foreground_image" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnRemoveForegroundImage"
+                        style="@style/Widget.QRCodeSimple.Button.Text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:text="@string/remove"
-                        android:visibility="gone"
-                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
@@ -280,20 +282,20 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnPickBackgroundImage"
+                        style="@style/Widget.QRCodeSimple.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/background_image"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        android:text="@string/background_image" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnRemoveBackgroundImage"
+                        style="@style/Widget.QRCodeSimple.Button.Text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:text="@string/remove"
-                        android:visibility="gone"
-                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
@@ -317,22 +319,25 @@
                         android:id="@+id/chipModuleSquare"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minHeight="48dp"
                         android:text="@string/module_shape_square"
-                        style="@style/Widget.MaterialComponents.Chip.Choice" />
+                        style="@style/Widget.Material3.Chip.Filter" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipModuleCircle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minHeight="48dp"
                         android:text="@string/module_shape_circle"
-                        style="@style/Widget.MaterialComponents.Chip.Choice" />
+                        style="@style/Widget.Material3.Chip.Filter" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipModuleRounded"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minHeight="48dp"
                         android:text="@string/module_shape_rounded"
-                        style="@style/Widget.MaterialComponents.Chip.Choice" />
+                        style="@style/Widget.Material3.Chip.Filter" />
 
                 </com.google.android.material.chip.ChipGroup>
 
@@ -389,22 +394,25 @@
                         android:id="@+id/chipPositionSquare"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minHeight="48dp"
                         android:text="@string/position_pattern_square"
-                        style="@style/Widget.MaterialComponents.Chip.Choice" />
+                        style="@style/Widget.Material3.Chip.Filter" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipPositionCircle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minHeight="48dp"
                         android:text="@string/position_pattern_circle"
-                        style="@style/Widget.MaterialComponents.Chip.Choice" />
+                        style="@style/Widget.Material3.Chip.Filter" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipPositionFollow"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minHeight="48dp"
                         android:text="@string/position_pattern_follow"
-                        style="@style/Widget.MaterialComponents.Chip.Choice" />
+                        style="@style/Widget.Material3.Chip.Filter" />
 
                 </com.google.android.material.chip.ChipGroup>
 
@@ -426,7 +434,9 @@
                         android:id="@+id/switchGradient"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="false" />
+                        android:checked="false"
+                        app:thumbTint="@color/app_switch_thumb"
+                        app:trackTint="@color/app_switch_track" />
 
                 </LinearLayout>
 
@@ -503,10 +513,10 @@
                                 android:layout_marginEnd="8dp" />
 
                             <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.QRCodeSimple.TextInput"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                                 android:hint="@string/gradient_angle_hint">
 
                                 <com.google.android.material.textfield.TextInputEditText
@@ -541,10 +551,10 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnAddGradientStop"
+                    style="@style/Widget.QRCodeSimple.Button.Outlined"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/add_gradient_stop"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                    android:text="@string/add_gradient_stop" />
 
                 </LinearLayout>
 
@@ -560,7 +570,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/corner_radius_hint"
                     android:textSize="10sp"
-                    android:textColor="?android:attr/textColorHint"
+                    android:textColor="@color/app_text_secondary"
                     android:layout_marginBottom="4dp" />
 
                 <LinearLayout
@@ -596,6 +606,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAddLogo"
+                        style="@style/Widget.QRCodeSimple.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -604,6 +615,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnRemoveLogo"
+                        style="@style/Widget.QRCodeSimple.Button.Text"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -750,7 +762,7 @@
             android:layout_marginTop="8dp"
             android:padding="8dp"
             android:background="@drawable/bg_warning"
-            android:textColor="@color/yellow_700"
+            android:textColor="@color/app_on_warning_container"
             android:visibility="gone" />
 
         <LinearLayout
@@ -761,6 +773,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGenerate"
+                style="@style/Widget.QRCodeSimple.Button.Primary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -769,11 +782,11 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClear"
+                style="@style/Widget.QRCodeSimple.Button.Text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/clear"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                android:text="@string/clear" />
 
         </LinearLayout>
 
@@ -786,6 +799,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
+                style="@style/Widget.QRCodeSimple.Button.Primary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -795,6 +809,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShare"
+                style="@style/Widget.QRCodeSimple.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -807,19 +822,21 @@
 
     </ScrollView>
 
-    <FrameLayout
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.Panel"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:padding="16dp">
+        android:layout_margin="16dp">
 
         <ImageView
             android:id="@+id/ivQRCode"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:padding="16dp"
             android:scaleType="fitCenter"
             android:contentDescription="@string/qr_code_image" />
 
-    </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

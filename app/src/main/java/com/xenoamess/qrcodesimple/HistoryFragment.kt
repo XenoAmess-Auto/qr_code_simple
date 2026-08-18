@@ -1,6 +1,5 @@
 package com.xenoamess.qrcodesimple
 
-import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -21,7 +20,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.data.HistoryRepository
@@ -175,7 +175,7 @@ class HistoryFragment : Fragment() {
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
             hint = getString(R.string.enter_pin)
         }
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.app_lock))
             .setView(input)
             .setPositiveButton(getString(R.string.unlock)) { _, _ ->
@@ -299,8 +299,8 @@ class HistoryFragment : Fragment() {
         val rbTimeToday = dialogView.findViewById<android.widget.RadioButton>(R.id.rbTimeToday)
         val rbTime7d = dialogView.findViewById<android.widget.RadioButton>(R.id.rbTime7d)
         val rbTime30d = dialogView.findViewById<android.widget.RadioButton>(R.id.rbTime30d)
-        val btnPickType = dialogView.findViewById<Button>(R.id.btnPickType)
-        val btnPickFormat = dialogView.findViewById<Button>(R.id.btnPickFormat)
+        val btnPickType = dialogView.findViewById<MaterialButton>(R.id.btnPickType)
+        val btnPickFormat = dialogView.findViewById<MaterialButton>(R.id.btnPickFormat)
 
         if (sortNewestFirst) rbSortNewest.isChecked = true else rbSortOldest.isChecked = true
         when (timeRangeDays) {
@@ -332,7 +332,7 @@ class HistoryFragment : Fragment() {
             }
         }
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.advanced_filter))
             .setView(dialogView)
             .setPositiveButton(getString(R.string.apply)) { _, _ ->
@@ -364,7 +364,7 @@ class HistoryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             val types = repository.getAllTypes()
             val labels = listOf(getString(R.string.all)) + types.map { typeLabel(it) }
-            AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.filter_type))
                 .setSingleChoiceItems(labels.toTypedArray(), 0) { dialog, which ->
                     onPick(if (which == 0) null else types[which - 1])
@@ -378,7 +378,7 @@ class HistoryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             val formats = repository.getAllBarcodeFormats()
             val labels = listOf(getString(R.string.all)) + formats
-            AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.filter_format))
                 .setSingleChoiceItems(labels.toTypedArray(), 0) { dialog, which ->
                     onPick(if (which == 0) null else formats[which - 1])
@@ -399,7 +399,7 @@ class HistoryFragment : Fragment() {
 
     private fun setupClearButton() {
         listBinding.btnClearAll.setOnClickListener {
-            AlertDialog.Builder(requireContext())
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.clear_history))
                 .setMessage(getString(R.string.clear_history_confirm))
                 .setPositiveButton(getString(R.string.clear_all)) { _, _ ->
@@ -517,7 +517,7 @@ class HistoryFragment : Fragment() {
             hint = getString(R.string.notes_hint)
         }
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.add_notes))
             .setView(editText)
             .setPositiveButton(getString(R.string.save_action)) { _, _ ->
@@ -537,7 +537,7 @@ class HistoryFragment : Fragment() {
             setSelection(item.content.length)
         }
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.edit_content))
             .setView(editText)
             .setPositiveButton(getString(R.string.save_action)) { _, _ ->
@@ -617,7 +617,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun deleteItem(item: HistoryItem) {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.delete_item))
             .setMessage(getString(R.string.delete_item_confirm))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->

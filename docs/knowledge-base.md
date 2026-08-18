@@ -46,6 +46,14 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - ZXing 条码格式：`com.google.zxing.BarcodeFormat`
 - 历史类型：`com.xenoamess.qrcodesimple.data.HistoryType`
 
+### UI 与设计系统
+
+- `docs/design-system.md` 是所有页面、对话框、组件、桌面小组件和应用品牌导出图的唯一视觉规范。
+- 新功能默认采用科技编辑式：亮色为瓷白 / 墨黑 / 石油青，暗色为蓝黑 / 炭青 / 冰青。
+- 应用 UI 必须使用 `app_*` 语义色和 `Widget.QRCodeSimple.*` 组件样式，不得依赖 Material 默认紫色容器，不得为应用 chrome 新增无语义硬编码颜色。
+- 默认使用 12dp、1dp 描边、0dp elevation 的面板，紧凑控件使用 8dp 圆角；每个操作区只保留一个主要操作。
+- 大型视觉改动必须经过亮暗模式、中英文、字体缩放和手机/平板无头模拟器截图验收。
+
 ### 生成入口
 
 所有条码生成统一通过 `BarcodeGenerator.generate(content, config)`。
@@ -172,6 +180,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
 | `ui/result/QRResultAdapter.kt` | 多扫描结果 RecyclerView 适配器 |
 | `docs/ui-testing-plan.md` | 全页面 UI/Adapter 测试补全计划 |
+| `docs/design-system.md` | 科技编辑式全局视觉规范、组件规则与 UI 验收清单 |
 | `app/build.gradle` | Git 派生的 `versionCode` / `versionName` / `GIT_HASH`、`CHANGELOG.txt` 生成和 `writeVersionInfo` 元数据任务 |
 | `.github/workflows/build.yml` | push/PR 验证、模拟器仪器测试、仅 master 的与 Debug 同证书 Beta 发布，以及覆盖率和 Beta 通道的 Pages 部署 |
 | `.github/workflows/release.yml` | 严格 Stable 标签/`origin/master` 校验、与 Debug 同证书的 APK/AAB、`version.json`、GitHub Release 和可选增量补丁 |

@@ -721,7 +721,10 @@ class GenerateFragment : Fragment() {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             this.cornerRadius = cornerRadius
-            setStroke((resources.displayMetrics.density * 3).toInt(), Color.parseColor("#FFD700"))
+            setStroke(
+                (resources.displayMetrics.density * 2).toInt(),
+                requireContext().getColor(R.color.app_primary)
+            )
             setColor(Color.TRANSPARENT)
         }
     }
@@ -1348,8 +1351,8 @@ class GenerateFragment : Fragment() {
         wizardEndMillis = now.timeInMillis + 60L * 60 * 1000
 
         val timeFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
-        val btnStart = android.widget.Button(ctx)
-        val btnEnd = android.widget.Button(ctx)
+        val btnStart = MaterialButton(ctx, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
+        val btnEnd = MaterialButton(ctx, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
         fun refreshTimeButtons() {
             btnStart.text = getString(R.string.field_start_time) + ": " + timeFormat.format(java.util.Date(wizardStartMillis))
             btnEnd.text = getString(R.string.field_end_time) + ": " + timeFormat.format(java.util.Date(wizardEndMillis))
@@ -1801,12 +1804,12 @@ class GenerateFragment : Fragment() {
                             if (warning != null) {
                                 text = warning
                                 background = resources.getDrawable(R.drawable.bg_warning, null)
-                                setTextColor(resources.getColor(R.color.yellow_700, null))
+                                setTextColor(resources.getColor(R.color.app_warning, null))
                                 visibility = View.VISIBLE
                             } else {
                                 text = getString(R.string.warning_scan_success)
                                 background = resources.getDrawable(R.drawable.bg_success, null)
-                                setTextColor(android.graphics.Color.parseColor("#2E7D32"))
+                                setTextColor(resources.getColor(R.color.app_success, null))
                                 visibility = View.VISIBLE
                             }
                         }

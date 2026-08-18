@@ -1,5 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="ShapeAppearance.QRCodeSimple.Compact" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_compact</item>
+    </style>
+
+    <style name="ShapeAppearance.QRCodeSimple.Panel" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_panel</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.Panel" parent="">
+        <item name="cardBackgroundColor">@color/app_surface</item>
+        <item name="cardCornerRadius">@dimen/radius_panel</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/app_outline_variant</item>
+        <item name="strokeWidth">@dimen/stroke_panel</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textColor">@color/app_on_primary</item>
+        <item name="backgroundTint">@color/app_primary</item>
+        <item name="cornerRadius">@dimen/radius_compact</item>
+        <item name="iconTint">@color/app_on_primary</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textColor">@color/app_primary</item>
+        <item name="backgroundTint">@color/app_surface</item>
+        <item name="cornerRadius">@dimen/radius_compact</item>
+        <item name="iconTint">@color/app_primary</item>
+        <item name="strokeColor">@color/app_primary</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textColor">@color/app_primary</item>
+        <item name="iconTint">@color/app_primary</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.Button.Destructive" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textColor">@color/app_error</item>
+        <item name="backgroundTint">@color/app_surface</item>
+        <item name="cornerRadius">@dimen/radius_compact</item>
+        <item name="iconTint">@color/app_error</item>
+        <item name="strokeColor">@color/app_error</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.IconButton" parent="Widget.Material3.Button.IconButton">
+        <item name="android:layout_width">@dimen/touch_target_min</item>
+        <item name="android:layout_height">@dimen/touch_target_min</item>
+        <item name="iconTint">@color/app_text_secondary</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">@dimen/radius_compact</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/radius_compact</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/radius_compact</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/radius_compact</item>
+        <item name="boxStrokeColor">@color/app_primary</item>
+        <item name="hintTextColor">@color/app_text_secondary</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/app_surface</item>
+        <item name="itemIconTint">@color/navigation_item_color</item>
+        <item name="itemTextColor">@color/navigation_item_color</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.QRCodeSimple.BottomNavigationView.ActiveIndicator</item>
+        <item name="elevation">0dp</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/app_primary_container</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.QRCodeSimple.Compact</item>
+    </style>
+
+    <style name="TextAppearance.QRCodeSimple.SectionLabel" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textColor">@color/app_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.04</item>
+    </style>
+
+    <style name="TextAppearance.QRCodeSimple.RowTitle" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/app_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.QRCodeSimple.Metadata" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/app_text_secondary</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.EditorialRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/editorial_row_min_height</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingHorizontal">14dp</item>
+        <item name="android:paddingVertical">8dp</item>
+    </style>
+
+    <style name="Widget.QRCodeSimple.IconTile" parent="">
+        <item name="android:layout_width">@dimen/icon_tile_size</item>
+        <item name="android:layout_height">@dimen/icon_tile_size</item>
+        <item name="android:background">@drawable/bg_app_icon_tile</item>
+    </style>
+
     <style name="Widget.QRCodeSimple.About.SectionCard" parent="">
         <item name="cardBackgroundColor">@color/about_panel</item>
         <item name="cardCornerRadius">12dp</item>
@@ -11,10 +122,7 @@
     <style name="Widget.QRCodeSimple.About.SectionLabel" parent="">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
-        <item name="android:textColor">@color/about_text_primary</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:letterSpacing">0.04</item>
+        <item name="android:textAppearance">@style/TextAppearance.QRCodeSimple.SectionLabel</item>
     </style>
 
     <style name="Widget.QRCodeSimple.About.Row" parent="">
@@ -33,14 +141,13 @@
     <style name="Widget.QRCodeSimple.About.IconTile" parent="">
         <item name="android:layout_width">36dp</item>
         <item name="android:layout_height">36dp</item>
-        <item name="android:background">@drawable/bg_about_icon_tile</item>
+        <item name="android:background">@drawable/bg_app_icon_tile</item>
     </style>
 
     <style name="Widget.QRCodeSimple.About.RowTitle" parent="">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
-        <item name="android:textColor">@color/about_text_primary</item>
+        <item name="android:textAppearance">@style/TextAppearance.QRCodeSimple.RowTitle</item>
     </style>
 
     <style name="Widget.QRCodeSimple.About.RowValue" parent="">

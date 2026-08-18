@@ -3,6 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_background"
     android:orientation="horizontal"
     android:baselineAligned="false">
 
@@ -16,12 +17,13 @@
     <View
         android:layout_width="1dp"
         android:layout_height="match_parent"
-        android:background="?android:attr/dividerVertical" />
+        android:background="@color/app_divider" />
 
     <FrameLayout
         android:id="@+id/detailPaneContainer"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:background="@color/app_surface"
         android:layout_weight="3">
 
         <TextView
@@ -29,7 +31,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/select_history_prompt"
-            android:textSize="16sp" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="@color/app_text_secondary" />
 
     </FrameLayout>
 

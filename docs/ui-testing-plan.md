@@ -148,6 +148,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 ## 8. 关联文档
 
+- 全局视觉与验收规范：`docs/design-system.md`
 - 测试策略总览：`docs/testing-strategy.md`
 - 项目知识库：`docs/knowledge-base.md`
 - 生成与样式能力：`docs/style-roundtrip-matrix.md`

@@ -33,9 +33,9 @@ object ShareTemplateGenerator {
         val title: String,
         val description: String = "",
         val showQrCode: Boolean = true,
-        val backgroundColor: Int = Color.WHITE,
-        val textColor: Int = Color.BLACK,
-        val accentColor: Int = Color.parseColor("#00BCD4"),
+        val backgroundColor: Int = Color.parseColor("#F4F7F6"),
+        val textColor: Int = Color.parseColor("#172020"),
+        val accentColor: Int = Color.parseColor("#006B70"),
         val showLogo: Boolean = true
     )
 
@@ -89,7 +89,7 @@ object ShareTemplateGenerator {
             // 副标题/描述
             if (config.description.isNotEmpty()) {
                 val descPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Color.GRAY
+                    color = Color.parseColor("#596967")
                     textSize = 32f
                     textAlign = Paint.Align.CENTER
                 }
@@ -108,7 +108,20 @@ object ShareTemplateGenerator {
             // 二维码背景卡片
             val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
-                setShadowLayer(10f, 0f, 4f, Color.parseColor("#20000000"))
+            }
+            canvas.drawRoundRect(
+                qrLeft - 20,
+                qrTop - 20,
+                qrLeft + qrSize + 20,
+                qrTop + qrSize + 20,
+                24f,
+                24f,
+                cardPaint
+            )
+            cardPaint.apply {
+                color = Color.parseColor("#CFDDDA")
+                style = Paint.Style.STROKE
+                strokeWidth = 2f
             }
             canvas.drawRoundRect(
                 qrLeft - 20,
@@ -134,11 +147,11 @@ object ShareTemplateGenerator {
                 typeface = Typeface.DEFAULT_BOLD
                 textAlign = Paint.Align.CENTER
             }
-            canvas.drawText("QR Code Simple", width / 2f, footerY, appPaint)
+            canvas.drawText(context.getString(R.string.app_name), width / 2f, footerY, appPaint)
 
             // 提示文字
             val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.GRAY
+                color = Color.parseColor("#596967")
                 textSize = 28f
                 textAlign = Paint.Align.CENTER
             }

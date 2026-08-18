@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.databinding.FragmentAboutBinding
 
 class AboutFragment : Fragment() {
@@ -113,7 +113,7 @@ class AboutFragment : Fragment() {
         val current = QRCodeApp.getThemeMode(requireContext())
         val selectedIndex = modes.indexOfFirst { it.first == current }.coerceAtLeast(0)
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.theme_setting))
             .setSingleChoiceItems(modes.map { it.second }.toTypedArray(), selectedIndex) { dialog, which ->
                 val mode = modes[which].first
@@ -137,7 +137,7 @@ class AboutFragment : Fragment() {
 
         val items = languages.map { it.displayName }.toTypedArray()
 
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.select_language))
             .setSingleChoiceItems(items, selectedIndex) { dialog, which ->
                 val selectedLanguage = languages[which]
@@ -155,7 +155,7 @@ class AboutFragment : Fragment() {
     private fun showVersionHistory() {
         val history = readVersionHistory()?.trim().takeUnless { it.isNullOrEmpty() }
             ?: getString(R.string.version_history_unavailable)
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.version_history_title)
             .setMessage(history)
             .setPositiveButton(R.string.close, null)
@@ -166,7 +166,7 @@ class AboutFragment : Fragment() {
         val ctx = requireContext()
         val logs = CrashLogger.listLogs(ctx)
         if (logs.isEmpty()) {
-            AlertDialog.Builder(ctx)
+            MaterialAlertDialogBuilder(ctx)
                 .setTitle(R.string.crash_logs)
                 .setMessage(R.string.crash_log_empty)
                 .setPositiveButton(R.string.close, null)
@@ -175,7 +175,7 @@ class AboutFragment : Fragment() {
         }
         val content = CrashLogger.readLatest(ctx) ?: getString(R.string.crash_log_empty)
         val header = getString(R.string.crash_log_count, logs.size)
-        AlertDialog.Builder(ctx)
+        MaterialAlertDialogBuilder(ctx)
             .setTitle(R.string.crash_logs)
             .setMessage("$header\n\n$content")
             .setPositiveButton(R.string.share) { _, _ -> shareCrashLog(content) }
@@ -202,7 +202,7 @@ class AboutFragment : Fragment() {
     }
 
     private fun showRestartDialog() {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.language))
             .setMessage(getString(R.string.language_changed))
             .setPositiveButton(getString(R.string.restart)) { _, _ ->

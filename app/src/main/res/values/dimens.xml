@@ -1,3 +1,15 @@
 <resources>
     <dimen name="qr_code_size">300dp</dimen>
+    <dimen name="space_4">4dp</dimen>
+    <dimen name="space_8">8dp</dimen>
+    <dimen name="space_12">12dp</dimen>
+    <dimen name="space_16">16dp</dimen>
+    <dimen name="space_24">24dp</dimen>
+    <dimen name="radius_compact">8dp</dimen>
+    <dimen name="radius_panel">12dp</dimen>
+    <dimen name="stroke_panel">1dp</dimen>
+    <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="editorial_row_min_height">64dp</dimen>
+    <dimen name="icon_tile_size">36dp</dimen>
+    <dimen name="content_max_width">560dp</dimen>
 </resources>

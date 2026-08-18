@@ -12,10 +12,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.databinding.ActivityVideoScanBinding
 import com.xenoamess.qrcodesimple.ui.result.QRResult
@@ -305,7 +305,7 @@ class VideoScanActivity : AppCompatActivity() {
             return
         }
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.delete_selected))
             .setMessage(getString(R.string.delete_selected_confirm, selected.size))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->

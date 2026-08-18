@@ -215,23 +215,31 @@ object SecurityManager {
      * 获取风险颜色
      */
     fun getRiskColor(riskLevel: RiskLevel): Int {
+        appContext?.let { context ->
+            return context.getColor(
+                when (riskLevel) {
+                    RiskLevel.SAFE -> R.color.app_success
+                    RiskLevel.LOW, RiskLevel.MEDIUM -> R.color.app_warning
+                    RiskLevel.HIGH -> R.color.app_error
+                    RiskLevel.UNKNOWN -> R.color.app_text_secondary
+                }
+            )
+        }
         return try {
             when (riskLevel) {
-                RiskLevel.SAFE -> Color.parseColor("#4CAF50")
-                RiskLevel.LOW -> Color.parseColor("#FFC107")
-                RiskLevel.MEDIUM -> Color.parseColor("#FF9800")
-                RiskLevel.HIGH -> Color.parseColor("#F44336")
-                RiskLevel.UNKNOWN -> Color.parseColor("#9E9E9E")
+                RiskLevel.SAFE -> Color.parseColor("#256B45")
+                RiskLevel.LOW, RiskLevel.MEDIUM -> Color.parseColor("#735600")
+                RiskLevel.HIGH -> Color.parseColor("#B3261E")
+                RiskLevel.UNKNOWN -> Color.parseColor("#596967")
             }
         } catch (e: Exception) {
             // 在单元测试环境中 Color.parseColor 可能不可用
             // 返回默认颜色值
             when (riskLevel) {
-                RiskLevel.SAFE -> 0xFF4CAF50.toInt()
-                RiskLevel.LOW -> 0xFFFFC107.toInt()
-                RiskLevel.MEDIUM -> 0xFFFF9800.toInt()
-                RiskLevel.HIGH -> 0xFFF44336.toInt()
-                RiskLevel.UNKNOWN -> 0xFF9E9E9E.toInt()
+                RiskLevel.SAFE -> 0xFF256B45.toInt()
+                RiskLevel.LOW, RiskLevel.MEDIUM -> 0xFF735600.toInt()
+                RiskLevel.HIGH -> 0xFFB3261E.toInt()
+                RiskLevel.UNKNOWN -> 0xFF596967.toInt()
             }
         }
     }

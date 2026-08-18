@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/app_background"
+    android:padding="@dimen/space_16">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,18 +14,17 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:text="@string/backup_restore"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textColor="@color/app_text_primary" />
 
         <!-- 导出选项 -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.QRCodeSimple.Panel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp"
             app:contentPadding="16dp">
 
             <LinearLayout
@@ -36,59 +36,49 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/export_label"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
                     android:layout_marginBottom="8dp" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExportJson"
+                    style="@style/Widget.QRCodeSimple.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="@string/export_json"
-                    android:textColor="?attr/colorPrimary"
+                    android:text="@string/export_json" />
 
-                    style="?android:attr/borderlessButtonStyle" />
-
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExportCsv"
+                    style="@style/Widget.QRCodeSimple.Button.Outlined"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="@string/export_csv"
-                    android:textColor="?attr/colorPrimary"
+                    android:text="@string/export_csv" />
 
-                    style="?android:attr/borderlessButtonStyle" />
-
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExportExcel"
+                    style="@style/Widget.QRCodeSimple.Button.Outlined"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="@string/export_excel"
-                    android:textColor="?attr/colorPrimary"
+                    android:text="@string/export_excel" />
 
-                    style="?android:attr/borderlessButtonStyle" />
-
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExportEncrypted"
+                    style="@style/Widget.QRCodeSimple.Button.Outlined"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/export_encrypted"
-                    android:textColor="?attr/colorPrimary"
-
-                    style="?android:attr/borderlessButtonStyle" />
+                    android:text="@string/export_encrypted" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- 导入选项 -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.QRCodeSimple.Panel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp"
             app:contentPadding="16dp">
 
             <LinearLayout
@@ -100,30 +90,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/import_data"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
                     android:layout_marginBottom="8dp" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnImport"
+                    style="@style/Widget.QRCodeSimple.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/import_data"
-                    android:textColor="?attr/colorPrimary"
-
-                    style="?android:attr/borderlessButtonStyle" />
+                    android:text="@string/import_data" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- WebDAV 同步 -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.QRCodeSimple.Panel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp"
             app:contentPadding="16dp">
 
             <LinearLayout
@@ -135,15 +121,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/webdav_sync"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
                     android:layout_marginBottom="8dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.QRCodeSimple.TextInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/webdav_url"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:hint="@string/webdav_url">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etWebdavUrl"
@@ -154,11 +139,11 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.QRCodeSimple.TextInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:hint="@string/webdav_username"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:hint="@string/webdav_username">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etWebdavUsername"
@@ -169,11 +154,11 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.QRCodeSimple.TextInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:hint="@string/webdav_password"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:hint="@string/webdav_password">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etWebdavPassword"
@@ -188,12 +173,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/webdav_encrypted_hint"
-                    android:textSize="12sp"
-                    android:textColor="?android:attr/textColorSecondary" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="@dimen/touch_target_min"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:layout_marginTop="8dp">
@@ -203,12 +188,15 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/webdav_auto_upload"
-                        android:textSize="14sp" />
+                        android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
-                    <Switch
+                    <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchWebdavAutoUpload"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/touch_target_min"
+                        app:thumbTint="@color/app_switch_thumb"
+                        app:trackTint="@color/app_switch_track" />
 
                 </LinearLayout>
 
@@ -217,8 +205,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textSize="12sp"
-                    android:textColor="?android:attr/textColorSecondary" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -226,31 +213,29 @@
                     android:orientation="horizontal"
                     android:layout_marginTop="8dp">
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnWebdavUpload"
+                        style="@style/Widget.QRCodeSimple.Button.Primary"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/webdav_upload"
-                        android:textColor="?attr/colorPrimary"
+                        android:layout_marginEnd="@dimen/space_4"
+                        android:text="@string/webdav_upload" />
 
-                        style="?android:attr/borderlessButtonStyle" />
-
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnWebdavDownload"
+                        style="@style/Widget.QRCodeSimple.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/webdav_download"
-                        android:textColor="?attr/colorPrimary"
-
-                        style="?android:attr/borderlessButtonStyle" />
+                        android:layout_marginStart="@dimen/space_4"
+                        android:text="@string/webdav_download" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 

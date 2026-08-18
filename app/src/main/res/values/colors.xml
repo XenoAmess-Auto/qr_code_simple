@@ -15,14 +15,44 @@
     <color name="yellow_700">#FFFBC02D</color>
     <color name="yellow_50">#FFFFFDE7</color>
 
-    <!-- About page: porcelain, ink, and petroleum cyan. -->
-    <color name="about_background">#FFF4F7F6</color>
-    <color name="about_panel">#FFFBFDFC</color>
-    <color name="about_panel_border">#FFCFDDDA</color>
-    <color name="about_divider">#FFE0E9E7</color>
-    <color name="about_accent">#FF006B70</color>
-    <color name="about_accent_soft">#FFD8EFED</color>
-    <color name="about_on_accent">#FFFFFFFF</color>
-    <color name="about_text_primary">#FF172020</color>
-    <color name="about_text_secondary">#FF667574</color>
+    <!-- Technology-editorial application palette. -->
+    <color name="app_background">#FFF4F7F6</color>
+    <color name="app_surface">#FFFBFDFC</color>
+    <color name="app_surface_variant">#FFEAF1EF</color>
+    <color name="app_outline">#FF758684</color>
+    <color name="app_outline_variant">#FFCFDDDA</color>
+    <color name="app_divider">#FFE0E9E7</color>
+    <color name="app_primary">#FF006B70</color>
+    <color name="app_on_primary">#FFFFFFFF</color>
+    <color name="app_primary_container">#FFD8EFED</color>
+    <color name="app_on_primary_container">#FF064E52</color>
+    <color name="app_secondary">#FF496563</color>
+    <color name="app_on_secondary">#FFFFFFFF</color>
+    <color name="app_secondary_container">#FFDDE8E6</color>
+    <color name="app_on_secondary_container">#FF243F3E</color>
+    <color name="app_text_primary">#FF172020</color>
+    <color name="app_text_secondary">#FF596967</color>
+    <color name="app_error">#FFB3261E</color>
+    <color name="app_on_error">#FFFFFFFF</color>
+    <color name="app_error_container">#FFF9DEDC</color>
+    <color name="app_on_error_container">#FF410E0B</color>
+    <color name="app_warning">#FF735600</color>
+    <color name="app_warning_container">#FFFFF0C2</color>
+    <color name="app_on_warning_container">#FF2B1E00</color>
+    <color name="app_success">#FF256B45</color>
+    <color name="app_success_container">#FFD8F4E2</color>
+    <color name="app_on_success_container">#FF0C3822</color>
+    <color name="camera_scrim">#B8071012</color>
+    <color name="camera_panel">#E60E191B</color>
+
+    <!-- Compatibility aliases for the reference About implementation. -->
+    <color name="about_background">@color/app_background</color>
+    <color name="about_panel">@color/app_surface</color>
+    <color name="about_panel_border">@color/app_outline_variant</color>
+    <color name="about_divider">@color/app_divider</color>
+    <color name="about_accent">@color/app_primary</color>
+    <color name="about_accent_soft">@color/app_primary_container</color>
+    <color name="about_on_accent">@color/app_on_primary</color>
+    <color name="about_text_primary">@color/app_text_primary</color>
+    <color name="about_text_secondary">@color/app_text_secondary</color>
 </resources>

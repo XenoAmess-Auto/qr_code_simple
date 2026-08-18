@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/app_background"
+    android:padding="@dimen/space_16">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -11,7 +12,8 @@
         android:orientation="vertical">
 
         <!-- 加密状态卡片 -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.QRCodeSimple.Panel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp">
@@ -19,54 +21,49 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="@dimen/space_16">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/database_security"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.SectionLabel"
                     android:layout_marginBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvEncryptionStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/sqlcipher_description"
-                    android:textSize="12sp"
-                    android:textColor="?android:attr/textColorSecondary" />
+                    android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- 重置数据库按钮 -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnResetDatabase"
+            style="@style/Widget.QRCodeSimple.Button.Destructive"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="@string/reset_database"
-            android:textColor="?attr/colorPrimary"
-
-            style="?android:attr/borderlessButtonStyle" />
+            android:text="@string/reset_database" />
 
         <!-- 导出备份按钮 -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnExportBackup"
+            style="@style/Widget.QRCodeSimple.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/backup_restore"
-            android:textColor="?attr/colorPrimary"
-
-            style="?android:attr/borderlessButtonStyle" />
+            android:text="@string/backup_restore" />
 
     </LinearLayout>
 

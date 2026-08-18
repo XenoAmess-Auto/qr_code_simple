@@ -233,25 +233,21 @@ class PrivacySettingsActivity : AppCompatActivity() {
             getString(R.string.app_lock_disabled)
         }
         binding.tvAppLockStatus.setTextColor(
-            if (isEnabled) getColor(android.R.color.holo_green_dark) else getColor(android.R.color.darker_gray)
+            getColor(if (isEnabled) R.color.app_success else R.color.app_text_secondary)
         )
         binding.btnChangePin.visibility = if (AppLockManager.hasPin()) View.VISIBLE else View.GONE
     }
 
     private fun showEnablePrivacyModeDialog() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Enable Privacy Mode?")
-            .setMessage("When privacy mode is enabled:\n\n" +
-                    "• Scan results will NOT be saved to history\n" +
-                    "• Existing history will be kept\n" +
-                    "• You can disable this at any time\n\n" +
-                    "Are you sure you want to enable privacy mode?")
-            .setPositiveButton("Enable") { _, _ ->
+            .setTitle(R.string.privacy_mode)
+            .setMessage(R.string.privacy_mode_info)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
                 QRCodeApp.setPrivacyMode(this, true)
                 updatePrivacyModeUI(true)
                 Toast.makeText(this, getString(R.string.privacy_mode_enabled), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancel") { _, _ ->
+            .setNegativeButton(R.string.cancel) { _, _ ->
                 binding.switchPrivacyMode.isChecked = false
             }
             .setCancelable(false)
@@ -260,12 +256,12 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
     private fun showClearHistoryDialog() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Clear All History?")
-            .setMessage("This will permanently delete all scan and generate history. This action cannot be undone.")
-            .setPositiveButton("Clear") { _, _ ->
+            .setTitle(R.string.clear_history)
+            .setMessage(R.string.clear_history_confirm)
+            .setPositiveButton(R.string.clear) { _, _ ->
                 clearAllHistory()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -274,11 +270,12 @@ class PrivacySettingsActivity : AppCompatActivity() {
             try {
                 historyRepository.deleteAll()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@PrivacySettingsActivity, "History cleared", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@PrivacySettingsActivity, R.string.history_cleared, Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
+                android.util.Log.e("PrivacySettings", "Failed to clear history", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@PrivacySettingsActivity, "Failed to clear history: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@PrivacySettingsActivity, R.string.unknown_error, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -286,12 +283,12 @@ class PrivacySettingsActivity : AppCompatActivity() {
 
     private fun updatePrivacyModeUI(isEnabled: Boolean) {
         if (isEnabled) {
-            binding.tvPrivacyStatus.text = "Privacy mode is ON"
-            binding.tvPrivacyStatus.setTextColor(getColor(android.R.color.holo_green_dark))
+            binding.tvPrivacyStatus.text = getString(R.string.privacy_mode_active)
+            binding.tvPrivacyStatus.setTextColor(getColor(R.color.app_success))
             binding.cardPrivacyInfo.visibility = View.VISIBLE
         } else {
-            binding.tvPrivacyStatus.text = "Privacy mode is OFF"
-            binding.tvPrivacyStatus.setTextColor(getColor(android.R.color.darker_gray))
+            binding.tvPrivacyStatus.text = getString(R.string.privacy_mode_off)
+            binding.tvPrivacyStatus.setTextColor(getColor(R.color.app_text_secondary))
             binding.cardPrivacyInfo.visibility = View.GONE
         }
     }

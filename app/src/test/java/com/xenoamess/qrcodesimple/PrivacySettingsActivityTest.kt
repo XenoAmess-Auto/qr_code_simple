@@ -5,7 +5,6 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.Switch
 import androidx.appcompat.app.AlertDialog
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -14,6 +13,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.switchmaterial.SwitchMaterial
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -56,7 +56,7 @@ class PrivacySettingsActivityTest {
     @Test
     fun privacySwitchDisabledByDefault() {
         scenario.onActivity { activity ->
-            val switch = activity.findViewById<Switch>(R.id.switchPrivacyMode)
+            val switch = activity.findViewById<SwitchMaterial>(R.id.switchPrivacyMode)
             assertFalse(switch.isChecked)
             assertFalse(QRCodeApp.isPrivacyMode(activity))
         }
@@ -64,7 +64,9 @@ class PrivacySettingsActivityTest {
 
     @Test
     fun enablingPrivacyModeShowsConfirmDialogAndTogglesOnConfirm() {
-        onView(withId(R.id.switchPrivacyMode)).perform(click())
+        scenario.onActivity { activity ->
+            activity.findViewById<SwitchMaterial>(R.id.switchPrivacyMode).performClick()
+        }
         idleMain()
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
@@ -74,14 +76,16 @@ class PrivacySettingsActivityTest {
 
         scenario.onActivity { activity ->
             assertTrue(QRCodeApp.isPrivacyMode(activity))
-            val switch = activity.findViewById<Switch>(R.id.switchPrivacyMode)
+            val switch = activity.findViewById<SwitchMaterial>(R.id.switchPrivacyMode)
             assertTrue(switch.isChecked)
         }
     }
 
     @Test
     fun cancellingPrivacyModeDialogKeepsSwitchOff() {
-        onView(withId(R.id.switchPrivacyMode)).perform(click())
+        scenario.onActivity { activity ->
+            activity.findViewById<SwitchMaterial>(R.id.switchPrivacyMode).performClick()
+        }
         idleMain()
 
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
@@ -90,7 +94,7 @@ class PrivacySettingsActivityTest {
 
         scenario.onActivity { activity ->
             assertFalse(QRCodeApp.isPrivacyMode(activity))
-            val switch = activity.findViewById<Switch>(R.id.switchPrivacyMode)
+            val switch = activity.findViewById<SwitchMaterial>(R.id.switchPrivacyMode)
             assertFalse(switch.isChecked)
         }
     }
@@ -109,8 +113,8 @@ class PrivacySettingsActivityTest {
         assertFalse(QRCodeApp.isScanVibrationEnabled(context))
 
         scenario.onActivity { activity ->
-            assertFalse(activity.findViewById<Switch>(R.id.switchScanSound).isChecked)
-            assertFalse(activity.findViewById<Switch>(R.id.switchScanVibration).isChecked)
+            assertFalse(activity.findViewById<SwitchMaterial>(R.id.switchScanSound).isChecked)
+            assertFalse(activity.findViewById<SwitchMaterial>(R.id.switchScanVibration).isChecked)
         }
 
         onView(withId(R.id.switchScanSound)).perform(click())
@@ -124,7 +128,7 @@ class PrivacySettingsActivityTest {
     fun enablingAppLockWithoutPinShowsSetPinDialog() {
         // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
         scenario.onActivity { activity ->
-            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+            activity.findViewById<SwitchMaterial>(R.id.switchAppLock).performClick()
         }
         idleMain()
 
@@ -138,7 +142,7 @@ class PrivacySettingsActivityTest {
     fun cancellingSetPinDialogKeepsLockDisabled() {
         // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
         scenario.onActivity { activity ->
-            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+            activity.findViewById<SwitchMaterial>(R.id.switchAppLock).performClick()
         }
         idleMain()
 
@@ -148,7 +152,7 @@ class PrivacySettingsActivityTest {
 
         assertFalse(AppLockManager.isLockEnabled())
         scenario.onActivity { activity ->
-            val switch = activity.findViewById<Switch>(R.id.switchAppLock)
+            val switch = activity.findViewById<SwitchMaterial>(R.id.switchAppLock)
             assertFalse(switch.isChecked)
         }
     }
@@ -157,7 +161,7 @@ class PrivacySettingsActivityTest {
     fun setPinAndEnableAppLock() {
         // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
         scenario.onActivity { activity ->
-            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+            activity.findViewById<SwitchMaterial>(R.id.switchAppLock).performClick()
         }
         idleMain()
 
@@ -173,7 +177,7 @@ class PrivacySettingsActivityTest {
         assertTrue(AppLockManager.isLockEnabled())
         assertTrue(AppLockManager.hasPin())
         scenario.onActivity { activity ->
-            assertTrue(activity.findViewById<Switch>(R.id.switchAppLock).isChecked)
+            assertTrue(activity.findViewById<SwitchMaterial>(R.id.switchAppLock).isChecked)
             assertEquals(View.VISIBLE, activity.findViewById<MaterialButton>(R.id.btnChangePin).visibility)
         }
     }
@@ -182,7 +186,7 @@ class PrivacySettingsActivityTest {
     fun mismatchingPinDoesNotEnableLock() {
         // 新增自动化卡片后该开关可能滚出屏幕，直接触发点击
         scenario.onActivity { activity ->
-            activity.findViewById<Switch>(R.id.switchAppLock).performClick()
+            activity.findViewById<SwitchMaterial>(R.id.switchAppLock).performClick()
         }
         idleMain()
 

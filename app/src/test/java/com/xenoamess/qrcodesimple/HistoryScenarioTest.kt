@@ -6,7 +6,7 @@ import android.content.Intent
 import android.os.Looper
 import android.view.View
 import android.widget.Button
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer

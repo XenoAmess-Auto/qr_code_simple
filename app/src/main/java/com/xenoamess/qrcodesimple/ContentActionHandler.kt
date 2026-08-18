@@ -15,7 +15,7 @@ import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.ContentParser.ParsedContent
 
 /**
@@ -125,7 +125,7 @@ class ContentActionHandler(private val activity: Activity) {
             return
         }
 
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.wifi_connect_title))
             .setMessage(activity.getString(R.string.wifi_connect_confirm, wifi.ssid))
             .setPositiveButton(activity.getString(R.string.wifi_connect_button)) { _, _ ->
@@ -474,7 +474,7 @@ class ContentActionHandler(private val activity: Activity) {
     // ==================== Phone ====================
 
     private fun makePhoneCall(number: String) {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.confirm_call))
             .setMessage(number)
             .setPositiveButton(activity.getString(R.string.call)) { _, _ ->

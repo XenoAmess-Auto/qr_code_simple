@@ -4,9 +4,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:padding="24dp">
 
     <LinearLayout
         android:layout_width="480dp"
@@ -17,32 +18,52 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
             android:text="@string/select_image_source"
-            android:textSize="18sp"
-            android:layout_marginBottom="24dp" />
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="@color/app_text_primary"
+            android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGallery"
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.QRCodeSimple.Panel"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/from_gallery"
-            android:layout_marginBottom="12dp"
-            app:icon="@drawable/ic_gallery" />
+            android:layout_height="wrap_content">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCamera"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/take_photo"
-            android:layout_marginBottom="12dp"
-            app:icon="@drawable/ic_camera" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnFile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/from_file"
-            app:icon="@drawable/ic_file" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGallery"
+                    style="@style/Widget.QRCodeSimple.Button.Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/from_gallery"
+                    app:icon="@drawable/ic_gallery" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCamera"
+                    style="@style/Widget.QRCodeSimple.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/take_photo"
+                    app:icon="@drawable/ic_camera" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFile"
+                    style="@style/Widget.QRCodeSimple.Button.Text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/from_file"
+                    app:icon="@drawable/ic_file" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 
