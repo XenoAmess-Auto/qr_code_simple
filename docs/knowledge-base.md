@@ -20,7 +20,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | 二维码识别 | WeChatQRCode | 2.6.0 |
 | Micro QR | BoofCV | 1.4.0 |
 | 复杂格式生成 | OkapiBarcode | 0.5.6 |
-| 测试 | JUnit Platform（Jupiter + Vintage）+ Robolectric | 6.1.2 / 4.16.1 |
+| 测试 | JUnit Platform（Jupiter + Vintage）+ Robolectric | 6.1.3 / 4.16.1 |
 | 覆盖率 | JaCoCo + GitHub Pages | 0.8.12 / shields.io endpoint badge |
 
 ## 3. 支持格式总览
@@ -230,9 +230,9 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 字符串资源需同时提供全部 10 个 locale（`values` / `values-zh` / `values-de` / `values-ja` / `values-ko` / `values-fr` / `values-es` / `values-it` / `values-pt` / `values-ru`）。`MissingTranslation` / `ExtraTranslation` 为 lint error；**10 个 locale 已全部 100% 对齐**。`HardcodedText` 同为 error：布局真实文本必须走字符串资源，运行时占位文本用 `tools:text`。fastlane 元数据仅保留 en-US / zh-CN 两份，属有意留档（商店分发见第 8 节黑名单）。
 - `SecurityManager` 等无 Context 单例的文案经 `init(context)` 持有的 `appContext` 解析；未 init（单元测试）回退英文。
 - 生成稳定性：固定输入的 SVG 输出哈希受 `GenerationGoldenTest` 金样保护；生成逻辑或依赖升级导致图案变化时会失败，属预期变更时更新金样并在提交信息说明。
-- 测试在 JUnit Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）；当前 `build.gradle` 为 Jupiter 与 Vintage 配置 `6.1.2`。
+- 测试在 JUnit Platform 上运行（Vintage Engine 跑既有 JUnit 4 / Robolectric；新测试可用 Jupiter）；当前 `build.gradle` 为 Jupiter 与 Vintage 配置 `6.1.3`。
 - CI 覆盖率门禁：`jacocoTestCoverageVerification`（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径）。
-- Release 构建开启 R8 + shrinkResources；`app/debug.keystore` 是主分支 Debug、Beta 与 Stable 的签名基线。本地可通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 Gradle 属性使用证书相同的 keystore；CI 可选的 `RELEASE_KEYSTORE_BASE64` / `_PASSWORD` / `_ALIAS` secrets 也会被证书比对。发布细节见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。
+- Release 构建开启 R8 + shrinkResources；`-PreleaseInstrumentedTest` 构建会额外应用 `app/proguard-release-test-rules.pro`，为 release AndroidTest 保留被测 APK 负责提供的 tracing/Kotlin 运行时，正式 Stable APK 不使用该测试专用规则。`app/debug.keystore` 是主分支 Debug、Beta 与 Stable 的签名基线。本地可通过 `RELEASE_KEYSTORE_FILE` / `_PASSWORD` / `_ALIAS` 环境变量或 Gradle 属性使用证书相同的 keystore；CI 可选的 `RELEASE_KEYSTORE_BASE64` / `_PASSWORD` / `_ALIAS` secrets 也会被证书比对。发布细节见 [`versioning-and-update-system.md`](versioning-and-update-system.md)。
 
 ## 8. 需求黑名单（已明确拒绝，勿再提议）
 

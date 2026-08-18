@@ -8,7 +8,7 @@
 
 ## 2. 测试框架
 
-- **JUnit Platform（Jupiter / Vintage 6.1.2）**：`useJUnitPlatform()`；既有 JUnit 4 测试经 **Vintage Engine** 运行，新测试可用 Jupiter 注解。版本以 `app/build.gradle` 为准。
+- **JUnit Platform（Jupiter / Vintage 6.1.3）**：`useJUnitPlatform()`；既有 JUnit 4 测试经 **Vintage Engine** 运行，新测试可用 Jupiter 注解。版本以 `app/build.gradle` 为准。
 - **Robolectric 4.16.1**：在 JVM 上模拟 Android `Bitmap`。
 - **Kotlin test**：辅助断言。
 
@@ -178,13 +178,16 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 # 需要已连接的模拟器/设备；CI 最多重试三次
 ./gradlew :app:connectedDebugAndroidTest
 
+# Stable 发布前的 R8 release-path smoke tests
+./gradlew :app:connectedReleaseAndroidTest -PreleaseInstrumentedTest -Pandroid.testInstrumentationRunnerArguments.class=com.xenoamess.qrcodesimple.ReleasePathSmokeTest
+
 # build 与 Stable 发布工作流使用的同一 JVM 验证命令
 ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:jacocoTestReport :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 ```
 
 `lintDebug` 与覆盖率门禁均为 CI 验证的一部分。Lint baseline 只保留已记录项；不要以跳过 lint 代替修复新问题。
 
-CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执行上述 JVM 验证，另有 API 35 的 Google ATD（`google_atd`）测试模拟器运行 `connectedDebugAndroidTest`。通用 Debug 和 Release APK 均包含 `armeabi-v7a`、`arm64-v8a`、`x86` 与 `x86_64` ABI 的 OpenCV 原生库。仅 `master` 的 push 会在这两个 job 成功后构建与 Debug 同证书的 Beta；Stable 标签工作流单独执行同一 JVM 验证命令。
+CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执行上述 JVM 验证，另有 API 35 的 Google ATD（`google_atd`）测试模拟器运行 `connectedDebugAndroidTest`。通用 Debug 和 Release APK 均包含 `armeabi-v7a`、`arm64-v8a`、`x86` 与 `x86_64` ABI 的 OpenCV 原生库。仅 `master` 的 push 会在这两个 job 成功后构建与 Debug 同证书的 Beta；Stable 标签工作流先运行 R8 release-path smoke tests，再执行同一 JVM 验证命令。release AndroidTest 会省略被测 APK 已提供的 tracing/Kotlin 依赖，因此 `-PreleaseInstrumentedTest` 会额外应用 `app/proguard-release-test-rules.pro`；正式 Stable APK 不使用该测试专用规则。
 
 ### 7.1 版本元数据与发布产物核验
 

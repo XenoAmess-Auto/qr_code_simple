@@ -2,9 +2,9 @@
 
 ## 状态：✅ 已落地（2026-07）；纯 JVM 测试迁移已于 2026-08 完成
 
-- 已启用 `useJUnitPlatform()`，JUnit 6.1.2 Platform + Vintage Engine 运行全部既有 JUnit 4 / Robolectric 测试。
+- 已启用 `useJUnitPlatform()`，JUnit 6.1.3 Platform + Vintage Engine 运行全部既有 JUnit 4 / Robolectric 测试。
 - 新测试可使用 Jupiter 注解（示例：`BackupCryptoJupiterTest`）。
-- **勘误**：早前认为"JUnit 6 移除 Vintage Engine"，实际 `org.junit.vintage:junit-vintage-engine` 6.x 仍在 Maven Central 正常发布（当前 6.1.2），双轨可继续使用。
+- **勘误**：早前认为"JUnit 6 移除 Vintage Engine"，实际 `org.junit.vintage:junit-vintage-engine` 6.x 仍在 Maven Central 正常发布（当前 6.1.3），双轨可继续使用。
 - 纯 JVM 测试（无 Robolectric 依赖的 10 个测试类）已全部迁移到 Jupiter 注解；Robolectric 测试因 runner 依赖保持 JUnit 4 注解，经 Vintage Engine 运行。
 
 ## 目标
