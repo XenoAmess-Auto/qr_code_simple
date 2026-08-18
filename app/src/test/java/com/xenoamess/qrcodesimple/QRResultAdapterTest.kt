@@ -124,6 +124,14 @@ class QRResultAdapterTest : BaseAdapterTest() {
     }
 
     @Test
+    fun videoResultDisplaysSamplePosition() {
+        val holder = bindItem(QRResult("code", sourceTimestampMs = 61_250), withContentActionHandler = false)
+        val tvResult = holder.itemView.findViewById<TextView>(R.id.tvResult)
+
+        assertEquals("[01:01.250] code", tvResult.text.toString())
+    }
+
+    @Test
     fun selectedItemChecksCheckbox() {
         val holder = bindItem(QRResult("selected", isSelected = true))
         val checkbox = holder.itemView.findViewById<CheckBox>(R.id.checkbox)

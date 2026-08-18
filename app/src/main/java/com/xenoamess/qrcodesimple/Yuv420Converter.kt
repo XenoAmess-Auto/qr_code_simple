@@ -29,14 +29,14 @@ object Yuv420Converter {
             for (x in 0 until cropWidth) {
                 val sourceX = cropLeft + x
                 val sourceY = cropTop + y
-                val luminance = sample(planes[0], sourceX, sourceY)
+                val luminance = (sample(planes[0], sourceX, sourceY) - 16).coerceAtLeast(0)
                 val chromaX = sourceX / 2
                 val chromaY = sourceY / 2
                 val u = sample(planes[1], chromaX, chromaY) - 128
                 val v = sample(planes[2], chromaX, chromaY) - 128
-                val r = (luminance + 1.402 * v).toInt().coerceIn(0, 255)
-                val g = (luminance - 0.344136 * u - 0.714136 * v).toInt().coerceIn(0, 255)
-                val b = (luminance + 1.772 * u).toInt().coerceIn(0, 255)
+                val r = ((298 * luminance + 409 * v + 128) shr 8).coerceIn(0, 255)
+                val g = ((298 * luminance - 100 * u - 208 * v + 128) shr 8).coerceIn(0, 255)
+                val b = ((298 * luminance + 516 * u + 128) shr 8).coerceIn(0, 255)
                 pixels[y * cropWidth + x] = (0xff shl 24) or (r shl 16) or (g shl 8) or b
             }
         }

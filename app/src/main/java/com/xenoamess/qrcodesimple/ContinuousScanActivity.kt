@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.ActivityContinuousScanBinding
@@ -54,7 +55,8 @@ class ContinuousScanActivity : AppCompatActivity() {
         val content: String,
         val type: HistoryType = HistoryType.QR_CODE,
         val timestamp: Long = System.currentTimeMillis(),
-        var isSaved: Boolean = false
+        var isSaved: Boolean = false,
+        val appFormat: BarcodeFormat = BarcodeFormat.UNKNOWN
     )
 
     override fun attachBaseContext(newBase: Context) {
@@ -118,18 +120,18 @@ class ContinuousScanActivity : AppCompatActivity() {
 
     private fun handleScanResult(result: QRCodeScanner.ScanResult) {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastScanTime < scanInterval && results.any { it.content == result.text && it.type == result.appFormat.toHistoryType() }) {
+        if (results.any { it.content == result.text && it.appFormat == result.appFormat }) {
+            return
+        }
+        if (currentTime - lastScanTime < scanInterval) {
             return
         }
         lastScanTime = currentTime
 
-        if (results.any { it.content == result.text && it.type == result.appFormat.toHistoryType() }) {
-            return
-        }
-
         val scanResult = ScanResult(
             content = result.text,
-            type = result.appFormat.toHistoryType()
+            type = result.appFormat.toHistoryType(),
+            appFormat = result.appFormat
         )
         results.add(0, scanResult)
         adapter.notifyItemInserted(0)
@@ -148,7 +150,11 @@ class ContinuousScanActivity : AppCompatActivity() {
     private fun saveResult(result: ScanResult) {
         lifecycleScope.launch {
             try {
-                historyRepository.insertScan(result.content, result.type)
+                historyRepository.insertScan(
+                    result.content,
+                    result.type,
+                    result.appFormat.takeUnless { it == BarcodeFormat.UNKNOWN }?.name
+                )
                 result.isSaved = true
                 val position = results.indexOf(result)
                 if (position >= 0) {
@@ -165,7 +171,11 @@ class ContinuousScanActivity : AppCompatActivity() {
             var savedCount = 0
             results.filter { !it.isSaved }.forEach { result ->
                 try {
-                    historyRepository.insertScan(result.content, result.type)
+                    historyRepository.insertScan(
+                        result.content,
+                        result.type,
+                        result.appFormat.takeUnless { it == BarcodeFormat.UNKNOWN }?.name
+                    )
                     result.isSaved = true
                     savedCount++
                 } catch (e: Exception) {
@@ -216,7 +226,7 @@ class ContinuousScanActivity : AppCompatActivity() {
 
     private fun showSettingsDialog() {
         val items = arrayOf(
-            getString(R.string.scan_vibration),
+            "${getString(R.string.scan_vibration)}: ${getString(if (isVibrationEnabled) R.string.enabled else R.string.disabled)}",
             getString(R.string.scan_auto_save, getString(if (isAutoSaveEnabled) R.string.enabled else R.string.disabled)),
             getString(R.string.scan_interval, scanInterval)
         )
@@ -279,7 +289,10 @@ class ContinuousScanActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this).setTitle(R.string.export_results)
             .setItems(arrayOf(getString(R.string.export_csv), getString(R.string.export_excel), getString(R.string.export_json))) { _, index ->
                 exportKind = listOf("csv", "xlsx", "json")[index]
-                exportRows = results.map { ScanSessionExporter.Row(it.content, it.type.name, it.timestamp, it.isSaved) }
+                exportRows = results.map {
+                    val format = it.appFormat.takeUnless { value -> value == BarcodeFormat.UNKNOWN }?.name ?: it.type.name
+                    ScanSessionExporter.Row(it.content, format, it.timestamp, it.isSaved)
+                }
                 val mime = if (exportKind == "xlsx") "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" else "text/${if (exportKind == "json") "json" else "csv"}"
                 exportLauncher.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mime).putExtra(Intent.EXTRA_TITLE, "scan-session.$exportKind"))
             }.show()

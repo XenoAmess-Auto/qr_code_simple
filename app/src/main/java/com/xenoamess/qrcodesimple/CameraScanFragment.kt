@@ -597,7 +597,11 @@ class CameraScanFragment : Fragment() {
                     try {
                         val toInsert = if (currentResults.size > 1) currentResults else listOf(result)
                         toInsert.forEach {
-                            historyRepository.insertScan(it.text, it.appFormat.toHistoryType())
+                            historyRepository.insertScan(
+                                it.text,
+                                it.appFormat.toHistoryType(),
+                                it.appFormat.name
+                            )
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save history", e)

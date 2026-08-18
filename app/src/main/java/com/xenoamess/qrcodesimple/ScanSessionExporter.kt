@@ -34,7 +34,16 @@ object ScanSessionExporter {
 
     private fun jsonString(value: String): String = buildString {
         append('"')
-        value.forEach { append(when (it) { '\\' -> "\\\\"; '"' -> "\\\""; '\n' -> "\\n"; '\r' -> "\\r"; '\t' -> "\\t"; else -> it }) }
+        value.forEach {
+            append(when (it) {
+                '\\' -> "\\\\"
+                '"' -> "\\\""
+                '\n' -> "\\n"
+                '\r' -> "\\r"
+                '\t' -> "\\t"
+                else -> if (it < ' ') "\\u%04x".format(it.code) else it
+            })
+        }
         append('"')
     }
 }

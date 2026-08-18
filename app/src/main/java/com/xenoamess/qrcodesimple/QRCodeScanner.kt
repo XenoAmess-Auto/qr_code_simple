@@ -18,6 +18,7 @@ import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinDecoder
 import com.xenoamess.qrcodesimple.scanner.MlKitEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -27,6 +28,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -79,7 +81,7 @@ fun AppBarcodeFormat.toHistoryType(): HistoryType {
         AppBarcodeFormat.MSI_PLESSEY -> HistoryType.MSI_PLESSEY
         AppBarcodeFormat.TELEPEN -> HistoryType.TELEPEN
         AppBarcodeFormat.HAN_XIN -> HistoryType.HAN_XIN
-        else -> HistoryType.GENERATED_ONLY
+        else -> if (isScannable) HistoryType.BARCODE else HistoryType.GENERATED_ONLY
     }
 }
 
@@ -166,10 +168,11 @@ object QRCodeScanner {
 
     private val scanningEnabled = AtomicBoolean(true)
     private val engineExecutor = ThreadPoolExecutor(
-        2, 4, 30, TimeUnit.SECONDS, LinkedBlockingQueue(8),
+        6, 6, 30, TimeUnit.SECONDS, LinkedBlockingQueue(24),
         ThreadFactory { runnable -> Thread(runnable, "QRCodeScanner-engine").apply { isDaemon = true } }
     ).apply { allowCoreThreadTimeOut(true) }
     private val engineDispatcher = engineExecutor.asCoroutineDispatcher()
+    private val cleanupScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     /**
      * 紧急制动：当应用发生严重错误（如 OOM）后，可调用此接口暂时禁用所有扫描，
@@ -186,7 +189,11 @@ object QRCodeScanner {
         val width = bitmap.width
         val height = bitmap.height
         val maxDim = maxOf(width, height)
-        if (maxDim <= maxDimension) return bitmap
+        if (maxDim <= maxDimension) {
+            return checkNotNull(bitmap.copy(Bitmap.Config.ARGB_8888, false)) {
+                "Unable to copy scan bitmap"
+            }
+        }
 
         val scale = maxDimension.toFloat() / maxDim
         val newWidth = (width * scale).toInt()
@@ -263,8 +270,6 @@ object QRCodeScanner {
         }
 
         val processedBitmap = preprocessBitmap(bitmap, config.maxDimension)
-        val shouldRecycleProcessed = processedBitmap !== bitmap
-
         val scope = CoroutineScope(engineDispatcher + SupervisorJob())
         val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
         val engineJobs = mutableListOf<Job>()
@@ -322,7 +327,7 @@ object QRCodeScanner {
 
             engineCount = engineJobs.size
 
-            withTimeoutOrNull(config.totalTimeoutMs) {
+            allCompleted = withTimeoutOrNull(config.totalTimeoutMs) {
                 val seenKeys = mutableSetOf<String>()
                 var completedCount = 0
                 while (completedCount < engineCount) {
@@ -341,22 +346,27 @@ object QRCodeScanner {
                         null -> break
                     }
                 }
-                allCompleted = true
-            }
+                completedCount >= engineCount
+            } ?: false
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
             Log.e(TAG, "Scan flow crashed", e)
         } finally {
             if (!allCompleted) {
-                Log.d(TAG, "Total timeout reached, abandoning $engineCount engines")
+                Log.d(TAG, "Scan stopped before all $engineCount engines completed")
             } else {
                 Log.d(TAG, "scanAsFlow completed normally")
             }
             eventChannel.close()
             scope.cancel()
-            if (allCompleted && shouldRecycleProcessed && !processedBitmap.isRecycled) {
+            if (allCompleted && !processedBitmap.isRecycled) {
                 processedBitmap.recycle()
+            } else if (!allCompleted) {
+                cleanupScope.launch {
+                    engineJobs.joinAll()
+                    if (!processedBitmap.isRecycled) processedBitmap.recycle()
+                }
             }
         }
     }
@@ -497,8 +507,7 @@ object QRCodeScanner {
         reader.setHints(hints)
 
         return try {
-            val result = reader.decode(binaryBitmap)
-            ScanResult(result.text, Library.ZXING, result.barcodeFormat, result.barcodeFormat.toAppFormat(), result.resultMetadata)
+            reader.decode(binaryBitmap).toScanResult()
         } catch (e: Exception) {
             // 尝试全局直方图二值化（对某些图像效果更好）
             try {
@@ -506,11 +515,27 @@ object QRCodeScanner {
                 val globalBinaryBitmap = BinaryBitmap(
                     com.google.zxing.common.GlobalHistogramBinarizer(globalSource)
                 )
-                val globalResult = reader.decode(globalBinaryBitmap)
-                ScanResult(globalResult.text, Library.ZXING, globalResult.barcodeFormat, globalResult.barcodeFormat.toAppFormat(), globalResult.resultMetadata)
+                reader.decode(globalBinaryBitmap).toScanResult()
             } catch (e2: Exception) {
                 null
             }
+        }
+    }
+
+    private fun com.google.zxing.Result.toScanResult(): ScanResult {
+        val extension = resultMetadata
+            ?.get(com.google.zxing.ResultMetadataType.UPC_EAN_EXTENSION)
+            ?.toString()
+        return if (extension.isNullOrEmpty()) {
+            ScanResult(text, Library.ZXING, barcodeFormat, barcodeFormat.toAppFormat(), resultMetadata)
+        } else {
+            ScanResult(
+                extension,
+                Library.ZXING,
+                BarcodeFormat.UPC_EAN_EXTENSION,
+                AppBarcodeFormat.UPC_EAN_EXTENSION,
+                resultMetadata
+            )
         }
     }
 

@@ -20,6 +20,7 @@ import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * 通用扫描结果数据项，用于图片扫描（ResultActivity）和视频扫描（VideoScanActivity）。
@@ -69,7 +70,8 @@ class QRResultAdapter(
             } else {
                 ""
             }
-            tvResult.text = "$libPrefix${item.text}"
+            val timestampPrefix = item.sourceTimestampMs?.let { "[${formatTimestamp(it)}] " } ?: ""
+            tvResult.text = "$libPrefix$timestampPrefix${item.text}"
 
             // 内容类型标签和图标
             if (contentActionHandler != null) {
@@ -133,6 +135,13 @@ class QRResultAdapter(
     }
 
     override fun getItemCount() = items.size
+
+    private fun formatTimestamp(timestampMs: Long): String {
+        val minutes = timestampMs / 60_000
+        val seconds = timestampMs / 1_000 % 60
+        val milliseconds = timestampMs % 1_000
+        return String.format(Locale.ROOT, "%02d:%02d.%03d", minutes, seconds, milliseconds)
+    }
 
     private fun checkSecurityAsync(holder: ViewHolder, content: String) {
         val binding = holder.binding

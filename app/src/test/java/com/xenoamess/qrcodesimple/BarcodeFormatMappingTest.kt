@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import com.google.zxing.BarcodeFormat
+import com.xenoamess.qrcodesimple.data.BarcodeFormat as AppBarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryType
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Test
@@ -41,6 +42,23 @@ class BarcodeFormatMappingTest {
         assertEquals(HistoryType.BARCODE, BarcodeFormat.UPC_EAN_EXTENSION.toHistoryType())
         assertEquals(HistoryType.BARCODE, BarcodeFormat.CODABAR.toHistoryType())
         assertEquals(HistoryType.BARCODE, BarcodeFormat.ITF.toHistoryType())
+    }
+
+    @Test
+    fun `scannable app linear formats map to BARCODE history type`() {
+        listOf(
+            AppBarcodeFormat.CODE_128,
+            AppBarcodeFormat.CODE_39,
+            AppBarcodeFormat.CODE_93,
+            AppBarcodeFormat.EAN_13,
+            AppBarcodeFormat.EAN_8,
+            AppBarcodeFormat.UPC_A,
+            AppBarcodeFormat.UPC_E,
+            AppBarcodeFormat.CODABAR,
+            AppBarcodeFormat.ITF
+        ).forEach { format ->
+            assertEquals(HistoryType.BARCODE, format.toHistoryType())
+        }
     }
 
     @Test

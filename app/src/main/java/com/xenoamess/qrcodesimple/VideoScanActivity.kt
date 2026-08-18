@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.xenoamess.qrcodesimple.data.HistoryRepository
-import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.databinding.ActivityVideoScanBinding
 import com.xenoamess.qrcodesimple.ui.result.QRResult
 import com.xenoamess.qrcodesimple.ui.result.QRResultAdapter
@@ -141,23 +140,17 @@ class VideoScanActivity : AppCompatActivity() {
                 var currentTime = 0L
                 var frameCount = 0
 
-                var lastFrameSignature: Int? = null
                 while (isProcessing && currentTime <= durationMs) {
                     coroutineContext.ensureActive()
                     // 提取帧
                     val bitmap = retriever.getFrameAtTime(
                         currentTime * 1000, // 转换为微秒
-                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                        MediaMetadataRetriever.OPTION_CLOSEST
                     )
 
                     if (bitmap != null) {
                         frameCount++
-                        // Sync-frame extraction often returns the same keyframe for nearby times.
-                        val signature = bitmap.width * 31 + bitmap.height * 17 + bitmap.getPixel(0, 0)
-                        if (signature != lastFrameSignature) {
-                            processFrame(bitmap, currentTime)
-                            lastFrameSignature = signature
-                        }
+                        processFrame(bitmap, currentTime)
                         bitmap.recycle()
                     }
 
@@ -216,12 +209,11 @@ class VideoScanActivity : AppCompatActivity() {
             updateSelectionCount()
         }
         lifecycleScope.launch(Dispatchers.IO) {
-            historyRepository.insert(HistoryItem(
-                content = result.text,
-                type = result.appFormat.toHistoryType(),
-                barcodeFormat = result.appFormat.name,
-                notes = result.sourceTimestampMs?.let { "videoTimestampMs=$it" }
-            ))
+            historyRepository.insertScan(
+                result.text,
+                result.appFormat.toHistoryType(),
+                result.appFormat.name
+            )
         }
     }
 

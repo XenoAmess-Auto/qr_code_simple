@@ -356,7 +356,11 @@ class ResultActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 detectedResults.forEach { result ->
-                    historyRepository.insertScan(result.text, result.appFormat.toHistoryType())
+                    historyRepository.insertScan(
+                        result.text,
+                        result.appFormat.toHistoryType(),
+                        result.appFormat.name
+                    )
                 }
             } catch (e: Exception) {
                 // 静默失败，不影响用户体验

@@ -15,4 +15,11 @@ class ScanSessionExporterTest {
         val json = ScanSessionExporter.json(listOf(ScanSessionExporter.Row("code", "MICRO_QR", 2, true)))
         assertTrue(json.contains("MICRO_QR"))
     }
+
+    @Test
+    fun `json escapes barcode control characters`() {
+        val json = ScanSessionExporter.json(listOf(ScanSessionExporter.Row("01\u001d10", "RSS_EXPANDED", 2, true)))
+
+        assertTrue(json.contains("01\\u001d10"))
+    }
 }
