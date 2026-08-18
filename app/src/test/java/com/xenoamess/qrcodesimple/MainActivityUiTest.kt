@@ -5,6 +5,9 @@ import android.net.Uri
 import android.os.Looper
 import android.view.View
 import androidx.cardview.widget.CardView
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
@@ -79,6 +82,21 @@ class MainActivityUiTest {
         waitForPager()
         assertEquals(0, currentPage())
         assertEquals(0, selectedTabIndex())
+    }
+
+    @Test
+    fun systemBarInsetsAreNotAppliedTwiceToBottomNavigation() {
+        scenario.onActivity { activity ->
+            val navigation = activity.findViewById<View>(R.id.mainNavigation)
+            val initialNavigationPadding = navigation.paddingBottom
+            val insets = WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(0, 24, 0, 96))
+                .build()
+
+            ViewCompat.dispatchApplyWindowInsets(navigation, insets)
+
+            assertEquals(initialNavigationPadding, navigation.paddingBottom)
+        }
     }
 
     @Test

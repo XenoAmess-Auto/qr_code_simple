@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
@@ -160,6 +161,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupNavigation() {
+        val initialPadding = intArrayOf(
+            binding.mainNavigation.paddingStart,
+            binding.mainNavigation.paddingTop,
+            binding.mainNavigation.paddingEnd,
+            binding.mainNavigation.paddingBottom
+        )
+        // The activity content already handles system bars; Material would otherwise add them again here.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainNavigation) { view, insets ->
+            view.setPaddingRelative(initialPadding[0], initialPadding[1], initialPadding[2], initialPadding[3])
+            insets
+        }
         binding.mainNavigation.setOnItemSelectedListener { item ->
             val index = navigationItems.indexOf(item.itemId)
             if (index < 0) {
