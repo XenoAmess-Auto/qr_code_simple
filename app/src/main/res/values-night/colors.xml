@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- About page: blue-black, charcoal cyan, and ice cyan. -->
+    <color name="about_background">#FF071012</color>
+    <color name="about_panel">#FF0E191B</color>
+    <color name="about_panel_border">#FF294044</color>
+    <color name="about_divider">#FF203336</color>
+    <color name="about_accent">#FF79DCE2</color>
+    <color name="about_accent_soft">#FF153438</color>
+    <color name="about_on_accent">#FF062023</color>
+    <color name="about_text_primary">#FFF0F6F5</color>
+    <color name="about_text_secondary">#FFA7B8B7</color>
+</resources>

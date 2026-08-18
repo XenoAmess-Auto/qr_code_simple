@@ -3,12 +3,14 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/about_background"
     android:clipToPadding="false"
     android:fillViewport="true"
     android:paddingStart="16dp"
-    android:paddingTop="12dp"
+    android:paddingTop="14dp"
     android:paddingEnd="16dp"
-    android:paddingBottom="12dp">
+    android:paddingBottom="12dp"
+    android:scrollbars="none">
 
     <include
         android:id="@+id/aboutContent"

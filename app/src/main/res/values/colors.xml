@@ -14,4 +14,15 @@
     <color name="cyan_50">#FFE0F7FA</color>
     <color name="yellow_700">#FFFBC02D</color>
     <color name="yellow_50">#FFFFFDE7</color>
+
+    <!-- About page: porcelain, ink, and petroleum cyan. -->
+    <color name="about_background">#FFF4F7F6</color>
+    <color name="about_panel">#FFFBFDFC</color>
+    <color name="about_panel_border">#FFCFDDDA</color>
+    <color name="about_divider">#FFE0E9E7</color>
+    <color name="about_accent">#FF006B70</color>
+    <color name="about_accent_soft">#FFD8EFED</color>
+    <color name="about_on_accent">#FFFFFFFF</color>
+    <color name="about_text_primary">#FF172020</color>
+    <color name="about_text_secondary">#FF667574</color>
 </resources>

@@ -5,77 +5,95 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <com.google.android.material.card.MaterialCardView
+    <!-- Editorial identity block: deliberately unboxed to keep the page light. -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="?attr/colorSurfaceVariant"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="0dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="18dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="14dp">
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="68dp"
+            android:layout_height="68dp"
+            app:cardBackgroundColor="@color/about_accent_soft"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/about_panel_border"
+            app:strokeWidth="1dp">
 
             <ImageView
                 android:layout_width="56dp"
                 android:layout_height="56dp"
+                android:layout_gravity="center"
                 android:importantForAccessibility="no"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_launcher" />
+        </com.google.android.material.card.MaterialCardView>
 
-            <LinearLayout
-                android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:text="@string/app_name"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="@color/about_text_primary"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/app_name"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_about_version_badge"
+                android:fontFamily="monospace"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:textColor="@color/about_accent"
+                android:textSize="11sp" />
 
-                <TextView
-                    android:id="@+id/tvVersion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/license"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="@string/license"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="@color/about_text_secondary" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 
-    <TextView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="5dp"
-        android:text="@string/about_section_preferences"
-        android:textColor="?attr/colorPrimary"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="9dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="26dp"
+            android:layout_height="3dp"
+            android:background="@color/about_accent" />
+
+        <TextView
+            style="@style/Widget.QRCodeSimple.About.SectionLabel"
+            android:layout_marginStart="10dp"
+            android:text="@string/about_section_preferences" />
+    </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.About.SectionCard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="?attr/colorSurfaceVariant"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="0dp">
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -84,146 +102,119 @@
 
             <LinearLayout
                 android:id="@+id/btnLanguage"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+                style="@style/Widget.QRCodeSimple.About.Row">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_language"
-                    app:tint="?attr/colorPrimary" />
+                <FrameLayout style="@style/Widget.QRCodeSimple.About.IconTile">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_language"
+                        app:tint="@color/about_accent" />
+                </FrameLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/language"
-                        android:textSize="16sp" />
+                        style="@style/Widget.QRCodeSimple.About.RowTitle"
+                        android:text="@string/language" />
 
                     <TextView
                         android:id="@+id/tvLanguageValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:maxLines="1"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="12sp" />
+                        style="@style/Widget.QRCodeSimple.About.RowValue" />
                 </LinearLayout>
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/about_text_secondary" />
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginStart="56dp"
-                android:background="?attr/colorOutlineVariant" />
+                android:layout_marginStart="62dp"
+                android:background="@color/about_divider" />
 
             <LinearLayout
                 android:id="@+id/btnTheme"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+                style="@style/Widget.QRCodeSimple.About.Row">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_palette"
-                    app:tint="?attr/colorPrimary" />
+                <FrameLayout style="@style/Widget.QRCodeSimple.About.IconTile">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_palette"
+                        app:tint="@color/about_accent" />
+                </FrameLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/theme_setting"
-                        android:textSize="16sp" />
+                        style="@style/Widget.QRCodeSimple.About.RowTitle"
+                        android:text="@string/theme_setting" />
 
                     <TextView
                         android:id="@+id/tvThemeValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:maxLines="1"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="12sp" />
+                        style="@style/Widget.QRCodeSimple.About.RowValue" />
                 </LinearLayout>
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/about_text_secondary" />
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginStart="56dp"
-                android:background="?attr/colorOutlineVariant" />
+                android:layout_marginStart="62dp"
+                android:background="@color/about_divider" />
 
             <LinearLayout
                 android:id="@+id/btnPrivacy"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+                style="@style/Widget.QRCodeSimple.About.Row">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_security"
-                    app:tint="?attr/colorPrimary" />
+                <FrameLayout style="@style/Widget.QRCodeSimple.About.IconTile">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_security"
+                        app:tint="@color/about_accent" />
+                </FrameLayout>
 
                 <TextView
+                    style="@style/Widget.QRCodeSimple.About.RowTitle"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="@string/privacy_settings"
-                    android:textSize="16sp" />
+                    android:text="@string/privacy_settings" />
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/about_text_secondary" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -234,23 +225,30 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="5dp"
-            android:text="@string/about_section_updates"
-            android:textColor="?attr/colorPrimary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="9dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="26dp"
+                android:layout_height="3dp"
+                android:background="@color/about_accent" />
+
+            <TextView
+                style="@style/Widget.QRCodeSimple.About.SectionLabel"
+                android:layout_marginStart="10dp"
+                android:text="@string/about_section_updates" />
+        </LinearLayout>
 
         <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.QRCodeSimple.About.SectionCard"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="?attr/colorSurfaceVariant"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp">
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -260,116 +258,167 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingTop="10dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="8dp">
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCheckUpdate"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
-                        android:layout_height="60dp"
-                        android:layout_marginEnd="4dp"
-                        android:layout_weight="3"
-                        android:maxLines="2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minHeight="52dp"
                         android:text="@string/check_update"
-                        android:textSize="13sp"
-                        app:icon="@drawable/ic_system_update" />
+                        android:textColor="@color/about_on_accent"
+                        app:backgroundTint="@color/about_accent"
+                        app:cornerRadius="8dp"
+                        app:icon="@drawable/ic_system_update"
+                        app:iconTint="@color/about_on_accent" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCheckBetaUpdate"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
-                        android:layout_height="60dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_weight="2"
-                        android:maxLines="2"
-                        android:text="@string/check_beta_update"
-                        android:textSize="13sp"
-                        app:icon="@drawable/ic_star" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
-
-                    <TextView
-                        android:layout_width="0dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/auto_check_update"
-                        android:textSize="15sp" />
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchAutoUpdate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_marginTop="8dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minHeight="48dp"
+                        android:text="@string/check_beta_update"
+                        android:textColor="@color/about_accent"
+                        app:backgroundTint="@color/about_panel"
+                        app:cornerRadius="8dp"
+                        app:icon="@drawable/ic_star"
+                        app:iconTint="@color/about_accent"
+                        app:strokeColor="@color/about_accent"
+                        app:strokeWidth="1dp" />
                 </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant" />
+                    android:background="@color/about_divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="60dp"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="4dp">
+                    android:paddingHorizontal="14dp">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnVersionHistory"
-                        style="@style/Widget.Material3.Button.TextButton"
+                    <TextView
+                        style="@style/Widget.QRCodeSimple.About.RowTitle"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
                         android:layout_weight="1"
-                        android:maxLines="1"
-                        android:text="@string/version_history"
-                        android:textSize="14sp"
-                        app:icon="@drawable/ic_history" />
+                        android:text="@string/auto_check_update" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnCrashLogs"
-                        style="@style/Widget.Material3.Button.TextButton"
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchAutoUpdate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:thumbTint="@color/about_switch_thumb"
+                        app:trackTint="@color/about_switch_track" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="62dp"
+                    android:background="@color/about_divider" />
+
+                <LinearLayout
+                    android:id="@+id/btnVersionHistory"
+                    style="@style/Widget.QRCodeSimple.About.Row">
+
+                    <FrameLayout style="@style/Widget.QRCodeSimple.About.IconTile">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_history"
+                            app:tint="@color/about_accent" />
+                    </FrameLayout>
+
+                    <TextView
+                        style="@style/Widget.QRCodeSimple.About.RowTitle"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:maxLines="1"
-                        android:text="@string/crash_logs"
-                        android:textSize="14sp"
-                        app:icon="@drawable/ic_bug_report" />
+                        android:text="@string/version_history" />
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/about_text_secondary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="62dp"
+                    android:background="@color/about_divider" />
+
+                <LinearLayout
+                    android:id="@+id/btnCrashLogs"
+                    style="@style/Widget.QRCodeSimple.About.Row">
+
+                    <FrameLayout style="@style/Widget.QRCodeSimple.About.IconTile">
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_bug_report"
+                            app:tint="@color/about_accent" />
+                    </FrameLayout>
+
+                    <TextView
+                        style="@style/Widget.QRCodeSimple.About.RowTitle"
+                        android:layout_width="0dp"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:text="@string/crash_logs" />
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/about_text_secondary" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
-    <TextView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="5dp"
-        android:text="@string/about_section_project"
-        android:textColor="?attr/colorPrimary"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginBottom="9dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="26dp"
+            android:layout_height="3dp"
+            android:background="@color/about_accent" />
+
+        <TextView
+            style="@style/Widget.QRCodeSimple.About.SectionLabel"
+            android:layout_marginStart="10dp"
+            android:text="@string/about_section_project" />
+    </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.QRCodeSimple.About.SectionCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="?attr/colorSurfaceVariant"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="0dp">
+        android:layout_marginBottom="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -378,93 +427,86 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDonate"
-                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginHorizontal="12dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="8dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="12dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="52dp"
                 android:text="@string/buy_me_a_coffee"
-                android:textSize="14sp"
-                app:icon="@drawable/ic_coffee" />
+                android:textColor="@color/about_accent"
+                app:backgroundTint="@color/about_accent_soft"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_coffee"
+                app:iconTint="@color/about_accent" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="?attr/colorOutlineVariant" />
+                android:background="@color/about_divider" />
 
             <LinearLayout
                 android:id="@+id/btnGitHubProject"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+                style="@style/Widget.QRCodeSimple.About.Row">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_github"
-                    app:tint="?attr/colorPrimary" />
+                <FrameLayout style="@style/Widget.QRCodeSimple.About.IconTile">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_github"
+                        app:tint="@color/about_accent" />
+                </FrameLayout>
 
                 <TextView
+                    style="@style/Widget.QRCodeSimple.About.RowTitle"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="@string/sources"
-                    android:textSize="16sp" />
+                    android:text="@string/sources" />
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/about_text_secondary" />
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginStart="56dp"
-                android:background="?attr/colorOutlineVariant" />
+                android:layout_marginStart="62dp"
+                android:background="@color/about_divider" />
 
             <LinearLayout
                 android:id="@+id/btnGitHubMaintainer"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+                style="@style/Widget.QRCodeSimple.About.Row">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_github"
-                    app:tint="?attr/colorPrimary" />
+                <FrameLayout style="@style/Widget.QRCodeSimple.About.IconTile">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_github"
+                        app:tint="@color/about_accent" />
+                </FrameLayout>
 
                 <TextView
+                    style="@style/Widget.QRCodeSimple.About.RowTitle"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="@string/maintainer"
-                    android:textSize="16sp" />
+                    android:text="@string/maintainer" />
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/about_text_secondary" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
