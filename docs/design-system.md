@@ -114,6 +114,7 @@ Arbitrary 20-24dp cards and full-width pills are not the default style.
 
 - Bottom navigation uses the shared petroleum/ice selected state and a compact active indicator.
 - Standalone pages use the common ActionBar or an in-layout Material toolbar with a zero-elevation surface and clear Up navigation.
+- Standalone history detail uses an in-layout toolbar and applies system-bar insets before rendering barcode content.
 - Camera surfaces may use translucent blue-black chrome, but active states still use ice cyan.
 
 ### 6.5 Dialogs

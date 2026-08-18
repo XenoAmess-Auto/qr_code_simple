@@ -31,7 +31,7 @@
             android:id="@+id/tvContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textColor="@color/app_text_primary"
             android:textIsSelectable="true" />
@@ -40,7 +40,7 @@
             android:id="@+id/tvType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="@color/app_primary" />
 
@@ -56,7 +56,7 @@
             android:id="@+id/tvTags"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
             android:textColor="@color/app_text_secondary"
             android:visibility="gone" />
@@ -65,7 +65,7 @@
             android:id="@+id/tvNotes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="@color/app_text_primary"
             android:textIsSelectable="true"
@@ -75,13 +75,13 @@
             android:id="@+id/chipGroupTags"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
@@ -113,21 +113,32 @@
                 android:text="@string/delete" />
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnToggleFavorite"
-            style="@style/Widget.QRCodeSimple.Button.Outlined"
+        <LinearLayout
+            android:id="@+id/secondaryActionRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/add_to_favorites" />
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEditTags"
-            style="@style/Widget.QRCodeSimple.Button.Text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/edit_tags" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnToggleFavorite"
+                style="@style/Widget.QRCodeSimple.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:text="@string/add_to_favorites" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditTags"
+                style="@style/Widget.QRCodeSimple.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="@string/edit_tags" />
+
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOpenGenerate"

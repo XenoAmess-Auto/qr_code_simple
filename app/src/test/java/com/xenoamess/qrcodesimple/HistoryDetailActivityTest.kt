@@ -99,6 +99,8 @@ class HistoryDetailActivityTest {
         )
 
         scenario.onActivity { activity ->
+            assertNotNull(activity.supportActionBar)
+            assertEquals(activity.getString(R.string.history_detail), activity.supportActionBar?.title)
             assertEquals("https://example.com", activity.findViewById<android.widget.TextView>(R.id.tvContent).text.toString())
             assertNotNull(activity.findViewById<android.widget.TextView>(R.id.tvType).text.toString())
             assertNotNull(activity.findViewById<android.widget.TextView>(R.id.tvTime).text.toString())
@@ -106,6 +108,8 @@ class HistoryDetailActivityTest {
             assertEquals(View.VISIBLE, activity.findViewById<android.widget.TextView>(R.id.tvNotes).visibility)
             assertEquals("Test note", activity.findViewById<android.widget.TextView>(R.id.tvNotes).text.toString())
             assertNotNull(activity.findViewById<ImageView>(R.id.ivBarcode).drawable)
+            val secondaryActions = activity.findViewById<android.view.ViewGroup>(R.id.secondaryActionRow)
+            assertEquals(2, secondaryActions.childCount)
         }
         scenario.close()
     }

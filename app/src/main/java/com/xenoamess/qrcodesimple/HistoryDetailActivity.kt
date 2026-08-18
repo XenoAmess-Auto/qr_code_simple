@@ -23,8 +23,10 @@ class HistoryDetailActivity : AppCompatActivity() {
         binding = ActivityHistoryDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.history_detail)
+        setupEdgeToEdge()
 
         val itemId = intent.getLongExtra(EXTRA_ITEM_ID, -1)
         if (itemId == -1L) {
