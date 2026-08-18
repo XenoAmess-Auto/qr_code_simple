@@ -4,9 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Looper
 import android.view.View
-import android.widget.Button
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
@@ -64,15 +62,14 @@ class MainActivityUiTest {
     private fun selectedTabIndex(): Int {
         var index = -1
         scenario.onActivity { activity ->
-            val buttons = listOf(
-                R.id.btnTabRealtime,
-                R.id.btnTabImage,
-                R.id.btnTabGenerate,
-                R.id.btnTabHistory,
-                R.id.btnTabAbout
-            ).map { activity.findViewById<Button>(it) }
-            val selectedColor = ContextCompat.getColor(activity, R.color.cyan_500)
-            index = buttons.indexOfFirst { it.currentTextColor == selectedColor }
+            val navigation = activity.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.mainNavigation)
+            index = listOf(
+                R.id.navRealtime,
+                R.id.navImage,
+                R.id.navGenerate,
+                R.id.navHistory,
+                R.id.navAbout
+            ).indexOf(navigation.selectedItemId)
         }
         return index
     }
@@ -87,11 +84,11 @@ class MainActivityUiTest {
     @Test
     fun clickTabButtonsSwitchPages() {
         val tabIds = listOf(
-            R.id.btnTabRealtime,
-            R.id.btnTabImage,
-            R.id.btnTabGenerate,
-            R.id.btnTabHistory,
-            R.id.btnTabAbout
+            R.id.navRealtime,
+            R.id.navImage,
+            R.id.navGenerate,
+            R.id.navHistory,
+            R.id.navAbout
         )
 
         for ((index, buttonId) in tabIds.withIndex()) {

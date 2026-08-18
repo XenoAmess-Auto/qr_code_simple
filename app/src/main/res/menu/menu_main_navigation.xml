@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navRealtime"
+        android:icon="@drawable/ic_camera"
+        android:title="@string/tab_realtime" />
+    <item
+        android:id="@+id/navImage"
+        android:icon="@drawable/ic_gallery"
+        android:title="@string/tab_image" />
+    <item
+        android:id="@+id/navGenerate"
+        android:icon="@drawable/ic_qr_code"
+        android:title="@string/tab_generate" />
+    <item
+        android:id="@+id/navHistory"
+        android:icon="@drawable/ic_history"
+        android:title="@string/tab_history" />
+    <item
+        android:id="@+id/navAbout"
+        android:icon="@drawable/ic_coffee"
+        android:title="@string/tab_about" />
+</menu>

@@ -4,10 +4,8 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -19,7 +17,13 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var tabButtons: List<Button>
+    private val navigationItems = intArrayOf(
+        R.id.navRealtime,
+        R.id.navImage,
+        R.id.navGenerate,
+        R.id.navHistory,
+        R.id.navAbout
+    )
 
     private var pendingGenerateContent: String? = null
     private var pendingGenerateFormat: String? = null
@@ -56,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         checkPermissions()
         setupViewPager()
-        setupTabButtons()
+        setupNavigation()
 
         // 处理快捷方式跳转
         handleShortcutIntent()
@@ -155,35 +159,22 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun setupTabButtons() {
-        tabButtons = listOf(
-            binding.btnTabRealtime,
-            binding.btnTabImage,
-            binding.btnTabGenerate,
-            binding.btnTabHistory,
-            binding.btnTabAbout
-        )
-
-        tabButtons.forEachIndexed { index, button ->
-            button.setOnClickListener {
+    private fun setupNavigation() {
+        binding.mainNavigation.setOnItemSelectedListener { item ->
+            val index = navigationItems.indexOf(item.itemId)
+            if (index < 0) {
+                false
+            } else {
                 binding.viewPager.setCurrentItem(index, true)
-                updateTabSelection(index)
+                true
             }
         }
-
-        // 默认选中第一个
-        updateTabSelection(0)
+        updateTabSelection(binding.viewPager.currentItem)
     }
 
     private fun updateTabSelection(selectedIndex: Int) {
-        tabButtons.forEachIndexed { index, button ->
-            if (index == selectedIndex) {
-                button.setTextColor(ContextCompat.getColor(this, R.color.cyan_500))
-                button.setTypeface(button.typeface, Typeface.BOLD)
-            } else {
-                button.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-                button.setTypeface(button.typeface, Typeface.NORMAL)
-            }
+        navigationItems.getOrNull(selectedIndex)?.let { itemId ->
+            binding.mainNavigation.menu.findItem(itemId)?.isChecked = true
         }
     }
 
