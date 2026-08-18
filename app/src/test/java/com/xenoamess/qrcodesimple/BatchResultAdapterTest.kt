@@ -95,7 +95,7 @@ class BatchResultAdapterTest {
         idleMain()
         assertEquals(RecyclerView.GONE, holder.binding.btnSave.visibility)
         assertEquals(RecyclerView.VISIBLE, holder.binding.tvError.visibility)
-        assertEquals("Failed to generate", holder.binding.tvError.text.toString())
+        assertTrue(holder.binding.tvError.text.isNotEmpty())
     }
 
     @Test
@@ -128,5 +128,23 @@ class BatchResultAdapterTest {
 
         assertEquals(0, callbackPosition)
         assertNotNull(callbackBitmap)
+    }
+
+    @Test
+    fun failedItemShowsReasonAndInvokesRetry() {
+        var retried = -1
+        var adapter: BatchResultActivity.BatchResultAdapter? = null
+        scenario.onActivity { activity ->
+            adapter = activity.BatchResultAdapter(
+                listOf(BatchResultActivity.BatchResult("bad", null, "bad", errorMessage = "invalid EAN")),
+                onRetryClick = { retried = it }
+            ) { _, _ -> }
+        }
+        val parent = LinearLayout(androidx.appcompat.view.ContextThemeWrapper(ApplicationProvider.getApplicationContext(), R.style.Theme_QRCodeSimple))
+        val holder = adapter!!.onCreateViewHolder(parent, 0)
+        adapter!!.onBindViewHolder(holder, 0)
+        assertEquals("invalid EAN", holder.binding.tvError.text.toString())
+        holder.binding.btnRetry.performClick()
+        assertEquals(0, retried)
     }
 }

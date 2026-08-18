@@ -641,4 +641,7 @@
     <string name="notes_saved">备注已保存</string>
     <string name="barcode_generation_failed">生成条码失败</string>
     <string name="qr_generation_failed_with_reason">生成二维码失败：%1$s</string>
+    <string name="batch_all_failed">所有条码生成失败</string>
+    <string name="generation_returned_no_image">生成器未返回图像</string>
+    <string name="retry">重试</string>
 </resources>

@@ -192,7 +192,7 @@ class BatchFileScenarioTest {
             field.isAccessible = true
             @Suppress("UNCHECKED_CAST")
             val results = field.get(activity) as List<BatchResultActivity.BatchResult>
-            activity.saveSingleImage(results.first().bitmap!!, results.first().fileName)
+            activity.saveSingleImage(results.first())
         }
 
         val pictures = File(

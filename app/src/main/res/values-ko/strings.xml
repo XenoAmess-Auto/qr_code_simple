@@ -651,4 +651,7 @@
     <string name="notes_saved">메모를 저장했습니다</string>
     <string name="barcode_generation_failed">바코드를 생성하지 못했습니다</string>
     <string name="qr_generation_failed_with_reason">QR 코드를 생성하지 못했습니다: %1$s</string>
+    <string name="batch_all_failed">모든 바코드를 생성하지 못했습니다</string>
+    <string name="generation_returned_no_image">생성기가 이미지를 반환하지 않았습니다</string>
+    <string name="retry">재시도</string>
 </resources>

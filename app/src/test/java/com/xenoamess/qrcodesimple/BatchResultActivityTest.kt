@@ -137,4 +137,36 @@ class BatchResultActivityTest {
 
         scenario.close()
     }
+
+    @Test
+    fun itemIntentSurvivesActivityRecreationWithAllFields() {
+        val item = BatchGenerator.BatchItem("preserved", BarcodeFormat.CODE_128, 0xff112233.toInt(), 0xfffefefe.toInt(), "named")
+        val scenario = ActivityScenario.launch<BatchResultActivity>(Intent(ApplicationProvider.getApplicationContext(), BatchResultActivity::class.java).apply {
+            putExtra(BatchGenerateActivity.EXTRA_BATCH_ITEMS_JSON, BatchGenerator.itemsToJson(listOf(item)))
+        })
+        scenario.recreate()
+        assertTrue(waitFor {
+            var preserved = false
+            scenario.onActivity { activity ->
+                val field = BatchResultActivity::class.java.getDeclaredField("results").apply { isAccessible = true }
+                @Suppress("UNCHECKED_CAST") val results = field.get(activity) as List<BatchResultActivity.BatchResult>
+                preserved = results.singleOrNull()?.item == item
+            }
+            preserved
+        })
+        scenario.close()
+    }
+
+    @Test
+    fun rowColorsOverrideOnlyBatchStyleColors() {
+        val scenario = launchWith(listOf("test"))
+        scenario.onActivity { activity ->
+            val original = AdvancedBarcodeGenerator.StyleConfig(foregroundColor = 0xff010203.toInt(), backgroundColor = 0xfff0f1f2.toInt(), logoScale = .4f)
+            val resolved = activity.styleForItem(original, BatchGenerator.BatchItem("test", foregroundColor = 0xff111111.toInt()))
+            assertEquals(0xff111111.toInt(), resolved.foregroundColor)
+            assertEquals(original.backgroundColor, resolved.backgroundColor)
+            assertEquals(original.logoScale, resolved.logoScale)
+        }
+        scenario.close()
+    }
 }

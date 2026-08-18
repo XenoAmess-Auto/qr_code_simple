@@ -81,7 +81,7 @@ class BatchGeneratorTest {
     }
 
     @Test
-    fun `parseCsv with missing optional fields uses defaults`() {
+    fun `parseCsv with missing optional colors preserves batch style defaults`() {
         runBlocking {
             val csv = """
                 content,format,fg_color,bg_color,filename
@@ -91,8 +91,8 @@ class BatchGeneratorTest {
             val result = BatchGenerator.parseCsv(context, createCsvFile(csv))
 
             assertEquals(1, result.items.size)
-            assertEquals(android.graphics.Color.BLACK, result.items[0].foregroundColor)
-            assertEquals(android.graphics.Color.WHITE, result.items[0].backgroundColor)
+            assertEquals(null, result.items[0].foregroundColor)
+            assertEquals(null, result.items[0].backgroundColor)
             assertEquals(null, result.items[0].fileName)
         }
     }
@@ -240,5 +240,11 @@ class BatchGeneratorTest {
         assertTrue(template.contains("content,format,fg_color,bg_color,filename"))
         assertTrue(template.contains("https://example.com"))
         assertTrue(template.contains("QR_CODE"))
+    }
+
+    @Test
+    fun `item json roundtrip preserves every imported field`() {
+        val item = BatchGenerator.BatchItem("https://example.com", BarcodeFormat.CODE_128, 0xff123456.toInt(), 0xffabcdef.toInt(), "custom")
+        assertEquals(listOf(item), BatchGenerator.itemsFromJson(BatchGenerator.itemsToJson(listOf(item))))
     }
 }

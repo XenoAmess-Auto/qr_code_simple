@@ -1144,4 +1144,7 @@ https://another.com
     <string name="notes_saved">Notas guardadas</string>
     <string name="barcode_generation_failed">No se pudo generar el codigo de barras</string>
     <string name="qr_generation_failed_with_reason">No se pudo generar el codigo QR: %1$s</string>
+    <string name="batch_all_failed">No se pudieron generar todos los códigos de barras</string>
+    <string name="generation_returned_no_image">El generador no devolvió ninguna imagen</string>
+    <string name="retry">Reintentar</string>
 </resources>

@@ -54,6 +54,16 @@
 
             style="?android:attr/borderlessButtonStyle" />
 
+        <Button
+            android:id="@+id/btnRetry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/retry"
+            android:textSize="12sp"
+            android:visibility="gone"
+            style="?android:attr/borderlessButtonStyle" />
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

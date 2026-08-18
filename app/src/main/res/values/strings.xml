@@ -388,6 +388,9 @@
     <string name="batch_items_imported">Imported %1$d items</string>
     <string name="batch_no_items">No valid items found</string>
     <string name="batch_generated_count">Generated: %1$d/%2$d</string>
+    <string name="batch_all_failed">Failed to generate all barcodes</string>
+    <string name="generation_returned_no_image">Generator returned no image</string>
+    <string name="retry">Retry</string>
 
     <!-- App Shortcuts -->
     <string name="shortcut_scan_short">Scan</string>

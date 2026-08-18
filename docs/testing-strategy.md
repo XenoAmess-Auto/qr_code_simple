@@ -210,6 +210,7 @@ CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执
 - 增量更新：补丁链只是优化。基础 APK hash 不匹配、补丁验证失败或补丁不比完整 APK 小时，都必须走已校验的完整 APK 下载。补丁格式为 ApkDiffPatch `ZiPat1`（`libapkpatch.so` native 打补丁），发布物由 `ApkNormalized + apksigner 34.0.0` 重签产生。
 - 金样测试：`GenerationGoldenTest` 固定输入断言 SVG 输出 SHA-256，防止生成图案在依赖升级时静默变化；预期变更需更新金样并注明原因。
 - 场景测试套件（0.2.3）：`ContentActionScenarioTest`（各内容类型动作分发）、`ContentActionWifiModernTest`（API 29 WiFi 路径）、`BackupActivityFileRoundtripTest`（真实文件备份往返）、`HistoryScenarioTest` / `HistoryDetailScenarioTest`（筛选/搜索/标签/分享/详情操作）、`BatchFileScenarioTest`（CSV/Excel 导入 + ZIP/PNG 落盘）、`ScanRegionTouchTest`、`CameraScanScenarioTest`、`BlacklistUpdaterDownloadTest`、`AppShortcutManagerTest`、`CameraFocusManagerTest`。
+- 批量生成测试还覆盖逐行字段 Intent JSON 往返、Activity 重建后的字段保真、逐行颜色覆盖批量样式，以及失败原因与重试回调；结果页只保存缩略图，导出从 cache PNG 流式读取。
 - Robolectric 测试要点：
   - AlertDialog/AppCompat 按钮点击经 Handler 投递，断言前必须 idle 主 Looper；
   - Dispatchers.IO/后台协程不受主 Looper 控制，用谓词轮询（waitUntil）代替固定 sleep；

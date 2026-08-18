@@ -639,4 +639,7 @@
     <string name="notes_saved">Notizen gespeichert</string>
     <string name="barcode_generation_failed">Barcode konnte nicht erstellt werden</string>
     <string name="qr_generation_failed_with_reason">QR-Code konnte nicht erstellt werden: %1$s</string>
+    <string name="batch_all_failed">Alle Barcodes konnten nicht erzeugt werden</string>
+    <string name="generation_returned_no_image">Generator hat kein Bild zurückgegeben</string>
+    <string name="retry">Erneut versuchen</string>
 </resources>

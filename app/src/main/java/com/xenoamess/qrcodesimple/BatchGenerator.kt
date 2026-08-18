@@ -14,6 +14,8 @@ import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import java.io.InputStreamReader
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * CSV/Excel 数据导入和批量生成管理器
@@ -23,8 +25,10 @@ object BatchGenerator {
     data class BatchItem(
         val content: String,
         val format: BarcodeFormat = BarcodeFormat.QR_CODE,
-        val foregroundColor: Int = Color.BLACK,
-        val backgroundColor: Int = Color.WHITE,
+        /** Null means the batch style/default color should be used. */
+        val foregroundColor: Int? = null,
+        /** Null means the batch style/default color should be used. */
+        val backgroundColor: Int? = null,
         val fileName: String? = null
     )
 
@@ -167,12 +171,12 @@ object BatchGenerator {
         } else null
 
         val fgColor = if (hasHeader && headerIndex["fg_color"] != null) {
-            parseColor(getCellString(row.getCell(headerIndex["fg_color"]!!)), Color.BLACK)
-        } else Color.BLACK
+            parseColor(getCellString(row.getCell(headerIndex["fg_color"]!!)))
+        } else null
 
         val bgColor = if (hasHeader && headerIndex["bg_color"] != null) {
-            parseColor(getCellString(row.getCell(headerIndex["bg_color"]!!)), Color.WHITE)
-        } else Color.WHITE
+            parseColor(getCellString(row.getCell(headerIndex["bg_color"]!!)))
+        } else null
 
         return BatchItem(content, format, fgColor, bgColor, fileName)
     }
@@ -210,8 +214,8 @@ object BatchGenerator {
             BarcodeFormat.QR_CODE
         }
 
-        val fgColor = parseColor(optionalColumn("fg_color"), Color.BLACK)
-        val bgColor = parseColor(optionalColumn("bg_color"), Color.WHITE)
+        val fgColor = parseColor(optionalColumn("fg_color"))
+        val bgColor = parseColor(optionalColumn("bg_color"))
         val fileName = optionalColumn("filename")?.trim()?.takeIf { it.isNotEmpty() }
 
         return BatchItem(content, format, fgColor, bgColor, fileName)
@@ -220,8 +224,8 @@ object BatchGenerator {
     /**
      * 解析颜色字符串 (#RRGGBB 或颜色名称)
      */
-    private fun parseColor(colorStr: String?, defaultColor: Int): Int {
-        if (colorStr.isNullOrBlank()) return defaultColor
+    private fun parseColor(colorStr: String?): Int? {
+        if (colorStr.isNullOrBlank()) return null
 
         return try {
             if (colorStr.startsWith("#")) {
@@ -236,11 +240,11 @@ object BatchGenerator {
                     "cyan" -> android.graphics.Color.CYAN
                     "magenta" -> android.graphics.Color.MAGENTA
                     "yellow" -> android.graphics.Color.YELLOW
-                    else -> defaultColor
+                    else -> null
                 }
             }
         } catch (e: Exception) {
-            defaultColor
+            null
         }
     }
 
@@ -256,8 +260,8 @@ object BatchGenerator {
                 format = item.format,
                 width = 800,
                 height = 600,
-                foregroundColor = item.foregroundColor,
-                backgroundColor = item.backgroundColor
+                foregroundColor = item.foregroundColor ?: Color.BLACK,
+                backgroundColor = item.backgroundColor ?: Color.WHITE
             )
 
             val bitmap = try {
@@ -302,4 +306,31 @@ object BatchGenerator {
                 )
             }
     }
+
+    /** Compact, primitive-only representation safe for Intent and process recreation. */
+    fun itemsToJson(items: List<BatchItem>): String = JSONArray().apply {
+        items.forEach { item ->
+            put(JSONObject().apply {
+                put("content", item.content)
+                put("format", item.format.name)
+                item.foregroundColor?.let { put("foregroundColor", it) }
+                item.backgroundColor?.let { put("backgroundColor", it) }
+                item.fileName?.let { put("fileName", it) }
+            })
+        }
+    }.toString()
+
+    fun itemsFromJson(json: String?): List<BatchItem> = runCatching {
+        val array = JSONArray(json)
+        List(array.length()) { index ->
+            val value = array.getJSONObject(index)
+            BatchItem(
+                content = value.getString("content"),
+                format = BarcodeFormat.valueOf(value.optString("format", BarcodeFormat.QR_CODE.name)),
+                foregroundColor = value.takeIf { it.has("foregroundColor") }?.getInt("foregroundColor"),
+                backgroundColor = value.takeIf { it.has("backgroundColor") }?.getInt("backgroundColor"),
+                fileName = value.optString("fileName").takeIf { it.isNotEmpty() }
+            )
+        }
+    }.getOrDefault(emptyList())
 }

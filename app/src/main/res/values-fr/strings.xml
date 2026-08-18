@@ -1138,4 +1138,7 @@ https://another.com
     <string name="notes_saved">Notes enregistrees</string>
     <string name="barcode_generation_failed">Echec de la generation du code-barres</string>
     <string name="qr_generation_failed_with_reason">Echec de la generation du QR code : %1$s</string>
+    <string name="batch_all_failed">Échec de la génération de tous les codes-barres</string>
+    <string name="generation_returned_no_image">Le générateur n\'a renvoyé aucune image</string>
+    <string name="retry">Réessayer</string>
 </resources>

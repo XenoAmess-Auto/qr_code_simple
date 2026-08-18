@@ -3,6 +3,7 @@ package com.xenoamess.qrcodesimple
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -25,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -32,20 +34,20 @@ import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-/**
- * 批量生成结果页面
- */
 class BatchResultActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityBatchResultBinding
     private lateinit var adapter: BatchResultAdapter
     private val results = mutableListOf<BatchResult>()
-    private var generatedCount = 0
+    private var batchStyle: AdvancedBarcodeGenerator.StyleConfig? = null
 
+    /** bitmap is deliberately a small preview; the full PNG always lives in [imageFile]. */
     data class BatchResult(
         val content: String,
         val bitmap: Bitmap?,
-        val fileName: String
+        val fileName: String,
+        val item: BatchGenerator.BatchItem = BatchGenerator.BatchItem(content, fileName = fileName),
+        val imageFile: File? = null,
+        val errorMessage: String? = null
     )
 
     override fun attachBaseContext(newBase: Context) {
@@ -56,265 +58,222 @@ class BatchResultActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBatchResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // 设置沉浸式状态栏并处理安全区域
         setupEdgeToEdge()
-
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.batch_result)
-
         setupRecyclerView()
 
-        val contents = intent.getStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS)
-        val formatName = intent.getStringExtra(BatchGenerateActivity.EXTRA_FORMAT)
-        val format = formatName?.let { BarcodeFormat.valueOf(it) } ?: BarcodeFormat.QR_CODE
-
-        if (contents.isNullOrEmpty()) {
-            Toast.makeText(this, getString(R.string.no_content_to_generate), Toast.LENGTH_SHORT).show()
+        // The JSON is primitive Intent data, so Android restores it after process death.
+        val items = BatchGenerator.itemsFromJson(intent.getStringExtra(BatchGenerateActivity.EXTRA_BATCH_ITEMS_JSON))
+            .ifEmpty { legacyItemsFromIntent() }
+        if (items.isEmpty()) {
+            Toast.makeText(this, R.string.no_content_to_generate, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
+        generateBatch(items)
+    }
 
-        generateBatch(contents, format)
+    private fun legacyItemsFromIntent(): List<BatchGenerator.BatchItem> {
+        val format = intent.getStringExtra(BatchGenerateActivity.EXTRA_FORMAT)
+            ?.let { runCatching { BarcodeFormat.valueOf(it) }.getOrNull() } ?: BarcodeFormat.QR_CODE
+        return intent.getStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS)
+            ?.mapIndexed { index, content -> BatchGenerator.BatchItem(content, format, fileName = "batch_${index + 1}") }
+            .orEmpty()
     }
 
     private fun setupRecyclerView() {
-        adapter = BatchResultAdapter(results) { position, bitmap ->
-            bitmap?.let { saveSingleImage(it, results[position].fileName) }
-        }
+        adapter = BatchResultAdapter(
+            results,
+            onRetryClick = { position -> retry(position) },
+            onSaveClick = { position, _ -> saveSingleImage(results[position]) }
+        )
         binding.recyclerView.layoutManager = GridLayoutManager(this, 2)
         binding.recyclerView.adapter = adapter
     }
 
-    /** 从 Intent 恢复样式（styleJson + logo 缓存文件），读取后删除 logo 文件。 */
     internal fun readStyleFromIntent(): AdvancedBarcodeGenerator.StyleConfig? {
         val styleJson = intent.getStringExtra(BatchGenerateActivity.EXTRA_STYLE_JSON) ?: return null
         var style = styleConfigFromJson(styleJson) ?: return null
-        val logoPath = intent.getStringExtra(BatchGenerateActivity.EXTRA_LOGO_PATH)
-        if (logoPath != null) {
-            val logoFile = java.io.File(logoPath)
+        intent.getStringExtra(BatchGenerateActivity.EXTRA_LOGO_PATH)?.let { path ->
+            val file = File(path)
             try {
-                val logo = android.graphics.BitmapFactory.decodeFile(logoPath)
-                if (logo != null) {
-                    style = style.copy(logoBitmap = logo)
-                }
+                BitmapFactory.decodeFile(path)?.let { style = style.copy(logoBitmap = it) }
             } finally {
-                logoFile.delete()
+                file.delete()
             }
         }
         return style
     }
 
-    private suspend fun generateStyledBatch(
-        items: List<BatchGenerator.BatchItem>,
-        style: AdvancedBarcodeGenerator.StyleConfig,
-        onProgress: suspend (current: Int, total: Int) -> Unit
-    ): List<Pair<BatchGenerator.BatchItem, Bitmap?>> = withContext(Dispatchers.Default) {
-        items.mapIndexed { index, item ->
-            val bitmap = try {
-                val sanitized = AdvancedBarcodeGenerator.sanitize(style, item.format)
-                AdvancedBarcodeGenerator.generateStyled(item.content, item.format, 800, 800, sanitized)
-            } catch (e: Exception) {
-                null
-            }
-            onProgress(index + 1, items.size)
-            item to bitmap
-        }
-    }
+    /** Per-row colors replace only the batch style's two colors. */
+    internal fun styleForItem(style: AdvancedBarcodeGenerator.StyleConfig, item: BatchGenerator.BatchItem) = style.copy(
+        foregroundColor = item.foregroundColor ?: style.foregroundColor,
+        backgroundColor = item.backgroundColor ?: style.backgroundColor
+    )
 
-    private fun generateBatch(contents: List<String>, format: BarcodeFormat) {
-        val style = readStyleFromIntent()
+    private fun generateBatch(items: List<BatchGenerator.BatchItem>) {
+        val style = readStyleFromIntent().also { batchStyle = it }
         lifecycleScope.launch {
             binding.progressBar.visibility = View.VISIBLE
-            binding.tvProgress.text = "0/${contents.size}"
-
-            val items = contents.mapIndexed { index, content ->
-                BatchGenerator.BatchItem(
-                    content = content,
-                    format = format,
-                    fileName = "batch_${index + 1}"
-                )
-            }
-
-            val generated = if (style == null) {
-                BatchGenerator.generateBatch(items) { current, total ->
-                    withContext(Dispatchers.Main) {
-                        binding.tvProgress.text = "$current/$total"
-                        binding.progressBar.progress = (current * 100 / total)
-                    }
-                }
-            } else {
-                generateStyledBatch(items, style) { current, total ->
-                    withContext(Dispatchers.Main) {
-                        binding.tvProgress.text = "$current/$total"
-                        binding.progressBar.progress = (current * 100 / total)
-                    }
-                }
-            }
-
+            binding.tvProgress.text = getString(R.string.generating, 0, items.size)
             results.clear()
-            results.addAll(generated.map { (item, bitmap) ->
-                BatchResult(item.content, bitmap, item.fileName ?: "batch")
-            })
-
-            generatedCount = results.count { it.bitmap != null }
-
-            binding.progressBar.visibility = View.GONE
-            binding.tvProgress.text = "Generated: $generatedCount/${results.size}"
-
-            adapter.notifyDataSetChanged()
-
-            if (generatedCount == 0) {
-                Toast.makeText(this@BatchResultActivity, "Failed to generate all barcodes", Toast.LENGTH_LONG).show()
+            items.forEachIndexed { index, item ->
+                results += generateOne(item, style, index)
+                adapter.notifyItemInserted(index)
+                binding.tvProgress.text = getString(R.string.generating, index + 1, items.size)
+                binding.progressBar.progress = (index + 1) * 100 / items.size
             }
+            binding.progressBar.visibility = View.GONE
+            val success = results.count { it.imageFile != null }
+            binding.tvProgress.text = getString(R.string.batch_generated_count, success, results.size)
+            if (success == 0) Toast.makeText(this@BatchResultActivity, R.string.batch_all_failed, Toast.LENGTH_LONG).show()
         }
     }
 
-    internal fun saveSingleImage(bitmap: Bitmap, fileName: String) {
+    private suspend fun generateOne(item: BatchGenerator.BatchItem, style: AdvancedBarcodeGenerator.StyleConfig?, index: Int): BatchResult =
+        withContext(Dispatchers.Default) {
+            val fileName = item.fileName?.ifBlank { null } ?: "batch_${index + 1}"
+            val validation = BarcodeGenerator.validateContent(item.content, item.format)
+            if (!validation.isValid) return@withContext BatchResult(item.content, null, fileName, item, errorMessage = validation.errorMessage)
+            try {
+                val bitmap = if (style == null) {
+                    BarcodeGenerator.generate(item.content, BarcodeGenerator.BarcodeConfig(
+                        format = item.format, width = 800, height = 800,
+                        foregroundColor = item.foregroundColor ?: android.graphics.Color.BLACK,
+                        backgroundColor = item.backgroundColor ?: android.graphics.Color.WHITE
+                    ))
+                } else {
+                    AdvancedBarcodeGenerator.generateStyled(item.content, item.format, 800, 800, styleForItem(style, item))
+                } ?: throw IllegalStateException(getString(R.string.generation_returned_no_image))
+                val file = withContext(Dispatchers.IO) { writeCacheImage(bitmap, index) }
+                val thumbnail = withContext(Dispatchers.IO) { decodeThumbnail(file) }
+                bitmap.recycle()
+                BatchResult(item.content, thumbnail, fileName, item, file)
+            } catch (e: Exception) {
+                BatchResult(item.content, null, fileName, item, errorMessage = e.message ?: getString(R.string.unknown_error))
+            }
+        }
+
+    private fun writeCacheImage(bitmap: Bitmap, index: Int): File {
+        val directory = File(cacheDir, "batch-results").apply { mkdirs() }
+        return File(directory, "${System.nanoTime()}_$index.png").also { file ->
+            FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        }
+    }
+
+    private fun decodeThumbnail(file: File): Bitmap? {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, options)
+        var sample = 1
+        while (options.outWidth / sample > 240 || options.outHeight / sample > 240) sample *= 2
+        return BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = sample })
+    }
+
+    private fun retry(position: Int) {
+        val previous = results.getOrNull(position) ?: return
+        lifecycleScope.launch {
+            results[position] = generateOne(previous.item, batchStyle, position)
+            adapter.notifyItemChanged(position)
+        }
+    }
+
+    internal fun saveSingleImage(result: BatchResult) {
+        val source = result.imageFile ?: return
         lifecycleScope.launch {
             try {
-                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fullFileName = "${fileName}_$timeStamp.png"
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val contentValues = ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, fullFileName)
-                        put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/BatchQR")
-                    }
-
-                    val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                    uri?.let {
-                        contentResolver.openOutputStream(it)?.use { outputStream ->
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                        }
-                        Toast.makeText(this@BatchResultActivity, getString(R.string.saved_to, fullFileName), Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BatchQR")
-                    dir.mkdirs()
-                    val file = File(dir, fullFileName)
-                    FileOutputStream(file).use { outputStream ->
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                    }
-                    Toast.makeText(this@BatchResultActivity, getString(R.string.saved_to, file.absolutePath), Toast.LENGTH_SHORT).show()
-                }
+                val saved = withContext(Dispatchers.IO) { copySingleToMediaStore(source, result.fileName) }
+                Toast.makeText(this@BatchResultActivity, getString(R.string.saved_to, saved), Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(this@BatchResultActivity, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    private fun copySingleToMediaStore(source: File, fileName: String): String {
+        val fullName = "${fileName}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fullName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/BatchQR")
+            }) ?: error(getString(R.string.unknown_error))
+            contentResolver.openOutputStream(uri)?.use { output -> FileInputStream(source).use { it.copyTo(output) } } ?: error(getString(R.string.unknown_error))
+            return fullName
+        }
+        val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BatchQR").apply { mkdirs() }
+        val target = File(directory, fullName)
+        FileInputStream(source).use { input -> FileOutputStream(target).use { input.copyTo(it) } }
+        return target.absolutePath
+    }
+
     internal fun saveAllAsZip() {
         lifecycleScope.launch {
             try {
-                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val zipFileName = "batch_qr_$timeStamp.zip"
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val contentValues = ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, zipFileName)
-                        put(MediaStore.MediaColumns.MIME_TYPE, "application/zip")
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                    }
-
-                    val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                    uri?.let { zipUri ->
-                        contentResolver.openOutputStream(zipUri)?.use { outputStream ->
-                            ZipOutputStream(outputStream).use { zipOut ->
-                                results.filter { it.bitmap != null }.forEach { result ->
-                                    val entry = ZipEntry("${result.fileName}.png")
-                                    zipOut.putNextEntry(entry)
-                                    result.bitmap?.compress(Bitmap.CompressFormat.PNG, 100, zipOut)
-                                    zipOut.closeEntry()
-                                }
-                            }
-                        }
-                        Toast.makeText(this@BatchResultActivity, getString(R.string.zip_saved, zipFileName), Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    val file = File(dir, zipFileName)
-                    FileOutputStream(file).use { outputStream ->
-                        ZipOutputStream(outputStream).use { zipOut ->
-                            results.filter { it.bitmap != null }.forEach { result ->
-                                val entry = ZipEntry("${result.fileName}.png")
-                                zipOut.putNextEntry(entry)
-                                result.bitmap?.compress(Bitmap.CompressFormat.PNG, 100, zipOut)
-                                zipOut.closeEntry()
-                            }
-                        }
-                    }
-                    Toast.makeText(this@BatchResultActivity, getString(R.string.zip_saved, file.absolutePath), Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(this@BatchResultActivity, getString(R.string.zip_save_failed), Toast.LENGTH_SHORT).show()
+                val name = "batch_qr_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.zip"
+                val saved = withContext(Dispatchers.IO) { writeZipToMediaStore(name, results) }
+                Toast.makeText(this@BatchResultActivity, getString(R.string.zip_saved, saved), Toast.LENGTH_SHORT).show()
+            } catch (_: Exception) {
+                Toast.makeText(this@BatchResultActivity, R.string.zip_save_failed, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_batch_result, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
-            R.id.action_save_all -> {
-                saveAllAsZip()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+    private fun writeZipToMediaStore(name: String, sourceResults: List<BatchResult>): String {
+        fun write(output: java.io.OutputStream) = ZipOutputStream(output).use { zip ->
+            sourceResults.forEach { result -> result.imageFile?.takeIf(File::exists)?.let { file ->
+                zip.putNextEntry(ZipEntry("${result.fileName}.png"))
+                FileInputStream(file).use { it.copyTo(zip) }
+                zip.closeEntry()
+            } }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/zip")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }) ?: error(getString(R.string.unknown_error))
+            contentResolver.openOutputStream(uri)?.use(::write) ?: error(getString(R.string.unknown_error))
+            return name
+        }
+        val target = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name)
+        val temporary = File(target.parentFile, ".${target.name}.partial")
+        FileOutputStream(temporary).use(::write)
+        if (!temporary.renameTo(target)) error(getString(R.string.unknown_error))
+        return target.absolutePath
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
+    override fun onCreateOptionsMenu(menu: Menu?) = menuInflater.inflate(R.menu.menu_batch_result, menu).let { true }
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        android.R.id.home -> { finish(); true }
+        R.id.action_save_all -> { saveAllAsZip(); true }
+        else -> super.onOptionsItemSelected(item)
     }
+    override fun onSupportNavigateUp() = true.also { finish() }
 
     inner class BatchResultAdapter(
         private val items: List<BatchResult>,
+        private val onRetryClick: ((Int) -> Unit)? = null,
         private val onSaveClick: (Int, Bitmap?) -> Unit
     ) : RecyclerView.Adapter<BatchResultAdapter.ViewHolder>() {
-
-        inner class ViewHolder(val binding: ItemBatchResultBinding) :
-            RecyclerView.ViewHolder(binding.root)
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ItemBatchResultBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            )
-            return ViewHolder(binding)
-        }
-
+        inner class ViewHolder(val binding: ItemBatchResultBinding) : RecyclerView.ViewHolder(binding.root)
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(ItemBatchResultBinding.inflate(LayoutInflater.from(parent.context), parent, false))
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = items[position]
             holder.binding.apply {
-                tvContent.text = item.content
-                tvFileName.text = item.fileName
-
-                if (item.bitmap != null) {
-                    ivBarcode.setImageBitmap(item.bitmap)
-                    btnSave.visibility = View.VISIBLE
-                    tvError.visibility = View.GONE
-                } else {
-                    ivBarcode.setImageResource(R.drawable.ic_qr_code)
-                    btnSave.visibility = View.GONE
-                    tvError.visibility = View.VISIBLE
-                    tvError.text = "Failed to generate"
-                }
-
-                btnSave.setOnClickListener {
-                    onSaveClick(position, item.bitmap)
-                }
+            val item = items[position]
+            tvContent.text = item.content
+            tvFileName.text = item.fileName
+            if (item.bitmap != null) {
+                ivBarcode.setImageBitmap(item.bitmap); btnSave.visibility = View.VISIBLE; tvError.visibility = View.GONE; btnRetry.visibility = View.GONE
+            } else {
+                ivBarcode.setImageResource(R.drawable.ic_qr_code); btnSave.visibility = View.GONE; tvError.visibility = View.VISIBLE
+                tvError.text = item.errorMessage ?: getString(R.string.failed_to_generate)
+                btnRetry.visibility = if (onRetryClick == null) View.GONE else View.VISIBLE
+            }
+            btnSave.setOnClickListener { onSaveClick(position, item.bitmap) }
+            btnRetry.setOnClickListener { onRetryClick?.invoke(position) }
             }
         }
-
         override fun getItemCount() = items.size
     }
 }

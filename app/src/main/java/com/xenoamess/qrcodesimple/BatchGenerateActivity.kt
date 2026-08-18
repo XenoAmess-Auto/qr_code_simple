@@ -23,6 +23,7 @@ class BatchGenerateActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBatchGenerateBinding
     internal var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
+    private var importedItems: List<BatchGenerator.BatchItem>? = null
 
     private val pickFileLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -111,6 +112,7 @@ class BatchGenerateActivity : AppCompatActivity() {
 
         binding.btnClear.setOnClickListener {
             binding.etContent.text?.clear()
+            importedItems = null
         }
 
         binding.btnBatchStyle.setOnClickListener {
@@ -275,6 +277,7 @@ class BatchGenerateActivity : AppCompatActivity() {
             }
 
             if (result.items.isNotEmpty()) {
+                importedItems = result.items
                 val previewText = result.items.joinToString("\n") { it.content }
                 binding.etContent.setText(previewText)
                 binding.etContent.setSelection(binding.etContent.text?.length ?: 0)
@@ -339,15 +342,14 @@ class BatchGenerateActivity : AppCompatActivity() {
             return
         }
 
-        val items = BatchGenerator.parseSimpleBatch(text, selectedFormat)
+        val items = importedItems ?: BatchGenerator.parseSimpleBatch(text, selectedFormat)
         if (items.isEmpty()) {
             Toast.makeText(this, getString(R.string.no_valid_content), Toast.LENGTH_SHORT).show()
             return
         }
 
         val intent = Intent(this, BatchResultActivity::class.java).apply {
-            putStringArrayListExtra(EXTRA_CONTENTS, ArrayList(items.map { it.content }))
-            putExtra(EXTRA_FORMAT, selectedFormat.name)
+            putExtra(EXTRA_BATCH_ITEMS_JSON, BatchGenerator.itemsToJson(items))
         }
         // 样式经 Intent 传递（styleJson + logo 落缓存文件），进程被杀重建后不丢
         if (batchScheme != null || batchLogo != null) {
@@ -374,6 +376,7 @@ class BatchGenerateActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_CONTENTS = "contents"
         const val EXTRA_FORMAT = "format"
+        const val EXTRA_BATCH_ITEMS_JSON = "batch_items_json"
         const val EXTRA_STYLE_JSON = "style_json"
         const val EXTRA_LOGO_PATH = "logo_path"
         const val BATCH_LOGO_FILE = "batch_logo.png"

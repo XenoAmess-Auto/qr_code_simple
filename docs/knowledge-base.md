@@ -156,7 +156,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条 + Alpha 透明度条） |
 | `ColorPickerDialog.kt` | 颜色选取对话框（含 hex / RGBA 输入） |
 | `AngleDialView.kt` | 圆形角度旋钮（用于渐变角度） |
-| `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel） |
+| `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel）；以 Intent JSON 传递完整逐行数据，支持进程重建 |
+| `BatchResultActivity.kt` | 批量结果页：全尺寸 PNG 落 cache，仅保留缩略图；单图/ZIP 均流式导出并支持失败重试 |
 | `ContinuousScanActivity.kt` | 连续扫描 Activity |
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
 | `ui/result/QRResultAdapter.kt` | 多扫描结果 RecyclerView 适配器 |
@@ -173,7 +174,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `ContentBuilder.kt` | 结构化内容生成器（WiFi/vCard/VEVENT/mailto/sms/tel/geo），与 ContentParser 严格互逆，roundtrip 测试保护 |
 | `SecurePrefs.kt` | Keystore AES/GCM 自管加密键值存储（替代弃用的 EncryptedSharedPreferences；读旧格式透明迁移） |
 | `DailyBuckets.kt` / `SimpleBarChartView.kt` | 历史页近 14 天扫码统计柱状图（自绘，无图表依赖） |
-| `BatchStyleHolder.kt` | 批量生成样式（预设 + Logo）的进程内交接，BatchResultActivity 读取即清除 |
+| `BatchGenerator.kt` | CSV / Excel 解析、逐行字段 JSON 编解码与基础批量生成 |
 | `scanner/MlKitEngine.kt`（`src/playstore` / `src/fdroid`） | ML Kit 引擎隔离：默认构建用真实实现，`-Pfdroid` 用 stub 返回空结果 |
 | `docs/fdroid-readiness.md` | F-Droid 纯源码构建（`-Pfdroid`）说明与上架剩余人工步骤 |
 

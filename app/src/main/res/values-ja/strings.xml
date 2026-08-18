@@ -613,4 +613,7 @@
     <string name="notes_saved">メモを保存しました</string>
     <string name="barcode_generation_failed">バーコードを生成できませんでした</string>
     <string name="qr_generation_failed_with_reason">QRコードを生成できませんでした: %1$s</string>
+    <string name="batch_all_failed">すべてのバーコードを生成できませんでした</string>
+    <string name="generation_returned_no_image">ジェネレーターから画像が返されませんでした</string>
+    <string name="retry">再試行</string>
 </resources>
