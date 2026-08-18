@@ -46,11 +46,11 @@ class HistoryRetentionTest {
     )
 
     @Test
-    fun `stats queries count scans within window and rank contents`() = runBlocking {
+    fun `stats queries count unique scanned history within window`() = runBlocking {
         val now = System.currentTimeMillis()
         val dao = db.historyDao()
         dao.insert(item("https://hot.example.com", now - 1L * 24 * 60 * 60 * 1000))
-        dao.insert(item("https://hot.example.com", now - 6L * 24 * 60 * 60 * 1000))
+        dao.insert(item("https://warm.example.com", now - 6L * 24 * 60 * 60 * 1000))
         dao.insert(item("https://old.example.com", now - 40L * 24 * 60 * 60 * 1000))
         // 生成记录不应计入扫码统计
         dao.insert(

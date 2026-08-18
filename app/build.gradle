@@ -197,6 +197,8 @@ android {
         // 存量问题（主要是历史翻译债务）记录在 baseline 中；
         // 新增 issue（如新增未翻译字符串）会使 lintDebug 失败。
         baseline = file("lint-baseline.xml")
+        // Dependabot owns version discovery; online update checks make otherwise identical lint runs non-deterministic.
+        disable += ['GradleDependency', 'NewerVersionAvailable']
     }
     testOptions {
         unitTests {

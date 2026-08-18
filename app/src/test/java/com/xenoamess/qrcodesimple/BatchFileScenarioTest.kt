@@ -145,20 +145,29 @@ class BatchFileScenarioTest {
                 field.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
                 val results = field.get(activity) as List<BatchResultActivity.BatchResult>
-                ready = results.isNotEmpty() && results.all { it.bitmap != null }
+                ready = results.size == 2 && results.all { it.bitmap != null }
             }
             ready
         }
 
+        val downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val existingZipNames = downloads.listFiles()
+            ?.filter { it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") }
+            ?.mapTo(mutableSetOf()) { it.name }
+            .orEmpty()
+
         resultScenario?.onActivity { it.saveAllAsZip() }
 
-        val downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         waitUntil {
-            downloads.listFiles()?.any { it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") } == true
+            downloads.listFiles()?.any {
+                it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") && it.name !in existingZipNames
+            } == true
         }
 
         val zip = downloads.listFiles()!!
-            .filter { it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") }
+            .filter {
+                it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") && it.name !in existingZipNames
+            }
             .maxByOrNull { it.lastModified() }!!
         ZipFile(zip).use { zipFile ->
             val names = zipFile.entries().toList().map { it.name }
@@ -187,6 +196,12 @@ class BatchFileScenarioTest {
             ready
         }
 
+        val pictures = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+            "BatchQR"
+        )
+        val existingPngNames = pictures.listFiles()?.mapTo(mutableSetOf()) { it.name }.orEmpty()
+
         resultScenario?.onActivity { activity ->
             val field = BatchResultActivity::class.java.getDeclaredField("results")
             field.isAccessible = true
@@ -195,13 +210,11 @@ class BatchFileScenarioTest {
             activity.saveSingleImage(results.first())
         }
 
-        val pictures = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-            "BatchQR"
-        )
-        waitUntil { pictures.listFiles()?.isNotEmpty() == true }
+        waitUntil { pictures.listFiles()?.any { it.name !in existingPngNames } == true }
 
-        val png = pictures.listFiles()!!.maxByOrNull { it.lastModified() }!!
+        val png = pictures.listFiles()!!
+            .filter { it.name !in existingPngNames }
+            .maxByOrNull { it.lastModified() }!!
         assertTrue(png.name.endsWith(".png"))
         assertTrue(png.length() > 0)
     }

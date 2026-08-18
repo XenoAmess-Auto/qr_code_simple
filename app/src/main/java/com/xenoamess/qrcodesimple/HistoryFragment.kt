@@ -30,7 +30,9 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -47,6 +49,7 @@ class HistoryFragment : Fragment() {
     private var currentTag: String? = null
     private var loadHistoryJob: Job? = null
     private var searchJob: Job? = null
+    private val historyQuery = MutableStateFlow<HistoryQuery?>(null)
 
     private var sortNewestFirst = true
     private var timeRangeDays = 0
@@ -81,6 +84,7 @@ class HistoryFragment : Fragment() {
             setupClearButton()
             setupSortAndFilterButtons()
             setupStatsToggle()
+            observeHistory()
         } catch (e: Exception) {
             android.util.Log.e("HistoryFragment", "DB init failed", e)
             Toast.makeText(requireContext(), getString(R.string.history_unavailable_with_reason, e.message), Toast.LENGTH_LONG).show()
@@ -450,40 +454,40 @@ class HistoryFragment : Fragment() {
 
     private fun loadHistory() {
         refreshStats()
-        loadHistoryJob?.cancel()
+        val startTime = when (timeRangeDays) {
+            1 -> startOfToday()
+            7, 30 -> System.currentTimeMillis() - timeRangeDays * 24L * 60 * 60 * 1000
+            else -> null
+        }
+        historyQuery.value = HistoryQuery(
+            search = currentSearchQuery,
+            tag = currentTag,
+            isGenerated = when (currentFilter) {
+                FilterType.SCANNED -> false
+                FilterType.GENERATED -> true
+                else -> null
+            },
+            favoritesOnly = currentFilter == FilterType.FAVORITE,
+            type = typeFilter,
+            barcodeFormat = formatFilter,
+            startTime = startTime,
+            newestFirst = sortNewestFirst
+        )
+    }
+
+    private fun observeHistory() {
         loadHistoryJob = viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val startTime = when (timeRangeDays) {
-                    1 -> startOfToday()
-                    7, 30 -> System.currentTimeMillis() - timeRangeDays * 24L * 60 * 60 * 1000
-                    else -> null
-                }
-                val query = HistoryQuery(
-                    search = currentSearchQuery,
-                    tag = currentTag,
-                    isGenerated = when (currentFilter) {
-                        FilterType.SCANNED -> false
-                        FilterType.GENERATED -> true
-                        else -> null
-                    },
-                    favoritesOnly = currentFilter == FilterType.FAVORITE,
-                    type = typeFilter,
-                    barcodeFormat = formatFilter,
-                    startTime = startTime,
-                    newestFirst = sortNewestFirst
-                )
-                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    repository.getHistory(query).collectLatest { items ->
-                        adapter.submitList(items)
-                        updateEmptyState(items.isEmpty())
-                    }
-                }
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                android.util.Log.e("HistoryFragment", "loadHistory failed", e)
-                withContext(Dispatchers.Main) {
-                    if (_binding != null) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                historyQuery.filterNotNull().collectLatest { query ->
+                    try {
+                        repository.getHistory(query).collectLatest { items ->
+                            adapter.submitList(items)
+                            updateEmptyState(items.isEmpty())
+                        }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        android.util.Log.e("HistoryFragment", "loadHistory failed", e)
                         adapter.submitList(emptyList())
                         updateEmptyState(true)
                         listBinding.tvEmpty.text = getString(R.string.history_unavailable_with_reason, e.message)

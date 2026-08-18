@@ -213,7 +213,7 @@ class BatchResultActivity : AppCompatActivity() {
     internal fun saveAllAsZip() {
         lifecycleScope.launch {
             try {
-                val name = "batch_qr_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.zip"
+                val name = "batch_qr_${SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.getDefault()).format(Date())}.zip"
                 val saved = withContext(Dispatchers.IO) { writeZipToMediaStore(name, results) }
                 Toast.makeText(this@BatchResultActivity, getString(R.string.zip_saved, saved), Toast.LENGTH_SHORT).show()
             } catch (_: Exception) {

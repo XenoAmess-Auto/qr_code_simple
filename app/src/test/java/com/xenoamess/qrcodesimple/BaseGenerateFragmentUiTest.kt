@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.testing.FragmentScenario
@@ -21,7 +22,9 @@ import org.hamcrest.Matcher
 import org.junit.Assert
 import org.junit.Before
 import org.junit.runner.RunWith
+import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import java.util.concurrent.TimeUnit
 
 /**
  * Base UI test class for GenerateFragment. Provides common helpers for
@@ -39,9 +42,14 @@ abstract class BaseGenerateFragmentUiTest {
     }
 
     protected fun assertBitmapGenerated() {
-        scenario.onFragment { fragment ->
-            Assert.assertNotNull("Generated bitmap should not be null", fragment.currentBitmap)
+        repeat(100) {
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(25, TimeUnit.MILLISECONDS)
+            var ready = false
+            scenario.onFragment { ready = it.currentBitmap != null }
+            if (ready) return
+            Thread.sleep(25)
         }
+        Assert.fail("Generated bitmap should not be null")
     }
 
     protected fun typeText(text: String) {

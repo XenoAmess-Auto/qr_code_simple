@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import java.util.concurrent.TimeUnit
 
 /**
  * HistoryFragment 用户场景测试：收藏筛选、搜索、标签筛选、清空、分享条码图。
@@ -62,7 +63,7 @@ class HistoryScenarioTest {
     }
 
     private fun flush() {
-        Shadows.shadowOf(Looper.getMainLooper()).idle()
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(50, TimeUnit.MILLISECONDS)
     }
 
     private fun waitForDiff() {
