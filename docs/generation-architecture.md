@@ -26,6 +26,13 @@ object BarcodeGenerator {
 3. 生成失败时返回 `null`，不会抛异常。
 4. 一维码生成后会附加人工可读文本。
 
+### 2.1 生成页状态与导出
+
+- `GenerateFragment` 把完整的内容、格式和样式封装为不可变 `GenerateRequest`。
+- `GenerateViewModel` 对预览请求做 180ms 防抖，取消旧请求，并统一拥有和回收预览 Bitmap；配置变更后会用最新请求恢复编辑器和预览。
+- 预览状态仅在 View 生命周期达到 `STARTED` 时收集；生成后回扫直接调用挂起版 `QRCodeScanner.scan`，取消页面会同步取消校验。
+- 位图保存与分享按单任务串行执行，检查 `Bitmap.compress()` 结果并在完成、失败或取消时回收临时 Bitmap。批量结果则把全尺寸 PNG 落到 cache，仅在列表保留缩略图。
+
 ## 3. 当前实现方式
 
 | 格式 | 实现方式 |

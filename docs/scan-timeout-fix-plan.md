@@ -15,7 +15,7 @@
 
 ## 2. 修复目标
 
-让 `scanSync` 在 `totalTimeoutMs`（camera 模式 15s，image 模式 120s）后**必定返回**，不再因为某个阻塞引擎而无限挂起；同时尽量让我们自己的引擎支持安全取消。
+让 `scanSync` 在 `totalTimeoutMs`（camera 模式 2s，image 模式 120s）后**必定返回**，不再因为某个阻塞引擎而无限挂起；同时尽量让我们自己的引擎支持安全取消。
 
 ## 3. 引擎分类
 
@@ -33,10 +33,10 @@
 ### 4.1 `QRCodeScanner.kt` — 重构 `scanAsFlow`
 
 - 废弃 `coroutineScope { ... allDeferred.awaitAll() }` 结构。
-- 创建独立的守护线程池（默认大小 `availableProcessors` 与 2 取大）启动所有引擎：
+- 使用进程级共享的 6 线程守护线程池启动所有引擎：
   - 不占用 `Dispatchers.Default` 或 `Dispatchers.IO`。
   - 线程设为 daemon，即使引擎 ignore 取消，也不会阻止 JVM/进程退出。
-  - `scanAsFlow` 结束时调用 `shutdownNow()`，尽量中断未完成的引擎线程。
+  - 不为每帧创建和销毁线程池，避免相机连续扫描产生线程抖动。
   - 从根本上避免阻塞型引擎占满任何全局协程调度器，导致 `scanSync` 的 `runBlocking(Dispatchers.Default)` 因线程饥饿而挂起。这是 firebase-bom 34.16.0 在 CI 上诱发超时的根因。
 - 引入 `sealed class EngineEvent { Result, Completed }` 和一个 `Channel<EngineEvent>`。
 - 每个引擎在独立 scope 中执行：
@@ -50,7 +50,7 @@
 - `finally` 中：
   - 取消 engine scope；
   - 关闭 event channel；
-  - **仅当所有引擎都自然完成时**才 recycle `processedBitmap`；否则放弃回收，避免 abandon 引擎访问已释放 Bitmap。
+  - 每次扫描先深复制扫描器自有 Bitmap；正常完成时立即回收，提前返回或取消时等待显式 engine-exit barrier 后回收，避免阻塞解码器访问已释放 Bitmap。
 
 ### 4.2 `QRCodeScanner.kt` — 修复 `scanWithMLKit`
 
@@ -62,7 +62,7 @@
 - 原实现：`scanSync` 使用 `runBlocking(Dispatchers.Default)` 等待 `scan()` 结果。
 - 问题：即使引擎已经运行在独立线程池，`scanSync` 自身仍需要一个 `Dispatchers.Default` 线程。当 Default 池被其他协程或泄漏占满时，`runBlocking` 无法拿到线程，新的扫描请求会卡在入口处，连 `scanAsFlow` 的第一行日志都打印不出来。
 - 修改：将 `scanSync` 改为 `runBlocking { ... }`（不带 dispatcher），让扫描流程直接在调用方线程上执行。引擎仍然使用 4.1 中的独立 daemon 线程池，因此不会阻塞调用方线程，也不会再与任何全局调度器竞争。
-- 影响：调用方线程会被阻塞到扫描结束（这是 `scanSync` 同步语义的一部分）。所有生产调用点都位于后台线程（`CameraScanFragment` 的 cameraExecutor、`VideoScanActivity` 的视频处理线程、`GenerateFragment` 的 `lifecycleScope.launch(Dispatchers.Default)`），因此不会阻塞主线程。
+- 影响：调用方线程会被阻塞到扫描结束（这是 `scanSync` 同步语义的一部分）。相机在 camera executor 调用它；视频和生成校验已改用挂起版 `scan`，不会阻塞主线程。
 
 ### 4.4 给我们自己的引擎加入取消检查
 
@@ -98,15 +98,14 @@
 
 ### 6.3 修复
 
-- 不依赖 `Dispatchers.Default` 或 `Dispatchers.IO`，而是为每次 `scanAsFlow` 创建一个独立的固定线程池。
-- 池内线程设为 daemon，大小为 `availableProcessors.coerceAtLeast(2)`。
-- 扫描结束（无论是否超时）后调用 `scope.cancel()` + `executor.shutdownNow()`，尽量回收线程。
+- 不依赖 `Dispatchers.Default` 或 `Dispatchers.IO`，而是复用进程级固定 6 线程池。
+- 池内线程设为 daemon；单次扫描的 engine scope 在返回或超时后取消，但共享 executor 保留给后续帧。
+- 使用显式引擎退出计数，而不是协程 Job 完成状态，决定自有 Bitmap 的安全回收时机。
 - 将 `scanSync` 从 `runBlocking(Dispatchers.Default)` 改为 `runBlocking { ... }`，让扫描流程在调用方线程上执行，不再向 `Dispatchers.Default` 请求线程。
 
 ## 7. 权衡与已知限制
 
-- 每个 `scanAsFlow` 调用创建独立引擎线程池，线程为 daemon，`finally` 中 `shutdownNow()` 尽力中断未完成的阻塞引擎。若引擎完全 ignore 中断，daemon 线程不会阻止 JVM 退出，但仍可能存活到进程结束。
-- 第三方阻塞引擎（ZXing/WeChatQRCode/BoofCV）超时后会被 abandon，可能继续占用后台线程并短暂持有 Bitmap。这是为了彻底避免 CI 挂死而做的取舍。
+- 第三方阻塞引擎（ZXing/WeChatQRCode/BoofCV）超时后可能短暂继续占用共享后台线程；扫描调用会按时返回，但扫描器自有 Bitmap 会保留到这些引擎实际退出。
 - 我们自己的 HanXin 和 CustomLinear 解码器会支持安全取消。
 - ML Kit 取消时不再调用可能阻塞的 `close()`，依赖 `onComplete` 做资源释放；如果任务永远不完成，资源可能泄漏，但测试不会再挂死。
-- `scanSync` 改为 `runBlocking()` 后，同步阻塞发生在调用方线程上。所有已知生产调用点都在后台线程（camera 回调、视频处理、`lifecycleScope.launch(Dispatchers.Default)`），因此不会阻塞主线程。如果未来有主线程直接调用 `scanSync` 的需求，需要在外层自行切换到后台线程。
+- `scanSync` 改为 `runBlocking()` 后，同步阻塞发生在调用方线程上；当前仅相机后台回调和同步测试路径使用。主线程和生命周期相关调用应优先使用挂起版 `scan`。

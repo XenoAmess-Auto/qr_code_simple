@@ -141,7 +141,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 ## 6. UI 与 Adapter 测试
 
-所有用户可见的 UI 页面、Fragment、Activity、Adapter 和自定义 View 均已通过 Robolectric + Espresso 进行交互测试。全量计划见 `docs/ui-testing-plan.md`，当前已全部完成，整体测试套件约 **552 个测试**，0 失败。
+所有用户可见的 UI 页面、Fragment、Activity、Adapter 和自定义 View 均通过 Robolectric + Espresso 进行交互测试。全量计划见 `docs/ui-testing-plan.md`。
 
 重点覆盖：
 
@@ -150,7 +150,9 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 - 搜索与标签：搜索文本变化、筛选 chip、tag chip 点击过滤。
 - 对话框与设置：确认/取消、开关状态、外部链接 intent。
 - 自定义 View：触摸事件、颜色/角度变化、回调。
-- 导航：tab 切换、ViewPager2 联动、deep-link/shortcut。
+- 导航：底部导航与 ViewPager2 联动、deep-link/shortcut，以及独立结果页的 ActionBar、Up 和操作菜单。
+- 扫描管线：精确应用格式映射、stride-aware YUV、连续会话 CSV/JSON/XLSX 转义、视频采样时间显示，以及取消后等待阻塞引擎实际退出再回收 Bitmap。
+- 生成管线：防抖预览、导出串行状态、异步保存/分享完成等待、格式筛选和批量导航。
 
 所有页面和测试批次的具体计划见 `docs/ui-testing-plan.md`。
 
@@ -193,9 +195,10 @@ CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执
 ## 8. CI 排查辅助
 
 - `app/build.gradle` 已开启 `testLogging.showStandardStreams = true` 并设置 `robolectric.logging=stdout`，让 `android.util.Log` 输出进入 CI 日志。
-- `QRCodeScanner` 内部使用 `Log.d` 记录每个引擎的启动、结束、耗时和总体超时事件，便于在 CI 超时事故中定位是哪个引擎或哪条测试挂起。
+- `QRCodeScanner` 内部使用 `Log.d` 记录每个引擎的启动、结束、耗时和总体停止事件，便于在 CI 超时事故中定位是哪个引擎或哪条测试挂起。
 - `scanSync` 现在使用 `runBlocking()`（不带 dispatcher）在调用方线程上执行扫描，不再向 `Dispatchers.Default` 请求线程。因此即使其他测试或第三方库占满 `Dispatchers.Default`，扫描流程也不会在入口处死锁。
 - 如果未来再次出现 CI 挂死，优先查看最后一条 `START TEST` 以及该测试的 `D/QRCodeScanner` 日志，确认是否有引擎只有 `Engine start` 没有 `Engine end`；同时确认 `scanSync` 是否已打印 `Starting scanAsFlow`（未打印说明卡在进入 `scanSync` 之前）。
+- 实时扫描首结果返回后会取消剩余协程，但阻塞解码器可能短暂继续运行；测试日志中的后续 `Engine end` 属正常现象。扫描器自有 Bitmap 由引擎退出 barrier 延迟回收，不能改回按协程 Job 完成状态立即回收。
 
 ## 9. 注意事项
 

@@ -55,7 +55,7 @@ Single-module Android app (`:app`). Package `com.xenoamess.qrcodesimple`. Kotlin
 Robolectric's `Canvas.drawColor`/`drawRect`/`drawBitmap` produces bitmaps that ZXing cannot decode reliably. Use `Bitmap.setPixel` / `Bitmap.setPixels` for barcode rendering in tests and production code. The current generators already follow this rule.
 
 ### Scanning pipeline order
-`QRCodeScanner.scanSync` tries engines in this order:
+`QRCodeScanner` registers engines in this order, then runs them in parallel on a shared six-thread daemon pool. Camera/video mode returns after the first result; image mode collects all batches:
 
 1. WeChatQRCode (QR only, needs native `opencv_java4`)
 2. ZXing MultiFormatReader

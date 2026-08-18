@@ -25,10 +25,10 @@
 |---|---|---|---|
 | 批次 1 | `BatchGenerateActivity` 格式选择器改造 | 完成 | `Spinner` 已替换为 `AutoCompleteTextView` |
 | 批次 2 | 历史列表 | 完成 | `HistoryFragment` 增加 `loadHistoryJob` 取消，避免多个 Flow 收集器并发；`HistoryFragmentUiTest` 使用轮询等待列表尺寸 |
-| 批次 3 | 结果页 | 完成 | 公共 `QRResultAdapter` 已提取并测试；`ResultActivity` / `VideoScanActivity` 覆盖列表展示和选择操作 |
-| 批次 4 | 连续扫描 | 完成 | `ContinuousScanActivity` 通过反射注入 `handleScanResult` 测试扫描结果处理；`ContinuousScanAdapter` 独立测试 |
+| 批次 3 | 结果页 | 完成 | 公共 `QRResultAdapter` 已提取并测试；独立结果页覆盖列表、选择、ActionBar、Up 和菜单操作 |
+| 批次 4 | 连续扫描 | 完成 | 覆盖精确格式去重、自动保存、设置和 CSV / JSON / XLSX 会话导出；`ContinuousScanAdapter` 独立测试 |
 | 批次 5 | 生成页自定义控件 | 完成 | 新增 `ColorPickerViewTest` / `ColorPickerDialogTest` / `AngleDialViewTest`；修复 `ColorPickerView.setColor` 未更新 `currentColor` 和 `AngleDialView.angle` setter 未通知回调的问题 |
-| 批次 6 | 主页导航 | 完成 | 新增 `MainActivityUiTest`；`MainActivity.updateTabSelection` 改用 `setTypeface` 实现加粗以便可测 |
+| 批次 6 | 主页导航 | 完成 | 顶部文字 tab 已替换为 Material `BottomNavigationView`，并由 `MainActivityUiTest` 覆盖与 ViewPager2 的双向联动 |
 | 批次 7 | 剩余页面 | 完成 | 新增 `HistoryDetailActivityTest` / `AboutFragmentUiTest` / `PrivacySettingsActivityTest` / `BackupActivityTest` / `DatabaseSecurityActivityTest` / `BatchResultAdapterTest` / `ScanImageFragmentTest` / `CameraScanFragmentTest` / `ScannerOverlayViewTest` / `ScanRegionViewTest`；修复 `PrivacySettingsActivity.showSetPinDialog` 重复回调问题 |
 
 ## 4. 共享基础设施
@@ -70,7 +70,7 @@
 | 改动 | 把 `ResultActivity` 和 `VideoScanActivity` 中的内部 `QRResultAdapter` 提取为公共类。 |
 | 新增测试 | `QRResultAdapterTest.kt`、`ResultActivityUiTest.kt`、`VideoScanActivityUiTest.kt` |
 | 测试点（Adapter） | 1. 不同内容类型（URL、文本、WiFi、联系人等）显示正确的标签。<br>2. smart action 按钮根据内容类型显示/隐藏。<br>3. 安全指示器（安全/不安全/未知）显示正确。<br>4. 选中状态改变时 UI 同步。 |
-| 测试点（Activity） | 1. 多选/全选后显示选中计数。<br>2. 复制已选结果。<br>3. 删除已选结果。<br>4. VideoScanActivity 同样覆盖列表展示和选择操作。 |
+| 测试点（Activity） | 1. 多选/全选后显示选中计数。<br>2. 复制已选结果。<br>3. 删除已选结果。<br>4. VideoScanActivity 显示采样时间点。<br>5. `StandaloneActivityActionBarTest` 覆盖 Result / Video / Batch Result 的 Up 与菜单。 |
 
 ### 批次 4：连续扫描
 
@@ -80,7 +80,7 @@
 | 改动 | 尽量让 Activity 的扫描回调依赖可注入，或保持现有结构通过假数据直接测试。 |
 | 新增测试 | `ContinuousScanAdapterTest.kt`、`ContinuousScanActivityUiTest.kt` |
 | 测试点（Adapter） | 1. 已保存/未保存结果的状态显示正确。<br>2. 时间戳格式化显示正确。<br>3. 选中状态同步。 |
-| 测试点（Activity） | 1. 添加重复结果不新增 item。<br>2. 添加新结果 item 增加。<br>3. 自动保存开关影响保存状态图标。<br>4. 设置对话框可打开并保存选项。<br>5. 清空全部后列表为空。 |
+| 测试点（Activity） | 1. 内容 + 精确格式重复结果不新增 item。<br>2. 添加新结果 item 增加。<br>3. 自动保存开关影响保存状态图标。<br>4. 设置对话框显示当前状态并保存选项。<br>5. 清空全部后列表为空。<br>6. 会话导出正确转义 CSV 和 JSON 控制字符。 |
 
 ### 批次 5：生成页自定义控件
 
@@ -96,9 +96,9 @@
 | 项目 | 内容 |
 |---|---|
 | 涉及文件 | `MainActivity.kt` |
-| 改动 | 无。 |
+| 改动 | 使用 `BottomNavigationView` 替代拥挤的顶部文字按钮。 |
 | 新增测试 | `MainActivityUiTest.kt` |
-| 测试点 | 1. 点击底部 5 个 tab 按钮切换 `ViewPager2` 到对应页面。<br>2. 切换时 tab 按钮颜色和加粗状态更新。<br>3. 通过 shortcut/deep-link 启动 `MainActivity` 后定位到指定 tab。<br>4. 携带 `EXTRA_GENERATE_CONTENT` 时进入生成 tab。 |
+| 测试点 | 1. 点击底部 5 个目的地切换 `ViewPager2` 到对应页面。<br>2. 滑动页面时底部选中项同步。<br>3. 通过 shortcut/deep-link 启动 `MainActivity` 后定位到指定目的地。<br>4. 携带 `EXTRA_GENERATE_CONTENT` 时进入生成页。 |
 
 ### 批次 7：剩余页面 ✅
 

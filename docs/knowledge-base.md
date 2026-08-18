@@ -12,7 +12,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | 组件 | 技术/库 | 版本 |
 |------|---------|------|
 | 语言 | Kotlin | 2.3.21 |
-| UI | Jetpack Compose / XML Layout | - |
+| UI | XML Layout + ViewBinding（无 Compose） | - |
 | 相机 | CameraX | 1.5.3 |
 | 数据库 | Room + SQLCipher（sqlcipher-android 新坐标） | 2.7.1 / 4.17.0 |
 | 二维码识别 | ZXing | 3.5.3 |
@@ -53,6 +53,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 - 生成器本身不清洗 `StyleConfig`，传入什么就用什么；调用方（`GenerateFragment`、历史页面）在生成前调用 `AdvancedBarcodeGenerator.sanitize(style, format)` 清洗。
 - `GenerateFragment` 根据当前格式能力表隐藏不支持的控件，不做提示。
+- `GenerateViewModel` 对预览请求做 180ms 防抖并拥有预览 Bitmap；新请求、清空和 ViewModel 销毁时统一回收。Fragment 仅绑定状态，不得抢先回收 ViewModel 持有的预览。
+- 保存/分享操作由 ViewModel 串行化；生成、压缩和分享模板均检查取消与压缩结果，输出文件名包含唯一导出 id。
 - 各格式的实际样式能力见 [`docs/style-roundtrip-matrix.md`](style-roundtrip-matrix.md)，其中包含 `moduleShape` / `moduleFillRatio` / `positionPatternShape` 对所有可扫描格式的真实回扫通过率。
 
 `StyleConfig` 字段及能力表：
@@ -79,15 +81,21 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 生成历史保存前也会按能力表清洗，保证历史记录只包含实际生效的样式参数。
 
+### 主界面导航
+
+- `MainActivity` 的五个主目的地使用 `BottomNavigationView` 与 `ViewPager2` 双向联动，不再使用顶部文字 tab。
+- `ResultActivity`、`VideoScanActivity`、`BatchResultActivity` 使用 `Theme.QRCodeSimple.ActionBar`，保证独立页面始终有 Up 导航和操作菜单。
+
 ### 扫描入口
 
-- 实时扫描（相机/视频）：`QRCodeScanner.scan(context, bitmap)` 或 `QRCodeScanner.scanSync(context, bitmap)`，内部并行执行 6 个引擎，等待全部结束后返回完整结果列表。
-- 图片扫描：`QRCodeScanner.scanAsFlow(context, bitmap, config)`，6 个引擎并行执行，任一引擎识别到结果即通过 `Flow` 分批 emit；ResultActivity 收集到首个结果即展示页面，后续结果动态追加。图片扫描使用 `IMAGE_SCAN_CONFIG`（总超时 120s / 单引擎 60s），实时扫描使用 `CAMERA_SCAN_CONFIG`（总超时 15s / 单引擎 5s）。
+- 实时扫描（相机/视频）：`QRCodeScanner.scan(context, bitmap)` 或 `QRCodeScanner.scanSync(context, bitmap)` 默认使用 `CAMERA_SCAN_CONFIG`（总超时 2s / 单引擎 1.5s），6 个引擎并行启动并在首批有效结果后返回，以降低单帧延迟。
+- 图片扫描：`QRCodeScanner.scanAsFlow(context, bitmap, IMAGE_SCAN_CONFIG)` 使用总超时 120s / 单引擎 60s，任一引擎识别到结果即通过 `Flow` 分批 emit；`ResultActivity` 收集到首个结果即展示，后续结果动态追加。
+- 扫描器使用共享的 6 线程 daemon 池。每次扫描先以 `getPixels` / `setPixels` 建立扫描器自有 Bitmap；调用方可在扫描返回后释放原图，而自有副本会等所有阻塞引擎实际退出后再回收。结果同时保留 ZXing 格式和应用层精确 `appFormat`，按 `text + appFormat` 去重。
 - 修复重试：图片扫描常规流程无任何结果时，`RestorationRescan.rescan()` 会用 `QRCodeRestorationManager` 生成修复变体（灰度 / 对比度 / 锐化 / 二值化 / 缩放，最多 8 个）逐张重扫；识别成功则在结果页显示"经图像修复后识别"弱提示。相机实时扫描不走该路径。
 
 ### 历史记录
 - `HistoryRepository.insertGenerate(content, type, barcodeFormat, styleJson)` 保存生成记录。
-- `HistoryItem.barcodeFormat` 字段保存格式名称字符串；`HistoryItem.styleJson` 字段保存生成样式参数 JSON（不含图片）。
+- `HistoryItem.barcodeFormat` 字段保存精确格式名称字符串；`HistoryItem.styleJson` 字段保存生成样式参数 JSON（不含图片）。相机、图片、视频和连续扫描入口均通过 `insertScan` 的保注释 upsert 写入，重复扫描不会覆盖收藏、备注或标签。
 - 历史记录以 `(content, isGenerated)` 唯一；写入由 Room 事务原子 upsert，列表使用 `HistoryQuery` 组合搜索、标签、收藏、来源、类型、格式、时间与排序。数据库打开或迁移失败不会自动删除数据，只有数据库安全页面的显式重置会删除。
 - 按 `content` + `isGenerated` 去重：扫描记录和生成记录各自独立。同一文本扫描重复时更新 `timestamp` 置顶；生成重复时更新最新参数/格式/时间/样式；不新增多条。备份导入时同样按此规则合并，避免重复记录。
 - 生成、保存、分享按钮均会触发历史记录写入/更新。
@@ -109,7 +117,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 5. HanXinDecoder（Han Xin Code / 汉信码）
 6. CustomLinearBarcodeScanner（Pharmacode / Plessey / MSI Plessey / Telepen）
 
-图片扫描的结果按 `text + format` 去重，保留最先识别到的引擎标签。
+图片扫描的结果按 `text + appFormat` 去重，保留最先识别到的引擎标签。UPC/EAN Extension 会从 ZXing metadata 提升为精确的应用格式和扩展位内容。
 
 ## 6. 文件索引
 
@@ -126,7 +134,6 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `ScanImageProcessor.kt` | 图片/视频 Uri 扫描路由（ScanImageFragment 与系统分享入口共用） |
 | `RestorationRescan.kt` | 图片扫描无结果时的修复重试编排 |
 | `QRCodeRestorationManager.kt` | 修复变体生成（灰度 / 对比度 / 锐化 / 二值化 / 缩放） |
-| `ScanImageProcessor.kt` | 图片/视频 Uri 扫描路由（ScanImageFragment 与系统分享入口共用） |
 | `BackupCrypto.kt` | 备份加密原语（AES-256/GCM + PBKDF2，magic `QRBK1`） |
 | `SecurityBlacklist.kt` | 恶意链接黑名单模型；加载顺序 filesDir 覆盖 > assets 内置 > 代码兜底 |
 | `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
@@ -152,7 +159,10 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `data/AppDatabase.kt` | 加密 Room 数据库（生产用 SQLCipher，Robolectric 回退到未加密） |
 | `data/BarcodeFormat.kt` | 应用内条码格式枚举（含 `isScannable`） |
 | `AppLockManager.kt` | 应用锁（PIN / 生物识别） |
-| `GenerateFragment.kt` | 生成界面 Fragment |
+| `GenerateFragment.kt` | 生成界面 Fragment；收集 ViewModel 状态并执行可取消回扫、串行保存/分享 |
+| `GenerateViewModel.kt` | 防抖生成预览、Bitmap 所有权与导出串行状态 |
+| `ScanSessionExporter.kt` | 连续扫描会话的 CSV / JSON / XLSX 导出 |
+| `Yuv420Converter.kt` | 按 row/pixel stride 复制 CameraX YUV_420_888 帧 |
 | `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条 + Alpha 透明度条） |
 | `ColorPickerDialog.kt` | 颜色选取对话框（含 hex / RGBA 输入） |
 | `AngleDialView.kt` | 圆形角度旋钮（用于渐变角度） |

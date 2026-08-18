@@ -34,11 +34,11 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 ### Scanning Experience
 
-- ✅ **Continuous Scan Mode** - Scan multiple codes without confirmation dialogs.
+- ✅ **Continuous Scan Mode** - Scan multiple codes without confirmation dialogs, preserve exact formats, optionally auto-save, and export the session as CSV / JSON / Excel.
 - ✅ **Haptic Feedback** - Vibration on successful decode.
 - ✅ **Auto / Tap-to-focus** - Adapts to code size; tap to focus manually.
 - ✅ **Scan Region Limit** - Toggle region mode and drag to decode only within the selected area.
-- ✅ **Video Scan** - Decode barcodes directly from video files.
+- ✅ **Video Scan** - Decode barcodes from 500 ms video samples and retain each result's sample position.
 - ✅ **Share to Scan** - Share images or videos from any app straight into the scanner (gallery, file manager, etc.).
 - ✅ **Multi-code View** - Cycle through multiple codes detected in one frame; pick an image from the gallery right on the camera page.
 - ✅ **Scan Automation** - Optional toggles: auto-copy result, auto-open links verified SAFE/LOW by the security check (in Privacy Settings, default off).
@@ -63,6 +63,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 ### UI & UX
 
 - ✅ **Light/Dark Theme** - System / light / dark theme switch.
+- ✅ **Responsive Navigation** - Five primary destinations use bottom navigation; standalone result pages retain Up navigation and their action menus.
 - ✅ **Landscape & Tablet** - Landscape optimized; two-pane history and generate pages, centered max-width About/scan-image on tablets (sw600dp+).
 - ✅ **Shortcuts** - Long-press the launcher icon to scan or generate.
 - ✅ **Quick Settings Tile** - One-tap camera scan from the notification shade.
@@ -74,6 +75,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 
 - ✅ **Unit Tests** - Roundtrip tests for every scannable format and generation tests for every generate-only format (Robolectric).
 - ✅ **Memory-aware Image Loading** - Large image handling.
+- ✅ **Cancellable Generation** - Debounced previews, lifecycle-aware validation, and serialized save/share exports avoid stale images and duplicate writes.
 
 ---
 

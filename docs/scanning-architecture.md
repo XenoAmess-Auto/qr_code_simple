@@ -2,18 +2,23 @@
 
 ## 1. 扫描入口
 
-`QRCodeScanner` 提供两个入口：
+`QRCodeScanner` 提供同步、挂起与流式入口：
 
 ```kotlin
 object QRCodeScanner {
-    suspend fun scan(context: Context, bitmap: Bitmap): List<ScanResult>
+    fun scanAsFlow(context: Context, bitmap: Bitmap, config: ScanConfig): Flow<List<ScanResult>>
+    suspend fun scan(context: Context, bitmap: Bitmap, config: ScanConfig = CAMERA_SCAN_CONFIG): List<ScanResult>
     fun scanSync(context: Context, bitmap: Bitmap): List<ScanResult>
 }
 ```
 
+- `IMAGE_SCAN_CONFIG`：总超时 120 秒、单引擎 60 秒，收集所有引擎分批返回的新结果。
+- `CAMERA_SCAN_CONFIG`：总超时 2 秒、单引擎 1.5 秒，首批有效结果后立即返回，用于相机与视频帧。
+- 扫描前用 `getPixels` / `setPixels` 创建扫描器自有 Bitmap。即使 Flow 被取消或实时模式提前返回，自有 Bitmap 也会等所有阻塞解码器实际退出后再回收。
+
 ## 2. 扫描引擎优先级
 
-扫描按以下顺序尝试，任一引擎返回结果即停止：
+引擎在共享的 6 线程 daemon 池中并行启动；以下顺序是注册和结果优先顺序，不是串行回退：
 
 1. **WeChatQRCode**：仅 QR Code，对低质量/扭曲二维码识别率高。
 2. **ZXing MultiFormatReader**：覆盖最广，支持 17 种格式。
@@ -74,7 +79,7 @@ fun normalizeWidths(groups: List<Pair<Boolean, Int>>): List<Pair<Boolean, Int>> 
 
 ## 6. 扫描结果映射
 
-`BarcodeFormat.toHistoryType()` 将 ZXing/应用格式映射为 `HistoryType`：
+`ScanResult` 同时保存可空的 ZXing `format` 和应用层精确 `appFormat`。去重键为 `text + appFormat`，历史写入和连续扫描导出使用 `appFormat`。`BarcodeFormat.toHistoryType()` 将 ZXing/应用格式映射为 `HistoryType`：
 - QR_CODE → QR_CODE
 - DATA_MATRIX → DATA_MATRIX
 - AZTEC → AZTEC
@@ -90,6 +95,8 @@ fun normalizeWidths(groups: List<Pair<Boolean, Int>>): List<Pair<Boolean, Int>> 
 - MSI_PLESSEY → MSI_PLESSEY
 - TELEPEN → TELEPEN
 - 其他一维码 → BARCODE
+
+ZXing 将 UPC/EAN Extension 放在 metadata 中时，扫描器会把扩展位提升为 `UPC_EAN_EXTENSION` 结果，避免把合成载体 EAN 当作用户内容。
 
 ## 7. 测试策略
 
