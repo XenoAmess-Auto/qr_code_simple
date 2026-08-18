@@ -308,6 +308,7 @@
     <string name="remove_from_favorites">Aus Favoriten entfernen</string>
     <string name="all_tags">Alle Tags</string>
     <string name="advanced_filter">Erweiterter Filter</string>
+    <string name="filter_button">Filter</string>
     <string name="sort_order">Sortierreihenfolge</string>
     <string name="filter_time_range">Zeitraum</string>
     <string name="filter_time_all">Gesamter Zeitraum</string>

@@ -279,9 +279,9 @@ class HistoryFragment : Fragment() {
     }
 
     private fun updateSortButtonText() {
-        listBinding.btnSort.text = getString(
-            R.string.sort_order
-        ) + ": " + getString(if (sortNewestFirst) R.string.chip_sort_newest else R.string.chip_sort_oldest)
+        val order = getString(if (sortNewestFirst) R.string.chip_sort_newest else R.string.chip_sort_oldest)
+        listBinding.btnSort.text = order
+        listBinding.btnSort.contentDescription = getString(R.string.sort_order) + ": " + order
     }
 
     private fun typeLabel(type: HistoryType): String = when (type) {

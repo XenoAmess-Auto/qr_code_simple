@@ -143,6 +143,7 @@ Arbitrary 20-24dp cards and full-width pills are not the default style.
 - Support phone portrait, landscape, and `sw600dp+`.
 - Long forms use a centered readable width or an intentional two-pane layout.
 - Do not use horizontal action/radio groups that depend on English label length.
+- Dense history controls use a two-row, three-column grid; labels auto-size within a 10-13sp range while retaining 48dp touch targets.
 - Use `wrap_content` plus minimum heights rather than fixed heights for translated or scalable text.
 - Verify English, Simplified Chinese, German, and Russian at minimum during visual review; all ten locales remain resource-complete.
 

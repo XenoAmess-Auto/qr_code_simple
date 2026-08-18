@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:paddingHorizontal="12dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -34,7 +34,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                     android:textColor="@color/app_text_primary" />
 
                 <ImageView
@@ -52,6 +52,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:paddingBottom="8dp"
                 android:visibility="gone">
 
                 <TextView
@@ -98,82 +99,64 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- 过滤器 Tab -->
+    <!-- 来源、排序和高级筛选采用两行三列，减少列表上方占用。 -->
     <GridLayout
         android:id="@+id/filterTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
         android:layout_marginTop="4dp"
-        android:columnCount="2">
+        android:columnCount="3">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterAll"
-            style="@style/Widget.QRCodeSimple.Button.Text"
+            style="@style/Widget.QRCodeSimple.Button.HistoryFilter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
-            android:minHeight="48dp"
-            android:singleLine="true"
             android:text="@string/all" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterScanned"
-            style="@style/Widget.QRCodeSimple.Button.Text"
+            style="@style/Widget.QRCodeSimple.Button.HistoryFilter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
-            android:minHeight="48dp"
-            android:singleLine="true"
             android:text="@string/scanned" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterGenerated"
-            style="@style/Widget.QRCodeSimple.Button.Text"
+            style="@style/Widget.QRCodeSimple.Button.HistoryFilter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
-            android:minHeight="48dp"
-            android:singleLine="true"
             android:text="@string/generated" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFilterFavorite"
-            style="@style/Widget.QRCodeSimple.Button.Text"
+            style="@style/Widget.QRCodeSimple.Button.HistoryFilter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
-            android:minHeight="48dp"
-            android:singleLine="true"
             android:text="@string/chip_favorites" />
-
-    </GridLayout>
-
-    <!-- 排序 + 高级筛选 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="8dp"
-        android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSort"
-            style="@style/Widget.QRCodeSimple.Button.Text"
+            style="@style/Widget.QRCodeSimple.Button.HistoryFilter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:minHeight="48dp" />
+            android:layout_columnWeight="1" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAdvancedFilter"
-            style="@style/Widget.QRCodeSimple.Button.Text"
+            style="@style/Widget.QRCodeSimple.Button.HistoryFilter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:minHeight="48dp"
-            android:text="@string/advanced_filter" />
+            android:layout_columnWeight="1"
+            android:contentDescription="@string/advanced_filter"
+            android:text="@string/filter_button" />
 
-    </LinearLayout>
+    </GridLayout>
 
     <!-- 标签筛选 -->
     <HorizontalScrollView

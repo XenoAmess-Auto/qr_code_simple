@@ -134,6 +134,16 @@ class HistoryFragmentUiTest {
     }
 
     @Test
+    fun historyControlsUseCompactThreeColumnGrid() {
+        launchFragment()
+        scenario?.onFragment { fragment ->
+            val grid = fragment.requireView().findViewById<android.widget.GridLayout>(R.id.filterTabLayout)
+            assertEquals(3, grid.columnCount)
+            assertEquals(6, grid.childCount)
+        }
+    }
+
+    @Test
     fun statsCardTogglesExpansionOnClick() {
         launchFragment()
         onView(withId(R.id.statsCard)).perform(click())
