@@ -17,9 +17,11 @@ import com.xenoamess.qrcodesimple.decoder.MicroQrCodeScanner
 import com.xenoamess.qrcodesimple.decoder.hanxin.HanXinDecoder
 import com.xenoamess.qrcodesimple.scanner.MlKitEngine
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
@@ -28,7 +30,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -42,6 +43,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 
 /**
@@ -120,7 +122,6 @@ private fun BarcodeFormat.toAppFormat(): AppBarcodeFormat = when (this) {
     BarcodeFormat.RSS_14 -> AppBarcodeFormat.RSS_14
     BarcodeFormat.RSS_EXPANDED -> AppBarcodeFormat.RSS_EXPANDED
     BarcodeFormat.UPC_EAN_EXTENSION -> AppBarcodeFormat.UPC_EAN_EXTENSION
-    else -> AppBarcodeFormat.UNKNOWN
 }
 
 /**
@@ -168,7 +169,7 @@ object QRCodeScanner {
 
     private val scanningEnabled = AtomicBoolean(true)
     private val engineExecutor = ThreadPoolExecutor(
-        6, 6, 30, TimeUnit.SECONDS, LinkedBlockingQueue(24),
+        6, 6, 30, TimeUnit.SECONDS, LinkedBlockingQueue(),
         ThreadFactory { runnable -> Thread(runnable, "QRCodeScanner-engine").apply { isDaemon = true } }
     ).apply { allowCoreThreadTimeOut(true) }
     private val engineDispatcher = engineExecutor.asCoroutineDispatcher()
@@ -190,8 +191,10 @@ object QRCodeScanner {
         val height = bitmap.height
         val maxDim = maxOf(width, height)
         if (maxDim <= maxDimension) {
-            return checkNotNull(bitmap.copy(Bitmap.Config.ARGB_8888, false)) {
-                "Unable to copy scan bitmap"
+            val pixels = IntArray(width * height)
+            bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+            return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+                setPixels(pixels, 0, width, 0, 0, width, height)
             }
         }
 
@@ -258,6 +261,7 @@ object QRCodeScanner {
      *
      * @param config 扫描配置，图片扫描建议使用 [IMAGE_SCAN_CONFIG]，相机扫描使用 [CAMERA_SCAN_CONFIG]。
      */
+    @OptIn(DelicateCoroutinesApi::class)
     fun scanAsFlow(
         context: Context,
         bitmap: Bitmap,
@@ -272,12 +276,15 @@ object QRCodeScanner {
         val processedBitmap = preprocessBitmap(bitmap, config.maxDimension)
         val scope = CoroutineScope(engineDispatcher + SupervisorJob())
         val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
-        val engineJobs = mutableListOf<Job>()
+        val activeEngines = AtomicInteger(0)
+        val enginesFinished = CompletableDeferred<Unit>()
         var allCompleted = false
         var engineCount = 0
 
         fun launchEngine(name: String, block: suspend () -> List<ScanResult>) {
-            engineJobs += scope.launch {
+            engineCount++
+            activeEngines.incrementAndGet()
+            scope.launch(start = CoroutineStart.ATOMIC) {
                 val start = System.currentTimeMillis()
                 Log.d(TAG, "Engine start: $name")
                 try {
@@ -289,6 +296,7 @@ object QRCodeScanner {
                 } finally {
                     Log.d(TAG, "Engine completed event: $name")
                     eventChannel.trySend(EngineEvent.Completed)
+                    if (activeEngines.decrementAndGet() == 0) enginesFinished.complete(Unit)
                 }
             }
         }
@@ -324,8 +332,6 @@ object QRCodeScanner {
                 CustomLinearBarcodeScanner.scan(processedBitmap)
                     .map { ScanResult(it.text, Library.CUSTOM_LINEAR, appFormat = it.format.toAppFormat()) }
             }
-
-            engineCount = engineJobs.size
 
             allCompleted = withTimeoutOrNull(config.totalTimeoutMs) {
                 val seenKeys = mutableSetOf<String>()
@@ -364,7 +370,7 @@ object QRCodeScanner {
                 processedBitmap.recycle()
             } else if (!allCompleted) {
                 cleanupScope.launch {
-                    engineJobs.joinAll()
+                    enginesFinished.await()
                     if (!processedBitmap.isRecycled) processedBitmap.recycle()
                 }
             }
@@ -540,6 +546,42 @@ object QRCodeScanner {
     }
 
     private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
+        val normalized = ((degrees.toInt() % 360) + 360) % 360
+        if (degrees == normalized.toFloat() && normalized % 90 == 0) {
+            val source = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(source, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            val outputWidth = if (normalized == 90 || normalized == 270) bitmap.height else bitmap.width
+            val outputHeight = if (normalized == 90 || normalized == 270) bitmap.width else bitmap.height
+            val output = IntArray(source.size)
+            for (y in 0 until bitmap.height) {
+                for (x in 0 until bitmap.width) {
+                    val targetX: Int
+                    val targetY: Int
+                    when (normalized) {
+                        90 -> {
+                            targetX = bitmap.height - 1 - y
+                            targetY = x
+                        }
+                        180 -> {
+                            targetX = bitmap.width - 1 - x
+                            targetY = bitmap.height - 1 - y
+                        }
+                        270 -> {
+                            targetX = y
+                            targetY = bitmap.width - 1 - x
+                        }
+                        else -> {
+                            targetX = x
+                            targetY = y
+                        }
+                    }
+                    output[targetY * outputWidth + targetX] = source[y * bitmap.width + x]
+                }
+            }
+            return Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888).apply {
+                setPixels(output, 0, outputWidth, 0, 0, outputWidth, outputHeight)
+            }
+        }
         val matrix = android.graphics.Matrix()
         matrix.postRotate(degrees)
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
