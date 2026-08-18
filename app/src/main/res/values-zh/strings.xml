@@ -653,4 +653,7 @@
     <string name="format_scannable">可扫描</string>
     <string name="format_generate_only">仅生成</string>
     <string name="format_recent">最近使用</string>
+    <string name="about_section_preferences">偏好设置</string>
+    <string name="about_section_updates">更新与诊断</string>
+    <string name="about_section_project">项目与支持</string>
 </resources>

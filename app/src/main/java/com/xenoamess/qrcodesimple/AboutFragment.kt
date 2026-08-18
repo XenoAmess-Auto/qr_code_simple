@@ -16,6 +16,7 @@ class AboutFragment : Fragment() {
 
     private var _binding: FragmentAboutBinding? = null
     private val binding get() = _binding!!
+    private val contentBinding get() = binding.aboutContent
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,58 +37,57 @@ class AboutFragment : Fragment() {
             "0.1.1"
         }
         val gitHash = BuildConfig.GIT_HASH
-        binding.tvVersion.text = getString(R.string.version_with_prefix, versionName, gitHash)
+        contentBinding.tvVersion.text = getString(R.string.version_with_prefix, versionName, gitHash)
 
-        // 更新语言按钮显示当前语言
-        updateLanguageButton()
+        updatePreferenceValues()
 
-        binding.btnGitHubProject.setOnClickListener {
+        contentBinding.btnGitHubProject.setOnClickListener {
             openUrl("https://github.com/XenoAmess-Auto/qr_code_simple")
         }
 
-        binding.btnGitHubMaintainer.setOnClickListener {
+        contentBinding.btnGitHubMaintainer.setOnClickListener {
             openUrl("https://github.com/XenoAmess")
         }
 
-        binding.btnDonate.setOnClickListener {
+        contentBinding.btnDonate.setOnClickListener {
             openUrl("https://ko-fi.com/xenoamess")
         }
 
-        binding.btnLanguage.setOnClickListener {
+        contentBinding.btnLanguage.setOnClickListener {
             showLanguageDialog()
         }
 
-        binding.btnTheme.setOnClickListener {
+        contentBinding.btnTheme.setOnClickListener {
             showThemeDialog()
         }
 
-        binding.btnPrivacy.setOnClickListener {
+        contentBinding.btnPrivacy.setOnClickListener {
             startActivity(Intent(requireContext(), PrivacySettingsActivity::class.java))
         }
 
-        binding.btnCheckUpdate.setOnClickListener {
+        contentBinding.btnCheckUpdate.setOnClickListener {
             AppUpdateManager.checkManually(requireActivity())
         }
 
-        binding.btnCheckBetaUpdate.setOnClickListener {
+        contentBinding.btnCheckBetaUpdate.setOnClickListener {
             AppUpdateManager.checkBetaUpdate(requireActivity())
         }
 
-        binding.btnVersionHistory.setOnClickListener {
+        contentBinding.btnVersionHistory.setOnClickListener {
             showVersionHistory()
         }
 
-        // F-Droid 构建由 F-Droid 客户端分发更新，隐藏应用内自更新整行入口
+        // F-Droid builds receive updates from the F-Droid client.
         if (BuildConfig.IS_FDROID) {
-            (binding.switchAutoUpdate.parent as? View)?.visibility = View.GONE
+            contentBinding.updateSection.visibility = View.GONE
         }
 
-        binding.btnCrashLogs.setOnClickListener {
+        contentBinding.btnCrashLogs.setOnClickListener {
             showCrashLogsDialog()
         }
 
-        binding.switchAutoUpdate.isChecked = QRCodeApp.isAppUpdateAutoCheckEnabled(requireContext())
-        binding.switchAutoUpdate.setOnCheckedChangeListener { _, isChecked ->
+        contentBinding.switchAutoUpdate.isChecked = QRCodeApp.isAppUpdateAutoCheckEnabled(requireContext())
+        contentBinding.switchAutoUpdate.setOnCheckedChangeListener { _, isChecked ->
             QRCodeApp.setAppUpdateAutoCheckEnabled(requireContext(), isChecked)
             if (isChecked) {
                 AppUpdateManager.checkManually(requireActivity())
@@ -95,9 +95,13 @@ class AboutFragment : Fragment() {
         }
     }
 
-    private fun updateLanguageButton() {
-        val currentLang = LocaleHelper.getCurrentLanguageDisplayName(requireContext())
-        binding.btnLanguage.text = "${getString(R.string.language)}: $currentLang"
+    private fun updatePreferenceValues() {
+        contentBinding.tvLanguageValue.text = LocaleHelper.getCurrentLanguageDisplayName(requireContext())
+        contentBinding.tvThemeValue.text = when (QRCodeApp.getThemeMode(requireContext())) {
+            QRCodeApp.THEME_MODE_LIGHT -> getString(R.string.theme_light)
+            QRCodeApp.THEME_MODE_DARK -> getString(R.string.theme_dark)
+            else -> getString(R.string.theme_system)
+        }
     }
 
     private fun showThemeDialog() {
@@ -139,7 +143,7 @@ class AboutFragment : Fragment() {
                 val selectedLanguage = languages[which]
                 if (selectedLanguage.code != currentLang) {
                     LocaleHelper.setLanguage(requireContext(), selectedLanguage.code)
-                    updateLanguageButton()
+                    updatePreferenceValues()
                     showRestartDialog()
                 }
                 dialog.dismiss()

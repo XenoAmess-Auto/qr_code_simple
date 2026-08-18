@@ -663,4 +663,7 @@
     <string name="format_scannable">스캔 가능</string>
     <string name="format_generate_only">생성 전용</string>
     <string name="format_recent">최근 사용</string>
+    <string name="about_section_preferences">환경설정</string>
+    <string name="about_section_updates">업데이트 및 진단</string>
+    <string name="about_section_project">프로젝트 및 지원</string>
 </resources>

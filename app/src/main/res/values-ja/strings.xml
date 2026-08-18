@@ -625,4 +625,7 @@
     <string name="format_scannable">スキャン可能</string>
     <string name="format_generate_only">生成のみ</string>
     <string name="format_recent">最近使用</string>
+    <string name="about_section_preferences">設定</string>
+    <string name="about_section_updates">更新と診断</string>
+    <string name="about_section_project">プロジェクトとサポート</string>
 </resources>

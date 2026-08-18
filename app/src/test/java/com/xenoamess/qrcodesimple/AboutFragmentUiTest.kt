@@ -98,6 +98,8 @@ class AboutFragmentUiTest {
     fun `related actions share compact rows`() {
         scenario.onFragment { fragment ->
             val root = fragment.requireView()
+            assertTrue(root.findViewById<TextView>(R.id.tvLanguageValue).text.isNotBlank())
+            assertTrue(root.findViewById<TextView>(R.id.tvThemeValue).text.isNotBlank())
             assertSame(
                 root.findViewById<android.view.View>(R.id.btnLanguage).parent,
                 root.findViewById<android.view.View>(R.id.btnTheme).parent
@@ -179,7 +181,8 @@ class AboutFragmentUiTest {
         }
 
         scenario.onFragment { fragment ->
-            val toggle = fragment.requireView().findViewById<android.widget.Switch>(R.id.switchAutoUpdate)
+            val toggle = fragment.requireView()
+                .findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchAutoUpdate)
             assertEquals(false, toggle.isChecked)
             toggle.isChecked = true
         }

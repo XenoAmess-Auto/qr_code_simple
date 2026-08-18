@@ -696,4 +696,7 @@
     <string name="format_scannable">Scannable</string>
     <string name="format_generate_only">Generate only</string>
     <string name="format_recent">Recent</string>
+    <string name="about_section_preferences">Preferences</string>
+    <string name="about_section_updates">Updates &amp; diagnostics</string>
+    <string name="about_section_project">Project &amp; support</string>
 </resources>

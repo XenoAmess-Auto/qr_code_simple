@@ -1156,4 +1156,7 @@ https://another.com
     <string name="format_scannable">Сканируется</string>
     <string name="format_generate_only">Только генерация</string>
     <string name="format_recent">Недавние</string>
+    <string name="about_section_preferences">Настройки</string>
+    <string name="about_section_updates">Обновления и диагностика</string>
+    <string name="about_section_project">Проект и поддержка</string>
 </resources>

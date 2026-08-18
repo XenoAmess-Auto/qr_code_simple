@@ -651,4 +651,7 @@
     <string name="format_scannable">Scanbar</string>
     <string name="format_generate_only">Nur erstellen</string>
     <string name="format_recent">Zuletzt verwendet</string>
+    <string name="about_section_preferences">Einstellungen</string>
+    <string name="about_section_updates">Updates &amp; Diagnose</string>
+    <string name="about_section_project">Projekt &amp; Unterstützung</string>
 </resources>
