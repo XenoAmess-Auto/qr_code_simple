@@ -16,6 +16,7 @@ import com.xenoamess.qrcodesimple.ContentActionHandler
 import com.xenoamess.qrcodesimple.QRCodeScanner
 import com.xenoamess.qrcodesimple.R
 import com.xenoamess.qrcodesimple.SecurityManager
+import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ItemQrResultBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -27,7 +28,10 @@ data class QRResult(
     val text: String,
     var isSelected: Boolean = false,
     val library: QRCodeScanner.Library? = null,
-    val format: com.google.zxing.BarcodeFormat = com.google.zxing.BarcodeFormat.QR_CODE
+    val format: com.google.zxing.BarcodeFormat? = null,
+    val appFormat: BarcodeFormat = BarcodeFormat.UNKNOWN,
+    /** Position in an imported video, when applicable. */
+    val sourceTimestampMs: Long? = null
 )
 
 /**

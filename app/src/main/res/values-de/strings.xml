@@ -642,4 +642,5 @@
     <string name="batch_all_failed">Alle Barcodes konnten nicht erzeugt werden</string>
     <string name="generation_returned_no_image">Generator hat kein Bild zurückgegeben</string>
     <string name="retry">Erneut versuchen</string>
+    <string name="export_results">Ergebnisse exportieren</string><string name="export_complete">Export abgeschlossen</string><string name="saved_items">%1$d Einträge gespeichert</string><string name="clear_results_confirm">Alle %1$d Ergebnisse löschen?</string><string name="scan_auto_save">Automatisch speichern: %1$s</string><string name="scan_interval">Scanintervall: %1$d ms</string><string name="scan_settings">Scaneinstellungen</string><string name="scan_interval_title">Scanintervall</string><string name="enabled">Aktiviert</string><string name="disabled">Deaktiviert</string><string name="no_results_to_export">Keine Ergebnisse zum Exportieren</string>
 </resources>

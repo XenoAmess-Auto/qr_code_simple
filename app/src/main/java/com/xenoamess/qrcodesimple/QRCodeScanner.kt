@@ -35,7 +35,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.opencv.core.Mat
 import java.util.ArrayList
 import java.util.EnumMap
-import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
@@ -89,13 +91,34 @@ fun AppBarcodeFormat.isScannable(): Boolean = this.isScannable
 /**
  * 将自定义一维码格式映射到 ZXing 条码格式（用于扫描结果展示）
  */
-private fun CustomLinearBarcodeScanner.Format.toZXingFormat(): BarcodeFormat {
+private fun CustomLinearBarcodeScanner.Format.toAppFormat(): AppBarcodeFormat {
     return when (this) {
-        CustomLinearBarcodeScanner.Format.PHARMACODE -> BarcodeFormat.CODE_128
-        CustomLinearBarcodeScanner.Format.PLESSEY -> BarcodeFormat.CODE_128
-        CustomLinearBarcodeScanner.Format.MSI_PLESSEY -> BarcodeFormat.CODE_128
-        CustomLinearBarcodeScanner.Format.TELEPEN -> BarcodeFormat.CODE_128
+        CustomLinearBarcodeScanner.Format.PHARMACODE -> AppBarcodeFormat.PHARMACODE
+        CustomLinearBarcodeScanner.Format.PLESSEY -> AppBarcodeFormat.PLESSEY
+        CustomLinearBarcodeScanner.Format.MSI_PLESSEY -> AppBarcodeFormat.MSI_PLESSEY
+        CustomLinearBarcodeScanner.Format.TELEPEN -> AppBarcodeFormat.TELEPEN
     }
+}
+
+private fun BarcodeFormat.toAppFormat(): AppBarcodeFormat = when (this) {
+    BarcodeFormat.QR_CODE -> AppBarcodeFormat.QR_CODE
+    BarcodeFormat.DATA_MATRIX -> AppBarcodeFormat.DATA_MATRIX
+    BarcodeFormat.AZTEC -> AppBarcodeFormat.AZTEC
+    BarcodeFormat.PDF_417 -> AppBarcodeFormat.PDF417
+    BarcodeFormat.MAXICODE -> AppBarcodeFormat.MAXICODE
+    BarcodeFormat.CODE_128 -> AppBarcodeFormat.CODE_128
+    BarcodeFormat.CODE_39 -> AppBarcodeFormat.CODE_39
+    BarcodeFormat.CODE_93 -> AppBarcodeFormat.CODE_93
+    BarcodeFormat.EAN_13 -> AppBarcodeFormat.EAN_13
+    BarcodeFormat.EAN_8 -> AppBarcodeFormat.EAN_8
+    BarcodeFormat.UPC_A -> AppBarcodeFormat.UPC_A
+    BarcodeFormat.UPC_E -> AppBarcodeFormat.UPC_E
+    BarcodeFormat.CODABAR -> AppBarcodeFormat.CODABAR
+    BarcodeFormat.ITF -> AppBarcodeFormat.ITF
+    BarcodeFormat.RSS_14 -> AppBarcodeFormat.RSS_14
+    BarcodeFormat.RSS_EXPANDED -> AppBarcodeFormat.RSS_EXPANDED
+    BarcodeFormat.UPC_EAN_EXTENSION -> AppBarcodeFormat.UPC_EAN_EXTENSION
+    else -> AppBarcodeFormat.UNKNOWN
 }
 
 /**
@@ -104,7 +127,8 @@ private fun CustomLinearBarcodeScanner.Format.toZXingFormat(): BarcodeFormat {
 data class ScanConfig(
     val totalTimeoutMs: Long,
     val perEngineTimeoutMs: Long,
-    val maxDimension: Int
+    val maxDimension: Int,
+    val stopAfterFirstResult: Boolean = false
 ) {
     init {
         require(totalTimeoutMs > 0)
@@ -134,12 +158,18 @@ object QRCodeScanner {
      * 相机/视频实时扫描配置：帧率高，单帧不能占用太久。
      */
     val CAMERA_SCAN_CONFIG = ScanConfig(
-        totalTimeoutMs = 15_000L,
-        perEngineTimeoutMs = 5_000L,
-        maxDimension = 1280
+        totalTimeoutMs = 2_000L,
+        perEngineTimeoutMs = 1_500L,
+        maxDimension = 1280,
+        stopAfterFirstResult = true
     )
 
     private val scanningEnabled = AtomicBoolean(true)
+    private val engineExecutor = ThreadPoolExecutor(
+        2, 4, 30, TimeUnit.SECONDS, LinkedBlockingQueue(8),
+        ThreadFactory { runnable -> Thread(runnable, "QRCodeScanner-engine").apply { isDaemon = true } }
+    ).apply { allowCoreThreadTimeOut(true) }
+    private val engineDispatcher = engineExecutor.asCoroutineDispatcher()
 
     /**
      * 紧急制动：当应用发生严重错误（如 OOM）后，可调用此接口暂时禁用所有扫描，
@@ -176,6 +206,8 @@ object QRCodeScanner {
         withTimeoutOrNull(timeoutMs) {
             block()
         } ?: emptyList()
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Throwable) {
         Log.e(TAG, "$name engine failed", e)
         emptyList()
@@ -184,14 +216,15 @@ object QRCodeScanner {
     data class ScanResult(
         val text: String,
         val library: Library,
-        val format: BarcodeFormat = BarcodeFormat.QR_CODE,
+        val format: BarcodeFormat? = null,
+        val appFormat: AppBarcodeFormat = format?.toAppFormat() ?: AppBarcodeFormat.UNKNOWN,
         val resultMetadata: Map<com.google.zxing.ResultMetadataType, Any>? = null
     ) {
         /**
          * 去重键：相同内容 + 相同格式视为同一条码，保留最先识别到的引擎标签。
          */
         val deduplicationKey: String
-            get() = "$text#${format.name}"
+            get() = "$text#${appFormat.name}"
     }
 
     enum class Library {
@@ -232,14 +265,7 @@ object QRCodeScanner {
         val processedBitmap = preprocessBitmap(bitmap, config.maxDimension)
         val shouldRecycleProcessed = processedBitmap !== bitmap
 
-        // 使用独立的线程池启动引擎，避免阻塞型/不响应取消的引擎占满 Dispatchers.Default 或 Dispatchers.IO。
-        // 线程池里的线程设为 daemon，即使引擎 ignore 取消，也不会阻止 JVM/进程退出。
-        val engineExecutor = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors().coerceAtLeast(2)
-        ) { runnable ->
-            Thread(runnable, "QRCodeScanner-engine").apply { isDaemon = true }
-        }
-        val scope = CoroutineScope(engineExecutor.asCoroutineDispatcher() + SupervisorJob())
+        val scope = CoroutineScope(engineDispatcher + SupervisorJob())
         val eventChannel = Channel<EngineEvent>(Channel.UNLIMITED)
         val engineJobs = mutableListOf<Job>()
         var allCompleted = false
@@ -278,20 +304,20 @@ object QRCodeScanner {
             // 4. BoofCV Micro QR
             launchEngine("BoofCV Micro QR") {
                 MicroQrCodeScanner.scan(processedBitmap)
-                    .map { ScanResult(it.text, Library.BOOFCV, BarcodeFormat.QR_CODE) }
+                    .map { ScanResult(it.text, Library.BOOFCV, appFormat = AppBarcodeFormat.MICRO_QR) }
             }
 
             // 5. Han Xin Code
             launchEngine("Han Xin") {
                 HanXinDecoder.decode(processedBitmap)?.let {
-                    listOf(ScanResult(it.text, Library.HAN_XIN, BarcodeFormat.QR_CODE))
+                    listOf(ScanResult(it.text, Library.HAN_XIN, appFormat = AppBarcodeFormat.HAN_XIN))
                 } ?: emptyList()
             }
 
             // 6. 自定义一维码
             launchEngine("CustomLinear") {
                 CustomLinearBarcodeScanner.scan(processedBitmap)
-                    .map { ScanResult(it.text, Library.CUSTOM_LINEAR, it.format.toZXingFormat()) }
+                    .map { ScanResult(it.text, Library.CUSTOM_LINEAR, appFormat = it.format.toAppFormat()) }
             }
 
             engineCount = engineJobs.size
@@ -305,6 +331,7 @@ object QRCodeScanner {
                             val newResults = event.results.filter { seenKeys.add(it.deduplicationKey) }
                             if (newResults.isNotEmpty()) {
                                 send(newResults)
+                                if (config.stopAfterFirstResult) break
                             }
                         }
                         is EngineEvent.Completed -> {
@@ -316,6 +343,8 @@ object QRCodeScanner {
                 }
                 allCompleted = true
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             Log.e(TAG, "Scan flow crashed", e)
         } finally {
@@ -326,7 +355,6 @@ object QRCodeScanner {
             }
             eventChannel.close()
             scope.cancel()
-            engineExecutor.shutdownNow()
             if (allCompleted && shouldRecycleProcessed && !processedBitmap.isRecycled) {
                 processedBitmap.recycle()
             }
@@ -337,10 +365,10 @@ object QRCodeScanner {
      * 并行扫描，等待所有引擎结束后返回完整结果列表（已去重）。
      * 主要用于相机/视频实时扫描，保持原有调用方语义不变。
      */
-    suspend fun scan(context: Context, bitmap: Bitmap): List<ScanResult> {
+    suspend fun scan(context: Context, bitmap: Bitmap, config: ScanConfig = CAMERA_SCAN_CONFIG): List<ScanResult> {
         val allResults = mutableListOf<ScanResult>()
         val seenKeys = mutableSetOf<String>()
-        scanAsFlow(context, bitmap, CAMERA_SCAN_CONFIG).collect { batch ->
+        scanAsFlow(context, bitmap, config).collect { batch ->
             allResults.addAll(batch.filter { seenKeys.add(it.deduplicationKey) })
         }
         return allResults
@@ -470,7 +498,7 @@ object QRCodeScanner {
 
         return try {
             val result = reader.decode(binaryBitmap)
-            ScanResult(result.text, Library.ZXING, result.barcodeFormat, result.resultMetadata)
+            ScanResult(result.text, Library.ZXING, result.barcodeFormat, result.barcodeFormat.toAppFormat(), result.resultMetadata)
         } catch (e: Exception) {
             // 尝试全局直方图二值化（对某些图像效果更好）
             try {
@@ -479,7 +507,7 @@ object QRCodeScanner {
                     com.google.zxing.common.GlobalHistogramBinarizer(globalSource)
                 )
                 val globalResult = reader.decode(globalBinaryBitmap)
-                ScanResult(globalResult.text, Library.ZXING, globalResult.barcodeFormat)
+                ScanResult(globalResult.text, Library.ZXING, globalResult.barcodeFormat, globalResult.barcodeFormat.toAppFormat(), globalResult.resultMetadata)
             } catch (e2: Exception) {
                 null
             }

@@ -160,7 +160,7 @@ class ResultActivity : AppCompatActivity() {
 
                     val startIndex = results.size
                     results.addAll(batch.map {
-                        QRResult(it.text, false, it.library)
+                        QRResult(it.text, false, it.library, it.format, it.appFormat)
                     })
                     scanResults.addAll(batch)
 
@@ -356,7 +356,7 @@ class ResultActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 detectedResults.forEach { result ->
-                    historyRepository.insertScan(result.text, result.format.toHistoryType())
+                    historyRepository.insertScan(result.text, result.appFormat.toHistoryType())
                 }
             } catch (e: Exception) {
                 // 静默失败，不影响用户体验

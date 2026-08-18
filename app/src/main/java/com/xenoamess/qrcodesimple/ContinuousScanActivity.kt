@@ -1,6 +1,8 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -12,6 +14,8 @@ import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.ActivityContinuousScanBinding
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 连续扫描模式 Activity
@@ -27,6 +31,24 @@ class ContinuousScanActivity : AppCompatActivity() {
     private var isVibrationEnabled = true
     private var isAutoSaveEnabled = true
     private var lastScanTime = 0L
+    private var exportRows: List<ScanSessionExporter.Row> = emptyList()
+    private var exportKind = "csv"
+
+    private val exportLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data ?: return@registerForActivityResult
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching {
+                contentResolver.openOutputStream(uri)?.use { output ->
+                    when (exportKind) {
+                        "json" -> output.write(ScanSessionExporter.json(exportRows).toByteArray())
+                        "xlsx" -> output.write(ScanSessionExporter.xlsx(exportRows))
+                        else -> output.write(ScanSessionExporter.csv(exportRows).toByteArray())
+                    }
+                } ?: error("Unable to open export destination")
+            }.onSuccess { withContext(Dispatchers.Main) { Toast.makeText(this@ContinuousScanActivity, R.string.export_complete, Toast.LENGTH_SHORT).show() } }
+                .onFailure { withContext(Dispatchers.Main) { Toast.makeText(this@ContinuousScanActivity, getString(R.string.export_failed, it.message), Toast.LENGTH_SHORT).show() } }
+        }
+    }
 
     data class ScanResult(
         val content: String,
@@ -64,6 +86,7 @@ class ContinuousScanActivity : AppCompatActivity() {
             override fun onScanResult(result: QRCodeScanner.ScanResult) {
                 handleScanResult(result)
             }
+            override fun shouldPlayFeedback(): Boolean = false
         })
     }
 
@@ -90,22 +113,23 @@ class ContinuousScanActivity : AppCompatActivity() {
         binding.btnSaveAll.setOnClickListener {
             saveAllResults()
         }
+        binding.btnExport.setOnClickListener { showExportDialog() }
     }
 
     private fun handleScanResult(result: QRCodeScanner.ScanResult) {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastScanTime < scanInterval) {
+        if (currentTime - lastScanTime < scanInterval && results.any { it.content == result.text && it.type == result.appFormat.toHistoryType() }) {
             return
         }
         lastScanTime = currentTime
 
-        if (results.any { it.content == result.text }) {
+        if (results.any { it.content == result.text && it.type == result.appFormat.toHistoryType() }) {
             return
         }
 
         val scanResult = ScanResult(
             content = result.text,
-            type = result.format.toHistoryType()
+            type = result.appFormat.toHistoryType()
         )
         results.add(0, scanResult)
         adapter.notifyItemInserted(0)
@@ -150,7 +174,7 @@ class ContinuousScanActivity : AppCompatActivity() {
             }
             adapter.notifyDataSetChanged()
             Toast.makeText(this@ContinuousScanActivity,
-                "Saved $savedCount items", Toast.LENGTH_SHORT).show()
+                getString(R.string.saved_items, savedCount), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -180,7 +204,7 @@ class ContinuousScanActivity : AppCompatActivity() {
     private fun showClearConfirmDialog() {
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.clear_all))
-            .setMessage("Clear all ${results.size} results?")
+            .setMessage(getString(R.string.clear_results_confirm, results.size))
             .setPositiveButton(getString(R.string.clear)) { _, _ ->
                 results.clear()
                 adapter.notifyDataSetChanged()
@@ -192,12 +216,12 @@ class ContinuousScanActivity : AppCompatActivity() {
 
     private fun showSettingsDialog() {
         val items = arrayOf(
-            "Vibration ${if (isVibrationEnabled) "ON" else "OFF"}",
-            "Auto Save ${if (isAutoSaveEnabled) "ON" else "OFF"}",
-            "Scan Interval: ${scanInterval}ms"
+            getString(R.string.scan_vibration),
+            getString(R.string.scan_auto_save, getString(if (isAutoSaveEnabled) R.string.enabled else R.string.disabled)),
+            getString(R.string.scan_interval, scanInterval)
         )
         MaterialAlertDialogBuilder(this)
-            .setTitle("Scan Settings")
+            .setTitle(R.string.scan_settings)
             .setItems(items) { _, which ->
                 when (which) {
                     0 -> {
@@ -215,10 +239,10 @@ class ContinuousScanActivity : AppCompatActivity() {
     }
 
     private fun showIntervalDialog() {
-        val intervals = arrayOf("100ms", "300ms", "500ms", "1000ms", "2000ms")
+        val intervals = arrayOf("100 ms", "300 ms", "500 ms", "1000 ms", "2000 ms")
         val values = longArrayOf(100L, 300L, 500L, 1000L, 2000L)
         MaterialAlertDialogBuilder(this)
-            .setTitle("Scan Interval")
+            .setTitle(R.string.scan_interval_title)
             .setItems(intervals) { _, which ->
                 scanInterval = values[which]
                 saveSettings()
@@ -245,6 +269,20 @@ class ContinuousScanActivity : AppCompatActivity() {
 
     private fun updateCount() {
         binding.tvCount.text = getString(R.string.items_count, results.size)
+    }
+
+    private fun showExportDialog() {
+        if (results.isEmpty()) {
+            Toast.makeText(this, R.string.no_results_to_export, Toast.LENGTH_SHORT).show()
+            return
+        }
+        MaterialAlertDialogBuilder(this).setTitle(R.string.export_results)
+            .setItems(arrayOf(getString(R.string.export_csv), getString(R.string.export_excel), getString(R.string.export_json))) { _, index ->
+                exportKind = listOf("csv", "xlsx", "json")[index]
+                exportRows = results.map { ScanSessionExporter.Row(it.content, it.type.name, it.timestamp, it.isSaved) }
+                val mime = if (exportKind == "xlsx") "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" else "text/${if (exportKind == "json") "json" else "csv"}"
+                exportLauncher.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mime).putExtra(Intent.EXTRA_TITLE, "scan-session.$exportKind"))
+            }.show()
     }
 
     override fun onSupportNavigateUp(): Boolean {

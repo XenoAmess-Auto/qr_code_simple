@@ -687,4 +687,5 @@
     <string name="notes_saved">Notes saved</string>
     <string name="barcode_generation_failed">Failed to generate barcode</string>
     <string name="qr_generation_failed_with_reason">Failed to generate QR: %1$s</string>
+    <string name="export_results">Export results</string><string name="export_complete">Export complete</string><string name="saved_items">Saved %1$d items</string><string name="clear_results_confirm">Clear all %1$d results?</string><string name="scan_auto_save">Auto save: %1$s</string><string name="scan_interval">Scan interval: %1$d ms</string><string name="scan_settings">Scan settings</string><string name="scan_interval_title">Scan interval</string><string name="enabled">Enabled</string><string name="disabled">Disabled</string><string name="no_results_to_export">No results to export</string>
 </resources>

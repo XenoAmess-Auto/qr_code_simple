@@ -1147,4 +1147,5 @@ https://another.com
     <string name="batch_all_failed">Impossibile generare tutti i codici a barre</string>
     <string name="generation_returned_no_image">Il generatore non ha restituito un\'immagine</string>
     <string name="retry">Riprova</string>
+    <string name="export_results">Esporta risultati</string><string name="export_complete">Esportazione completata</string><string name="saved_items">%1$d elementi salvati</string><string name="clear_results_confirm">Cancellare tutti i %1$d risultati?</string><string name="scan_auto_save">Salvataggio automatico: %1$s</string><string name="scan_interval">Intervallo: %1$d ms</string><string name="scan_settings">Impostazioni scansione</string><string name="scan_interval_title">Intervallo scansione</string><string name="enabled">Attivato</string><string name="disabled">Disattivato</string><string name="no_results_to_export">Nessun risultato da esportare</string>
 </resources>

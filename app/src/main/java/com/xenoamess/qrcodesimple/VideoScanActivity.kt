@@ -14,12 +14,20 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.xenoamess.qrcodesimple.data.HistoryRepository
+import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.databinding.ActivityVideoScanBinding
 import com.xenoamess.qrcodesimple.ui.result.QRResult
 import com.xenoamess.qrcodesimple.ui.result.QRResultAdapter
-import java.util.LinkedHashSet
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 
 class VideoScanActivity : AppCompatActivity() {
 
@@ -27,9 +35,9 @@ class VideoScanActivity : AppCompatActivity() {
     private lateinit var adapter: QRResultAdapter
     private lateinit var historyRepository: HistoryRepository
     private val results = mutableListOf<QRResult>()
-    private val detectedTexts = LinkedHashSet<String>() // 用于去重
+    private val detectedKeys = LinkedHashSet<String>()
     private var isProcessing = false
-    private var processingThread: Thread? = null
+    private var processingJob: Job? = null
 
     companion object {
         const val EXTRA_VIDEO_URI = "video_uri"
@@ -115,11 +123,11 @@ class VideoScanActivity : AppCompatActivity() {
         binding.tvStatus.text = getString(R.string.scanning_video)
         binding.tvStatus.visibility = View.VISIBLE
 
-        processingThread = Thread {
+        processingJob = lifecycleScope.launch(Dispatchers.IO) {
             var retriever: MediaMetadataRetriever? = null
             try {
                 retriever = MediaMetadataRetriever()
-                retriever.setDataSource(this, uri)
+                retriever.setDataSource(this@VideoScanActivity, uri)
 
                 // 获取视频时长（毫秒）
                 val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
@@ -127,13 +135,15 @@ class VideoScanActivity : AppCompatActivity() {
 
                 if (durationMs <= 0) {
                     showError(getString(R.string.invalid_video_duration))
-                    return@Thread
+                    return@launch
                 }
 
                 var currentTime = 0L
                 var frameCount = 0
 
+                var lastFrameSignature: Int? = null
                 while (isProcessing && currentTime <= durationMs) {
+                    coroutineContext.ensureActive()
                     // 提取帧
                     val bitmap = retriever.getFrameAtTime(
                         currentTime * 1000, // 转换为微秒
@@ -142,7 +152,12 @@ class VideoScanActivity : AppCompatActivity() {
 
                     if (bitmap != null) {
                         frameCount++
-                        processFrame(bitmap, currentTime, durationMs)
+                        // Sync-frame extraction often returns the same keyframe for nearby times.
+                        val signature = bitmap.width * 31 + bitmap.height * 17 + bitmap.getPixel(0, 0)
+                        if (signature != lastFrameSignature) {
+                            processFrame(bitmap, currentTime)
+                            lastFrameSignature = signature
+                        }
                         bitmap.recycle()
                     }
 
@@ -158,6 +173,8 @@ class VideoScanActivity : AppCompatActivity() {
                     showComplete()
                 }
 
+            } catch (_: CancellationException) {
+                // Stop is an expected lifecycle event, not a scan error.
             } catch (e: Exception) {
                 showError(getString(R.string.error_processing_video, e.message))
             } finally {
@@ -167,20 +184,20 @@ class VideoScanActivity : AppCompatActivity() {
                     // ignore
                 }
             }
-        }.apply { start() }
+        }
     }
 
-    private fun processFrame(bitmap: Bitmap, currentTime: Long, totalDuration: Long) {
+    private suspend fun processFrame(bitmap: Bitmap, currentTime: Long) {
         try {
             // 使用多库扫描器
-            val scanResults = QRCodeScanner.scanSync(this, bitmap)
+            val scanResults = QRCodeScanner.scan(this, bitmap)
 
             if (scanResults.isNotEmpty()) {
                 var hasNewResult = false
                 scanResults.forEach { scanResult ->
-                    if (detectedTexts.add(scanResult.text)) {
+                    if (detectedKeys.add(scanResult.deduplicationKey)) {
                         hasNewResult = true
-                        addResult(QRResult(scanResult.text, false, scanResult.library, scanResult.format))
+                        addResult(QRResult(scanResult.text, false, scanResult.library, scanResult.format, scanResult.appFormat, currentTime))
                     }
                 }
                 if (hasNewResult) {
@@ -197,6 +214,14 @@ class VideoScanActivity : AppCompatActivity() {
             results.add(result)
             adapter.notifyItemInserted(results.size - 1)
             updateSelectionCount()
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            historyRepository.insert(HistoryItem(
+                content = result.text,
+                type = result.appFormat.toHistoryType(),
+                barcodeFormat = result.appFormat.name,
+                notes = result.sourceTimestampMs?.let { "videoTimestampMs=$it" }
+            ))
         }
     }
 
@@ -241,7 +266,7 @@ class VideoScanActivity : AppCompatActivity() {
 
     private fun stopProcessing() {
         isProcessing = false
-        processingThread?.interrupt()
+        processingJob?.cancel()
         showComplete()
     }
 
@@ -358,7 +383,7 @@ class VideoScanActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         isProcessing = false
-        processingThread?.interrupt()
+        processingJob?.cancel()
     }
 
 }

@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.ImageFormat
 import android.graphics.RectF
 import android.os.Bundle
 import android.os.Handler
@@ -34,8 +33,6 @@ import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentCameraScanBinding
 import kotlinx.coroutines.launch
-import org.opencv.core.CvType
-import org.opencv.core.Mat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.max
@@ -45,6 +42,7 @@ class CameraScanFragment : Fragment() {
 
     interface OnScanResultListener {
         fun onScanResult(result: QRCodeScanner.ScanResult)
+        fun shouldPlayFeedback(): Boolean = true
     }
 
     private var _binding: FragmentCameraScanBinding? = null
@@ -102,7 +100,6 @@ class CameraScanFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        cameraExecutor = Executors.newSingleThreadExecutor()
         historyRepository = HistoryRepository(requireContext())
         contentActionHandler = ContentActionHandler(requireActivity())
     }
@@ -118,6 +115,7 @@ class CameraScanFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        cameraExecutor = Executors.newSingleThreadExecutor()
 
         setupButtons()
         setupZoomControls()
@@ -239,35 +237,9 @@ class CameraScanFragment : Fragment() {
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
-        val ctx = context ?: return@registerForActivityResult
         if (uri == null) return@registerForActivityResult
-        cameraExecutor?.execute {
-            try {
-                val bitmap = ctx.contentResolver.openInputStream(uri)?.use { input ->
-                    android.graphics.BitmapFactory.decodeStream(input)
-                }
-                if (bitmap == null) {
-                    activity?.runOnUiThread {
-                        Toast.makeText(ctx, getString(R.string.no_qr_codes_found), Toast.LENGTH_SHORT).show()
-                    }
-                    return@execute
-                }
-                val results = QRCodeScanner.scanSync(ctx, bitmap)
-                bitmap.recycle()
-                activity?.runOnUiThread {
-                    if (results.isEmpty()) {
-                        Toast.makeText(ctx, getString(R.string.no_qr_codes_found), Toast.LENGTH_SHORT).show()
-                    } else {
-                        handleNewResults(results)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Gallery scan failed", e)
-                activity?.runOnUiThread {
-                    Toast.makeText(ctx, getString(R.string.no_qr_codes_found), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+        // Use the same sampled decode, restoration and incremental-result pipeline as Scan Image.
+        context?.let { ScanImageProcessor.processMedia(it, uri, "image/*") }
     }
     
     private fun onSmartActionClick() {
@@ -596,14 +568,15 @@ class CameraScanFragment : Fragment() {
 
     internal fun showResult(result: QRCodeScanner.ScanResult) {
         if (!isAdded) return
-        ScanFeedback.play(requireContext())
         scanResultListener?.let { listener ->
+            if (listener.shouldPlayFeedback()) ScanFeedback.play(requireContext())
             activity?.runOnUiThread {
                 val toDeliver = if (currentResults.isEmpty()) listOf(result) else currentResults
                 toDeliver.forEach { listener.onScanResult(it) }
             }
             return
         }
+        ScanFeedback.play(requireContext())
         activity?.runOnUiThread {
             val resultSetKey = if (currentResults.size > 1) {
                 currentResults.joinToString("\n") { it.deduplicationKey }
@@ -624,7 +597,7 @@ class CameraScanFragment : Fragment() {
                     try {
                         val toInsert = if (currentResults.size > 1) currentResults else listOf(result)
                         toInsert.forEach {
-                            historyRepository.insertScan(it.text, it.format.toHistoryType())
+                            historyRepository.insertScan(it.text, it.appFormat.toHistoryType())
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save history", e)
@@ -708,30 +681,7 @@ class CameraScanFragment : Fragment() {
         lastScanTime = currentTime
 
         try {
-            val yBuffer = imageProxy.planes[0].buffer
-            val uBuffer = imageProxy.planes[1].buffer
-            val vBuffer = imageProxy.planes[2].buffer
-
-            val ySize = yBuffer.remaining()
-            val uSize = uBuffer.remaining()
-            val vSize = vBuffer.remaining()
-            val nv21 = ByteArray(ySize + uSize + vSize)
-
-            yBuffer.get(nv21, 0, ySize)
-            vBuffer.get(nv21, ySize, vSize)
-            uBuffer.get(nv21, ySize + vSize, uSize)
-
-            val mat = Mat(imageProxy.height + imageProxy.height / 2, imageProxy.width, CvType.CV_8UC1)
-            mat.put(0, 0, nv21)
-
-            val rgbMat = Mat()
-            org.opencv.imgproc.Imgproc.cvtColor(mat, rgbMat, org.opencv.imgproc.Imgproc.COLOR_YUV2RGB_NV21)
-
-            val bitmap = Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), Bitmap.Config.ARGB_8888)
-            org.opencv.android.Utils.matToBitmap(rgbMat, bitmap)
-
-            mat.release()
-            rgbMat.release()
+            val bitmap = Yuv420Converter.toBitmap(imageProxy)
 
             // 框选模式：把视图坐标的选择区域映射到帧像素坐标后裁剪
             val scanBitmap = cropToScanRegion(bitmap, imageProxy.imageInfo.rotationDegrees)

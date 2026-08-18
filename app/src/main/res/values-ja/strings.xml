@@ -616,4 +616,5 @@
     <string name="batch_all_failed">すべてのバーコードを生成できませんでした</string>
     <string name="generation_returned_no_image">ジェネレーターから画像が返されませんでした</string>
     <string name="retry">再試行</string>
+    <string name="export_results">結果をエクスポート</string><string name="export_complete">エクスポート完了</string><string name="saved_items">%1$d 件を保存しました</string><string name="clear_results_confirm">%1$d 件の結果をすべて消去しますか？</string><string name="scan_auto_save">自動保存: %1$s</string><string name="scan_interval">スキャン間隔: %1$d ms</string><string name="scan_settings">スキャン設定</string><string name="scan_interval_title">スキャン間隔</string><string name="enabled">有効</string><string name="disabled">無効</string><string name="no_results_to_export">エクスポートする結果がありません</string>
 </resources>

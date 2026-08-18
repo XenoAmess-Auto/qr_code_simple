@@ -1147,4 +1147,5 @@ https://another.com
     <string name="batch_all_failed">No se pudieron generar todos los códigos de barras</string>
     <string name="generation_returned_no_image">El generador no devolvió ninguna imagen</string>
     <string name="retry">Reintentar</string>
+    <string name="export_results">Exportar resultados</string><string name="export_complete">Exportación completada</string><string name="saved_items">%1$d elementos guardados</string><string name="clear_results_confirm">¿Borrar los %1$d resultados?</string><string name="scan_auto_save">Guardado automático: %1$s</string><string name="scan_interval">Intervalo: %1$d ms</string><string name="scan_settings">Ajustes de escaneo</string><string name="scan_interval_title">Intervalo de escaneo</string><string name="enabled">Activado</string><string name="disabled">Desactivado</string><string name="no_results_to_export">No hay resultados para exportar</string>
 </resources>

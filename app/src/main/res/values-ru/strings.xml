@@ -1147,4 +1147,5 @@ https://another.com
     <string name="batch_all_failed">Не удалось создать все штрихкоды</string>
     <string name="generation_returned_no_image">Генератор не вернул изображение</string>
     <string name="retry">Повторить</string>
+    <string name="export_results">Экспорт результатов</string><string name="export_complete">Экспорт завершён</string><string name="saved_items">Сохранено: %1$d</string><string name="clear_results_confirm">Очистить все результаты (%1$d)?</string><string name="scan_auto_save">Автосохранение: %1$s</string><string name="scan_interval">Интервал: %1$d мс</string><string name="scan_settings">Настройки сканирования</string><string name="scan_interval_title">Интервал сканирования</string><string name="enabled">Включено</string><string name="disabled">Выключено</string><string name="no_results_to_export">Нет результатов для экспорта</string>
 </resources>
