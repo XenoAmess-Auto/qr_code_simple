@@ -679,4 +679,9 @@
     <string name="theme_system">Follow system</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="history_unavailable">History unavailable</string>
+    <string name="history_unavailable_with_reason">History unavailable: %1$s</string>
+    <string name="notes_saved">Notes saved</string>
+    <string name="barcode_generation_failed">Failed to generate barcode</string>
+    <string name="qr_generation_failed_with_reason">Failed to generate QR: %1$s</string>
 </resources>

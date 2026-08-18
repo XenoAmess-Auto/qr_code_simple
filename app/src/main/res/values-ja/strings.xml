@@ -608,4 +608,9 @@
     <string name="theme_system">システムに従う</string>
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
+    <string name="history_unavailable">履歴を利用できません</string>
+    <string name="history_unavailable_with_reason">履歴を利用できません: %1$s</string>
+    <string name="notes_saved">メモを保存しました</string>
+    <string name="barcode_generation_failed">バーコードを生成できませんでした</string>
+    <string name="qr_generation_failed_with_reason">QRコードを生成できませんでした: %1$s</string>
 </resources>

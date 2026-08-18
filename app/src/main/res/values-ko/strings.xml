@@ -646,4 +646,9 @@
     <string name="theme_system">시스템 따르기</string>
     <string name="theme_light">라이트</string>
     <string name="theme_dark">다크</string>
+    <string name="history_unavailable">기록을 사용할 수 없습니다</string>
+    <string name="history_unavailable_with_reason">기록을 사용할 수 없습니다: %1$s</string>
+    <string name="notes_saved">메모를 저장했습니다</string>
+    <string name="barcode_generation_failed">바코드를 생성하지 못했습니다</string>
+    <string name="qr_generation_failed_with_reason">QR 코드를 생성하지 못했습니다: %1$s</string>
 </resources>

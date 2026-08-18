@@ -634,4 +634,9 @@
     <string name="theme_system">System folgen</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
+    <string name="history_unavailable">Verlauf nicht verfuegbar</string>
+    <string name="history_unavailable_with_reason">Verlauf nicht verfuegbar: %1$s</string>
+    <string name="notes_saved">Notizen gespeichert</string>
+    <string name="barcode_generation_failed">Barcode konnte nicht erstellt werden</string>
+    <string name="qr_generation_failed_with_reason">QR-Code konnte nicht erstellt werden: %1$s</string>
 </resources>

@@ -1139,4 +1139,9 @@ https://another.com
     <string name="theme_system">Segui sistema</string>
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
+    <string name="history_unavailable">Cronologia non disponibile</string>
+    <string name="history_unavailable_with_reason">Cronologia non disponibile: %1$s</string>
+    <string name="notes_saved">Note salvate</string>
+    <string name="barcode_generation_failed">Impossibile generare il codice a barre</string>
+    <string name="qr_generation_failed_with_reason">Impossibile generare il codice QR: %1$s</string>
 </resources>

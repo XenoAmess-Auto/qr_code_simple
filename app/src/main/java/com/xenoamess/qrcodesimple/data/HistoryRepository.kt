@@ -32,68 +32,32 @@ class HistoryRepository(private val context: Context) {
     suspend fun insert(item: HistoryItem): Long {
         // 隐私模式下不保存
         if (isPrivacyMode()) return -1
-        return historyDao.insert(item)
+        return historyDao.upsert(item)
     }
     
-    suspend fun insertScan(content: String, type: HistoryType = HistoryType.QR_CODE) {
+    suspend fun insertScan(
+        content: String,
+        type: HistoryType = HistoryType.QR_CODE,
+        barcodeFormat: String? = null
+    ) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
 
-        // 扫描记录按 content + isGenerated=false 独立去重
-        val existing = historyDao.findByContentAndGenerated(content, isGenerated = false)
-        if (existing != null) {
-            historyDao.update(
-                existing.copy(
-                    type = type,
-                    timestamp = System.currentTimeMillis()
-                )
-            )
-        } else {
-            historyDao.insert(HistoryItem(content = content, type = type, isGenerated = false))
-        }
+        historyDao.upsert(HistoryItem(content = content, type = type, isGenerated = false, barcodeFormat = barcodeFormat))
     }
     
     suspend fun insertGenerate(content: String, type: HistoryType = HistoryType.QR_CODE, barcodeFormat: String? = null, styleJson: String? = null) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
 
-        // 生成记录按 content + isGenerated=true 独立去重
-        val existing = historyDao.findByContentAndGenerated(content, isGenerated = true)
-        if (existing != null) {
-            historyDao.update(
-                existing.copy(
-                    type = type,
-                    barcodeFormat = barcodeFormat,
-                    styleJson = styleJson,
-                    timestamp = System.currentTimeMillis()
-                )
-            )
-        } else {
-            historyDao.insert(HistoryItem(content = content, type = type, isGenerated = true, barcodeFormat = barcodeFormat, styleJson = styleJson))
-        }
+        historyDao.upsert(HistoryItem(content = content, type = type, isGenerated = true, barcodeFormat = barcodeFormat, styleJson = styleJson))
     }
     
     suspend fun importHistoryItem(item: HistoryItem) {
         // 隐私模式下不保存
         if (isPrivacyMode()) return
 
-        // 按 content + isGenerated 独立去重，避免备份导入产生重复记录
-        val existing = historyDao.findByContentAndGenerated(item.content, item.isGenerated)
-        if (existing != null) {
-            historyDao.update(
-                existing.copy(
-                    type = item.type,
-                    timestamp = item.timestamp,
-                    barcodeFormat = item.barcodeFormat,
-                    styleJson = item.styleJson,
-                    isFavorite = item.isFavorite,
-                    notes = item.notes,
-                    tags = item.tags
-                )
-            )
-        } else {
-            historyDao.insert(item)
-        }
+        historyDao.upsert(item)
     }
     
     suspend fun delete(item: HistoryItem) {
@@ -185,6 +149,13 @@ class HistoryRepository(private val context: Context) {
     fun getHistoryByTag(tag: String): Flow<List<HistoryItem>> {
         return historyDao.getHistoryByTag(tag)
     }
+
+    fun getHistory(query: HistoryQuery): Flow<List<HistoryItem>> = historyDao.getHistory(
+        query.search, query.tag, query.isGenerated, query.favoritesOnly, query.type,
+        query.barcodeFormat, query.startTime, query.newestFirst
+    )
+
+    fun getByIdFlow(id: Long): Flow<HistoryItem?> = historyDao.getByIdFlow(id)
 
     suspend fun getAllTags(): List<String> {
         return historyDao.getAllTags().flatMap { TagManager.parseTags(it) }.distinct()

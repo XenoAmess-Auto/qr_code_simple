@@ -18,11 +18,14 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.widget.Button
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.data.HistoryRepository
+import com.xenoamess.qrcodesimple.data.HistoryQuery
 import com.xenoamess.qrcodesimple.data.HistoryType
 import com.xenoamess.qrcodesimple.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +46,7 @@ class HistoryFragment : Fragment() {
     private var currentSearchQuery = ""
     private var currentTag: String? = null
     private var loadHistoryJob: Job? = null
+    private var searchJob: Job? = null
 
     private var sortNewestFirst = true
     private var timeRangeDays = 0
@@ -77,11 +81,10 @@ class HistoryFragment : Fragment() {
             setupClearButton()
             setupSortAndFilterButtons()
             setupStatsToggle()
-            setupStatsToggle()
         } catch (e: Exception) {
             android.util.Log.e("HistoryFragment", "DB init failed", e)
-            Toast.makeText(requireContext(), "History unavailable: ${e.message}", Toast.LENGTH_LONG).show()
-            listBinding.tvEmpty.text = "History unavailable"
+            Toast.makeText(requireContext(), getString(R.string.history_unavailable_with_reason, e.message), Toast.LENGTH_LONG).show()
+            listBinding.tvEmpty.text = getString(R.string.history_unavailable)
             listBinding.tvEmpty.visibility = View.VISIBLE
             return
         }
@@ -118,7 +121,7 @@ class HistoryFragment : Fragment() {
 
     private fun refreshStats() {
         if (!::repository.isInitialized) return
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val now = System.currentTimeMillis()
                 val day7 = now - 7L * 24 * 60 * 60 * 1000
@@ -249,7 +252,11 @@ class HistoryFragment : Fragment() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 currentSearchQuery = newText ?: ""
-                loadHistory()
+                searchJob?.cancel()
+                searchJob = viewLifecycleOwner.lifecycleScope.launch {
+                    kotlinx.coroutines.delay(300)
+                    loadHistory()
+                }
                 return true
             }
         })
@@ -350,7 +357,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showTypePickDialog(onPick: (HistoryType?) -> Unit) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val types = repository.getAllTypes()
             val labels = listOf(getString(R.string.all)) + types.map { typeLabel(it) }
             AlertDialog.Builder(requireContext())
@@ -364,7 +371,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showFormatPickDialog(onPick: (String?) -> Unit) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val formats = repository.getAllBarcodeFormats()
             val labels = listOf(getString(R.string.all)) + formats
             AlertDialog.Builder(requireContext())
@@ -386,31 +393,13 @@ class HistoryFragment : Fragment() {
         return cal.timeInMillis
     }
 
-    private fun applyAdvancedFilters(items: List<HistoryItem>): List<HistoryItem> {
-        var result = items
-        typeFilter?.let { t -> result = result.filter { it.type == t } }
-        formatFilter?.let { f -> result = result.filter { it.barcodeFormat == f } }
-        if (timeRangeDays > 0) {
-            val cutoff = if (timeRangeDays == 1) {
-                startOfToday()
-            } else {
-                System.currentTimeMillis() - timeRangeDays * 24L * 60 * 60 * 1000
-            }
-            result = result.filter { it.timestamp >= cutoff }
-        }
-        if (!sortNewestFirst) {
-            result = result.sortedBy { it.timestamp }
-        }
-        return result
-    }
-
     private fun setupClearButton() {
         listBinding.btnClearAll.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle(getString(R.string.clear_history))
                 .setMessage(getString(R.string.clear_history_confirm))
                 .setPositiveButton(getString(R.string.clear_all)) { _, _ ->
-                    lifecycleScope.launch {
+                    viewLifecycleOwner.lifecycleScope.launch {
                         repository.deleteAll()
                         Toast.makeText(requireContext(), getString(R.string.history_cleared), Toast.LENGTH_SHORT).show()
                     }
@@ -421,7 +410,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun setupTagFilter() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val tags = repository.getAllTags()
             if (tags.isEmpty()) {
                 listBinding.chipGroupTags.visibility = View.GONE
@@ -462,24 +451,32 @@ class HistoryFragment : Fragment() {
     private fun loadHistory() {
         refreshStats()
         loadHistoryJob?.cancel()
-        loadHistoryJob = lifecycleScope.launch {
+        loadHistoryJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val flow = when {
-                    currentTag != null -> repository.getHistoryByTag(currentTag!!)
-                    currentSearchQuery.isNotEmpty() -> repository.searchHistory(currentSearchQuery)
-                    currentFilter == FilterType.FAVORITE -> repository.getFavoriteHistory()
-                    else -> when (currentFilter) {
-                        FilterType.ALL -> repository.allHistory
-                        FilterType.SCANNED -> repository.scannedHistory
-                        FilterType.GENERATED -> repository.generatedHistory
-                        FilterType.FAVORITE -> repository.getFavoriteHistory()
-                    }
+                val startTime = when (timeRangeDays) {
+                    1 -> startOfToday()
+                    7, 30 -> System.currentTimeMillis() - timeRangeDays * 24L * 60 * 60 * 1000
+                    else -> null
                 }
-
-                flow.collectLatest { items ->
-                    val filtered = applyAdvancedFilters(items)
-                    adapter.submitList(filtered)
-                    updateEmptyState(filtered.isEmpty())
+                val query = HistoryQuery(
+                    search = currentSearchQuery,
+                    tag = currentTag,
+                    isGenerated = when (currentFilter) {
+                        FilterType.SCANNED -> false
+                        FilterType.GENERATED -> true
+                        else -> null
+                    },
+                    favoritesOnly = currentFilter == FilterType.FAVORITE,
+                    type = typeFilter,
+                    barcodeFormat = formatFilter,
+                    startTime = startTime,
+                    newestFirst = sortNewestFirst
+                )
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    repository.getHistory(query).collectLatest { items ->
+                        adapter.submitList(items)
+                        updateEmptyState(items.isEmpty())
+                    }
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -489,7 +486,7 @@ class HistoryFragment : Fragment() {
                     if (_binding != null) {
                         adapter.submitList(emptyList())
                         updateEmptyState(true)
-                        listBinding.tvEmpty.text = "History unavailable: ${e.message}"
+                        listBinding.tvEmpty.text = getString(R.string.history_unavailable_with_reason, e.message)
                     }
                 }
             }
@@ -502,7 +499,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun toggleFavorite(item: HistoryItem) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             repository.toggleFavorite(item)
             val message = getString(if (!item.isFavorite) R.string.added_to_favorites else R.string.removed_from_favorites)
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
@@ -513,17 +510,17 @@ class HistoryFragment : Fragment() {
         val editText = EditText(requireContext()).apply {
             setText(item.notes ?: "")
             setSelection(item.notes?.length ?: 0)
-            hint = "Add notes..."
+            hint = getString(R.string.notes_hint)
         }
 
         AlertDialog.Builder(requireContext())
-            .setTitle("Add Notes")
+            .setTitle(getString(R.string.add_notes))
             .setView(editText)
             .setPositiveButton(getString(R.string.save_action)) { _, _ ->
                 val notes = editText.text.toString()
-                lifecycleScope.launch {
+                viewLifecycleOwner.lifecycleScope.launch {
                     repository.addNotes(item.id, notes)
-                    Toast.makeText(requireContext(), "Notes saved", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.notes_saved), Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(getString(R.string.cancel), null)
@@ -542,7 +539,7 @@ class HistoryFragment : Fragment() {
             .setPositiveButton(getString(R.string.save_action)) { _, _ ->
                 val newContent = editText.text.toString()
                 if (newContent.isNotBlank() && newContent != item.content) {
-                    lifecycleScope.launch {
+                    viewLifecycleOwner.lifecycleScope.launch {
                         repository.updateContent(item.id, newContent)
                         Toast.makeText(requireContext(), getString(R.string.updated), Toast.LENGTH_SHORT).show()
                     }
@@ -562,7 +559,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun shareQRCode(item: HistoryItem) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.Default) {
                     val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
@@ -571,7 +568,7 @@ class HistoryFragment : Fragment() {
                     AdvancedBarcodeGenerator.generateStyled(item.content, format, 1024, 1024, style)
                 }
                 if (bitmap == null) {
-                    Toast.makeText(requireContext(), "Failed to generate barcode", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.barcode_generation_failed), Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
@@ -610,7 +607,7 @@ class HistoryFragment : Fragment() {
 
             } catch (e: Exception) {
                 android.util.Log.e("HistoryFragment", "Error sharing QR code", e)
-                Toast.makeText(requireContext(), "Failed to generate QR: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.qr_generation_failed_with_reason, e.message), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -620,7 +617,7 @@ class HistoryFragment : Fragment() {
             .setTitle(getString(R.string.delete_item))
             .setMessage(getString(R.string.delete_item_confirm))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->
-                lifecycleScope.launch {
+                viewLifecycleOwner.lifecycleScope.launch {
                     repository.delete(item)
                     Toast.makeText(requireContext(), getString(R.string.deleted), Toast.LENGTH_SHORT).show()
                 }
@@ -630,6 +627,8 @@ class HistoryFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        searchJob?.cancel()
+        loadHistoryJob?.cancel()
         super.onDestroyView()
         _binding = null
     }

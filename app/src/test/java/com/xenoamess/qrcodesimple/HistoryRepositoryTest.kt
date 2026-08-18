@@ -6,6 +6,8 @@ import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -268,5 +270,39 @@ class HistoryRepositoryTest {
 
         val tagged = repository.getHistoryByTag("important").first()
         assertEquals(1, tagged.size)
+    }
+
+    @Test
+    fun `concurrent inserts keep one history identity and persist scan format`() = runBlocking {
+        coroutineScope {
+            repeat(40) {
+                launch { repository.insertScan("concurrent", HistoryType.BARCODE, "CODE_128") }
+            }
+        }
+
+        val item = repository.allHistory.first().single()
+        assertEquals("CODE_128", item.barcodeFormat)
+        assertEquals(false, item.isGenerated)
+    }
+
+    @Test
+    fun `combined history query applies every filter and tags use exact boundaries`() = runBlocking {
+        repository.insertScan("match content", HistoryType.QR_CODE, "QR_CODE")
+        repository.insertScan("cart content", HistoryType.QR_CODE, "QR_CODE")
+        val items = repository.allHistory.first()
+        repository.setTags(items.first { it.content == "match content" }.id, listOf("art"))
+        repository.setTags(items.first { it.content == "cart content" }.id, listOf("cart"))
+        repository.updateFavorite(items.first { it.content == "match content" }.id, true)
+
+        val result = repository.getHistory(com.xenoamess.qrcodesimple.data.HistoryQuery(
+            search = "match",
+            tag = "art",
+            isGenerated = false,
+            favoritesOnly = true,
+            type = HistoryType.QR_CODE,
+            barcodeFormat = "QR_CODE"
+        )).first()
+        assertEquals(listOf("match content"), result.map { it.content })
+        assertEquals(0, repository.getHistoryByTag("art").first().count { it.content == "cart content" })
     }
 }

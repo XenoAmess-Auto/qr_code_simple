@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
@@ -81,8 +82,8 @@ class AppDatabaseTest {
     }
 
     @Test
-    fun `migration 1 to 4 applies all migrations and preserves data`() {
-        val dbName = "migration_1_4_test"
+    fun `migration 1 to 5 applies all migrations and preserves data`() {
+        val dbName = "migration_1_5_test"
         createRawDatabase(dbName, 1)
 
         val rawDb = SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(dbName), null)
@@ -98,7 +99,8 @@ class AppDatabaseTest {
             dbName,
             AppDatabase.MIGRATION_1_2,
             AppDatabase.MIGRATION_2_3,
-            AppDatabase.MIGRATION_3_4
+            AppDatabase.MIGRATION_3_4,
+            AppDatabase.MIGRATION_4_5
         )
 
         assertTrue(columnExists(dbName, "tags"))
@@ -110,6 +112,33 @@ class AppDatabaseTest {
         assertEquals(HistoryType.QR_CODE, items[0].type)
         assertEquals("legacy note", items[0].notes)
         db.close()
+    }
+
+    @Test
+    fun `migration 4 to 5 deduplicates before creating unique history identity index`() {
+        val dbName = "migration_4_5_test"
+        createRawDatabase(dbName, 4, includeTags = true, includeStyleJson = true)
+        val rawDb = SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(dbName), null)
+        rawDb.execSQL("INSERT INTO history (content, type, timestamp, isGenerated, isFavorite) VALUES ('same', 'QR_CODE', 1, 0, 0)")
+        rawDb.execSQL("INSERT INTO history (content, type, timestamp, isGenerated, isFavorite) VALUES ('same', 'BARCODE', 2, 0, 0)")
+        rawDb.close()
+
+        val db = forceMigrate(dbName, AppDatabase.MIGRATION_4_5)
+        val items = runBlocking { db.historyDao().getAllHistory().first() }
+        assertEquals(1, items.size)
+        assertEquals(HistoryType.BARCODE, items.single().type)
+        db.close()
+    }
+
+    @Test
+    fun `database open failure preserves files for explicit user reset`() {
+        AppDatabase.resetDatabase(context)
+        val databasePath = context.getDatabasePath("qr_code_history_db_encrypted")
+        assertTrue(databasePath.mkdirs())
+
+        assertFailsWith<IllegalStateException> { AppDatabase.getDatabase(context) }
+        assertTrue(databasePath.exists())
+        databasePath.delete()
     }
 
     @Test

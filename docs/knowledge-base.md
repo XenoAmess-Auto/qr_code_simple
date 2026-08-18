@@ -88,6 +88,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 ### 历史记录
 - `HistoryRepository.insertGenerate(content, type, barcodeFormat, styleJson)` 保存生成记录。
 - `HistoryItem.barcodeFormat` 字段保存格式名称字符串；`HistoryItem.styleJson` 字段保存生成样式参数 JSON（不含图片）。
+- 历史记录以 `(content, isGenerated)` 唯一；写入由 Room 事务原子 upsert，列表使用 `HistoryQuery` 组合搜索、标签、收藏、来源、类型、格式、时间与排序。数据库打开或迁移失败不会自动删除数据，只有数据库安全页面的显式重置会删除。
 - 按 `content` + `isGenerated` 去重：扫描记录和生成记录各自独立。同一文本扫描重复时更新 `timestamp` 置顶；生成重复时更新最新参数/格式/时间/样式；不新增多条。备份导入时同样按此规则合并，避免重复记录。
 - 生成、保存、分享按钮均会触发历史记录写入/更新。
 - 历史列表的二维码分享使用原始 `barcodeFormat` 和 `styleJson` 重新生成图片，保持与生成时一致。

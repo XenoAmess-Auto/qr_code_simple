@@ -48,14 +48,14 @@ class HistoryAdapter(
                 append(if (item.isGenerated) context.getString(R.string.type_generated) else context.getString(R.string.type_scanned))
                 append(" • ")
                 if (item.type == HistoryType.GENERATED_ONLY) {
-                    append(item.barcodeFormat ?: "Generated Only")
+                    append(item.barcodeFormat ?: context.getString(R.string.type_generated))
                 } else {
                     append(when (item.type) {
                         HistoryType.QR_CODE -> context.getString(R.string.type_qr_code)
                         HistoryType.BARCODE -> context.getString(R.string.type_barcode)
-                        HistoryType.DATA_MATRIX -> "Data Matrix"
-                        HistoryType.AZTEC -> "Aztec"
-                        HistoryType.PDF417 -> "PDF417"
+                        HistoryType.DATA_MATRIX -> context.getString(R.string.type_data_matrix)
+                        HistoryType.AZTEC -> context.getString(R.string.type_aztec)
+                        HistoryType.PDF417 -> context.getString(R.string.type_pdf417)
                         HistoryType.RSS_14 -> "RSS-14"
                         HistoryType.RSS_EXPANDED -> "RSS Expanded"
                         HistoryType.MAXICODE -> "MaxiCode"
@@ -67,7 +67,7 @@ class HistoryAdapter(
                         HistoryType.TELEPEN -> "Telepen"
                         HistoryType.HAN_XIN -> "Han Xin"
                         HistoryType.TEXT -> context.getString(R.string.type_text)
-                        HistoryType.GENERATED_ONLY -> "Generated Only"
+                        HistoryType.GENERATED_ONLY -> context.getString(R.string.type_generated)
                     })
                     item.barcodeFormat?.let {
                         append(" • ")

@@ -1139,4 +1139,9 @@ https://another.com
     <string name="theme_system">Как в системе</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
+    <string name="history_unavailable">История недоступна</string>
+    <string name="history_unavailable_with_reason">История недоступна: %1$s</string>
+    <string name="notes_saved">Заметки сохранены</string>
+    <string name="barcode_generation_failed">Не удалось создать штрихкод</string>
+    <string name="qr_generation_failed_with_reason">Не удалось создать QR-код: %1$s</string>
 </resources>

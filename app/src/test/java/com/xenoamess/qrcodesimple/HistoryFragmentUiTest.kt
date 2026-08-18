@@ -78,6 +78,18 @@ class HistoryFragmentUiTest {
         }
     }
 
+    @Test
+    fun `recreating the view resumes history collection without touching stale binding`() {
+        insertItems()
+        val scenario = launchFragment()
+        waitForListSize(scenario, 3)
+
+        scenario.recreate()
+        scenario.moveToState(Lifecycle.State.RESUMED)
+
+        assertEquals(3, waitForListSize(scenario, 3).size)
+    }
+
     private fun currentList(scenario: FragmentScenario<HistoryFragment>): List<com.xenoamess.qrcodesimple.data.HistoryItem> {
         var list = emptyList<com.xenoamess.qrcodesimple.data.HistoryItem>()
         scenario.onFragment { fragment ->

@@ -26,6 +26,37 @@ interface HistoryDao {
     
     @Insert
     suspend fun insert(item: HistoryItem): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIgnore(item: HistoryItem): Long
+
+    @Query("""
+        UPDATE history SET type = :type, timestamp = :timestamp, barcodeFormat = :barcodeFormat,
+            styleJson = :styleJson, isFavorite = :isFavorite, notes = :notes, tags = :tags
+        WHERE content = :content AND isGenerated = :isGenerated
+    """)
+    suspend fun updateByContentAndGenerated(
+        content: String,
+        isGenerated: Boolean,
+        type: HistoryType,
+        timestamp: Long,
+        barcodeFormat: String?,
+        styleJson: String?,
+        isFavorite: Boolean,
+        notes: String?,
+        tags: String?
+    )
+
+    @Transaction
+    suspend fun upsert(item: HistoryItem): Long {
+        val insertedId = insertIgnore(item)
+        if (insertedId != -1L) return insertedId
+        updateByContentAndGenerated(
+            item.content, item.isGenerated, item.type, item.timestamp, item.barcodeFormat,
+            item.styleJson, item.isFavorite, item.notes, item.tags
+        )
+        return findByContentAndGenerated(item.content, item.isGenerated)?.id ?: -1L
+    }
     
     @Delete
     suspend fun delete(item: HistoryItem)
@@ -53,6 +84,9 @@ interface HistoryDao {
 
     @Query("SELECT * FROM history WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): HistoryItem?
+
+    @Query("SELECT * FROM history WHERE id = :id LIMIT 1")
+    fun getByIdFlow(id: Long): Flow<HistoryItem?>
 
     @Query("UPDATE history SET content = :newContent WHERE id = :id")
     suspend fun updateContent(id: Long, newContent: String)
@@ -82,6 +116,30 @@ interface HistoryDao {
 
     @Query("SELECT * FROM history WHERE tags LIKE '%' || :tag || '%' ORDER BY timestamp DESC")
     fun getHistoryByTag(tag: String): Flow<List<HistoryItem>>
+
+    @Query("""
+        SELECT * FROM history
+        WHERE (:search = '' OR content LIKE '%' || :search || '%')
+          AND (:tag IS NULL OR tags = :tag OR tags LIKE :tag || ',%' OR tags LIKE '%,' || :tag OR tags LIKE '%,' || :tag || ',%')
+          AND (:isGenerated IS NULL OR isGenerated = :isGenerated)
+          AND (:favoritesOnly = 0 OR isFavorite = 1)
+          AND (:type IS NULL OR type = :type)
+          AND (:barcodeFormat IS NULL OR barcodeFormat = :barcodeFormat)
+          AND (:startTime IS NULL OR timestamp >= :startTime)
+        ORDER BY
+          CASE WHEN :newestFirst THEN timestamp END DESC,
+          CASE WHEN NOT :newestFirst THEN timestamp END ASC
+    """)
+    fun getHistory(
+        search: String,
+        tag: String?,
+        isGenerated: Boolean?,
+        favoritesOnly: Boolean,
+        type: HistoryType?,
+        barcodeFormat: String?,
+        startTime: Long?,
+        newestFirst: Boolean
+    ): Flow<List<HistoryItem>>
 
     @Query("SELECT DISTINCT tags FROM history WHERE tags IS NOT NULL AND tags != ''")
     suspend fun getAllTags(): List<String>

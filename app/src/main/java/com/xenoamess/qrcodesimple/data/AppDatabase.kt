@@ -21,7 +21,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 /**
  * Room 数据库（支持加密）
  */
-@Database(entities = [HistoryItem::class], version = 4, exportSchema = false)
+@Database(entities = [HistoryItem::class], version = 5, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -48,13 +48,8 @@ abstract class AppDatabase : RoomDatabase() {
                     INSTANCE = db
                     db
                 } catch (e: Exception) {
-                    // 数据库无法打开（密码不匹配、密钥损坏等），重置后重建
-                    Log.e(TAG, "Failed to open database, resetting and recreating", e)
-                    resetDatabase(context)
-                    val db = buildDatabase(context)
-                    db.openHelper.writableDatabase
-                    INSTANCE = db
-                    db
+                    Log.e(TAG, "Failed to open database; preserving data for explicit user recovery", e)
+                    throw IllegalStateException("Unable to open history database", e)
                 }
             }
         }
@@ -65,8 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "qr_code_history_db_encrypted"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
-                .fallbackToDestructiveMigration(true)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 
             // Robolectric does not provide native SQLCipher support; run unencrypted in unit tests.
             if (!android.os.Build.FINGERPRINT.contains("robolectric")) {
@@ -156,7 +150,7 @@ abstract class AppDatabase : RoomDatabase() {
                 .joinToString("")
         }
 
-    /**
+        /**
      * 数据库迁移：从版本3到版本4，添加生成样式参数字段
      */
     internal val MIGRATION_3_4 = object : Migration(3, 4) {
@@ -170,8 +164,10 @@ abstract class AppDatabase : RoomDatabase() {
      */
         internal val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // 表结构没有变化，只是切换到加密数据库
-                // Room 会自动处理
+                // Some v1 builds shipped these fields without a version bump.
+                addColumnIfMissing(db, "barcodeFormat", "TEXT")
+                addColumnIfMissing(db, "isFavorite", "INTEGER NOT NULL DEFAULT 0")
+                addColumnIfMissing(db, "notes", "TEXT")
             }
         }
 
@@ -182,6 +178,23 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE history ADD COLUMN tags TEXT")
             }
+        }
+
+        /** Consolidates legacy duplicates before enforcing one row per history identity. */
+        internal val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM history WHERE id NOT IN (SELECT MAX(id) FROM history GROUP BY content, isGenerated)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_history_content_isGenerated ON history(content, isGenerated)")
+            }
+        }
+
+        private fun addColumnIfMissing(db: SupportSQLiteDatabase, name: String, definition: String) {
+            db.query("PRAGMA table_info(history)").use { cursor ->
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(cursor.getColumnIndexOrThrow("name")) == name) return
+                }
+            }
+            db.execSQL("ALTER TABLE history ADD COLUMN $name $definition")
         }
 
         /**

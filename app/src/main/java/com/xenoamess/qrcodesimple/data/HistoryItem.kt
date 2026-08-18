@@ -1,8 +1,12 @@
 package com.xenoamess.qrcodesimple.data
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
-@Entity(tableName = "history")
+@Entity(
+    tableName = "history",
+    indices = [Index(value = ["content", "isGenerated"], unique = true)]
+)
 data class HistoryItem(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

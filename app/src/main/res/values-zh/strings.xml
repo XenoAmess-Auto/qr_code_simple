@@ -636,4 +636,9 @@
     <string name="theme_system">跟随系统</string>
     <string name="theme_light">亮色</string>
     <string name="theme_dark">暗色</string>
+    <string name="history_unavailable">历史记录不可用</string>
+    <string name="history_unavailable_with_reason">历史记录不可用：%1$s</string>
+    <string name="notes_saved">备注已保存</string>
+    <string name="barcode_generation_failed">生成条码失败</string>
+    <string name="qr_generation_failed_with_reason">生成二维码失败：%1$s</string>
 </resources>
