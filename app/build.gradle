@@ -121,6 +121,7 @@ def isFdroid = project.hasProperty('fdroid')
 android {
     namespace 'com.xenoamess.qrcodesimple'
     compileSdk 35
+    testBuildType project.hasProperty('releaseInstrumentedTest') ? 'release' : 'debug'
 
     defaultConfig {
         applicationId "com.xenoamess.qrcodesimple"
@@ -464,6 +465,8 @@ tasks.register('jacocoTestReport', JacocoReport) {
             '**/BuildConfig.*',
             '**/Manifest*.*',
             '**/*Test*.*',
+            '**/databinding/**',
+            '**/*_Impl*.*',
             'android/**/*.*',
             '**/*$Lambda$*.*',
             '**/*$inlined$*.*'
@@ -491,6 +494,8 @@ tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
             '**/BuildConfig.*',
             '**/Manifest*.*',
             '**/*Test*.*',
+            '**/databinding/**',
+            '**/*_Impl*.*',
             'android/**/*.*',
             '**/*$Lambda$*.*',
             '**/*$inlined$*.*'
@@ -514,6 +519,10 @@ tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification) {
             limit {
                 counter = 'LINE'
                 minimum = 0.76
+            }
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.60
             }
         }
     }

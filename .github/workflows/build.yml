@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: |
-            ~/.gradle/configuration-cache
+            ${{ github.workspace }}/.gradle/configuration-cache
           key: gradle-config-cache-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle.properties', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-config-cache-
@@ -133,7 +133,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: |
-            ~/.gradle/configuration-cache
+            ${{ github.workspace }}/.gradle/configuration-cache
           key: gradle-config-cache-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle.properties', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-config-cache-
@@ -159,7 +159,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: androidtest-reports
+          name: androidtest-reports-${{ matrix.api-level }}-${{ matrix.target }}
           path: app/build/reports/androidTests/
 
   # Branch protection requires the fixed check name "Instrumented Tests (Emulator)";
@@ -217,7 +217,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: |
-            ~/.gradle/configuration-cache
+            ${{ github.workspace }}/.gradle/configuration-cache
           key: gradle-config-cache-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle.properties', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-config-cache-
@@ -371,6 +371,12 @@ jobs:
           )
           PY
 
+      - name: Archive full beta APK
+        if: steps.master_tip.outputs.is_current == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/build_beta_delta_chains.py --archive-full-only
+
       - name: Generate optional beta delta chains
         if: steps.master_tip.outputs.is_current == 'true'
         continue-on-error: true
@@ -502,6 +508,38 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v5
         with:
-          # The Pages artifact carries a ~158 MB beta APK; the default 600s upload
-          # timeout has been observed to expire on slow deploys.
+          # Coverage reports can contain many small files; allow slow Pages uploads.
           timeout: 1200000
+
+  extended-tests:
+    name: Extended Unit Tests
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Run complete unit test suite
+        run: ./gradlew --no-daemon :app:testDebugUnitTest
+
+      - name: Upload extended test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: extended-test-reports-${{ github.sha }}
+          path: app/build/reports/tests/
+          retention-days: 14
+          if-no-files-found: warn

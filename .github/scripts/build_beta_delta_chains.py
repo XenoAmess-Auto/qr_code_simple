@@ -330,6 +330,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metadata", type=Path, default=Path("version.json"))
     parser.add_argument("--apk", type=Path, default=Path("qr-code-simple-beta.apk"))
+    parser.add_argument(
+        "--archive-full-only",
+        action="store_true",
+        help="upload the full beta APK to beta-archive without generating patches",
+    )
     arguments = parser.parse_args()
 
     metadata = read_json(arguments.metadata)
@@ -351,14 +356,23 @@ def main() -> None:
     # This is deliberately written before any remote operation so full beta metadata survives failures.
     write_json(arguments.metadata, metadata)
 
-    if not Path(ZIPDIFF).is_file() or not Path(ZIPPATCH).is_file():
-        print(f"ZipDiff/ZipPatch unavailable (APKDIFF_BIN='{APKDIFF_BIN}'); publishing full beta metadata without patches")
-        return
-
     if shutil.which("gh") is None:
         raise RuntimeError("gh is required to maintain beta-archive")
     ensure_archive()
     assets = archive_assets()
+
+    archive_apk = f"beta-{version_code}.apk"
+    with tempfile.TemporaryDirectory(prefix="qr-code-simple-beta-full-") as temporary:
+        staged_apk = Path(temporary) / archive_apk
+        shutil.copyfile(arguments.apk, staged_apk)
+        upload_asset(staged_apk)
+
+    if arguments.archive_full_only:
+        return
+
+    if not Path(ZIPDIFF).is_file() or not Path(ZIPPATCH).is_file():
+        print(f"ZipDiff/ZipPatch unavailable (APKDIFF_BIN='{APKDIFF_BIN}'); publishing full beta metadata without patches")
+        return
 
     history: dict[int, dict] = {}
     with tempfile.TemporaryDirectory(prefix="qr-code-simple-beta-history-") as temporary:
@@ -415,10 +429,6 @@ def main() -> None:
                 cross_hashes[source_code] = source["apkSha256"]
                 print(f"created {patch_path.name} ({patch['size']} bytes)")
 
-        archive_apk = f"beta-{version_code}.apk"
-        staged_apk = working_dir / archive_apk
-        shutil.copyfile(arguments.apk, staged_apk)
-        upload_asset(staged_apk)
         for patch in patches.values():
             upload_asset(Path(patch["file"]))
 
