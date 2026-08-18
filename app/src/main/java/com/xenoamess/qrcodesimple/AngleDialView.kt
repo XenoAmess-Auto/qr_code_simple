@@ -6,12 +6,16 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PointF
 import android.util.AttributeSet
+import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityNodeInfo
+import androidx.core.view.ViewCompat
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.roundToInt
 
 /**
  * 圆形角度旋钮：触摸拖动改变角度，0° 在右侧，顺时针递增。
@@ -43,10 +47,18 @@ class AngleDialView @JvmOverloads constructor(
     private val center = PointF()
     private var radius = 0f
 
+    init {
+        isFocusable = true
+        isClickable = true
+        updateStateDescription()
+    }
+
     var angle: Float = 0f
         set(value) {
-            field = value
+            val normalized = ((value % 360f) + 360f) % 360f
+            field = normalized
             invalidate()
+            updateStateDescription()
             notifyAngle()
         }
 
@@ -82,7 +94,6 @@ class AngleDialView @JvmOverloads constructor(
                 var degrees = Math.toDegrees(rad.toDouble()).toFloat()
                 if (degrees < 0) degrees += 360f
                 angle = degrees
-                notifyAngle()
                 return true
             }
             MotionEvent.ACTION_UP -> {
@@ -97,5 +108,40 @@ class AngleDialView @JvmOverloads constructor(
     override fun performClick(): Boolean {
         super.performClick()
         return true
+    }
+
+    override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        super.onInitializeAccessibilityNodeInfo(info)
+        info.className = android.widget.SeekBar::class.java.name
+        info.rangeInfo = AccessibilityNodeInfo.RangeInfo.obtain(
+            AccessibilityNodeInfo.RangeInfo.RANGE_TYPE_FLOAT,
+            0f,
+            360f,
+            angle
+        )
+        info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD)
+        info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD)
+    }
+
+    override fun performAccessibilityAction(action: Int, arguments: Bundle?): Boolean {
+        return when (action) {
+            AccessibilityNodeInfo.ACTION_SCROLL_FORWARD -> {
+                angle += ACCESSIBILITY_STEP_DEGREES
+                true
+            }
+            AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD -> {
+                angle -= ACCESSIBILITY_STEP_DEGREES
+                true
+            }
+            else -> super.performAccessibilityAction(action, arguments)
+        }
+    }
+
+    private fun updateStateDescription() {
+        ViewCompat.setStateDescription(this, "${angle.roundToInt()}°")
+    }
+
+    private companion object {
+        const val ACCESSIBILITY_STEP_DEGREES = 5f
     }
 }

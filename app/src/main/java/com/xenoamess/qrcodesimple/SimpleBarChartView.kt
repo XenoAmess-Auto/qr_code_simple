@@ -35,7 +35,12 @@ class SimpleBarChartView @JvmOverloads constructor(
 
     fun setData(dailyCounts: IntArray) {
         counts = dailyCounts.copyOf()
-        contentDescription = dailyCounts.joinToString(",")
+        val values = dailyCounts.mapIndexed { index, count -> "${index + 1}: $count" }
+        contentDescription = buildString {
+            append(context.getString(R.string.stats_title))
+            append(": ")
+            append(values.joinToString(", "))
+        }
         invalidate()
     }
 

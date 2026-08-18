@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Looper
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
@@ -36,6 +37,7 @@ class AngleDialViewTest {
         dispatchTouch(view, 380f, 200f)
         assertEquals(0f, view.angle, 2f)
         assertTrue("Angle changed callback should fire", angles.isNotEmpty())
+        assertEquals("One touch update should invoke the callback once", 1, angles.size)
         assertEquals(0f, angles.last(), 2f)
     }
 
@@ -71,6 +73,24 @@ class AngleDialViewTest {
         view.angle = 123f
         assertEquals(123f, view.angle, 0f)
         assertEquals(123f, angles.last(), 0f)
+    }
+
+    @Test
+    fun accessibilityActionsAdjustAngleAndExposeRange() {
+        val view = AngleDialView(context)
+        view.angle = 10f
+
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD, null))
+        assertEquals(15f, view.angle, 0f)
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD, null))
+        assertEquals(10f, view.angle, 0f)
+
+        val info = AccessibilityNodeInfo.obtain()
+        view.onInitializeAccessibilityNodeInfo(info)
+        assertEquals(android.widget.SeekBar::class.java.name, info.className)
+        assertEquals(0f, info.rangeInfo?.min ?: -1f, 0f)
+        assertEquals(360f, info.rangeInfo?.max ?: -1f, 0f)
+        info.recycle()
     }
 
     private fun measureAndLayout(view: View, width: Int, height: Int) {
