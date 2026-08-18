@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="?android:attr/colorBackground">
+    android:background="@color/app_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,17 +26,18 @@
                 android:layout_weight="1"
                 android:text="@string/custom_color"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?android:attr/textColorPrimary" />
+                android:textColor="@color/app_text_primary" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.QRCodeSimple.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@android:string/cancel" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnConfirm"
+                style="@style/Widget.QRCodeSimple.Button.Primary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@android:string/ok"
@@ -71,13 +72,10 @@
 
         <!-- 数值输入区 -->
         <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.QRCodeSimple.Panel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:strokeColor="#33000000"
-            app:strokeWidth="1dp">
+            android:layout_marginTop="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -97,21 +95,22 @@
                         android:layout_height="wrap_content"
                         android:text="@string/hex"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?android:attr/textColorSecondary"
+                        android:textColor="@color/app_text_secondary"
                         android:layout_marginEnd="12dp" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilHexInput"
+                        style="@style/Widget.QRCodeSimple.TextInput"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:hint="@string/hex_color_hint"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                        android:hint="@string/hex_color_hint">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etHexInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:minHeight="@dimen/touch_target_min"
                             android:inputType="textNoSuggestions|textCapCharacters"
                             android:maxLines="1"
                             android:maxLength="9" />
@@ -141,12 +140,12 @@
                             android:labelFor="@id/etR"
                             android:text="@string/color_channel_r"
                             android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?android:attr/textColorSecondary" />
+                            android:textColor="@color/app_text_secondary" />
 
                         <EditText
                             android:id="@+id/etR"
                             android:layout_width="64dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="@dimen/touch_target_min"
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"
@@ -169,12 +168,12 @@
                             android:labelFor="@id/etG"
                             android:text="@string/color_channel_g"
                             android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?android:attr/textColorSecondary" />
+                            android:textColor="@color/app_text_secondary" />
 
                         <EditText
                             android:id="@+id/etG"
                             android:layout_width="64dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="@dimen/touch_target_min"
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"
@@ -197,12 +196,12 @@
                             android:labelFor="@id/etB"
                             android:text="@string/color_channel_b"
                             android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?android:attr/textColorSecondary" />
+                            android:textColor="@color/app_text_secondary" />
 
                         <EditText
                             android:id="@+id/etB"
                             android:layout_width="64dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="@dimen/touch_target_min"
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"
@@ -225,12 +224,12 @@
                             android:labelFor="@id/etA"
                             android:text="@string/color_channel_a"
                             android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?android:attr/textColorSecondary" />
+                            android:textColor="@color/app_text_secondary" />
 
                         <EditText
                             android:id="@+id/etA"
                             android:layout_width="64dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="@dimen/touch_target_min"
                             android:inputType="number"
                             android:maxLength="3"
                             android:gravity="center"

@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="horizontal"
     android:background="@drawable/widget_background"
+    android:minHeight="@dimen/touch_target_min"
+    android:minWidth="@dimen/touch_target_min"
     android:padding="8dp"
     android:gravity="center">
 
@@ -14,7 +16,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@drawable/ic_qr_code"
-        app:tint="?attr/colorOnPrimary"
+        app:tint="@color/app_on_primary_container"
         android:importantForAccessibility="no" />
 
     <TextView
@@ -22,8 +24,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/widget_quick_generate"
-        android:textColor="?attr/colorOnPrimary"
+        android:textColor="@color/app_on_primary_container"
         android:textSize="14sp"
+        android:textStyle="bold"
         android:layout_marginStart="8dp" />
 
 </LinearLayout>

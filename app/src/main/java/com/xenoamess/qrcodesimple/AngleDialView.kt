@@ -2,7 +2,6 @@ package com.xenoamess.qrcodesimple
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PointF
 import android.util.AttributeSet
@@ -11,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.view.ViewCompat
+import com.google.android.material.color.MaterialColors
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
@@ -26,22 +26,33 @@ class AngleDialView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    private val primaryColor = MaterialColors.getColor(
+        context,
+        androidx.appcompat.R.attr.colorPrimary,
+        context.getColor(R.color.app_primary)
+    )
+    private val outlineColor = MaterialColors.getColor(
+        context,
+        com.google.android.material.R.attr.colorOutline,
+        context.getColor(R.color.app_outline)
+    )
+
     private val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = 4f
-        color = Color.parseColor("#BDBDBD")
+        color = outlineColor
     }
 
     private val indicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = 6f
-        color = Color.parseColor("#1976D2")
+        color = primaryColor
         strokeCap = Paint.Cap.ROUND
     }
 
     private val thumbPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = Color.parseColor("#1976D2")
+        color = primaryColor
     }
 
     private val center = PointF()

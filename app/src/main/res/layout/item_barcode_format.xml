@@ -2,6 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/editorial_row_min_height"
     android:orientation="vertical"
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
@@ -12,15 +15,15 @@
         android:id="@android:id/text1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="?android:attr/textColorPrimary" />
+        android:textAppearance="@style/TextAppearance.QRCodeSimple.RowTitle"
+        android:textColor="@color/app_text_primary" />
 
     <TextView
         android:id="@android:id/text2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
+        android:textColor="@color/app_text_secondary"
         android:visibility="gone" />
 
 </LinearLayout>

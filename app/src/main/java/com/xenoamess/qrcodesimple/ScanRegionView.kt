@@ -12,6 +12,8 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.core.graphics.ColorUtils
+import com.google.android.material.color.MaterialColors
 import kotlin.math.max
 import kotlin.math.min
 
@@ -25,6 +27,12 @@ class ScanRegionView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : SurfaceView(context, attrs, defStyleAttr), SurfaceHolder.Callback {
 
+    private val primaryColor = MaterialColors.getColor(
+        context,
+        androidx.appcompat.R.attr.colorPrimary,
+        context.getColor(R.color.app_primary)
+    )
+
     interface OnRegionSelectedListener {
         fun onRegionSelected(rect: RectF)
         fun onRegionCleared()
@@ -36,18 +44,18 @@ class ScanRegionView @JvmOverloads constructor(
     }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#00BCD4")
+        color = primaryColor
         style = Paint.Style.STROKE
         strokeWidth = 4f
     }
 
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#2000BCD4")
+        color = ColorUtils.setAlphaComponent(primaryColor, 0x20)
         style = Paint.Style.FILL
     }
 
     private val cornerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#00BCD4")
+        color = primaryColor
         style = Paint.Style.FILL
     }
 

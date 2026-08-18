@@ -9,6 +9,7 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import com.google.android.material.color.MaterialColors
 
 /**
  * 扫描线动画视图
@@ -36,7 +37,11 @@ class ScannerOverlayView @JvmOverloads constructor(
         }
     
     // 扫描线颜色
-    var scanLineColor: Int = Color.parseColor("#00BCD4")
+    var scanLineColor: Int = MaterialColors.getColor(
+        context,
+        androidx.appcompat.R.attr.colorPrimary,
+        context.getColor(R.color.app_primary)
+    )
         set(value) {
             field = value
             scanLinePaint.color = value
@@ -44,7 +49,11 @@ class ScannerOverlayView @JvmOverloads constructor(
         }
     
     // 角标颜色
-    var cornerColor: Int = Color.parseColor("#00BCD4")
+    var cornerColor: Int = MaterialColors.getColor(
+        context,
+        androidx.appcompat.R.attr.colorPrimary,
+        context.getColor(R.color.app_primary)
+    )
         set(value) {
             field = value
             cornerPaint.color = value

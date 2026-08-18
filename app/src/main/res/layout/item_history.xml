@@ -3,14 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="vertical"
     android:padding="12dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/editorial_row_min_height">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:orientation="vertical">
 
         <LinearLayout
@@ -27,13 +28,14 @@
                 android:visibility="gone"
                 android:contentDescription="@string/cd_favorite"
                 android:layout_marginEnd="4dp"
-                app:tint="?attr/colorPrimary" />
+                app:tint="@color/app_primary" />
 
             <TextView
                 android:id="@+id/tvContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
+                android:textColor="@color/app_text_primary"
                 android:maxLines="3"
                 android:ellipsize="end" />
 
@@ -44,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="@color/app_primary"
             android:layout_marginTop="4dp" />
 
         <TextView
@@ -52,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="11sp"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/app_text_secondary"
             android:layout_marginTop="2dp"
             android:visibility="gone"
             android:maxLines="2"
@@ -63,60 +65,61 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="11sp"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/app_text_secondary"
             android:layout_marginTop="2dp" />
 
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="end|center_vertical"
         android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/btnFavorite"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
             android:src="@drawable/ic_star_border"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/chip_favorites" />
 
         <ImageButton
             android:id="@+id/btnNote"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
             android:src="@drawable/ic_note"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/add_notes" />
 
         <ImageButton
             android:id="@+id/btnEdit"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
             android:src="@drawable/ic_edit"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/edit" />
 
         <ImageButton
             android:id="@+id/btnShare"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
             android:src="@drawable/ic_share"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/share" />
 
         <ImageButton
             android:id="@+id/btnShareQR"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
             android:src="@drawable/ic_qr_code"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/share_qr" />
 
         <ImageButton
             android:id="@+id/btnDelete"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
             android:src="@drawable/ic_delete"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete" />
