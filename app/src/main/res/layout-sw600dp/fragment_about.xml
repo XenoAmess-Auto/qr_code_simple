@@ -1,166 +1,224 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- sw600dp：About 内容居中限宽 -->
+<!-- sw600dp: keep About content compact and centered on wide screens. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:paddingStart="16dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="12dp">
 
     <LinearLayout
         android:layout_width="560dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
-        android:layout_gravity="center_horizontal">
+        android:orientation="vertical">
 
-        <!-- App Icon -->
-        <ImageView
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:src="@mipmap/ic_launcher"
-            android:scaleType="centerCrop"
-            android:importantForAccessibility="no"
-            android:layout_marginBottom="4dp" />
-
-        <!-- App Name -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
-
-        <!-- Version -->
-        <TextView
-            android:id="@+id/tvVersion"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginBottom="4dp" />
-
-        <!-- Language Selector -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLanguage"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/language"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
 
-        <!-- Theme Selector -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnTheme"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/theme_setting"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-        <!-- Privacy Settings -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPrivacy"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/privacy_settings"
-            app:icon="@drawable/ic_security"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_launcher" />
 
-        <!-- Check for updates + beta check + auto-check switch in one row -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_name"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvVersion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/license"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="4dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLanguage"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="2dp"
+                android:layout_weight="2"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:text="@string/language" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTheme"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:text="@string/theme_setting" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrivacy"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:minHeight="48dp"
+            android:text="@string/privacy_settings"
+            app:icon="@drawable/ic_security" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
             android:gravity="center_vertical"
-            android:layout_marginBottom="4dp">
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCheckUpdate"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="2dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="4dp"
+                android:maxLines="2"
+                android:minHeight="48dp"
                 android:text="@string/check_update"
-                app:icon="@drawable/ic_system_update"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                app:icon="@drawable/ic_system_update" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCheckBetaUpdate"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="2dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
+                android:maxLines="2"
+                android:minHeight="48dp"
                 android:text="@string/check_beta_update"
-                app:icon="@drawable/ic_star"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/auto_check_update"
-                android:textSize="12sp" />
+                app:icon="@drawable/ic_star" />
 
             <Switch
                 android:id="@+id/switchAutoUpdate"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="48dp"
+                android:layout_marginStart="2dp"
+                android:gravity="center_vertical"
+                android:text="@string/auto_check_update"
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVersionHistory"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/version_history"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCrashLogs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/crash_logs"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVersionHistory"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="2dp"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:text="@string/version_history" />
 
-        <!-- Buy me a coffee button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCrashLogs"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:text="@string/crash_logs" />
+        </LinearLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDonate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="8dp"
+            android:minHeight="48dp"
             android:text="@string/buy_me_a_coffee"
             app:icon="@drawable/ic_coffee" />
 
-        <!-- Project - Single line button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGitHubProject"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/sources"
-            app:icon="@drawable/ic_github"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            android:orientation="horizontal">
 
-        <!-- Maintainer - Single line button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGitHubMaintainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/maintainer"
-            app:icon="@drawable/ic_github"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGitHubProject"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="2dp"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:text="@string/sources"
+                app:icon="@drawable/ic_github" />
 
-        <!-- License -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/license"
-            android:textSize="12sp"
-            android:textColor="?android:attr/textColorSecondary" />
-
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGitHubMaintainer"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_weight="2"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:text="@string/maintainer"
+                app:icon="@drawable/ic_github" />
+        </LinearLayout>
     </LinearLayout>
-
 </ScrollView>

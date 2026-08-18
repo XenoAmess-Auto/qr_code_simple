@@ -13,6 +13,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -90,6 +91,25 @@ class AboutFragmentUiTest {
             val text = fragment.requireView().findViewById<TextView>(R.id.tvVersion).text.toString()
             assertTrue(text.contains(BuildConfig.VERSION_NAME))
             assertTrue(text.contains(BuildConfig.GIT_HASH))
+        }
+    }
+
+    @Test
+    fun `related actions share compact rows`() {
+        scenario.onFragment { fragment ->
+            val root = fragment.requireView()
+            assertSame(
+                root.findViewById<android.view.View>(R.id.btnLanguage).parent,
+                root.findViewById<android.view.View>(R.id.btnTheme).parent
+            )
+            assertSame(
+                root.findViewById<android.view.View>(R.id.btnVersionHistory).parent,
+                root.findViewById<android.view.View>(R.id.btnCrashLogs).parent
+            )
+            assertSame(
+                root.findViewById<android.view.View>(R.id.btnGitHubProject).parent,
+                root.findViewById<android.view.View>(R.id.btnGitHubMaintainer).parent
+            )
         }
     }
 
