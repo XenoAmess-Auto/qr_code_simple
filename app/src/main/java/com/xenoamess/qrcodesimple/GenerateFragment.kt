@@ -61,6 +61,8 @@ class GenerateFragment : Fragment() {
     private val binding get() = _binding!!
     internal var currentBitmap: Bitmap? = null
     private lateinit var generateViewModel: GenerateViewModel
+    internal val exportState: GenerateExportState
+        get() = generateViewModel.exportState.value
     private lateinit var historyRepository: HistoryRepository
     internal var selectedFormat: BarcodeFormat = BarcodeFormat.QR_CODE
     private var selectedStyle = AdvancedBarcodeGenerator.ColorSchemes.CLASSIC
@@ -1558,8 +1560,12 @@ class GenerateFragment : Fragment() {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
+        val exportId = generateViewModel.beginExport()
         lifecycleScope.launch {
-            val bitmap = generateOutputBitmap(request, size) ?: return@launch
+            val bitmap = generateOutputBitmap(request, size) ?: run {
+                generateViewModel.failExport(exportId, null)
+                return@launch
+            }
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val prefix = request.format.name.lowercase().replace("_", "")
             val fileName = "${prefix}_$timeStamp.$extension"
@@ -1587,8 +1593,10 @@ class GenerateFragment : Fragment() {
                 } else if (savedPath != null) {
                     Toast.makeText(ctx, getString(R.string.saved_to, savedPath), Toast.LENGTH_SHORT).show()
                 }
+                generateViewModel.completeExport(exportId)
             } catch (e: Exception) {
                 if (!bitmap.isRecycled) bitmap.recycle()
+                generateViewModel.failExport(exportId, e.message)
                 Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
             }
         }
@@ -1618,13 +1626,18 @@ class GenerateFragment : Fragment() {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
+        val exportId = generateViewModel.beginExport()
         lifecycleScope.launch {
-            val bitmap = generateOutputBitmap(request) ?: return@launch
+            val bitmap = generateOutputBitmap(request) ?: run {
+                generateViewModel.failExport(exportId, null)
+                return@launch
+            }
             val uri = withContext(Dispatchers.IO) {
                 ShareTemplateGenerator.generateShareImage(ctx, bitmap, request.content, request.format.toHistoryType())
             }
             bitmap.recycle()
             if (uri == null) {
+                generateViewModel.failExport(exportId, null)
                 Toast.makeText(ctx, getString(R.string.failed_to_save, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
                 return@launch
             }
@@ -1635,6 +1648,7 @@ class GenerateFragment : Fragment() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
+            generateViewModel.completeExport(exportId)
         }
     }
 
@@ -1644,8 +1658,12 @@ class GenerateFragment : Fragment() {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
         }
+        val exportId = generateViewModel.beginExport()
         lifecycleScope.launch {
-            val bitmap = generateOutputBitmap(request) ?: return@launch
+            val bitmap = generateOutputBitmap(request) ?: run {
+                generateViewModel.failExport(exportId, null)
+                return@launch
+            }
             try {
                 val file = withContext(Dispatchers.IO) {
                     val cachePath = File(ctx.cacheDir, "images")
@@ -1669,8 +1687,10 @@ class GenerateFragment : Fragment() {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 startActivity(Intent.createChooser(intent, getString(R.string.share_qr)))
+                generateViewModel.completeExport(exportId)
             } catch (e: Exception) {
                 if (!bitmap.isRecycled) bitmap.recycle()
+                generateViewModel.failExport(exportId, e.message)
                 Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
             }
         }

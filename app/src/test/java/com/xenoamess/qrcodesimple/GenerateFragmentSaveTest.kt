@@ -61,9 +61,44 @@ class GenerateFragmentSaveTest {
             fragment.requireView().findViewById<TextInputEditText>(R.id.etContent).setText(text)
             fragment.requireView().findViewById<Button>(R.id.btnGenerate).performClick()
         }
-        idleMain()
-        Thread.sleep(300)
-        idleMain()
+        awaitPreview()
+    }
+
+    private fun awaitPreview() {
+        repeat(100) {
+            idleMain()
+            var ready = false
+            scenario.onFragment { ready = it.currentBitmap != null }
+            if (ready) return
+            Thread.sleep(25)
+        }
+        throw AssertionError("Preview did not complete")
+    }
+
+    private fun awaitExportCompletion(): GenerateExportState {
+        repeat(200) {
+            idleMain()
+            var state: GenerateExportState? = null
+            scenario.onFragment { state = it.exportState }
+            when (val result = state) {
+                is GenerateExportState.Completed, is GenerateExportState.Failed -> return result
+                else -> Thread.sleep(25)
+            }
+        }
+        throw AssertionError("Export did not complete")
+    }
+
+    private fun awaitHistory(content: String): Boolean {
+        val repository = com.xenoamess.qrcodesimple.data.HistoryRepository(
+            androidx.test.core.app.ApplicationProvider.getApplicationContext()
+        )
+        repeat(100) {
+            idleMain()
+            val items = kotlinx.coroutines.runBlocking { repository.allHistory.first() }
+            if (items?.any { it.content == content } == true) return true
+            Thread.sleep(25)
+        }
+        return false
     }
 
     @Test
@@ -78,8 +113,7 @@ class GenerateFragmentSaveTest {
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
-        Thread.sleep(3_000)
-        idleMain()
+        assertTrue(awaitExportCompletion() is GenerateExportState.Completed)
 
         val pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         val pngFiles = pictures.listFiles { f -> f.name.startsWith("qrcode_") && f.name.endsWith(".png") }
@@ -122,9 +156,7 @@ class GenerateFragmentSaveTest {
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
         dialog.listView.performItemClick(dialog.listView.getChildAt(0), 0, dialog.listView.adapter.getItemId(0))
-        idleMain()
-        Thread.sleep(3_000)
-        idleMain()
+        assertTrue(awaitExportCompletion() is GenerateExportState.Completed)
 
         scenario.onFragment { fragment ->
             val intent = Shadows.shadowOf(fragment.requireActivity()).nextStartedActivity
@@ -147,9 +179,7 @@ class GenerateFragmentSaveTest {
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         assertNotNull(dialog)
         dialog.listView.performItemClick(null, 1, 0)
-        idleMain()
-        Thread.sleep(3_000)
-        idleMain()
+        assertTrue(awaitExportCompletion() is GenerateExportState.Completed)
 
         scenario.onFragment { fragment ->
             val intent = Shadows.shadowOf(fragment.requireActivity()).nextStartedActivity
@@ -217,13 +247,6 @@ class GenerateFragmentSaveTest {
     @Test
     fun `generate writes history record`() {
         generateContent("history-record-content")
-
-        val repository = com.xenoamess.qrcodesimple.data.HistoryRepository(
-            androidx.test.core.app.ApplicationProvider.getApplicationContext()
-        )
-        val items = kotlinx.coroutines.runBlocking {
-            repository.allHistory.first()
-        }
-        assertTrue(items?.any { it.content == "history-record-content" } == true)
+        assertTrue(awaitHistory("history-record-content"))
     }
 }

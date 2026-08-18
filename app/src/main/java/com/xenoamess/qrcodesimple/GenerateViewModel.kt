@@ -28,11 +28,21 @@ sealed interface GeneratePreviewState {
     data class Failed(val request: GenerateRequest, val message: String?) : GeneratePreviewState
 }
 
+sealed interface GenerateExportState {
+    data object Idle : GenerateExportState
+    data class Running(val id: Long) : GenerateExportState
+    data class Completed(val id: Long) : GenerateExportState
+    data class Failed(val id: Long, val message: String?) : GenerateExportState
+}
+
 class GenerateViewModel : ViewModel() {
     private val _previewState = MutableStateFlow<GeneratePreviewState>(GeneratePreviewState.Empty)
     val previewState: StateFlow<GeneratePreviewState> = _previewState.asStateFlow()
+    private val _exportState = MutableStateFlow<GenerateExportState>(GenerateExportState.Idle)
+    val exportState: StateFlow<GenerateExportState> = _exportState.asStateFlow()
     private var previewJob: Job? = null
     private var requestId = 0L
+    private var exportId = 0L
 
     fun preview(request: GenerateRequest) {
         previewJob?.cancel()
@@ -66,6 +76,24 @@ class GenerateViewModel : ViewModel() {
         previewJob?.cancel()
         requestId++
         _previewState.value = GeneratePreviewState.Empty
+    }
+
+    fun beginExport(): Long {
+        val id = ++exportId
+        _exportState.value = GenerateExportState.Running(id)
+        return id
+    }
+
+    fun completeExport(id: Long) {
+        if ((_exportState.value as? GenerateExportState.Running)?.id == id) {
+            _exportState.value = GenerateExportState.Completed(id)
+        }
+    }
+
+    fun failExport(id: Long, message: String?) {
+        if ((_exportState.value as? GenerateExportState.Running)?.id == id) {
+            _exportState.value = GenerateExportState.Failed(id, message)
+        }
     }
 
     override fun onCleared() {
