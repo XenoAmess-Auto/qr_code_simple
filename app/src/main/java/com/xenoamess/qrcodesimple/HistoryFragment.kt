@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -50,6 +51,12 @@ class HistoryFragment : Fragment() {
     private var loadHistoryJob: Job? = null
     private var searchJob: Job? = null
     private val historyQuery = MutableStateFlow<HistoryQuery?>(null)
+    private var unlockPromptShowing = false
+    private var biometricAttempted = false
+    private var pinDialog: AlertDialog? = null
+    private var historyUiLocked = false
+    private var lockMonitorJob: Job? = null
+    private val sensitiveDialogs = mutableSetOf<AlertDialog>()
 
     private var sortNewestFirst = true
     private var timeRangeDays = 0
@@ -96,16 +103,41 @@ class HistoryFragment : Fragment() {
         if (AppLockManager.isUnlocked()) {
             loadHistory()
         } else {
-            showAppLockDialog()
+            enforceLockedState()
+        }
+        launchLockMonitor()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (::repository.isInitialized && !AppLockManager.isUnlocked()) {
+            enforceLockedState()
+        } else if (::repository.isInitialized && historyUiLocked) {
+            loadHistory()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        if (::repository.isInitialized && !AppLockManager.isUnlocked()) {
-            adapter.submitList(emptyList())
-            showAppLockDialog()
+        if (::repository.isInitialized && !AppLockManager.isUnlocked()) enforceLockedState()
+    }
+
+    private fun launchLockMonitor() {
+        lockMonitorJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                monitorAppLockTimeout(
+                    onUnlocked = {
+                        if (::repository.isInitialized && historyUiLocked) loadHistory()
+                    },
+                    onLocked = ::enforceLockedState
+                )
+            }
         }
+    }
+
+    private fun enforceLockedState() {
+        showLockedState()
+        showAppLockDialog()
     }
 
     private fun setupStatsToggle() {
@@ -135,6 +167,10 @@ class HistoryFragment : Fragment() {
                 val timestamps = repository.scannedTimestampsSince(now - 14L * 24 * 60 * 60 * 1000)
                 val buckets = DailyBuckets.bucketize(timestamps, 14, now)
                 withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (!AppLockManager.isUnlocked()) {
+                        showLockedState()
+                        return@withContext
+                    }
                     listBinding.tvStatsSummary.text = getString(R.string.stats_summary, count7, count30)
                     listBinding.tvStats7d.text = getString(R.string.stats_7d, count7)
                     listBinding.tvStats30d.text = getString(R.string.stats_30d, count30)
@@ -156,14 +192,28 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showAppLockDialog() {
-        if (AppLockManager.isBiometricEnabled() && AppLockManager.isBiometricAvailable(requireContext())) {
+        if (unlockPromptShowing || AppLockManager.isUnlocked()) return
+
+        if (!biometricAttempted &&
+            AppLockManager.isBiometricEnabled() &&
+            AppLockManager.isBiometricAvailable(requireContext())
+        ) {
+            biometricAttempted = true
+            unlockPromptShowing = true
             AppLockManager.showBiometricPrompt(
                 requireActivity(),
                 onSuccess = {
+                    unlockPromptShowing = false
+                    biometricAttempted = false
                     AppLockManager.recordUnlock()
-                    loadHistory()
+                    if (_binding != null) {
+                        loadHistory()
+                    }
                 },
-                onFailed = { showPinDialog() }
+                onFailed = {
+                    // BiometricPrompt may remain visible after a rejected sample. Keep PIN retry
+                    // on the locked page rather than opening a second dialog over it.
+                }
             )
         } else {
             showPinDialog()
@@ -171,30 +221,105 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showPinDialog() {
+        if (unlockPromptShowing || AppLockManager.isUnlocked()) return
+        unlockPromptShowing = true
         val input = EditText(requireContext()).apply {
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
             hint = getString(R.string.enter_pin)
         }
-        MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.app_lock))
             .setView(input)
-            .setPositiveButton(getString(R.string.unlock)) { _, _ ->
+            .setPositiveButton(getString(R.string.unlock), null)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setOnDismissListener {
+                unlockPromptShowing = false
+                pinDialog = null
+                if (_binding != null && !AppLockManager.isUnlocked()) showLockedState()
+            }
+            .create()
+
+        pinDialog = dialog
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val pin = input.text?.toString() ?: ""
                 if (AppLockManager.verifyPin(pin)) {
                     AppLockManager.recordUnlock()
                     loadHistory()
+                    dialog.dismiss()
                 } else {
                     Toast.makeText(requireContext(), getString(R.string.pin_incorrect), Toast.LENGTH_SHORT).show()
                     adapter.submitList(emptyList())
                 }
             }
-            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
-                adapter.submitList(emptyList())
+        }
+        dialog.show()
+    }
+
+    private fun showLockedState() {
+        if (_binding == null) return
+        sensitiveDialogs.toList().forEach { it.dismiss() }
+        sensitiveDialogs.clear()
+        historyUiLocked = true
+        historyQuery.value = null
+        adapter.submitList(emptyList())
+        setHistoryControlsEnabled(false)
+        listBinding.statsCard.visibility = View.GONE
+        listBinding.chipGroupTags.visibility = View.GONE
+        listBinding.btnClearAll.visibility = View.GONE
+        binding.detailPaneContainer?.visibility = View.GONE
+        listBinding.tvEmpty.text = getString(R.string.unlock)
+        listBinding.tvEmpty.visibility = View.VISIBLE
+        listBinding.recyclerView.visibility = View.GONE
+        listBinding.tvEmpty.setOnClickListener {
+            if (biometricAttempted) {
+                unlockPromptShowing = false
+                showPinDialog()
+            } else {
+                showAppLockDialog()
             }
-            .setOnCancelListener {
-                adapter.submitList(emptyList())
-            }
-            .show()
+        }
+    }
+
+    private fun clearLockedState() {
+        val wasLocked = historyUiLocked
+        historyUiLocked = false
+        setHistoryControlsEnabled(true)
+        listBinding.statsCard.visibility = View.VISIBLE
+        listBinding.btnClearAll.visibility = View.VISIBLE
+        binding.detailPaneContainer?.visibility = View.VISIBLE
+        listBinding.tvEmpty.text = getString(R.string.no_history)
+        listBinding.tvEmpty.setOnClickListener(null)
+        if (wasLocked) setupTagFilter()
+    }
+
+    private fun setHistoryControlsEnabled(enabled: Boolean) {
+        listBinding.statsCard.isEnabled = enabled
+        listBinding.searchView.isEnabled = enabled
+        listOf(
+            listBinding.btnFilterAll,
+            listBinding.btnFilterScanned,
+            listBinding.btnFilterGenerated,
+            listBinding.btnFilterFavorite,
+            listBinding.btnSort,
+            listBinding.btnAdvancedFilter,
+            listBinding.btnClearAll
+        ).forEach { it.isEnabled = enabled }
+        for (index in 0 until listBinding.chipGroupTags.childCount) {
+            listBinding.chipGroupTags.getChildAt(index).isEnabled = enabled
+        }
+    }
+
+    private fun requireHistoryUnlocked(): Boolean {
+        if (AppLockManager.isUnlocked()) return true
+        enforceLockedState()
+        return false
+    }
+
+    private fun showSensitiveDialog(dialog: AlertDialog) {
+        sensitiveDialogs += dialog
+        dialog.setOnDismissListener { sensitiveDialogs -= dialog }
+        dialog.show()
     }
 
     private fun setupRecyclerView() {
@@ -212,6 +337,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun openHistoryDetail(item: HistoryItem) {
+        if (!requireHistoryUnlocked()) return
         val detailPane = binding.detailPaneContainer
         if (detailPane != null) {
             // 平板双栏：详情嵌入右侧面板
@@ -292,6 +418,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showAdvancedFilterDialog() {
+        if (!requireHistoryUnlocked()) return
         val dialogView = layoutInflater.inflate(R.layout.dialog_history_filter, null)
         val rbSortNewest = dialogView.findViewById<android.widget.RadioButton>(R.id.rbSortNewest)
         val rbSortOldest = dialogView.findViewById<android.widget.RadioButton>(R.id.rbSortOldest)
@@ -361,8 +488,10 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showTypePickDialog(onPick: (HistoryType?) -> Unit) {
+        if (!requireHistoryUnlocked()) return
         viewLifecycleOwner.lifecycleScope.launch {
             val types = repository.getAllTypes()
+            if (!requireHistoryUnlocked()) return@launch
             val labels = listOf(getString(R.string.all)) + types.map { typeLabel(it) }
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.filter_type))
@@ -375,8 +504,10 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showFormatPickDialog(onPick: (String?) -> Unit) {
+        if (!requireHistoryUnlocked()) return
         viewLifecycleOwner.lifecycleScope.launch {
             val formats = repository.getAllBarcodeFormats()
+            if (!requireHistoryUnlocked()) return@launch
             val labels = listOf(getString(R.string.all)) + formats
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.filter_format))
@@ -399,11 +530,14 @@ class HistoryFragment : Fragment() {
 
     private fun setupClearButton() {
         listBinding.btnClearAll.setOnClickListener {
+            if (!requireHistoryUnlocked()) return@setOnClickListener
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.clear_history))
                 .setMessage(getString(R.string.clear_history_confirm))
                 .setPositiveButton(getString(R.string.clear_all)) { _, _ ->
+                    if (!requireHistoryUnlocked()) return@setPositiveButton
                     viewLifecycleOwner.lifecycleScope.launch {
+                        if (!requireHistoryUnlocked()) return@launch
                         repository.deleteAll()
                         Toast.makeText(requireContext(), getString(R.string.history_cleared), Toast.LENGTH_SHORT).show()
                     }
@@ -416,6 +550,10 @@ class HistoryFragment : Fragment() {
     private fun setupTagFilter() {
         viewLifecycleOwner.lifecycleScope.launch {
             val tags = repository.getAllTags()
+            if (!AppLockManager.isUnlocked()) {
+                listBinding.chipGroupTags.visibility = View.GONE
+                return@launch
+            }
             if (tags.isEmpty()) {
                 listBinding.chipGroupTags.visibility = View.GONE
                 return@launch
@@ -453,6 +591,8 @@ class HistoryFragment : Fragment() {
     }
 
     private fun loadHistory() {
+        if (!requireHistoryUnlocked()) return
+        clearLockedState()
         refreshStats()
         val startTime = when (timeRangeDays) {
             1 -> startOfToday()
@@ -479,8 +619,16 @@ class HistoryFragment : Fragment() {
         loadHistoryJob = viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 historyQuery.filterNotNull().collectLatest { query ->
+                    if (!AppLockManager.isUnlocked()) {
+                        showLockedState()
+                        return@collectLatest
+                    }
                     try {
                         repository.getHistory(query).collectLatest { items ->
+                            if (!AppLockManager.isUnlocked()) {
+                                showLockedState()
+                                return@collectLatest
+                            }
                             adapter.submitList(items)
                             updateEmptyState(items.isEmpty())
                         }
@@ -488,6 +636,10 @@ class HistoryFragment : Fragment() {
                         throw e
                     } catch (e: Exception) {
                         android.util.Log.e("HistoryFragment", "loadHistory failed", e)
+                        if (!AppLockManager.isUnlocked()) {
+                            showLockedState()
+                            return@collectLatest
+                        }
                         adapter.submitList(emptyList())
                         updateEmptyState(true)
                         listBinding.tvEmpty.text = getString(R.string.history_unavailable_with_reason, e.message)
@@ -503,7 +655,9 @@ class HistoryFragment : Fragment() {
     }
 
     private fun toggleFavorite(item: HistoryItem) {
+        if (!requireHistoryUnlocked()) return
         viewLifecycleOwner.lifecycleScope.launch {
+            if (!requireHistoryUnlocked()) return@launch
             repository.toggleFavorite(item)
             val message = getString(if (!item.isFavorite) R.string.added_to_favorites else R.string.removed_from_favorites)
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
@@ -511,49 +665,68 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showAddNoteDialog(item: HistoryItem) {
+        if (!requireHistoryUnlocked()) return
         val editText = EditText(requireContext()).apply {
             setText(item.notes ?: "")
             setSelection(item.notes?.length ?: 0)
             hint = getString(R.string.notes_hint)
         }
 
-        MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.add_notes))
             .setView(editText)
             .setPositiveButton(getString(R.string.save_action)) { _, _ ->
+                if (!requireHistoryUnlocked()) return@setPositiveButton
                 val notes = editText.text.toString()
                 viewLifecycleOwner.lifecycleScope.launch {
+                    if (!requireHistoryUnlocked()) return@launch
                     repository.addNotes(item.id, notes)
                     Toast.makeText(requireContext(), getString(R.string.notes_saved), Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(getString(R.string.cancel), null)
-            .show()
+            .create()
+        showSensitiveDialog(dialog)
     }
 
     private fun showEditDialog(item: HistoryItem) {
+        if (!requireHistoryUnlocked()) return
         val editText = EditText(requireContext()).apply {
             setText(item.content)
             setSelection(item.content.length)
         }
 
-        MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.edit_content))
             .setView(editText)
-            .setPositiveButton(getString(R.string.save_action)) { _, _ ->
+            .setPositiveButton(getString(R.string.save_action), null)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if (!requireHistoryUnlocked()) return@setOnClickListener
                 val newContent = editText.text.toString()
-                if (newContent.isNotBlank() && newContent != item.content) {
+                if (newContent.isBlank()) {
+                    editText.error = getString(R.string.please_enter_content)
+                    return@setOnClickListener
+                }
+                editText.error = null
+                if (newContent != item.content) {
                     viewLifecycleOwner.lifecycleScope.launch {
+                        if (!requireHistoryUnlocked()) return@launch
                         repository.updateContent(item.id, newContent)
                         Toast.makeText(requireContext(), getString(R.string.updated), Toast.LENGTH_SHORT).show()
                     }
                 }
+                dialog.dismiss()
             }
-            .setNegativeButton(getString(R.string.cancel), null)
-            .show()
+        }
+        showSensitiveDialog(dialog)
     }
 
     private fun shareContent(content: String) {
+        if (!requireHistoryUnlocked()) return
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
             type = "text/plain"
@@ -563,7 +736,9 @@ class HistoryFragment : Fragment() {
     }
 
     private fun shareQRCode(item: HistoryItem) {
+        if (!requireHistoryUnlocked()) return
         viewLifecycleOwner.lifecycleScope.launch {
+            if (!requireHistoryUnlocked()) return@launch
             try {
                 val bitmap = withContext(Dispatchers.Default) {
                     val format = item.barcodeFormat?.let { BarcodeFormat.fromString(it) } ?: BarcodeFormat.QR_CODE
@@ -575,6 +750,7 @@ class HistoryFragment : Fragment() {
                     Toast.makeText(requireContext(), getString(R.string.barcode_generation_failed), Toast.LENGTH_SHORT).show()
                     return@launch
                 }
+                if (!requireHistoryUnlocked()) return@launch
 
                 val cachePath = File(requireContext().cacheDir, "images")
                 cachePath.mkdirs()
@@ -617,11 +793,14 @@ class HistoryFragment : Fragment() {
     }
 
     private fun deleteItem(item: HistoryItem) {
+        if (!requireHistoryUnlocked()) return
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.delete_item))
             .setMessage(getString(R.string.delete_item_confirm))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->
+                if (!requireHistoryUnlocked()) return@setPositiveButton
                 viewLifecycleOwner.lifecycleScope.launch {
+                    if (!requireHistoryUnlocked()) return@launch
                     repository.delete(item)
                     Toast.makeText(requireContext(), getString(R.string.deleted), Toast.LENGTH_SHORT).show()
                 }
@@ -633,6 +812,15 @@ class HistoryFragment : Fragment() {
     override fun onDestroyView() {
         searchJob?.cancel()
         loadHistoryJob?.cancel()
+        lockMonitorJob?.cancel()
+        lockMonitorJob = null
+        sensitiveDialogs.toList().forEach { it.dismiss() }
+        sensitiveDialogs.clear()
+        pinDialog?.dismiss()
+        pinDialog = null
+        unlockPromptShowing = false
+        biometricAttempted = false
+        historyUiLocked = false
         super.onDestroyView()
         _binding = null
     }

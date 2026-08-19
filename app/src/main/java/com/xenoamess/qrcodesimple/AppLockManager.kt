@@ -8,6 +8,9 @@ import androidx.biometric.BiometricPrompt.AuthenticationResult
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import java.security.MessageDigest
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * 应用锁管理器
@@ -22,6 +25,8 @@ object AppLockManager {
     private const val LOCK_TIMEOUT = 5 * 60 * 1000 // 5分钟超时
 
     private lateinit var prefs: SharedPreferences
+    private val _lockChanges = MutableStateFlow(0L)
+    internal val lockChanges = _lockChanges.asStateFlow()
 
     fun init(context: Context) {
         prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -39,6 +44,7 @@ object AppLockManager {
      */
     fun setLockEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_LOCK_ENABLED, enabled).apply()
+        notifyLockChanged()
     }
 
     /**
@@ -81,6 +87,7 @@ object AppLockManager {
             .remove(KEY_PASSWORD_HASH)
             .putBoolean(KEY_LOCK_ENABLED, false)
             .apply()
+        notifyLockChanged()
     }
 
     /**
@@ -112,7 +119,8 @@ object AppLockManager {
     fun showBiometricPrompt(
         activity: FragmentActivity,
         onSuccess: () -> Unit,
-        onFailed: () -> Unit = {}
+        onFailed: () -> Unit = {},
+        onError: () -> Unit = onFailed
     ) {
         val executor = ContextCompat.getMainExecutor(activity)
         
@@ -131,7 +139,7 @@ object AppLockManager {
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-                    onFailed()
+                    onError()
                 }
             })
 
@@ -149,6 +157,7 @@ object AppLockManager {
      */
     fun recordUnlock() {
         prefs.edit().putLong(KEY_LAST_UNLOCKED, System.currentTimeMillis()).apply()
+        notifyLockChanged()
     }
 
     /**
@@ -160,6 +169,16 @@ object AppLockManager {
         val lastUnlocked = prefs.getLong(KEY_LAST_UNLOCKED, 0)
         val elapsed = System.currentTimeMillis() - lastUnlocked
         return elapsed > LOCK_TIMEOUT
+    }
+
+    /**
+     * 距离当前解锁失效还需等待的时间；未启用应用锁时无需安排检查。
+     */
+    fun remainingUnlockedMillis(): Long? {
+        if (!isLockEnabled()) return null
+        val lastUnlocked = prefs.getLong(KEY_LAST_UNLOCKED, 0)
+        val elapsed = System.currentTimeMillis() - lastUnlocked
+        return (LOCK_TIMEOUT - elapsed + 1).coerceAtLeast(0)
     }
 
     /**
@@ -175,6 +194,11 @@ object AppLockManager {
      */
     fun lock() {
         prefs.edit().remove(KEY_LAST_UNLOCKED).apply()
+        notifyLockChanged()
+    }
+
+    private fun notifyLockChanged() {
+        _lockChanges.update { it + 1 }
     }
 
     /**

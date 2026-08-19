@@ -2,6 +2,7 @@ package com.xenoamess.qrcodesimple
 
 import android.os.Bundle
 import android.os.Looper
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -25,6 +27,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import java.util.concurrent.TimeUnit
 
 /**
  * HistoryDetailFragment 用户场景测试：编辑保存、收藏切换、删除确认。
@@ -39,7 +42,11 @@ class HistoryDetailScenarioTest {
 
     @Before
     fun setup() {
-        repository = HistoryRepository(ApplicationProvider.getApplicationContext())
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        repository = HistoryRepository(context)
+        AppLockManager.init(context)
+        AppLockManager.clearPin()
+        AppLockManager.setBiometricEnabled(false)
         runBlocking {
             repository.deleteAll()
             repository.insertGenerate("detail-content", HistoryType.QR_CODE, "QR_CODE", null)
@@ -52,6 +59,7 @@ class HistoryDetailScenarioTest {
         scenario?.close()
         scenario = null
         runBlocking { repository.deleteAll() }
+        AppLockManager.clearPin()
     }
 
     private fun flush() {
@@ -116,6 +124,38 @@ class HistoryDetailScenarioTest {
             Thread.sleep(50)
         }
         assertEquals("edited-content", runBlocking { repository.allHistory.first().first().content })
+    }
+
+    @Test
+    fun `empty edit stays open and accepts corrected content`() {
+        launch()
+        scenario?.onFragment { fragment ->
+            fragment.requireView().findViewById<Button>(R.id.btnEdit).performClick()
+        }
+        flush()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        val editText = dialog.findEditText()
+        editText.setText("  ")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        flush()
+
+        assertTrue(dialog.isShowing)
+        assertEquals(editText.context.getString(R.string.please_enter_content), editText.error?.toString())
+        assertEquals("detail-content", runBlocking { repository.allHistory.first().single().content })
+
+        editText.setText("corrected-detail")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        val deadline = System.currentTimeMillis() + 3_000
+        while (System.currentTimeMillis() < deadline &&
+            runBlocking { repository.allHistory.first().single().content } != "corrected-detail"
+        ) {
+            flush()
+            Thread.sleep(50)
+        }
+
+        assertFalse(dialog.isShowing)
+        assertEquals("corrected-detail", runBlocking { repository.allHistory.first().single().content })
     }
 
     @Test
@@ -185,5 +225,62 @@ class HistoryDetailScenarioTest {
             Thread.sleep(50)
         }
         assertEquals("alpha,beta", runBlocking { repository.allHistory.first().first().tags })
+    }
+
+    @Test
+    fun `timeout hides detail closes edit dialog and blocks every action`() {
+        AppLockManager.setPin("1234")
+        AppLockManager.recordUnlock()
+        ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getSharedPreferences("app_lock", android.content.Context.MODE_PRIVATE)
+            .edit()
+            .putLong("last_unlocked", System.currentTimeMillis() - 5 * 60 * 1000 + 1_000)
+            .commit()
+        launch()
+        scenario?.onFragment { fragment ->
+            fragment.requireView().findViewById<Button>(R.id.btnEdit).performClick()
+        }
+        flush()
+        val editDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertTrue(editDialog.isShowing)
+
+        Thread.sleep(1_100)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(1_001, TimeUnit.MILLISECONDS)
+        flush()
+
+        assertFalse(editDialog.isShowing)
+        scenario?.onFragment { fragment ->
+            assertEquals(View.GONE, fragment.requireView().visibility)
+            listOf(
+                R.id.btnShare,
+                R.id.btnEdit,
+                R.id.btnDelete,
+                R.id.btnToggleFavorite,
+                R.id.btnEditTags,
+                R.id.btnOpenGenerate
+            ).forEach { id ->
+                val action = fragment.requireView().findViewById<View>(id)
+                assertFalse(action.isEnabled)
+                action.performClick()
+            }
+        }
+        flush()
+
+        val unchanged = runBlocking { repository.allHistory.first().single() }
+        assertEquals("detail-content", unchanged.content)
+        assertFalse(unchanged.isFavorite)
+        assertTrue(unchanged.tags.isNullOrEmpty())
+    }
+
+    private fun AlertDialog.findEditText(): EditText {
+        var result: EditText? = null
+        fun walk(view: android.view.View) {
+            if (view is EditText) result = view
+            if (view is android.view.ViewGroup) {
+                (0 until view.childCount).forEach { walk(view.getChildAt(it)) }
+            }
+        }
+        window?.decorView?.let(::walk)
+        return requireNotNull(result)
     }
 }

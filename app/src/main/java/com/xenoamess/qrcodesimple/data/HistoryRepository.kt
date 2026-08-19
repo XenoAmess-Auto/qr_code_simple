@@ -69,6 +69,9 @@ class HistoryRepository(private val context: Context) {
 
         historyDao.upsert(item)
     }
+
+    /** Restores a backup atomically without changing or being blocked by privacy mode. */
+    suspend fun restoreHistoryItems(items: List<HistoryItem>): Int = historyDao.upsertAll(items)
     
     suspend fun delete(item: HistoryItem) {
         historyDao.delete(item)

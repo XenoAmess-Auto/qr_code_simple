@@ -37,9 +37,12 @@ class VideoScanActivity : AppCompatActivity() {
     private val detectedKeys = LinkedHashSet<String>()
     private var isProcessing = false
     private var processingJob: Job? = null
+    private var ownedMediaUri: Uri? = null
+    private var ownedMediaLease: String? = null
 
     companion object {
         const val EXTRA_VIDEO_URI = "video_uri"
+        internal const val MAX_SHARE_TEXT_CHARS = 100_000
         private const val TAG = "VideoScanActivity"
         // 提取帧的间隔（毫秒）
         private const val FRAME_INTERVAL_MS = 500L
@@ -63,7 +66,15 @@ class VideoScanActivity : AppCompatActivity() {
 
         val uriString = intent.getStringExtra(EXTRA_VIDEO_URI)
         if (uriString != null) {
-            startVideoProcessing(Uri.parse(uriString))
+            val uri = Uri.parse(uriString)
+            if (intent.getBooleanExtra(ScanImageProcessor.EXTRA_OWNED_TEMP_FILE, false)) {
+                ownedMediaUri = uri
+                ownedMediaLease = intent.getStringExtra(
+                    ScanImageProcessor.EXTRA_OWNED_TEMP_FILE_LEASE
+                )
+                ScanImageProcessor.retainOwnedSharedMedia(applicationContext, uri, ownedMediaLease)
+            }
+            startVideoProcessing(uri)
         } else {
             Toast.makeText(this, getString(R.string.no_video_provided), Toast.LENGTH_SHORT).show()
             finish()
@@ -290,12 +301,7 @@ class VideoScanActivity : AppCompatActivity() {
             return
         }
 
-        val text = selected.joinToString("\n") { it.text }
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
-        }
-        startActivity(Intent.createChooser(intent, getString(R.string.share_qr_code_content)))
+        shareResults(selected, R.string.share_qr_code_content)
     }
 
     private fun deleteSelected() {
@@ -333,12 +339,24 @@ class VideoScanActivity : AppCompatActivity() {
 
     private fun shareAll() {
         if (results.isEmpty()) return
-        val text = results.joinToString("\n") { it.text }
+        shareResults(results, R.string.share_all_qr_code_content)
+    }
+
+    private fun shareResults(items: List<QRResult>, chooserTitle: Int) {
+        var textLength = 0L
+        items.forEachIndexed { index, item ->
+            textLength += item.text.length + if (index == 0) 0 else 1
+            if (textLength > MAX_SHARE_TEXT_CHARS) {
+                Toast.makeText(this, R.string.share_text_too_large, Toast.LENGTH_LONG).show()
+                return
+            }
+        }
+        val text = items.joinToString("\n") { it.text }
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, getString(R.string.share_all_qr_code_content)))
+        startActivity(Intent.createChooser(intent, getString(chooserTitle)))
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -370,9 +388,33 @@ class VideoScanActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         isProcessing = false
         processingJob?.cancel()
+        ScanImageProcessor.releaseOwnedSharedMedia(
+            applicationContext,
+            ownedMediaUri,
+            ownedMediaLease
+        )
+        super.onDestroy()
+    }
+
+    override fun finish() {
+        val uri = ownedMediaUri
+        val lease = ownedMediaLease
+        ownedMediaUri = null
+        ownedMediaLease = null
+        isProcessing = false
+        val job = processingJob
+        job?.cancel()
+        if (job != null && !job.isCompleted) {
+            val appContext = applicationContext
+            job.invokeOnCompletion {
+                ScanImageProcessor.deleteOwnedSharedMedia(appContext, uri, uri != null, lease)
+            }
+        } else {
+            ScanImageProcessor.deleteOwnedSharedMedia(applicationContext, uri, uri != null, lease)
+        }
+        super.finish()
     }
 
 }

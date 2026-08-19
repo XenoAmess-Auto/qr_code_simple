@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.content.DialogInterface
 import android.content.Context
 import android.os.Looper
 import androidx.appcompat.app.AlertDialog
@@ -11,6 +12,12 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.CancellationException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -23,6 +30,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import org.robolectric.shadows.ShadowToast
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -43,23 +51,60 @@ class AppUpdateManagerTest {
         override fun connect() = Unit
     }
 
+    private class BlockingConnection(
+        url: URL,
+        private val releaseOnDisconnect: Boolean = true
+    ) : HttpURLConnection(url) {
+        val readStarted = CountDownLatch(1)
+        val readFinished = CountDownLatch(1)
+        val disconnected = AtomicBoolean(false)
+        private val released = CountDownLatch(1)
+
+        override fun getResponseCode(): Int = HTTP_OK
+        override fun getContentLengthLong(): Long = 1
+        override fun getInputStream(): InputStream = object : InputStream() {
+            override fun read(): Int {
+                readStarted.countDown()
+                released.await(3, TimeUnit.SECONDS)
+                readFinished.countDown()
+                return -1
+            }
+
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int = read()
+        }
+
+        override fun disconnect() {
+            disconnected.set(true)
+            if (releaseOnDisconnect) released.countDown()
+        }
+
+        fun releaseRead() = released.countDown()
+
+        override fun usingProxy(): Boolean = false
+        override fun connect() = Unit
+    }
+
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        AppUpdateManager.resetForTesting()
         AppUpdateManager.checkerForTesting = null
         AppUpdateManager.downloadConnectionFactoryForTesting = null
+        File(context.filesDir, "updates").deleteRecursively()
         QRCodeApp.setAppUpdateAutoCheckEnabled(context, false)
         prefs().edit().remove(KEY_LAST_CHECK).apply()
     }
 
     @After
     fun tearDown() {
+        AppUpdateManager.resetForTesting()
         AppUpdateManager.checkerForTesting = null
         AppUpdateManager.downloadConnectionFactoryForTesting = null
         QRCodeApp.setAppUpdateAutoCheckEnabled(context, false)
         prefs().edit().remove(KEY_LAST_CHECK).remove(KEY_AUTO_CHECK).apply()
         File(context.filesDir, "manager-download-test.apk").delete()
         File(context.filesDir, "manager-download-test.apk.part").delete()
+        File(context.filesDir, "updates").deleteRecursively()
     }
 
     @Test
@@ -120,6 +165,289 @@ class AppUpdateManagerTest {
         prefs().edit().remove(KEY_AUTO_CHECK).apply()
 
         assertFalse(QRCodeApp.isAppUpdateAutoCheckEnabled(context))
+    }
+
+    @Test
+    fun `returning from unknown source settings without permission clears pending and allows retry`() {
+        AppUpdateManager.canInstallPackagesForTesting = { false }
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                AppUpdateManager.startInstallForTesting(activity, newRelease())
+                assertTrue(AppUpdateManager.hasPendingInstallForTesting())
+            }
+
+            scenario.recreate()
+            scenario.onActivity { activity ->
+                assertTrue(AppUpdateManager.hasPendingInstallForTesting())
+
+                AppUpdateManager.onInstallPermissionResult(activity)
+                assertFalse(AppUpdateManager.hasPendingInstallForTesting())
+                assertEquals(
+                    activity.getString(R.string.update_install_permission_not_granted),
+                    ShadowToast.getTextOfLatestToast()
+                )
+
+                AppUpdateManager.startInstallForTesting(activity, newRelease())
+                assertTrue(AppUpdateManager.hasPendingInstallForTesting())
+            }
+        }
+    }
+
+    @Test
+    fun `host resume consumes granted unknown source permission without activity result`() {
+        val permissionGranted = AtomicBoolean(false)
+        val apk = File(context.filesDir, "resume-permission.apk")
+        AppUpdateManager.canInstallPackagesForTesting = { permissionGranted.get() }
+        AppUpdateManager.acquireUpdateApkForTesting = { _, _, _, _ ->
+            apk.apply { writeBytes(byteArrayOf(1)) }
+        }
+        AppUpdateManager.archiveVerifierForTesting = { _, _, _ -> true }
+        AppUpdateManager.installApkForTesting = { _, _ -> true }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                AppUpdateManager.startInstallForTesting(activity, newRelease())
+                assertTrue(AppUpdateManager.hasPendingInstallForTesting())
+
+                permissionGranted.set(true)
+                AppUpdateManager.onHostResume(activity)
+            }
+
+            assertFalse(AppUpdateManager.hasPendingInstallForTesting())
+            assertTrue(waitFor { AppUpdateManager.hasPendingInstallerForTesting() })
+        }
+    }
+
+    @Test
+    fun `pending permission state safely expires with process state`() {
+        AppUpdateManager.canInstallPackagesForTesting = { false }
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                AppUpdateManager.startInstallForTesting(activity, newRelease())
+                assertTrue(AppUpdateManager.hasPendingInstallForTesting())
+
+                AppUpdateManager.resetForTesting()
+                AppUpdateManager.onInstallPermissionResult(activity)
+
+                assertFalse(AppUpdateManager.hasPendingInstallForTesting())
+                assertFalse(AppUpdateManager.hasActiveDownloadForTesting())
+            }
+        }
+    }
+
+    @Test
+    fun `orphan cleanup removes update work while excluding active artifacts`() {
+        val updates = File(context.filesDir, "updates").apply { mkdirs() }
+        val orphanDownload = File(updates, "orphan.apk.1.download").apply { writeBytes(byteArrayOf(1)) }
+        val orphanPart = File(updates, "orphan.apk.1.download.part").apply { writeBytes(byteArrayOf(1)) }
+        val orphanLegacyApk = File(updates, "qr-code-simple-0.2.6.apk").apply {
+            writeBytes(byteArrayOf(1))
+        }
+        val orphanIncremental = File(updates, "incremental-orphan").apply {
+            mkdirs()
+            File(this, "hop-0.patch").writeBytes(byteArrayOf(1))
+        }
+        val activeDownload = File(updates, "active.apk.2.download").apply { writeBytes(byteArrayOf(2)) }
+        val activePart = File(updates, "active.apk.2.download.part").apply { writeBytes(byteArrayOf(2)) }
+        val protectedLegacyApk = File(updates, "qr-code-simple-0.2.7.apk").apply {
+            writeBytes(byteArrayOf(2))
+        }
+        val activeIncremental = File(updates, "incremental-active").apply {
+            mkdirs()
+            File(this, "hop-0.patch").writeBytes(byteArrayOf(2))
+        }
+        val legacyLookalike = File(updates, "qr-code-simple-latest.apk").apply {
+            writeBytes(byteArrayOf(3))
+        }
+        val legacyNamedDirectory = File(updates, "qr-code-simple-0.2.8.apk").apply {
+            mkdirs()
+            File(this, "keep.txt").writeText("keep")
+        }
+        val unrelated = File(updates, "keep.txt").apply { writeText("keep") }
+
+        AppUpdateManager.cleanupUpdateArtifacts(
+            context,
+            setOf(
+                activeDownload.absolutePath,
+                activePart.absolutePath,
+                protectedLegacyApk.absolutePath,
+                activeIncremental.absolutePath
+            )
+        )
+
+        assertFalse(orphanDownload.exists())
+        assertFalse(orphanPart.exists())
+        assertFalse(orphanLegacyApk.exists())
+        assertFalse(orphanIncremental.exists())
+        assertTrue(activeDownload.exists())
+        assertTrue(activePart.exists())
+        assertTrue(protectedLegacyApk.exists())
+        assertTrue(activeIncremental.exists())
+        assertTrue(legacyLookalike.exists())
+        assertTrue(legacyNamedDirectory.exists())
+        assertTrue(unrelated.exists())
+    }
+
+    @Test
+    fun `orphan cleanup preserves legacy apk owned by pending installer`() {
+        val apk = File(context.filesDir, "updates/qr-code-simple-99.0.0.apk")
+        AppUpdateManager.canInstallPackagesForTesting = { true }
+        AppUpdateManager.acquireUpdateApkForTesting = { _, _, _, _ ->
+            apk.apply {
+                parentFile?.mkdirs()
+                writeBytes(byteArrayOf(1))
+            }
+        }
+        AppUpdateManager.archiveVerifierForTesting = { _, _, _ -> true }
+        AppUpdateManager.installApkForTesting = { _, _ -> true }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { AppUpdateManager.startInstallForTesting(it, newRelease()) }
+            assertTrue(waitFor { AppUpdateManager.hasPendingInstallerForTesting() })
+
+            AppUpdateManager.cleanupUpdateArtifacts(context)
+
+            assertTrue(apk.exists())
+        }
+    }
+
+    @Test
+    fun `orphan cleanup preserves active download before cancel disconnects network`() {
+        AppUpdateManager.canInstallPackagesForTesting = { true }
+        var connection: BlockingConnection? = null
+        AppUpdateManager.downloadConnectionFactoryForTesting = { url ->
+            BlockingConnection(url).also { connection = it }
+        }
+        val release = downloadableRelease()
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { AppUpdateManager.startInstallForTesting(it, release) }
+            assertTrue(waitFor { connection?.readStarted?.count == 0L })
+            assertTrue(waitFor { updatePartFiles().size == 1 })
+
+            val activePart = updatePartFiles().single()
+            AppUpdateManager.cleanupUpdateArtifacts(context)
+
+            assertTrue(activePart.exists())
+
+            val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).performClick()
+
+            assertTrue(waitFor { connection?.disconnected?.get() == true })
+            assertTrue(waitFor { !AppUpdateManager.hasActiveDownloadForTesting() })
+            assertFalse(dialog.isShowing)
+        }
+    }
+
+    @Test
+    fun `cancel during connection creation disconnects the late connection`() {
+        AppUpdateManager.canInstallPackagesForTesting = { true }
+        val factoryEntered = CountDownLatch(1)
+        val releaseFactory = CountDownLatch(1)
+        val lateConnection = AtomicReference<BlockingConnection>()
+        AppUpdateManager.downloadConnectionFactoryForTesting = { url ->
+            factoryEntered.countDown()
+            releaseFactory.await(3, TimeUnit.SECONDS)
+            BlockingConnection(url).also { lateConnection.set(it) }
+        }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity {
+                AppUpdateManager.startInstallForTesting(it, downloadableRelease())
+            }
+            assertTrue(factoryEntered.await(3, TimeUnit.SECONDS))
+
+            val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).performClick()
+            releaseFactory.countDown()
+
+            assertTrue(waitFor { lateConnection.get()?.disconnected?.get() == true })
+            assertFalse(AppUpdateManager.hasActiveDownloadForTesting())
+            assertFalse(dialog.isShowing)
+        }
+    }
+
+    @Test
+    fun `superseded session cannot clear new connection state or part file`() {
+        AppUpdateManager.canInstallPackagesForTesting = { true }
+        val connectionNumber = AtomicInteger()
+        val first = AtomicReference<BlockingConnection>()
+        val second = AtomicReference<BlockingConnection>()
+        AppUpdateManager.downloadConnectionFactoryForTesting = { url ->
+            BlockingConnection(url, releaseOnDisconnect = false).also { connection ->
+                if (connectionNumber.incrementAndGet() == 1) first.set(connection) else second.set(connection)
+            }
+        }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity {
+                AppUpdateManager.startInstallForTesting(it, downloadableRelease())
+            }
+            assertTrue(waitFor { first.get()?.readStarted?.count == 0L })
+
+            scenario.onActivity {
+                AppUpdateManager.startInstallForTesting(it, downloadableRelease())
+            }
+            assertTrue(waitFor { second.get()?.readStarted?.count == 0L })
+            assertTrue(first.get()?.disconnected?.get() == true)
+            assertTrue(waitFor { updatePartFiles().size == 2 })
+
+            first.get()?.releaseRead()
+
+            assertTrue(waitFor { updatePartFiles().size == 1 })
+            assertTrue(AppUpdateManager.hasActiveDownloadForTesting())
+            assertFalse(second.get()?.disconnected?.get() == true)
+
+            val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).performClick()
+            second.get()?.releaseRead()
+            assertTrue(second.get()?.readFinished?.await(3, TimeUnit.SECONDS) == true)
+            assertTrue(waitFor(maxMs = 10_000) {
+                second.get()?.disconnected?.get() == true && updatePartFiles().isEmpty()
+            })
+        }
+    }
+
+    @Test
+    fun `destroying host cancels download and dismisses progress dialog`() {
+        AppUpdateManager.canInstallPackagesForTesting = { true }
+        var connection: BlockingConnection? = null
+        AppUpdateManager.downloadConnectionFactoryForTesting = { url ->
+            BlockingConnection(url).also { connection = it }
+        }
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        scenario.onActivity { AppUpdateManager.startInstallForTesting(it, downloadableRelease()) }
+        assertTrue(waitFor { connection?.readStarted?.count == 0L })
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+
+        scenario.close()
+
+        assertTrue(waitFor { connection?.disconnected?.get() == true })
+        assertFalse(dialog.isShowing)
+        assertFalse(AppUpdateManager.hasActiveDownloadForTesting())
+    }
+
+    @Test
+    fun `resume after package installer cancellation checks version and clears attempt`() {
+        AppUpdateManager.canInstallPackagesForTesting = { true }
+        val apk = File(context.filesDir, "installer-attempt.apk")
+        AppUpdateManager.acquireUpdateApkForTesting = { _, _, _, _ ->
+            apk.apply { writeBytes(byteArrayOf(1)) }
+        }
+        AppUpdateManager.archiveVerifierForTesting = { _, _, _ -> true }
+        AppUpdateManager.installApkForTesting = { _, _ -> true }
+
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { AppUpdateManager.startInstallForTesting(it, newRelease()) }
+            assertTrue(waitFor { AppUpdateManager.hasPendingInstallerForTesting() })
+            assertTrue(apk.exists())
+
+            scenario.onActivity { AppUpdateManager.onHostResume(it) }
+
+            assertFalse(AppUpdateManager.hasPendingInstallerForTesting())
+            assertFalse(apk.exists())
+            assertTrue(ShadowDialog.getLatestDialog()?.isShowing == true)
+        }
     }
 
     @Test
@@ -223,6 +551,23 @@ class AppUpdateManagerTest {
         assertFalse(opened)
     }
 
+    @Test
+    fun `artifact cancellation is propagated rather than converted to failure`() {
+        val error = org.junit.Assert.assertThrows(CancellationException::class.java) {
+            AppUpdateManager.downloadVerifiedArtifact(
+                url = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v0.2.6/update.apk",
+                endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
+                destination = File(context.filesDir, "manager-download-test.apk"),
+                expectedSizeBytes = 1,
+                expectedSha256 = sha256(byteArrayOf(1)),
+                onProgress = {},
+                isCancelled = { true }
+            )
+        }
+
+        assertNotNull(error)
+    }
+
     private fun newRelease(
         channel: UpdateDecider.Channel = UpdateDecider.Channel.STABLE,
         versionName: String = "99.0.0"
@@ -242,7 +587,20 @@ class AppUpdateManagerTest {
         chain = null
     )
 
+    private fun downloadableRelease(): UpdateDecider.ReleaseInfo {
+        return newRelease().copy(
+            apkUrl = "https://github.com/XenoAmess-Auto/qr_code_simple/releases/download/v99.0.0/update.apk",
+            apkSha256 = sha256(byteArrayOf(1)),
+            apkSizeBytes = 1
+        )
+    }
+
     private fun prefs() = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+
+    private fun updatePartFiles(): List<File> = File(context.filesDir, "updates")
+        .listFiles()
+        .orEmpty()
+        .filter { it.name.endsWith(".part") }
 
     private fun flushMainLooper() {
         Shadows.shadowOf(Looper.getMainLooper()).idle()

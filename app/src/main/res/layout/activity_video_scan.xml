@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/app_background"
+    android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:padding="8dp"
-    android:fitsSystemWindows="true">
+    android:padding="@dimen/space_8">
 
     <TextView
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/space_8"
         android:text="@string/scanning_video"
         android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
-        android:gravity="center"
-        android:padding="8dp"
         android:visibility="gone" />
 
     <ProgressBar
@@ -24,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/space_16"
         android:visibility="gone" />
 
     <com.google.android.material.button.MaterialButton
@@ -32,19 +31,19 @@
         style="@style/Widget.QRCodeSimple.Button.Destructive"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/space_8"
         android:text="@string/stop_scanning"
-        android:visibility="gone"
-        android:layout_marginBottom="8dp" />
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvNoResults"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/space_24"
         android:text="@string/no_qr_codes_found"
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:textColor="@color/app_text_secondary"
-        android:gravity="center"
-        android:padding="32dp"
         android:visibility="visible" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -52,16 +51,17 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:minHeight="@dimen/touch_target_min"
         android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvSelectionCount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="Selected: 0/0"
+        android:layout_marginTop="@dimen/space_8"
+        android:layout_marginBottom="@dimen/space_4"
         android:textAppearance="@style/TextAppearance.QRCodeSimple.Metadata"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp" />
+        tools:text="Selected: 0/0" />
 
     <LinearLayout
         android:id="@+id/layoutButtons"
@@ -103,8 +103,8 @@
                 style="@style/Widget.QRCodeSimple.Button.Primary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="@dimen/space_4"
+                android:layout_weight="1"
                 android:text="@string/copy" />
 
             <com.google.android.material.button.MaterialButton
@@ -112,8 +112,8 @@
                 style="@style/Widget.QRCodeSimple.Button.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginHorizontal="@dimen/space_4"
+                android:layout_weight="1"
                 android:text="@string/share" />
 
             <com.google.android.material.button.MaterialButton
@@ -121,8 +121,8 @@
                 style="@style/Widget.QRCodeSimple.Button.Destructive"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="@dimen/space_4"
+                android:layout_weight="1"
                 android:text="@string/delete" />
 
         </LinearLayout>

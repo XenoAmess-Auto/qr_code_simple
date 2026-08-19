@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.button.MaterialButton
@@ -205,13 +206,25 @@ class QRResultAdapter(
         val editText = android.widget.EditText(context).apply {
             setText(currentText)
         }
-        MaterialAlertDialogBuilder(context)
+        val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.edit_qr_code_content))
             .setView(editText)
-            .setPositiveButton(context.getString(R.string.save_action)) { _, _ ->
-                onEdit?.invoke(position, editText.text.toString())
-            }
+            .setPositiveButton(context.getString(R.string.save_action), null)
             .setNegativeButton(context.getString(R.string.cancel), null)
-            .show()
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val content = editText.text.toString()
+                if (content.isBlank()) {
+                    editText.error = context.getString(R.string.please_enter_content)
+                    return@setOnClickListener
+                }
+                editText.error = null
+                onEdit?.invoke(position, content)
+                dialog.dismiss()
+            }
+        }
+        dialog.show()
     }
 }

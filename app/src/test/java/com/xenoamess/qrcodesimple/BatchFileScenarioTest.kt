@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
@@ -7,12 +8,14 @@ import android.widget.EditText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.activity.ComponentActivity
 import kotlinx.coroutines.runBlocking
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -36,6 +39,8 @@ class BatchFileScenarioTest {
     @Before
     fun setup() {
         clearFileProviderCache()
+        Shadows.shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>())
+            .denyPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     }
 
     @After
@@ -131,10 +136,12 @@ class BatchFileScenarioTest {
 
     @Test
     fun `save all as zip writes png entries to downloads`() {
-        val intent = Intent(ApplicationProvider.getApplicationContext(), BatchResultActivity::class.java).apply {
-            putStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS, arrayListOf("zip-item-1", "zip-item-2"))
-            putExtra(BatchGenerateActivity.EXTRA_FORMAT, "QR_CODE")
-        }
+        Shadows.shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>())
+            .grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val intent = BatchResultTransfer.createIntent(
+            ApplicationProvider.getApplicationContext(),
+            listOf(BatchGenerator.BatchItem("zip-item-1"), BatchGenerator.BatchItem("zip-item-2"))
+        )
         resultScenario = ActivityScenario.launch<BatchResultActivity>(intent)
 
         // 等批量生成完成
@@ -178,10 +185,12 @@ class BatchFileScenarioTest {
 
     @Test
     fun `save single image writes png to pictures dir`() {
-        val intent = Intent(ApplicationProvider.getApplicationContext(), BatchResultActivity::class.java).apply {
-            putStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS, arrayListOf("single-item"))
-            putExtra(BatchGenerateActivity.EXTRA_FORMAT, "QR_CODE")
-        }
+        Shadows.shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>())
+            .grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val intent = BatchResultTransfer.createIntent(
+            ApplicationProvider.getApplicationContext(),
+            listOf(BatchGenerator.BatchItem("single-item"))
+        )
         resultScenario = ActivityScenario.launch<BatchResultActivity>(intent)
 
         waitUntil {
@@ -217,5 +226,104 @@ class BatchFileScenarioTest {
             .maxByOrNull { it.lastModified() }!!
         assertTrue(png.name.endsWith(".png"))
         assertTrue(png.length() > 0)
+    }
+
+    @Test
+    fun `api28 zip save requests permission and resumes after recreation`() {
+        val intent = BatchResultTransfer.createIntent(
+            ApplicationProvider.getApplicationContext(),
+            listOf(BatchGenerator.BatchItem("permission-zip"))
+        )
+        resultScenario = ActivityScenario.launch<BatchResultActivity>(intent)
+        waitForBatchResults(1)
+
+        val downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val existingZipNames = downloads.listFiles()
+            ?.filter { it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") }
+            ?.mapTo(mutableSetOf()) { it.name }
+            .orEmpty()
+
+        var requestCode = 0
+        resultScenario?.onActivity { activity ->
+            activity.saveAllAsZip()
+            val request = Shadows.shadowOf(activity).lastRequestedPermission
+            assertEquals(Manifest.permission.WRITE_EXTERNAL_STORAGE, request?.requestedPermissions?.single())
+            requestCode = request!!.requestCode
+        }
+
+        resultScenario?.recreate()
+        Shadows.shadowOf(ApplicationProvider.getApplicationContext<android.app.Application>())
+            .grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        resultScenario?.onActivity { activity ->
+            (activity as ComponentActivity).activityResultRegistry.dispatchResult(requestCode, true)
+        }
+
+        waitUntil {
+            downloads.listFiles()?.any {
+                it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") && it.name !in existingZipNames
+            } == true
+        }
+        assertTrue(downloads.listFiles()?.any {
+            it.name.startsWith("batch_qr_") && it.name.endsWith(".zip") && it.name !in existingZipNames
+        } == true)
+    }
+
+    @Test
+    fun `api28 single image denial shows explicit error`() {
+        val intent = BatchResultTransfer.createIntent(
+            ApplicationProvider.getApplicationContext(),
+            listOf(BatchGenerator.BatchItem("permission-single"))
+        )
+        resultScenario = ActivityScenario.launch<BatchResultActivity>(intent)
+        waitForBatchResults(1)
+
+        var requestCode = 0
+        resultScenario?.onActivity { activity ->
+            val field = BatchResultActivity::class.java.getDeclaredField("results").apply { isAccessible = true }
+            @Suppress("UNCHECKED_CAST")
+            val results = field.get(activity) as List<BatchResultActivity.BatchResult>
+            activity.saveSingleImage(results.single())
+            requestCode = Shadows.shadowOf(activity).lastRequestedPermission!!.requestCode
+        }
+        org.robolectric.shadows.ShadowToast.reset()
+        resultScenario?.onActivity { activity ->
+            (activity as ComponentActivity).activityResultRegistry.dispatchResult(requestCode, false)
+        }
+        idleMain()
+
+        assertEquals(
+            ApplicationProvider.getApplicationContext<android.content.Context>()
+                .getString(R.string.storage_write_permission_denied),
+            org.robolectric.shadows.ShadowToast.getTextOfLatestToast()
+        )
+    }
+
+    @Test
+    @Config(sdk = [29], application = QRCodeApp::class)
+    fun `api29 batch saves do not request legacy permission`() {
+        val intent = BatchResultTransfer.createIntent(
+            ApplicationProvider.getApplicationContext(),
+            listOf(BatchGenerator.BatchItem("api29-batch"))
+        )
+        resultScenario = ActivityScenario.launch<BatchResultActivity>(intent)
+        waitForBatchResults(1)
+
+        resultScenario?.onActivity { activity ->
+            activity.saveAllAsZip()
+            assertNull(Shadows.shadowOf(activity).lastRequestedPermission)
+        }
+    }
+
+    private fun waitForBatchResults(expected: Int) {
+        waitUntil {
+            var ready = false
+            resultScenario?.onActivity { activity ->
+                val field = BatchResultActivity::class.java.getDeclaredField("results").apply { isAccessible = true }
+                @Suppress("UNCHECKED_CAST")
+                val results = field.get(activity) as List<BatchResultActivity.BatchResult>
+                ready = results.size == expected && results.all { it.imageFile != null }
+            }
+            ready
+        }
     }
 }

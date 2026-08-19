@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import java.io.File
 import java.security.MessageDigest
+import kotlinx.coroutines.CancellationException
 
 /**
  * File helpers for verified APK delta updates (ApkDiffPatch "ZiPat1" format).
@@ -28,11 +29,12 @@ object ApkPatcher {
         }
     }
 
-    fun sha256(file: File): String {
+    fun sha256(file: File, isCancelled: () -> Boolean = { false }): String {
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().buffered().use { input ->
             val buffer = ByteArray(64 * 1024)
             while (true) {
+                if (isCancelled()) throw CancellationException("APK verification cancelled")
                 val read = input.read(buffer)
                 if (read < 0) break
                 digest.update(buffer, 0, read)
@@ -50,14 +52,26 @@ object ApkPatcher {
      * the recoverable full-download fallback always works.
      */
     fun applyPatch(context: Context, baseApk: File, patchFile: File, outputFile: File) {
+        applyPatch(context, baseApk, patchFile, outputFile) { base, patch, output, memory, temp, threads ->
+            com.github.sisong.ApkPatch.patch(base, patch, output, memory, temp, threads)
+        }
+    }
+
+    internal fun applyPatch(
+        context: Context,
+        baseApk: File,
+        patchFile: File,
+        outputFile: File,
+        nativePatch: (String, String, String, Long, String, Int) -> Int
+    ) {
         val magic = readMagic(patchFile)
         if (!magic.startsWith(APKDIFF_PATCH_MAGIC)) {
             throw IllegalArgumentException("unknown patch format: ${magic.take(8)}")
         }
         outputFile.parentFile?.mkdirs()
-        val tmp = File(context.cacheDir, "apkpatch_tmp.bin")
+        val tmp = File.createTempFile("apkpatch-", ".bin", context.cacheDir)
         try {
-            val rc = com.github.sisong.ApkPatch.patch(
+            val rc = nativePatch(
                 baseApk.absolutePath,
                 patchFile.absolutePath,
                 outputFile.absolutePath,
@@ -69,6 +83,8 @@ object ApkPatcher {
             if (!outputFile.isFile || outputFile.length() <= 0) {
                 throw IllegalStateException("ApkDiffPatch apply produced empty output")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             throw IllegalStateException(
                 "ApkDiffPatch apply failed: ${e.javaClass.simpleName}: ${e.message}",

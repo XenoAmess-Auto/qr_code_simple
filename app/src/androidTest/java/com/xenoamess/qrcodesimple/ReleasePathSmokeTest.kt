@@ -27,13 +27,12 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class ReleasePathSmokeTest {
 
-    // API ≤28 写 MediaStore 需要 WRITE_EXTERNAL_STORAGE 运行时授权；33+ 由系统豁免
+    // API ≤28 直写公共目录需要 WRITE_EXTERNAL_STORAGE；29+ 使用 scoped MediaStore
     @get:Rule
     val storagePermissionRule: androidx.test.rule.GrantPermissionRule =
         androidx.test.rule.GrantPermissionRule.grant(
             *buildList {
-                // WRITE_EXTERNAL_STORAGE 仅 API ≤32 存在（manifest maxSdk 限定），33+ 无需授权
-                if (android.os.Build.VERSION.SDK_INT <= 32) {
+                if (android.os.Build.VERSION.SDK_INT <= 28) {
                     add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
             }.toTypedArray()
@@ -106,13 +105,13 @@ class ReleasePathSmokeTest {
 
     @Test
     fun batchZipExportWritesMediaStore() {
-        val intent = android.content.Intent(context, BatchResultActivity::class.java).apply {
-            putStringArrayListExtra(
-                BatchGenerateActivity.EXTRA_CONTENTS,
-                arrayListOf("https://zip-1.example.com", "https://zip-2.example.com")
+        val intent = BatchResultTransfer.createIntent(
+            context,
+            listOf(
+                BatchGenerator.BatchItem("https://zip-1.example.com"),
+                BatchGenerator.BatchItem("https://zip-2.example.com")
             )
-            putExtra(BatchGenerateActivity.EXTRA_FORMAT, BarcodeFormat.QR_CODE.name)
-        }
+        )
         ActivityScenario.launch<BatchResultActivity>(intent).use { scenario ->
             // Wait until the batch generation finished (progress text shows the count).
             assertTrue(

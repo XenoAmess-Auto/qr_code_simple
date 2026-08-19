@@ -7,6 +7,8 @@ import android.content.Intent
 import android.os.Looper
 import android.view.View
 import android.widget.ImageView
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -28,6 +30,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
+import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -40,11 +44,15 @@ class HistoryDetailActivityTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         repository = HistoryRepository(context)
         runBlocking { repository.deleteAll() }
+        AppLockManager.init(context)
+        AppLockManager.clearPin()
+        AppLockManager.setBiometricEnabled(false)
     }
 
     @After
     fun tearDown() {
         runBlocking { repository.deleteAll() }
+        AppLockManager.clearPin()
     }
 
     private fun flushMainLooper() {
@@ -219,5 +227,88 @@ class HistoryDetailActivityTest {
             assertEquals("https://example.com", startedIntent?.getStringExtra("generate_content"))
         }
         scenario.close()
+    }
+
+    @Test
+    fun backgroundTimeoutHidesDetailBeforeReturnAndUnlockRestoresIt() {
+        val insertedId = insertItem()
+        AppLockManager.setPin("1234")
+        AppLockManager.recordUnlock()
+        ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("app_lock", Context.MODE_PRIVATE)
+            .edit()
+            .putLong("last_unlocked", System.currentTimeMillis() - 5 * 60 * 1000 + 1_000)
+            .commit()
+        val scenario = launchActivity(insertedId)
+        resumeScenario(scenario)
+        assertTrue(waitFor { getViewText(scenario, R.id.tvContent) == "https://example.com" })
+
+        scenario.moveToState(Lifecycle.State.CREATED)
+        Thread.sleep(1_100)
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(1_001, TimeUnit.MILLISECONDS)
+        scenario.moveToState(Lifecycle.State.RESUMED)
+        flushMainLooper()
+
+        scenario.onActivity { activity ->
+            val detail = activity.supportFragmentManager.findFragmentById(R.id.fragmentContainer)!!
+            assertEquals(View.GONE, detail.requireView().visibility)
+            assertEquals("", activity.findViewById<android.widget.TextView>(R.id.tvContent).text.toString())
+        }
+        val pinDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertTrue(pinDialog.isShowing)
+        pinDialog.findEditText().setText("1234")
+        pinDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+
+        assertTrue(waitFor { getViewText(scenario, R.id.tvContent) == "https://example.com" })
+        scenario.onActivity { activity ->
+            val detail = activity.supportFragmentManager.findFragmentById(R.id.fragmentContainer)!!
+            assertEquals(View.VISIBLE, detail.requireView().visibility)
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun biometricCancellationFallsBackToPinAndPinUnlocksDetail() {
+        val insertedId = insertItem()
+        AppLockManager.setPin("1234")
+        AppLockManager.lock()
+        val scenario = launchActivity(insertedId)
+        resumeScenario(scenario)
+
+        val initialPinDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        initialPinDialog.dismiss()
+        scenario.onActivity { activity ->
+            val detail = activity.supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+                as HistoryDetailFragment
+            val promptFlag = HistoryDetailFragment::class.java.getDeclaredField("unlockPromptShowing")
+            promptFlag.isAccessible = true
+            promptFlag.setBoolean(detail, true)
+            detail.fallbackToPinAfterBiometricError()
+        }
+        flushMainLooper()
+
+        val fallbackPinDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertTrue(fallbackPinDialog.isShowing)
+        fallbackPinDialog.findEditText().setText("1234")
+        fallbackPinDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+
+        assertTrue(waitFor { getViewText(scenario, R.id.tvContent) == "https://example.com" })
+        scenario.onActivity { activity ->
+            val detail = activity.supportFragmentManager.findFragmentById(R.id.fragmentContainer)!!
+            assertEquals(View.VISIBLE, detail.requireView().visibility)
+        }
+        scenario.close()
+    }
+
+    private fun AlertDialog.findEditText(): EditText {
+        var result: EditText? = null
+        fun walk(view: View) {
+            if (view is EditText) result = view
+            if (view is android.view.ViewGroup) {
+                (0 until view.childCount).forEach { walk(view.getChildAt(it)) }
+            }
+        }
+        window?.decorView?.let(::walk)
+        return requireNotNull(result)
     }
 }

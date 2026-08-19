@@ -8,10 +8,18 @@ import com.xenoamess.qrcodesimple.data.HistoryType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVParser
+import org.apache.commons.csv.CSVPrinter
+import org.apache.commons.csv.CSVRecord
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.io.Reader
+import java.io.StringReader
+import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -69,6 +77,17 @@ object HistoryBackupManager {
         return trimmed.startsWith("{") || trimmed.startsWith("[")
     }
 
+    /** Accept exported CSV headers and legacy headerless backup rows, but not arbitrary text. */
+    fun looksLikeCsv(content: String): Boolean {
+        return runCatching {
+            CSVParser.parse(StringReader(content), BACKUP_CSV_FORMAT).use { parser ->
+                val firstRecord = parser.iterator().let { if (it.hasNext()) it.next() else null }
+                    ?: return@use false
+                isCsvHeader(firstRecord) || runCatching { parseCsvRecord(firstRecord) }.isSuccess
+            }
+        }.getOrDefault(false)
+    }
+
     /**
      * 导出历史记录为加密备份（AES-256/GCM，密码派生密钥）。
      */
@@ -85,7 +104,7 @@ object HistoryBackupManager {
             val json = BackupCrypto.decrypt(data, password).toString(Charsets.UTF_8)
             importFromJson(context, json)
         } catch (e: Exception) {
-            BackupResult(false, 0, "Decryption failed: wrong password or corrupted file")
+            BackupResult(false, 0, context.getString(R.string.backup_decrypt_failed))
         }
     }
 
@@ -94,44 +113,34 @@ object HistoryBackupManager {
      */
     suspend fun importFromJson(context: Context, jsonString: String): BackupResult = withContext(Dispatchers.IO) {
         try {
-            val repository = HistoryRepository(context)
             val rootObject = JSONObject(jsonString)
             
             // 检查版本
-            val version = rootObject.optInt("version", 1)
+            val version = rootObject.optionalInt("version", 1)
             if (version > 1) {
-                return@withContext BackupResult(false, 0, "Unsupported backup version: $version")
+                return@withContext BackupResult(
+                    false,
+                    0,
+                    context.getString(R.string.backup_import_unsupported_version, version)
+                )
             }
 
             val itemsArray = rootObject.getJSONArray("items")
-            var importedCount = 0
-
-            for (i in 0 until itemsArray.length()) {
-                val itemObject = itemsArray.getJSONObject(i)
-                
-                val item = HistoryItem(
-                    content = itemObject.getString("content"),
-                    type = HistoryType.valueOf(itemObject.getString("type")),
-                    timestamp = itemObject.optLong("timestamp", System.currentTimeMillis()),
-                    isGenerated = itemObject.optBoolean("isGenerated", false),
-                    barcodeFormat = itemObject.optString("barcodeFormat").takeIf { it != "null" },
-                    isFavorite = itemObject.optBoolean("isFavorite", false),
-                    notes = itemObject.optString("notes").takeIf { it != "null" },
-                    tags = itemObject.optString("tags").takeIf { it != "null" },
-                    styleJson = itemObject.optString("styleJson").takeIf { it != "null" }
-                )
-
-                try {
-                    repository.importHistoryItem(item)
-                    importedCount++
-                } catch (e: Exception) {
-                    // 忽略无法导入的项
-                }
+            val items = List(itemsArray.length()) { index ->
+                parseJsonItem(itemsArray.getJSONObject(index))
             }
 
-            BackupResult(true, importedCount, "Imported $importedCount items successfully")
+            if (items.isEmpty()) {
+                return@withContext BackupResult(
+                    false,
+                    0,
+                    context.getString(R.string.backup_import_no_valid_records)
+                )
+            }
+            val writtenCount = HistoryRepository(context).restoreHistoryItems(items)
+            BackupResult(true, writtenCount, context.getString(R.string.batch_items_imported, writtenCount))
         } catch (e: Exception) {
-            BackupResult(false, 0, "Import failed: ${e.message}")
+            BackupResult(false, 0, context.getString(R.string.backup_import_invalid_structure))
         }
     }
 
@@ -142,33 +151,25 @@ object HistoryBackupManager {
         val repository = HistoryRepository(context)
         val items = repository.allHistory.first()
 
-        val csvBuilder = StringBuilder()
-        csvBuilder.appendLine("content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags,styleJson")
-
-        items.forEach { item ->
-            val line = buildString {
-                append(escapeCsv(item.content))
-                append(",")
-                append(item.type.name)
-                append(",")
-                append(item.timestamp)
-                append(",")
-                append(item.isGenerated)
-                append(",")
-                append(item.barcodeFormat ?: "")
-                append(",")
-                append(item.isFavorite)
-                append(",")
-                append(escapeCsv(item.notes ?: ""))
-                append(",")
-                append(escapeCsv(item.tags ?: ""))
-                append(",")
-                append(escapeCsv(item.styleJson ?: ""))
+        StringWriter().use { writer ->
+            CSVPrinter(writer, BACKUP_CSV_FORMAT).use { printer ->
+                printer.printRecord(*CSV_HEADERS)
+                items.forEach { item ->
+                    printer.printRecord(
+                        item.content,
+                        item.type.name,
+                        item.timestamp,
+                        item.isGenerated,
+                        item.barcodeFormat ?: "",
+                        item.isFavorite,
+                        item.notes ?: "",
+                        item.tags ?: "",
+                        item.styleJson ?: ""
+                    )
+                }
             }
-            csvBuilder.appendLine(line)
+            writer.toString()
         }
-
-        csvBuilder.toString()
     }
 
     /**
@@ -210,99 +211,114 @@ object HistoryBackupManager {
     /**
      * 从 CSV 导入
      */
-    suspend fun importFromCsv(context: Context, csvString: String): BackupResult = withContext(Dispatchers.IO) {
+    suspend fun importFromCsv(context: Context, csvString: String): BackupResult =
+        importFromCsv(context, StringReader(csvString))
+
+    /** Parses logical CSV records from [reader], including quoted CR/LF fields. */
+    suspend fun importFromCsv(context: Context, reader: Reader): BackupResult = withContext(Dispatchers.IO) {
         try {
-            val repository = HistoryRepository(context)
-            val lines = csvString.lines()
-
-            if (csvString.isBlank()) {
-                return@withContext BackupResult(false, 0, "Empty CSV file")
-            }
-
-            // 跳过标题行
-            val dataLines = if (lines[0].contains("content,type")) lines.drop(1) else lines
-
-            var importedCount = 0
-
-            dataLines.filter { it.isNotBlank() }.forEach { line ->
-                try {
-                    val parts = parseCsvLine(line)
-                    if (parts.size >= 4 && parts[0].isNotBlank()) {
-                        val item = HistoryItem(
-                            content = parts[0],
-                            type = HistoryType.valueOf(parts[1]),
-                            timestamp = parts[2].toLongOrNull() ?: System.currentTimeMillis(),
-                            isGenerated = parts[3].toBoolean(),
-                            barcodeFormat = parts.getOrNull(4)?.takeIf { it.isNotBlank() },
-                            isFavorite = parts.getOrNull(5)?.toBoolean() ?: false,
-                            notes = parts.getOrNull(6)?.takeIf { it.isNotBlank() },
-                            tags = parts.getOrNull(7)?.takeIf { it.isNotBlank() },
-                            styleJson = parts.getOrNull(8)?.takeIf { it.isNotBlank() }
-                        )
-
-                        try {
-                            repository.importHistoryItem(item)
-                            importedCount++
-                        } catch (e: Exception) {
-                            // 忽略无法导入的项
-                        }
-                    }
-                } catch (e: Exception) {
-                    // 跳过无效行
+            val items = mutableListOf<HistoryItem>()
+            CSVParser.parse(reader, BACKUP_CSV_FORMAT).use { parser ->
+                parser.forEachIndexed { index, record ->
+                    if (index == 0 && isCsvHeader(record)) return@forEachIndexed
+                    items += parseCsvRecord(record)
                 }
             }
 
-            BackupResult(true, importedCount, "Imported $importedCount items successfully")
+            if (items.isEmpty()) {
+                return@withContext BackupResult(
+                    false,
+                    0,
+                    context.getString(R.string.backup_import_no_valid_records)
+                )
+            }
+            val writtenCount = HistoryRepository(context).restoreHistoryItems(items)
+            BackupResult(true, writtenCount, context.getString(R.string.batch_items_imported, writtenCount))
         } catch (e: Exception) {
-            BackupResult(false, 0, "Import failed: ${e.message}")
+            BackupResult(false, 0, context.getString(R.string.backup_import_invalid_structure))
         }
     }
 
-    /**
-     * 转义 CSV 字段
-     */
-    private fun escapeCsv(value: String): String {
-        return if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
-            "\"${value.replace("\"", "\"\"")}\""
+    private fun isCsvHeader(record: CSVRecord): Boolean =
+        record.size() in 4..CSV_HEADERS.size &&
+            (0 until record.size()).all { record[it] == CSV_HEADERS[it] }
+
+    private fun parseCsvRecord(record: CSVRecord): HistoryItem {
+        require(record.size() in 4..CSV_HEADERS.size && record[0].isNotBlank())
+        val generated = requireNotNull(record[3].toStrictBoolean())
+        val favoriteText = record.getOrNull(5)
+        val favorite = if (favoriteText.isNullOrBlank()) {
+            false
         } else {
-            value
+            requireNotNull(favoriteText.toStrictBoolean())
+        }
+        return HistoryItem(
+            content = record[0],
+            type = HistoryType.valueOf(record[1]),
+            timestamp = record[2].toLong(),
+            isGenerated = generated,
+            barcodeFormat = record.getOrNull(4)?.takeIf { it.isNotBlank() },
+            isFavorite = favorite,
+            notes = record.getOrNull(6)?.takeIf { it.isNotBlank() },
+            tags = record.getOrNull(7)?.takeIf { it.isNotBlank() },
+            styleJson = record.getOrNull(8)?.takeIf { it.isNotBlank() }
+        )
+    }
+
+    private fun parseJsonItem(item: JSONObject): HistoryItem {
+        val content = item.requiredString("content")
+        require(content.isNotBlank())
+        return HistoryItem(
+            content = content,
+            type = HistoryType.valueOf(item.requiredString("type")),
+            timestamp = item.optionalLong("timestamp", System.currentTimeMillis()),
+            isGenerated = item.optionalBoolean("isGenerated", false),
+            barcodeFormat = item.optionalString("barcodeFormat"),
+            isFavorite = item.optionalBoolean("isFavorite", false),
+            notes = item.optionalString("notes"),
+            tags = item.optionalString("tags"),
+            styleJson = item.optionalString("styleJson")
+        )
+    }
+
+    private fun JSONObject.requiredString(name: String): String =
+        get(name) as? String ?: throw JSONException("$name must be a string")
+
+    private fun JSONObject.optionalString(name: String): String? {
+        if (!has(name) || isNull(name)) return null
+        return get(name) as? String ?: throw JSONException("$name must be a string or null")
+    }
+
+    private fun JSONObject.optionalBoolean(name: String, default: Boolean): Boolean {
+        if (!has(name)) return default
+        return get(name) as? Boolean ?: throw JSONException("$name must be a boolean")
+    }
+
+    private fun JSONObject.optionalInt(name: String, default: Int): Int {
+        if (!has(name)) return default
+        return when (val value = get(name)) {
+            is Byte, is Short, is Int -> (value as Number).toInt()
+            is Long -> value.toInt().takeIf { it.toLong() == value }
+                ?: throw JSONException("$name is outside the integer range")
+            else -> throw JSONException("$name must be an integer")
         }
     }
 
-    /**
-     * 解析 CSV 行
-     */
-    private fun parseCsvLine(line: String): List<String> {
-        val result = mutableListOf<String>()
-        val current = StringBuilder()
-        var inQuotes = false
-        var i = 0
-
-        while (i < line.length) {
-            val char = line[i]
-            when {
-                char == '"' -> {
-                    if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
-                        current.append('"')
-                        i += 2
-                    } else {
-                        inQuotes = !inQuotes
-                        i++
-                    }
-                }
-                char == ',' && !inQuotes -> {
-                    result.add(current.toString())
-                    current.clear()
-                    i++
-                }
-                else -> {
-                    current.append(char)
-                    i++
-                }
-            }
+    private fun JSONObject.optionalLong(name: String, default: Long): Long {
+        if (!has(name)) return default
+        return when (val value = get(name)) {
+            is Byte, is Short, is Int, is Long -> (value as Number).toLong()
+            else -> throw JSONException("$name must be an integer")
         }
-        result.add(current.toString())
-        return result
+    }
+
+    private fun CSVRecord.getOrNull(index: Int): String? =
+        if (index < size()) get(index) else null
+
+    private fun String.toStrictBoolean(): Boolean? = when {
+        equals("true", ignoreCase = true) -> true
+        equals("false", ignoreCase = true) -> false
+        else -> null
     }
 
     /**
@@ -312,4 +328,12 @@ object HistoryBackupManager {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         return "qr_backup_$timestamp.$format"
     }
+
+    private val CSV_HEADERS = arrayOf(
+        "content", "type", "timestamp", "isGenerated", "barcodeFormat",
+        "isFavorite", "notes", "tags", "styleJson"
+    )
+    private val BACKUP_CSV_FORMAT = CSVFormat.Builder.create(CSVFormat.DEFAULT)
+        .setIgnoreEmptyLines(true)
+        .get()
 }

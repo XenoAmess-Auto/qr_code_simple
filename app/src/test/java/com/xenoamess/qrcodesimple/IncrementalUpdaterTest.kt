@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import java.io.File
 import java.security.MessageDigest
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertFalse
@@ -135,6 +136,32 @@ class IncrementalUpdaterTest {
         assertNull(updater.executeChain(chain, output, "0".repeat(64), 1) {})
         assertFalse(output.exists())
         assertFalse(File(context.filesDir, "updates/incremental").exists())
+    }
+
+    @Test
+    fun `cancellation is propagated instead of falling back to full download`() = runBlocking {
+        val base = ByteArray(4 * 1024) { 1 }
+        val target = base.copyOf().also { it[100] = 9 }
+        baseApk.writeBytes(base)
+        val hop = createHop(18, 19, target)
+        val chain = UpdateDecider.UpdateChain(
+            fromApkSha256 = sha256(base),
+            totalSizeBytes = hop.sizeBytes,
+            hops = listOf(hop)
+        )
+        updater.downloader = { _, _, _, _ -> throw CancellationException("cancelled") }
+        val output = File(context.filesDir, "updates/cancelled.apk")
+
+        var propagated = false
+        try {
+            updater.executeChain(chain, output, sha256(target), target.size.toLong()) {}
+        } catch (_: CancellationException) {
+            propagated = true
+        }
+
+        assertTrue(propagated)
+        assertFalse(output.exists())
+        assertTrue(File(context.filesDir, "updates").listFiles().orEmpty().isEmpty())
     }
 
     private fun createHop(

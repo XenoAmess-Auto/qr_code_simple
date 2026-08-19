@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.res.Configuration
+import android.util.TypedValue
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -13,6 +14,11 @@ import androidx.core.view.WindowInsetsCompat
 fun AppCompatActivity.setupEdgeToEdge() {
     // 启用 edge-to-edge 显示
     WindowCompat.setDecorFitsSystemWindows(window, false)
+    val decorActionBarHandlesTopInset = hasDecorActionBar()
+    val actionBarContainer = window.decorView.findViewById<android.view.View>(
+        androidx.appcompat.R.id.action_bar_container
+    )
+    val actionBar = window.decorView.findViewById<android.view.View>(androidx.appcompat.R.id.action_bar)
 
     // 为根布局设置 WindowInsets 监听器来处理安全区域
     val rootView = window.decorView.findViewById<android.view.View>(android.R.id.content)
@@ -25,14 +31,46 @@ fun AppCompatActivity.setupEdgeToEdge() {
         val leftInset = maxOf(systemBars.left, displayCutout.left)
         val rightInset = maxOf(systemBars.right, displayCutout.right)
         val bottomInset = maxOf(systemBars.bottom, displayCutout.bottom)
+        val actionBarSystemTopInset = if (decorActionBarHandlesTopInset && actionBar != null) {
+            // AppCompat adds the ActionBar height to systemBars, while displayCutout stays decor-relative.
+            (systemBars.top - actionBar.height).coerceAtLeast(0)
+        } else {
+            0
+        }
+        val actionBarSafeTopInset = if (decorActionBarHandlesTopInset) {
+            maxOf(actionBarSystemTopInset, displayCutout.top)
+        } else {
+            0
+        }
+        val actionBarExtraTopInset = if (decorActionBarHandlesTopInset) {
+            actionBarSafeTopInset - actionBarSystemTopInset
+        } else {
+            0
+        }
+        val contentTopInset = if (decorActionBarHandlesTopInset && actionBar != null) {
+            actionBar.height + actionBarSafeTopInset
+        } else {
+            topInset
+        }
 
-        view.setPadding(leftInset, topInset, rightInset, bottomInset)
+        actionBarContainer?.translationY = actionBarExtraTopInset.toFloat()
+        view.setPadding(
+            leftInset,
+            contentTopInset,
+            rightInset,
+            bottomInset
+        )
         insets
     }
 
     // 设置状态栏图标颜色根据主题自动调整
     val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
     windowInsetsController.isAppearanceLightStatusBars = !isDarkTheme()
+}
+
+private fun AppCompatActivity.hasDecorActionBar(): Boolean {
+    val value = TypedValue()
+    return theme.resolveAttribute(androidx.appcompat.R.attr.windowActionBar, value, true) && value.data != 0
 }
 
 private fun AppCompatActivity.isDarkTheme(): Boolean {

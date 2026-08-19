@@ -53,6 +53,32 @@ class ColorPickerDialogTest {
     }
 
     @Test
+    fun initialColor_survivesRecreation() {
+        scenario.recreate()
+
+        scenario.onFragment { dialog ->
+            val picker = dialog.requireView().findViewById<ColorPickerView>(R.id.colorPicker)
+            assertEquals(Color.RED, picker.currentColor)
+        }
+    }
+
+    @Test
+    fun currentColor_survivesRecreation() {
+        scenario.onFragment { dialog ->
+            dialog.requireView().findViewById<TextInputEditText>(R.id.etHexInput)
+                .setText("#0000FF")
+        }
+        flushMainLooper()
+
+        scenario.recreate()
+
+        scenario.onFragment { dialog ->
+            val picker = dialog.requireView().findViewById<ColorPickerView>(R.id.colorPicker)
+            assertEquals(Color.BLUE, picker.currentColor)
+        }
+    }
+
+    @Test
     fun hexInput_syncsColorPickerAndRgbaFields() {
         scenario.onFragment { dialog ->
             val view = dialog.requireView()

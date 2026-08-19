@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
@@ -86,13 +87,8 @@ class GenerateFragment : Fragment() {
     private var gradientEnabled = false
     internal var selectedScheme: AdvancedBarcodeGenerator.StyleConfig? = null
     private var validationJob: Job? = null
-    private var pendingImageType: ImageType? = null
     private var updatingAngleFromCode = false
     private var restoringEditorState = false
-
-    private enum class ImageType {
-        FOREGROUND, BACKGROUND
-    }
 
     companion object {
         private const val TAG = "GenerateFragment"
@@ -100,6 +96,9 @@ class GenerateFragment : Fragment() {
         private const val MAX_STYLE_IMAGE_PX = 1024
         // Exports use four times the preview pixels without making share latency excessive.
         private const val OUTPUT_SIZE = 1024
+        private const val FG_COLOR_RESULT = "generate_fg_color"
+        private const val BG_COLOR_RESULT = "generate_bg_color"
+        private const val GRADIENT_COLOR_RESULT = "generate_gradient_color"
     }
 
     private inline fun safe(block: () -> Unit) {
@@ -125,7 +124,7 @@ class GenerateFragment : Fragment() {
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            pendingImageType = ImageType.FOREGROUND
+            generateViewModel.beginImageCrop(PendingImageType.FOREGROUND)
             launchCrop(it, createCropDestination("fg"))
         }
     }
@@ -134,7 +133,7 @@ class GenerateFragment : Fragment() {
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            pendingImageType = ImageType.BACKGROUND
+            generateViewModel.beginImageCrop(PendingImageType.BACKGROUND)
             launchCrop(it, createCropDestination("bg"))
         }
     }
@@ -142,20 +141,19 @@ class GenerateFragment : Fragment() {
     private val cropLauncher = registerForActivityResult(
         CropImageContract()
     ) { result ->
-        val type = pendingImageType
-        pendingImageType = null
+        val type = generateViewModel.consumePendingImageType()
         if (type == null) return@registerForActivityResult
         val resultUri = result.uriContent
         if (!result.isSuccessful || resultUri == null) return@registerForActivityResult
         loadImage(resultUri, MAX_STYLE_IMAGE_PX) { bitmap ->
             when (type) {
-                ImageType.FOREGROUND -> {
+                PendingImageType.FOREGROUND -> {
                     foregroundImageBitmap = bitmap
                     selectedStyle = selectedStyle.copy(foregroundBitmap = bitmap)
                     updateImagePreview(binding.viewFgImagePreview, bitmap)
                     binding.btnRemoveForegroundImage.visibility = View.VISIBLE
                 }
-                ImageType.BACKGROUND -> {
+                PendingImageType.BACKGROUND -> {
                     backgroundImageBitmap = bitmap
                     selectedStyle = selectedStyle.copy(backgroundBitmap = bitmap)
                     updateImagePreview(binding.viewBgImagePreview, bitmap)
@@ -163,6 +161,19 @@ class GenerateFragment : Fragment() {
                 }
             }
             generateBarcode()
+        }
+    }
+
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val pending = generateViewModel.consumePendingRasterSave() ?: return@registerForActivityResult
+        if (granted) {
+            saveRasterBarcode(pending.size, pending.format)
+        } else {
+            context?.let {
+                Toast.makeText(it, R.string.storage_write_permission_denied, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -182,7 +193,7 @@ class GenerateFragment : Fragment() {
             cropLauncher.launch(createCropOptions(sourceUri, destinationUri))
         } catch (e: Exception) {
             Log.e(TAG, "launchCrop failed", e)
-            pendingImageType = null
+            generateViewModel.clearPendingImageType()
             Toast.makeText(context, getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
         }
     }
@@ -223,6 +234,7 @@ class GenerateFragment : Fragment() {
 
         historyRepository = HistoryRepository(requireContext())
         generateViewModel = ViewModelProvider(this)[GenerateViewModel::class.java]
+        setupColorPickerResults()
         val restoredRequest = generateViewModel.latestRequest()
         restoringEditorState = true
         restoredRequest?.let {
@@ -607,17 +619,7 @@ class GenerateFragment : Fragment() {
             safe {
                 ColorPickerDialog().apply {
                     setInitialColor(selectedStyle.foregroundColor)
-                    onColorSelected = { color ->
-                        safe {
-                            selectedStyle = selectedStyle.copy(foregroundColor = color)
-                            foregroundImageBitmap = null
-                            updateImagePreview(binding.viewFgImagePreview, null)
-                            binding.btnRemoveForegroundImage.visibility = View.GONE
-                            updateColorPreviews()
-                            clearSchemeSelectionIfDiverged()
-                            generateBarcode()
-                        }
-                    }
+                    setResultTarget(FG_COLOR_RESULT)
                 }.show(parentFragmentManager, "fg_color")
             }
         }
@@ -625,17 +627,7 @@ class GenerateFragment : Fragment() {
             safe {
                 ColorPickerDialog().apply {
                     setInitialColor(selectedStyle.backgroundColor)
-                    onColorSelected = { color ->
-                        safe {
-                            selectedStyle = selectedStyle.copy(backgroundColor = color)
-                            backgroundImageBitmap = null
-                            updateImagePreview(binding.viewBgImagePreview, null)
-                            binding.btnRemoveBackgroundImage.visibility = View.GONE
-                            updateColorPreviews()
-                            clearSchemeSelectionIfDiverged()
-                            generateBarcode()
-                        }
-                    }
+                    setResultTarget(BG_COLOR_RESULT)
                 }.show(parentFragmentManager, "bg_color")
             }
         }
@@ -683,6 +675,48 @@ class GenerateFragment : Fragment() {
                 binding.ivLogoPreview.visibility = View.GONE
                 binding.logoScaleSection.visibility = View.GONE
                 binding.logoCornerRadiusSection.visibility = View.GONE
+                generateBarcode()
+            }
+        }
+    }
+
+    private fun setupColorPickerResults() {
+        parentFragmentManager.setFragmentResultListener(FG_COLOR_RESULT, viewLifecycleOwner) { _, result ->
+            safe {
+                selectedStyle = selectedStyle.copy(
+                    foregroundColor = result.getInt(ColorPickerDialog.RESULT_COLOR)
+                )
+                foregroundImageBitmap = null
+                updateImagePreview(binding.viewFgImagePreview, null)
+                binding.btnRemoveForegroundImage.visibility = View.GONE
+                updateColorPreviews()
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
+            }
+        }
+        parentFragmentManager.setFragmentResultListener(BG_COLOR_RESULT, viewLifecycleOwner) { _, result ->
+            safe {
+                selectedStyle = selectedStyle.copy(
+                    backgroundColor = result.getInt(ColorPickerDialog.RESULT_COLOR)
+                )
+                backgroundImageBitmap = null
+                updateImagePreview(binding.viewBgImagePreview, null)
+                binding.btnRemoveBackgroundImage.visibility = View.GONE
+                updateColorPreviews()
+                clearSchemeSelectionIfDiverged()
+                generateBarcode()
+            }
+        }
+        parentFragmentManager.setFragmentResultListener(GRADIENT_COLOR_RESULT, viewLifecycleOwner) { _, result ->
+            safe {
+                val index = result.getInt(ColorPickerDialog.RESULT_REQUEST_ID, -1)
+                if (index !in gradientStops.indices) return@safe
+                gradientStops[index] = gradientStops[index].copy(
+                    color = result.getInt(ColorPickerDialog.RESULT_COLOR)
+                )
+                buildGradientStopViews()
+                updateGradientPreview()
+                clearSchemeSelectionIfDiverged()
                 generateBarcode()
             }
         }
@@ -971,17 +1005,7 @@ class GenerateFragment : Fragment() {
                         val tag = "gradient_stop_${index}_${System.currentTimeMillis()}"
                         ColorPickerDialog().apply {
                             setInitialColor(stop.color)
-                            onColorSelected = { color ->
-                                safe {
-                                    if (index < gradientStops.size) {
-                                        gradientStops[index] = stop.copy(color = color)
-                                        buildGradientStopViews()
-                                        updateGradientPreview()
-                                        clearSchemeSelectionIfDiverged()
-                                        generateBarcode()
-                                    }
-                                }
-                            }
+                            setResultTarget(GRADIENT_COLOR_RESULT, index)
                         }.show(parentFragmentManager, tag)
                     }
                 }
@@ -1533,10 +1557,10 @@ class GenerateFragment : Fragment() {
                 when {
                     rbFormatSvg.isChecked -> saveBarcodeAsSvg()
                     rbFormatJpeg.isChecked ->
-                        saveRasterBarcode(size, Bitmap.CompressFormat.JPEG, "image/jpeg", "jpg")
+                        requestRasterSave(size, RasterSaveFormat.JPEG)
                     rbFormatWebp.isChecked ->
-                        saveRasterBarcode(size, webpCompressFormat(), "image/webp", "webp")
-                    else -> saveRasterBarcode(size, Bitmap.CompressFormat.PNG, "image/png", "png")
+                        requestRasterSave(size, RasterSaveFormat.WEBP)
+                    else -> requestRasterSave(size, RasterSaveFormat.PNG)
                 }
             }
             .setNegativeButton(getString(R.string.cancel), null)
@@ -1551,22 +1575,27 @@ class GenerateFragment : Fragment() {
             Bitmap.CompressFormat.WEBP
         }
 
-    private var pendingSvg: String? = null
-
     private val saveSvgLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/svg+xml")
     ) { uri ->
-        val ctx = context ?: return@registerForActivityResult
-        val svg = pendingSvg
-        pendingSvg = null
-        if (uri == null || svg == null) return@registerForActivityResult
+        val pendingPath = generateViewModel.consumePendingSvgPath() ?: return@registerForActivityResult
+        val pendingFile = File(pendingPath)
+        val ctx = context
+        if (uri == null || ctx == null) {
+            pendingFile.delete()
+            return@registerForActivityResult
+        }
         try {
-            ctx.contentResolver.openOutputStream(uri)?.use { output ->
-                output.write(svg.toByteArray(Charsets.UTF_8))
+            pendingFile.inputStream().use { input ->
+                requireNotNull(ctx.contentResolver.openOutputStream(uri)) {
+                    "openOutputStream returned null"
+                }.use { output -> input.copyTo(output) }
             }
             Toast.makeText(ctx, getString(R.string.svg_saved), Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
+        } finally {
+            pendingFile.delete()
         }
     }
 
@@ -1583,25 +1612,53 @@ class GenerateFragment : Fragment() {
                 foregroundColor = String.format("#%06X", 0xFFFFFF and style.foregroundColor),
                 backgroundColor = String.format("#%06X", 0xFFFFFF and style.backgroundColor)
             )
-            pendingSvg = SvgQRCodeGenerator.generateSVG(request.content, request.format, config)
-            recordHistory(request)
+            val svg = SvgQRCodeGenerator.generateSVG(request.content, request.format, config)
+            val directory = File(ctx.cacheDir, "images").apply { mkdirs() }
+            val pendingFile = File.createTempFile("pending-svg-", ".svg", directory)
+            pendingFile.writeText(svg, Charsets.UTF_8)
+            generateViewModel.consumePendingSvgPath()?.let { File(it).delete() }
+            generateViewModel.setPendingSvgPath(pendingFile.absolutePath)
             saveSvgLauncher.launch(SvgQRCodeGenerator.generateFileName(request.content, request.format))
         } catch (e: Exception) {
-            pendingSvg = null
+            generateViewModel.consumePendingSvgPath()?.let { File(it).delete() }
             Toast.makeText(ctx, getString(R.string.failed_to_save, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun saveRasterBarcode(
-        size: Int,
-        compressFormat: Bitmap.CompressFormat,
-        mimeType: String,
-        extension: String
-    ) {
+    private fun requestRasterSave(size: Int, format: RasterSaveFormat) {
+        val ctx = context ?: return
+        if (currentRequest() == null) {
+            Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (requiresLegacyPublicStoragePermission(ctx)) {
+            generateViewModel.setPendingRasterSave(size, format)
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else {
+            saveRasterBarcode(size, format)
+        }
+    }
+
+    private fun saveRasterBarcode(size: Int, format: RasterSaveFormat) {
         val ctx = context ?: return
         val request = currentRequest() ?: run {
             Toast.makeText(ctx, getString(R.string.please_generate_qr_first), Toast.LENGTH_SHORT).show()
             return
+        }
+        val compressFormat = when (format) {
+            RasterSaveFormat.PNG -> Bitmap.CompressFormat.PNG
+            RasterSaveFormat.JPEG -> Bitmap.CompressFormat.JPEG
+            RasterSaveFormat.WEBP -> webpCompressFormat()
+        }
+        val mimeType = when (format) {
+            RasterSaveFormat.PNG -> "image/png"
+            RasterSaveFormat.JPEG -> "image/jpeg"
+            RasterSaveFormat.WEBP -> "image/webp"
+        }
+        val extension = when (format) {
+            RasterSaveFormat.PNG -> "png"
+            RasterSaveFormat.JPEG -> "jpg"
+            RasterSaveFormat.WEBP -> "webp"
         }
         val exportId = generateViewModel.beginExport() ?: return
         viewLifecycleOwner.lifecycleScope.launch {

@@ -197,31 +197,35 @@ class PrivacySettingsActivity : AppCompatActivity() {
         container.addView(pinInput)
         container.addView(confirmPinInput)
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.set_pin))
             .setView(container)
-            .setPositiveButton(getString(R.string.set_pin)) { _, _ ->
+            .setPositiveButton(getString(R.string.set_pin), null)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setOnDismissListener { deliverResult(false) }
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val pin = pinInput.text?.toString()?.trim() ?: ""
                 val confirmPin = confirmPinInput.text?.toString()?.trim() ?: ""
 
                 if (pin.length < 4) {
                     Toast.makeText(this, getString(R.string.pin_min_digits), Toast.LENGTH_SHORT).show()
-                    deliverResult(false)
-                    return@setPositiveButton
+                    return@setOnClickListener
                 }
 
                 if (pin != confirmPin) {
                     Toast.makeText(this, getString(R.string.pin_mismatch), Toast.LENGTH_SHORT).show()
-                    deliverResult(false)
-                    return@setPositiveButton
+                    return@setOnClickListener
                 }
 
                 AppLockManager.setPin(pin)
                 deliverResult(true)
+                dialog.dismiss()
             }
-            .setNegativeButton(getString(R.string.cancel), null)
-            .setOnDismissListener { deliverResult(false) }
-            .show()
+        }
+        dialog.show()
     }
 
     private fun updateAppLockUI() {

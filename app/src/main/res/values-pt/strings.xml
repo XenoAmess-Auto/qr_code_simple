@@ -102,6 +102,7 @@
     <string name="saved_to">Salvo em: %1$s</string>
 
     <string name="failed_to_save">Falha ao salvar: %1$s</string>
+    <string name="storage_write_permission_denied">A permissão de armazenamento é necessária para salvar na pasta pública Imagens ou Downloads</string>
 
     <string name="failed_to_generate">Falha ao gerar o código QR: %1$s</string>
 
@@ -133,6 +134,9 @@
     <string name="restored_after_enhancement">Reconhecido após restauração da imagem</string>
 
     <string name="shared_multiple_first_only">%1$d imagens partilhadas; apenas a primeira será processada</string>
+    <string name="shared_media_too_large">O ficheiro multimédia partilhado é demasiado grande para analisar</string>
+    <string name="scan_queue_busy">O scanner está ocupado. Tente novamente.</string>
+    <string name="share_text_too_large">Demasiado texto para partilhar de uma só vez. Selecione menos resultados.</string>
 
     <string name="history_retention">Eliminação automática do histórico</string>
 
@@ -470,6 +474,7 @@
     <string name="update_incremental_fallback">Atualização incremental falhou. A descarregar o APK completo…</string>
 
     <string name="update_install_permission_needed">Permita a instalação de apps desta fonte e volte para continuar</string>
+    <string name="update_install_permission_not_granted">A permissão de instalação não foi concedida. Pode tentar atualizar novamente.</string>
 
     <string name="update_install_failed_title">Falha na atualização automática</string>
 
@@ -1126,7 +1131,13 @@ https://another.com
 
     <string name="auto_copy_result">Copiar resultado automaticamente</string>
 
-    <string name="export_excel">Exportar como Excel</string>
+    <string name="webdav_restore_confirm">Restaurar esta cópia do servidor? Os históricos correspondentes serão combinados.</string>
+    <string name="backup_import_unsupported">Arquivo de cópia não suportado ou vazio</string>
+    <string name="backup_import_invalid_structure">Estrutura da cópia de segurança inválida</string>
+    <string name="backup_import_no_valid_records">A cópia de segurança não contém registos válidos</string>
+    <string name="backup_import_too_large">O arquivo de cópia excede o limite de %1$d MiB</string>
+    <string name="backup_import_unsupported_version">Versão da cópia não suportada: %1$d</string>
+    <string name="export_excel">Exportar relatório Excel</string>
 
     <string name="stats_title">Estatísticas</string>
 
@@ -1160,4 +1171,9 @@ https://another.com
     <string name="about_section_preferences">Preferências</string>
     <string name="about_section_updates">Atualizações e diagnóstico</string>
     <string name="about_section_project">Projeto e apoio</string>
+    <string name="batch_limit_items">Um lote pode conter no máximo %1$d itens.</string>
+    <string name="batch_limit_item_length">Cada item do lote pode conter no máximo %1$d caracteres.</string>
+    <string name="batch_limit_total_size">Os dados do lote podem ter no máximo %1$d MB.</string>
+    <string name="batch_data_unavailable">Os dados do lote estão ausentes, são inválidos ou expiraram. Tente novamente.</string>
+    <string name="continuous_state_unavailable">Não foi possível restaurar a sessão de leitura. Leia novamente antes de exportar.</string>
 </resources>

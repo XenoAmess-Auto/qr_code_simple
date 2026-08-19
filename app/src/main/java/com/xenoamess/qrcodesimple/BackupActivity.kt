@@ -18,6 +18,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.OutputStreamWriter
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
+
+internal enum class PendingExportKind {
+    JSON,
+    CSV,
+    XLSX,
+    ENCRYPTED
+}
 
 /**
  * 备份与恢复界面
@@ -26,19 +36,15 @@ class BackupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBackupBinding
 
-    /** 等待 SAF 返回期间暂存的加密导出密码；导出完成后立即清除。 */
+    /** 格式可跨重建恢复；密码只保留在当前 Activity 实例内。 */
+    private var pendingExportKind: PendingExportKind? = null
     private var pendingExportPassword: CharArray? = null
 
     private val exportLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let { uri ->
-                exportData(uri)
-            }
-        } else {
-            pendingExportPassword = null
-        }
+        val uri = result.data?.data.takeIf { result.resultCode == Activity.RESULT_OK }
+        consumePendingExport(uri)
     }
 
     private val importLauncher = registerForActivityResult(
@@ -57,6 +63,9 @@ class BackupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        pendingExportKind = savedInstanceState
+            ?.getString(STATE_PENDING_EXPORT_KIND)
+            ?.let { runCatching { PendingExportKind.valueOf(it) }.getOrNull() }
         binding = ActivityBackupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -76,7 +85,7 @@ class BackupActivity : AppCompatActivity() {
                 type = "application/json"
                 putExtra(Intent.EXTRA_TITLE, HistoryBackupManager.generateBackupFileName("json"))
             }
-            exportLauncher.launch(intent)
+            launchExport(PendingExportKind.JSON, intent)
         }
 
         // 导出 CSV
@@ -86,17 +95,17 @@ class BackupActivity : AppCompatActivity() {
                 type = "text/csv"
                 putExtra(Intent.EXTRA_TITLE, HistoryBackupManager.generateBackupFileName("csv"))
             }
-            exportLauncher.launch(intent)
+            launchExport(PendingExportKind.CSV, intent)
         }
 
-        // 导出 Excel
+        // XLSX 是只读报表导出，不是可恢复的备份格式。
         binding.btnExportExcel.setOnClickListener {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 putExtra(Intent.EXTRA_TITLE, HistoryBackupManager.generateBackupFileName("xlsx"))
             }
-            exportLauncher.launch(intent)
+            launchExport(PendingExportKind.XLSX, intent)
         }
 
         // 导出加密备份
@@ -109,7 +118,10 @@ class BackupActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
-                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/json", "text/csv", "text/plain"))
+                putExtra(
+                    Intent.EXTRA_MIME_TYPES,
+                    arrayOf("application/json", "text/csv", "text/plain", "application/octet-stream")
+                )
             }
             importLauncher.launch(intent)
         }
@@ -118,6 +130,7 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun setupWebdavViews() {
+        binding.etWebdavPassword.isSaveEnabled = false
         // 回填已保存的配置（密码不回填，留空表示沿用已存密码）
         val savedUrl = getSharedPreferences("app_settings", Context.MODE_PRIVATE).getString("webdav_url", null)
         val savedUsername = getSharedPreferences("app_settings", Context.MODE_PRIVATE).getString("webdav_username", null)
@@ -131,7 +144,14 @@ class BackupActivity : AppCompatActivity() {
         refreshWebdavLastSync()
 
         binding.btnWebdavUpload.setOnClickListener { runWebdav(isUpload = true) }
-        binding.btnWebdavDownload.setOnClickListener { runWebdav(isUpload = false) }
+        binding.btnWebdavDownload.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.webdav_download)
+                .setMessage(R.string.webdav_restore_confirm)
+                .setPositiveButton(R.string.confirm) { _, _ -> runWebdav(isUpload = false) }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
     }
 
     private fun refreshWebdavLastSync() {
@@ -150,26 +170,37 @@ class BackupActivity : AppCompatActivity() {
     internal fun runWebdav(isUpload: Boolean) {
         val url = binding.etWebdavUrl.text?.toString()?.trim().orEmpty()
         val username = binding.etWebdavUsername.text?.toString()?.trim().orEmpty()
-        val passwordText = binding.etWebdavPassword.text?.toString().orEmpty()
-
-        // 密码框留空 = 沿用本机已存密码；有输入则覆盖保存
-        val password: CharArray = if (passwordText.isNotEmpty()) {
-            passwordText.toCharArray()
-        } else {
-            WebDavSyncManager.loadConfig(this)?.password ?: CharArray(0)
+        val passwordInput = binding.etWebdavPassword.text
+        val password = try {
+            if (!passwordInput.isNullOrEmpty()) {
+                CharArray(passwordInput.length) { passwordInput[it] }
+            } else {
+                WebDavSyncManager.loadConfig(this)?.password ?: CharArray(0)
+            }
+        } finally {
+            passwordInput?.clear()
         }
 
         if (url.isEmpty() || password.isEmpty()) {
+            password.fill('\u0000')
             Toast.makeText(this, getString(R.string.webdav_not_configured), Toast.LENGTH_SHORT).show()
             return
         }
-        WebDavSyncManager.saveConfig(this, url, username, password)
+        val candidate = WebDavSyncManager.Config(url, username, password)
 
         lifecycleScope.launch {
-            val outcome = if (isUpload) {
-                WebDavSyncManager.upload(this@BackupActivity)
-            } else {
-                WebDavSyncManager.download(this@BackupActivity)
+            val outcome = try {
+                val result = if (isUpload) {
+                    WebDavSyncManager.upload(this@BackupActivity, candidate)
+                } else {
+                    WebDavSyncManager.download(this@BackupActivity, candidate)
+                }
+                if (result == WebDavSyncManager.Outcome.SUCCESS) {
+                    WebDavSyncManager.saveConfig(this@BackupActivity, url, username, password)
+                }
+                result
+            } finally {
+                password.fill('\u0000')
             }
             val messageRes = when (outcome) {
                 WebDavSyncManager.Outcome.SUCCESS ->
@@ -185,40 +216,82 @@ class BackupActivity : AppCompatActivity() {
             if (outcome == WebDavSyncManager.Outcome.SUCCESS) {
                 refreshWebdavLastSync()
             }
-        }
+        }.invokeOnCompletion { password.fill('\u0000') }
     }
 
-    internal fun exportData(uri: Uri) {
+    private fun launchExport(kind: PendingExportKind, intent: Intent, password: CharArray? = null) {
+        clearPendingExport()
+        pendingExportKind = kind
+        pendingExportPassword = password
+        exportLauncher.launch(intent)
+    }
+
+    internal fun consumePendingExport(uri: Uri?) {
+        val kind = pendingExportKind
         val password = pendingExportPassword
+        pendingExportKind = null
         pendingExportPassword = null
+
+        if (uri == null) {
+            password?.fill('\u0000')
+            return
+        }
+        if (kind == null) {
+            password?.fill('\u0000')
+            showExportFailure(getString(R.string.unknown_error))
+            return
+        }
+        if (kind == PendingExportKind.ENCRYPTED && password == null) {
+            showExportFailure(getString(R.string.backup_password_required))
+            return
+        }
+        exportData(uri, kind, password)
+    }
+
+    internal fun exportData(uri: Uri, kind: PendingExportKind, password: CharArray? = null) {
         lifecycleScope.launch {
             try {
-                if (password != null) {
-                    // 加密备份：二进制写出
-                    val data = HistoryBackupManager.exportEncryptedJson(this@BackupActivity, password)
-                    withContext(Dispatchers.IO) {
-                        contentResolver.openOutputStream(uri)?.use { outputStream ->
-                            outputStream.write(data)
+                when (kind) {
+                    PendingExportKind.ENCRYPTED -> {
+                        val encryptionPassword = requireNotNull(password) {
+                            getString(R.string.backup_password_required)
+                        }
+                        val data = HistoryBackupManager.exportEncryptedJson(
+                            this@BackupActivity,
+                            encryptionPassword
+                        )
+                        withContext(Dispatchers.IO) {
+                            requireNotNull(contentResolver.openOutputStream(uri)) {
+                                getString(R.string.unknown_error)
+                            }.use { outputStream ->
+                                outputStream.write(data)
+                            }
                         }
                     }
-                } else if (uri.toString().endsWith(".xlsx")) {
-                    val data = HistoryBackupManager.exportToXlsx(this@BackupActivity)
-                    withContext(Dispatchers.IO) {
-                        contentResolver.openOutputStream(uri)?.use { outputStream ->
-                            outputStream.write(data)
+                    PendingExportKind.XLSX -> {
+                        val data = HistoryBackupManager.exportToXlsx(this@BackupActivity)
+                        withContext(Dispatchers.IO) {
+                            requireNotNull(contentResolver.openOutputStream(uri)) {
+                                getString(R.string.unknown_error)
+                            }.use { outputStream ->
+                                outputStream.write(data)
+                            }
                         }
                     }
-                } else {
-                    val content = if (uri.toString().endsWith(".csv")) {
-                        HistoryBackupManager.exportToCsv(this@BackupActivity)
-                    } else {
-                        HistoryBackupManager.exportToJson(this@BackupActivity)
-                    }
-
-                    withContext(Dispatchers.IO) {
-                        contentResolver.openOutputStream(uri)?.use { outputStream ->
-                            OutputStreamWriter(outputStream).use { writer ->
-                                writer.write(content)
+                    PendingExportKind.JSON,
+                    PendingExportKind.CSV -> {
+                        val content = when (kind) {
+                            PendingExportKind.JSON -> HistoryBackupManager.exportToJson(this@BackupActivity)
+                            PendingExportKind.CSV -> HistoryBackupManager.exportToCsv(this@BackupActivity)
+                            else -> error("Unexpected text export kind: $kind")
+                        }
+                        withContext(Dispatchers.IO) {
+                            requireNotNull(contentResolver.openOutputStream(uri)) {
+                                getString(R.string.unknown_error)
+                            }.use { outputStream ->
+                                OutputStreamWriter(outputStream).use { writer ->
+                                    writer.write(content)
+                                }
                             }
                         }
                     }
@@ -230,13 +303,36 @@ class BackupActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@BackupActivity,
-                    getString(R.string.export_failed, e.message),
-                    Toast.LENGTH_SHORT
-                ).show()
+                showExportFailure(e.message)
+            } finally {
+                password?.fill('\u0000')
             }
         }
+    }
+
+    private fun showExportFailure(message: String?) {
+        Toast.makeText(
+            this,
+            getString(R.string.export_failed, message ?: getString(R.string.unknown_error)),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun clearPendingExport() {
+        pendingExportPassword?.fill('\u0000')
+        pendingExportPassword = null
+        pendingExportKind = null
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        pendingExportKind?.let { outState.putString(STATE_PENDING_EXPORT_KIND, it.name) }
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        pendingExportPassword?.fill('\u0000')
+        pendingExportPassword = null
+        super.onDestroy()
     }
 
     /**
@@ -259,30 +355,31 @@ class BackupActivity : AppCompatActivity() {
         layout.addView(inputPassword)
         layout.addView(inputConfirm)
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.export_encrypted))
             .setView(layout)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val password = inputPassword.text.toString()
-                val confirm = inputConfirm.text.toString()
-                when {
-                    password.isEmpty() ->
-                        Toast.makeText(this, getString(R.string.backup_password_required), Toast.LENGTH_SHORT).show()
-                    password != confirm ->
-                        Toast.makeText(this, getString(R.string.backup_password_mismatch), Toast.LENGTH_SHORT).show()
-                    else -> {
-                        pendingExportPassword = password.toCharArray()
-                        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "application/octet-stream"
-                            putExtra(Intent.EXTRA_TITLE, HistoryBackupManager.generateBackupFileName("qrbak"))
-                        }
-                        exportLauncher.launch(intent)
-                    }
-                }
-            }
+            .setPositiveButton(android.R.string.ok, null)
             .setNegativeButton(getString(R.string.cancel), null)
             .show()
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val password = inputPassword.text.toString()
+            val confirm = inputConfirm.text.toString()
+            when {
+                password.isEmpty() ->
+                    Toast.makeText(this, getString(R.string.backup_password_required), Toast.LENGTH_SHORT).show()
+                password != confirm ->
+                    Toast.makeText(this, getString(R.string.backup_password_mismatch), Toast.LENGTH_SHORT).show()
+                else -> {
+                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "application/octet-stream"
+                        putExtra(Intent.EXTRA_TITLE, HistoryBackupManager.generateBackupFileName("qrbak"))
+                    }
+                    launchExport(PendingExportKind.ENCRYPTED, intent, password.toCharArray())
+                    dialog.dismiss()
+                }
+            }
+        }
     }
 
     /**
@@ -293,38 +390,55 @@ class BackupActivity : AppCompatActivity() {
             hint = getString(R.string.backup_password)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.export_encrypted))
             .setMessage(getString(R.string.backup_password_prompt_import))
             .setView(inputPassword)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val password = inputPassword.text.toString()
-                if (password.isEmpty()) {
-                    Toast.makeText(this, getString(R.string.backup_password_required), Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                lifecycleScope.launch {
-                    val result = HistoryBackupManager.importEncrypted(
-                        this@BackupActivity, data, password.toCharArray()
-                    )
-                    Toast.makeText(
-                        this@BackupActivity,
-                        if (result.success) result.message else getString(R.string.backup_decrypt_failed),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
+            .setPositiveButton(android.R.string.ok, null)
             .setNegativeButton(getString(R.string.cancel), null)
             .show()
+        val positiveButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+        positiveButton.setOnClickListener {
+            val passwordText = inputPassword.text.toString()
+            if (passwordText.isEmpty()) {
+                Toast.makeText(this, getString(R.string.backup_password_required), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val password = passwordText.toCharArray()
+            positiveButton.isEnabled = false
+            lifecycleScope.launch {
+                val result = try {
+                    HistoryBackupManager.importEncrypted(this@BackupActivity, data, password)
+                } finally {
+                    password.fill('\u0000')
+                }
+                Toast.makeText(
+                    this@BackupActivity,
+                    if (result.success) result.message else getString(R.string.backup_decrypt_failed),
+                    Toast.LENGTH_LONG
+                ).show()
+                if (result.success) {
+                    dialog.dismiss()
+                } else {
+                    positiveButton.isEnabled = true
+                }
+            }
+        }
     }
 
     internal fun importData(uri: Uri) {
         lifecycleScope.launch {
             try {
                 val bytes = withContext(Dispatchers.IO) {
-                    contentResolver.openInputStream(uri)?.use { inputStream ->
-                        inputStream.readBytes()
-                    } ?: ByteArray(0)
+                    requireNotNull(contentResolver.openInputStream(uri)) {
+                        getString(R.string.unknown_error)
+                    }.use { inputStream ->
+                        readCapped(inputStream, MAX_IMPORT_BYTES)
+                    }
+                }
+                if (bytes == null) {
+                    showImportFailure(getString(R.string.backup_import_too_large, MAX_IMPORT_MEBIBYTES))
+                    return@launch
                 }
 
                 if (BackupCrypto.isEncrypted(bytes)) {
@@ -333,13 +447,21 @@ class BackupActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                val content = bytes.toString(Charsets.UTF_8)
-                val result = if (HistoryBackupManager.looksLikeJson(content)) {
+                val content = decodeUtf8(bytes)
+                if (content == null) {
+                    showImportFailure(getString(R.string.backup_import_unsupported))
+                    return@launch
+                }
+                val normalizedContent = content.removePrefix("\uFEFF")
+                val result = if (HistoryBackupManager.looksLikeJson(normalizedContent)) {
                     // JSON
-                    HistoryBackupManager.importFromJson(this@BackupActivity, content)
-                } else {
+                    HistoryBackupManager.importFromJson(this@BackupActivity, normalizedContent)
+                } else if (HistoryBackupManager.looksLikeCsv(normalizedContent)) {
                     // CSV
-                    HistoryBackupManager.importFromCsv(this@BackupActivity, content)
+                    HistoryBackupManager.importFromCsv(this@BackupActivity, normalizedContent)
+                } else {
+                    showImportFailure(getString(R.string.backup_import_unsupported))
+                    return@launch
                 }
 
                 Toast.makeText(
@@ -351,17 +473,57 @@ class BackupActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@BackupActivity,
-                    getString(R.string.import_failed, e.message),
-                    Toast.LENGTH_SHORT
-                ).show()
+                showImportFailure(e.message)
             }
         }
+    }
+
+    private fun decodeUtf8(bytes: ByteArray): String? = runCatching {
+        Charsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(bytes))
+            .toString()
+    }.getOrNull()
+
+    private fun readCapped(input: java.io.InputStream, maxBytes: Int): ByteArray? {
+        val output = ByteArrayOutputStream(minOf(maxBytes, DEFAULT_BUFFER_SIZE))
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            if (read == 0) {
+                val singleByte = input.read()
+                if (singleByte < 0) break
+                total++
+                if (total > maxBytes) return null
+                output.write(singleByte)
+                continue
+            }
+            total += read
+            if (total > maxBytes) return null
+            output.write(buffer, 0, read)
+        }
+        return output.toByteArray()
+    }
+
+    private fun showImportFailure(message: String?) {
+        Toast.makeText(
+            this,
+            getString(R.string.import_failed, message ?: getString(R.string.unknown_error)),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    private companion object {
+        const val STATE_PENDING_EXPORT_KIND = "pending_export_kind"
+        const val MAX_IMPORT_MEBIBYTES = 8
+        const val MAX_IMPORT_BYTES = MAX_IMPORT_MEBIBYTES * 1024 * 1024
     }
 }

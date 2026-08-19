@@ -5,7 +5,9 @@ import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.EditText
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,6 +25,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -53,6 +56,7 @@ class QRResultAdapterTest : BaseAdapterTest() {
         withContentActionHandler: Boolean = true,
         withLifecycleScope: Boolean = false,
         withOnEdit: Boolean = false,
+        onEdit: ((Int, String) -> Unit)? = null,
         onItemChecked: (Int, Boolean) -> Unit = { _, _ -> }
     ): QRResultAdapter.ViewHolder {
         val adapter = QRResultAdapter(
@@ -60,7 +64,7 @@ class QRResultAdapterTest : BaseAdapterTest() {
             onItemChecked = onItemChecked,
             contentActionHandler = if (withContentActionHandler) contentActionHandler else null,
             lifecycleScope = if (withLifecycleScope) activity.lifecycleScope else null,
-            onEdit = if (withOnEdit) { _, _ -> } else null
+            onEdit = onEdit ?: if (withOnEdit) { _, _ -> } else null
         )
         val recyclerView = createRecyclerView()
         recyclerView.adapter = adapter
@@ -155,6 +159,34 @@ class QRResultAdapterTest : BaseAdapterTest() {
     }
 
     @Test
+    fun emptyEditKeepsDialogOpenAndCanBeCorrected() {
+        val edits = mutableListOf<Pair<Int, String>>()
+        val holder = bindItem(
+            QRResult("editable"),
+            onEdit = { position, content -> edits += position to content }
+        )
+        holder.itemView.findViewById<View>(R.id.btnEdit).performClick()
+        flushMainLooper()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        val input = dialog.findEditText()
+        input.setText("\t")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        flushMainLooper()
+
+        assertTrue(dialog.isShowing)
+        assertTrue(edits.isEmpty())
+        assertEquals(activity.getString(R.string.please_enter_content), input.error?.toString())
+
+        input.setText("corrected")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        flushMainLooper()
+
+        assertFalse(dialog.isShowing)
+        assertEquals(listOf(0 to "corrected"), edits)
+    }
+
+    @Test
     fun checkboxClickTriggersCallback() {
         val callbacks = mutableListOf<Pair<Int, Boolean>>()
         val holder = bindItem(QRResult("click me")) { position, checked ->
@@ -208,5 +240,17 @@ class QRResultAdapterTest : BaseAdapterTest() {
         val holder = bindItem(QRResult("https://example.com"), withLifecycleScope = false)
         val layout = holder.itemView.findViewById<View>(R.id.layoutSecurityIndicator)
         assertEquals(View.GONE, layout.visibility)
+    }
+
+    private fun AlertDialog.findEditText(): EditText {
+        var result: EditText? = null
+        fun walk(view: View) {
+            if (view is EditText) result = view
+            if (view is ViewGroup) {
+                (0 until view.childCount).forEach { walk(view.getChildAt(it)) }
+            }
+        }
+        window?.decorView?.let(::walk)
+        return requireNotNull(result)
     }
 }

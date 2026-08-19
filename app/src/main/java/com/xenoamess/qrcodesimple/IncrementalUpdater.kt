@@ -3,7 +3,11 @@ package com.xenoamess.qrcodesimple
 import android.content.Context
 import android.util.Log
 import java.io.File
+import java.util.UUID
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
 /**
@@ -22,7 +26,8 @@ class IncrementalUpdater(
         { base, patch, output ->
             ApkPatcher.applyPatch(context, base, patch, output)
         },
-    internal var installedApkProvider: (Context) -> File? = { ApkPatcher.installedApkFile(it) }
+    internal var installedApkProvider: (Context) -> File? = { ApkPatcher.installedApkFile(it) },
+    internal var workArtifactListener: (File) -> Unit = {}
 ) {
 
     private companion object {
@@ -37,14 +42,16 @@ class IncrementalUpdater(
         onProgress: (Int) -> Unit
     ): File? = withContext(Dispatchers.IO) {
         val outputDirectory = outputFile.parentFile ?: return@withContext null
-        val workDirectory = File(context.filesDir, "updates/incremental")
-        val finalPart = File(outputDirectory, ".${outputFile.name}.incremental.part")
+        val workId = UUID.randomUUID().toString()
+        val workDirectory = File(context.filesDir, "updates/incremental-$workId")
+        val finalPart = File(outputDirectory, ".${outputFile.name}.$workId.incremental.part")
+        workArtifactListener(workDirectory)
+        workArtifactListener(finalPart)
         var completed = false
         var replacedOutput = false
 
-        workDirectory.deleteRecursively()
-        finalPart.delete()
         try {
+            ensureActive()
             if (targetApkSizeBytes !in 1..UpdateDecider.MAX_ARTIFACT_BYTES) {
                 return@withContext null
             }
@@ -55,7 +62,7 @@ class IncrementalUpdater(
             if (!installedApk.isFile || !installedApk.canRead()) return@withContext null
             // Planner checks this before choosing a chain; retain an executor-side guard as defense
             // against callers or metadata changing between planning and execution.
-            if (!ApkPatcher.sha256(installedApk)
+            if (!ApkPatcher.sha256(installedApk, isCancelled = { !isActive })
                     .equals(chain.fromApkSha256, ignoreCase = true)
             ) {
                 return@withContext null
@@ -64,6 +71,7 @@ class IncrementalUpdater(
             var currentApk = installedApk
             var downloadedBefore = 0L
             for ((index, hop) in chain.hops.withIndex()) {
+                ensureActive()
                 val patchFile = File(workDirectory, "hop-$index.patch")
                 val progressBeforeHop = downloadedBefore
                 val downloaded = downloader(hop.url, patchFile, hop) { hopPercent ->
@@ -76,7 +84,9 @@ class IncrementalUpdater(
                 if (!downloaded || !patchFile.isFile || patchFile.length() != hop.sizeBytes) {
                     return@withContext null
                 }
-                if (!ApkPatcher.sha256(patchFile).equals(hop.patchSha256, ignoreCase = true)) {
+                if (!ApkPatcher.sha256(patchFile, isCancelled = { !isActive })
+                        .equals(hop.patchSha256, ignoreCase = true)
+                ) {
                     return@withContext null
                 }
 
@@ -87,11 +97,14 @@ class IncrementalUpdater(
                     File(workDirectory, "hop-$index.apk")
                 }
                 output.delete()
+                ensureActive()
                 patcher(currentApk, patchFile, output)
+                ensureActive()
                 if (!output.isFile ||
                     output.length() > targetApkSizeBytes ||
                     (isLastHop && output.length() != targetApkSizeBytes) ||
-                    !ApkPatcher.sha256(output).equals(hop.resultSha256, ignoreCase = true)
+                    !ApkPatcher.sha256(output, isCancelled = { !isActive })
+                        .equals(hop.resultSha256, ignoreCase = true)
                 ) {
                     return@withContext null
                 }
@@ -100,9 +113,12 @@ class IncrementalUpdater(
                 downloadedBefore += hop.sizeBytes
             }
 
-            if (!ApkPatcher.sha256(finalPart).equals(expectedFinalSha256, ignoreCase = true)) {
+            if (!ApkPatcher.sha256(finalPart, isCancelled = { !isActive })
+                    .equals(expectedFinalSha256, ignoreCase = true)
+            ) {
                 return@withContext null
             }
+            ensureActive()
             if (outputFile.exists() && !outputFile.delete()) return@withContext null
             replacedOutput = true
             if (!finalPart.renameTo(outputFile)) {
@@ -111,6 +127,8 @@ class IncrementalUpdater(
             }
             completed = outputFile.isFile
             outputFile.takeIf { completed }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "delta chain failed, caller falls back to full APK: ${e.message}")
             null

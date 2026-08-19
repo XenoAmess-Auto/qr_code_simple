@@ -24,6 +24,7 @@ class ScanImageFragment : Fragment() {
     private var _binding: FragmentScanImageBinding? = null
     private val binding get() = _binding!!
     private var currentPhotoPath: String? = null
+    private var currentPhotoUri: Uri? = null
 
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -36,16 +37,25 @@ class ScanImageFragment : Fragment() {
     }
 
     private val takePhotoLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            currentPhotoPath?.let { path ->
-                val file = File(path)
-                if (file.exists()) {
-                    processImage(Uri.fromFile(file))
-                }
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        val photoUri = currentPhotoUri
+        if (success && photoUri != null) {
+            currentPhotoPath = null
+            currentPhotoUri = null
+            processImage(photoUri)
+        } else {
+            deletePendingPhoto()
+            if (success) {
+                Toast.makeText(requireContext(), R.string.failed_to_load_image, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        currentPhotoPath = savedInstanceState?.getString(STATE_PHOTO_PATH)
+        currentPhotoUri = savedInstanceState?.getString(STATE_PHOTO_URI)?.let(Uri::parse)
     }
 
     override fun onCreateView(
@@ -88,19 +98,29 @@ class ScanImageFragment : Fragment() {
     }
 
     private fun takePhoto() {
-        val photoFile = createImageFile()
-        currentPhotoPath = photoFile.absolutePath
-
-        val photoURI = FileProvider.getUriForFile(
-            requireContext(),
-            "${requireContext().packageName}.fileprovider",
-            photoFile
-        )
-
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-            putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+        val context = requireContext()
+        if (Intent(MediaStore.ACTION_IMAGE_CAPTURE).resolveActivity(context.packageManager) == null) {
+            Toast.makeText(context, R.string.failed_to_load_image, Toast.LENGTH_SHORT).show()
+            return
         }
-        takePhotoLauncher.launch(intent)
+
+        try {
+            val photoFile = createImageFile()
+            currentPhotoPath = photoFile.absolutePath
+            currentPhotoUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                photoFile
+            )
+            takePhotoLauncher.launch(currentPhotoUri!!)
+        } catch (e: Exception) {
+            deletePendingPhoto()
+            Toast.makeText(
+                context,
+                context.getString(R.string.failed_to_save, e.message.orEmpty()),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun createImageFile(): File {
@@ -117,8 +137,25 @@ class ScanImageFragment : Fragment() {
         ScanImageProcessor.processImage(requireContext(), uri)
     }
 
+    private fun deletePendingPhoto() {
+        currentPhotoPath?.let { File(it).delete() }
+        currentPhotoPath = null
+        currentPhotoUri = null
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_PHOTO_PATH, currentPhotoPath)
+        outState.putString(STATE_PHOTO_URI, currentPhotoUri?.toString())
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private companion object {
+        const val STATE_PHOTO_PATH = "scan_image.photo_path"
+        const val STATE_PHOTO_URI = "scan_image.photo_uri"
     }
 }

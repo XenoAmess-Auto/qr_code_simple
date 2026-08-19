@@ -6,12 +6,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.xenoamess.qrcodesimple.databinding.ActivityScanImageBinding
 
 class ScanImageActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityScanImageBinding
+    private val shareViewModel: ScanImageShareViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
@@ -20,9 +22,8 @@ class ScanImageActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 系统分享入口：图片/视频直接路由到扫描，不展示本页 UI
+        // Shared media is imported by the retained ViewModel; this host only consumes the result.
         if (handleShareIntent(intent)) {
-            finish()
             return
         }
 
@@ -34,7 +35,7 @@ class ScanImageActivity : AppCompatActivity() {
 
     /**
      * 处理 ACTION_SEND / ACTION_SEND_MULTIPLE 分享意图。
-     * @return true 表示已接管（调用方应直接 finish）
+     * @return true when this launch is a valid shared-media request.
      */
     private fun handleShareIntent(intent: Intent?): Boolean {
         if (intent == null) return false
@@ -42,7 +43,7 @@ class ScanImageActivity : AppCompatActivity() {
             Intent.ACTION_SEND -> {
                 val uri = getStreamUri(intent)
                 if (uri != null) {
-                    ScanImageProcessor.processMedia(this, uri, intent.type)
+                    processSharedMedia(uri, intent.type, null)
                     true
                 } else {
                     false
@@ -51,20 +52,65 @@ class ScanImageActivity : AppCompatActivity() {
             Intent.ACTION_SEND_MULTIPLE -> {
                 val uris = getStreamUris(intent)
                 if (!uris.isNullOrEmpty()) {
-                    if (uris.size > 1) {
-                        Toast.makeText(
-                            this,
-                            getString(R.string.shared_multiple_first_only, uris.size),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    ScanImageProcessor.processMedia(this, uris.first(), intent.type)
+                    processSharedMedia(uris.first(), intent.type, uris.size)
                     true
                 } else {
                     false
                 }
             }
             else -> false
+        }
+    }
+
+    private fun processSharedMedia(uri: Uri, mimeType: String?, sharedCount: Int?) {
+        shareViewModel.result.observe(this) { result ->
+            if (isFinishing || isDestroyed || !shareViewModel.consume(result)) return@observe
+            when (result) {
+                is ScanImageProcessor.SharedMediaResult.Ready -> routeSharedMedia(result)
+                ScanImageProcessor.SharedMediaResult.TooLarge -> {
+                    Toast.makeText(this, R.string.shared_media_too_large, Toast.LENGTH_LONG).show()
+                    finish()
+                }
+                ScanImageProcessor.SharedMediaResult.Failed -> {
+                    Toast.makeText(this, R.string.failed_to_load_image, Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+        }
+        if (shareViewModel.start(uri, mimeType) && sharedCount != null && sharedCount > 1) {
+            Toast.makeText(
+                this,
+                getString(R.string.shared_multiple_first_only, sharedCount),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun routeSharedMedia(result: ScanImageProcessor.SharedMediaResult.Ready) {
+        val target = when (result.destination) {
+            ScanImageProcessor.Destination.IMAGE -> ResultActivity::class.java
+            ScanImageProcessor.Destination.VIDEO -> VideoScanActivity::class.java
+        }
+        val uriExtra = when (result.destination) {
+            ScanImageProcessor.Destination.IMAGE -> ResultActivity.EXTRA_BITMAP_URI
+            ScanImageProcessor.Destination.VIDEO -> VideoScanActivity.EXTRA_VIDEO_URI
+        }
+        try {
+            startActivity(Intent(this, target).apply {
+                putExtra(uriExtra, result.uri.toString())
+                putExtra(ScanImageProcessor.EXTRA_OWNED_TEMP_FILE, result.ownsTempFile)
+                putExtra(ScanImageProcessor.EXTRA_OWNED_TEMP_FILE_LEASE, result.leaseToken)
+            })
+        } catch (_: RuntimeException) {
+            ScanImageProcessor.deleteOwnedSharedMedia(
+                applicationContext,
+                result.uri,
+                result.ownsTempFile,
+                result.leaseToken
+            )
+            Toast.makeText(this, R.string.failed_to_load_image, Toast.LENGTH_SHORT).show()
+        } finally {
+            finish()
         }
     }
 

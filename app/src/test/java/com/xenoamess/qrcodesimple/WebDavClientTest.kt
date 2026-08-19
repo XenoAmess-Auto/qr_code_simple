@@ -15,6 +15,7 @@ import org.robolectric.annotation.Config
 import java.net.InetSocketAddress
 import java.util.Base64
 import java.util.concurrent.Executors
+import kotlinx.coroutines.runBlocking
 
 /**
  * WebDavClient 端到端：用 JDK 内置 HttpServer 模拟 WebDAV 服务端。
@@ -155,5 +156,31 @@ class WebDavClientTest {
 
         WebDavSyncManager.clearConfig(context)
         assertNull(WebDavSyncManager.loadConfig(context))
+    }
+
+    @Test
+    fun `self-loaded upload clears password on every result path`() = runBlocking {
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val password = "upload-secret".toCharArray()
+
+        val outcome = WebDavSyncManager.upload(context) {
+            WebDavSyncManager.Config("", "user", password)
+        }
+
+        assertEquals(WebDavSyncManager.Outcome.NETWORK_ERROR, outcome)
+        assertTrue(password.all { it == '\u0000' })
+    }
+
+    @Test
+    fun `self-loaded download clears password on every result path`() = runBlocking {
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val password = "download-secret".toCharArray()
+
+        val outcome = WebDavSyncManager.download(context) {
+            WebDavSyncManager.Config("", "user", password)
+        }
+
+        assertEquals(WebDavSyncManager.Outcome.NETWORK_ERROR, outcome)
+        assertTrue(password.all { it == '\u0000' })
     }
 }

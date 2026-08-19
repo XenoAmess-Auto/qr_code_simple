@@ -1,6 +1,8 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
+import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.testing.FragmentScenario
@@ -24,7 +26,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -32,6 +36,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -42,9 +47,13 @@ class HistoryFragmentUiTest {
 
     @Before
     fun setup() {
-        repository = HistoryRepository(ApplicationProvider.getApplicationContext())
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        repository = HistoryRepository(context)
         runBlocking { repository.deleteAll() }
-        QRCodeApp.setHistoryStatsExpanded(ApplicationProvider.getApplicationContext(), false)
+        QRCodeApp.setHistoryStatsExpanded(context, false)
+        AppLockManager.init(context)
+        AppLockManager.clearPin()
+        AppLockManager.setBiometricEnabled(false)
     }
 
     @After
@@ -52,6 +61,7 @@ class HistoryFragmentUiTest {
         scenario?.close()
         scenario = null
         runBlocking { repository.deleteAll() }
+        AppLockManager.clearPin()
     }
 
     private fun flushMainLooper() {
@@ -363,5 +373,205 @@ class HistoryFragmentUiTest {
             context.getString(R.string.clear_history),
             title?.toString()
         )
+    }
+
+    @Test
+    fun emptyEditedContentKeepsDialogOpenAndCanBeCorrected() {
+        runBlocking { repository.insertScan("editable-content", HistoryType.TEXT) }
+        val scenario = launchFragment()
+        waitForListSize(scenario, 1)
+        scenario.onFragment { fragment ->
+            val recyclerView = fragment.requireView().findViewById<RecyclerView>(R.id.recyclerView)
+            recyclerView.findViewHolderForAdapterPosition(0)!!.itemView
+                .findViewById<android.view.View>(R.id.btnEdit).performClick()
+        }
+        flushMainLooper()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        val input = dialog.findAllEditTexts().single()
+        input.setText("   ")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        flushMainLooper()
+
+        assertTrue(dialog.isShowing)
+        assertEquals(input.context.getString(R.string.please_enter_content), input.error?.toString())
+        assertEquals("editable-content", runBlocking { repository.allHistory.first().single().content })
+
+        input.setText("corrected-content")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        val deadline = System.currentTimeMillis() + 3_000
+        while (System.currentTimeMillis() < deadline &&
+            runBlocking { repository.allHistory.first().single().content } != "corrected-content"
+        ) {
+            flushMainLooper()
+            Thread.sleep(50)
+        }
+
+        assertFalse(dialog.isShowing)
+        assertEquals("corrected-content", runBlocking { repository.allHistory.first().single().content })
+    }
+
+    @Test
+    fun incorrectPinKeepsUnlockDialogOpenAndCanBeCorrected() {
+        AppLockManager.setPin("1234")
+        AppLockManager.lock()
+        launchFragment()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        val input = dialog.findAllEditTexts().single()
+        input.setText("0000")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        flushMainLooper()
+
+        assertTrue(dialog.isShowing)
+        assertFalse(AppLockManager.isUnlocked())
+
+        input.setText("1234")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        flushMainLooper()
+
+        assertFalse(dialog.isShowing)
+        assertTrue(AppLockManager.isUnlocked())
+    }
+
+    @Test
+    fun cancellingUnlockDialogLeavesReachableRetryEntry() {
+        AppLockManager.setPin("1234")
+        AppLockManager.lock()
+        launchFragment()
+
+        val firstDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        firstDialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+        flushMainLooper()
+
+        onView(withId(R.id.tvEmpty)).check(matches(withText(R.string.unlock))).perform(click())
+        flushMainLooper()
+
+        val retryDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertNotSame(firstDialog, retryDialog)
+        assertTrue(retryDialog.isShowing)
+    }
+
+    @Test
+    fun repeatedResumeDoesNotStackUnlockDialogs() {
+        AppLockManager.setPin("1234")
+        AppLockManager.lock()
+        val scenario = launchFragment()
+        val firstDialog = ShadowDialog.getLatestDialog()
+
+        scenario.moveToState(Lifecycle.State.STARTED)
+        scenario.moveToState(Lifecycle.State.RESUMED)
+        flushMainLooper()
+
+        assertEquals(firstDialog, ShadowDialog.getLatestDialog())
+        assertEquals(1, ShadowDialog.getShownDialogs().count { it.isShowing })
+    }
+
+    @Test
+    fun cancellingPinThenClickingFilterKeepsHistoryHiddenAndCannotClear() {
+        insertItems()
+        AppLockManager.setPin("1234")
+        AppLockManager.lock()
+        val scenario = launchFragment()
+
+        val pinDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        pinDialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+        flushMainLooper()
+
+        scenario.onFragment { fragment ->
+            val view = fragment.requireView()
+            val filter = view.findViewById<android.view.View>(R.id.btnFilterScanned)
+            val clear = view.findViewById<android.view.View>(R.id.btnClearAll)
+            assertFalse(filter.isEnabled)
+            filter.performClick()
+            assertFalse(clear.isEnabled)
+            assertEquals(android.view.View.GONE, clear.visibility)
+            clear.performClick()
+        }
+        waitForDiff()
+
+        assertFalse(pinDialog.isShowing)
+        assertTrue(currentList(scenario).isEmpty())
+        assertEquals(3, runBlocking { repository.allHistory.first().size })
+        onView(withId(R.id.recyclerView)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+    }
+
+    @Test
+    fun databaseAndQueryEmissionsStayHiddenAfterLockAndRecoverAfterUnlock() {
+        runBlocking { repository.insertScan("initial", HistoryType.TEXT) }
+        val scenario = launchFragment()
+        assertEquals(1, waitForListSize(scenario, 1).size)
+
+        AppLockManager.setPin("1234")
+        AppLockManager.lock()
+        runBlocking { repository.insertScan("emitted-while-locked", HistoryType.TEXT) }
+        waitForListSize(scenario, 0)
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<androidx.appcompat.widget.SearchView>(R.id.searchView)
+                .setQuery("emitted", true)
+        }
+        waitForDiff()
+
+        assertTrue(currentList(scenario).isEmpty())
+        onView(withId(R.id.recyclerView)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        onView(withId(R.id.tvEmpty)).check(matches(withText(R.string.unlock))).perform(click())
+        flushMainLooper()
+
+        val pinDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        pinDialog.findAllEditTexts().single().setText("1234")
+        pinDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+
+        val list = waitForListSize(scenario, 1)
+        assertEquals("emitted-while-locked", list.single().content)
+        scenario.onFragment { fragment ->
+            assertTrue(fragment.requireView().findViewById<android.view.View>(R.id.btnFilterScanned).isEnabled)
+        }
+    }
+
+    @Test
+    fun foregroundTimeoutWithoutDatabaseEmissionHidesHistoryAndOpenContentDialogs() {
+        runBlocking { repository.insertScan("timeout-content", HistoryType.TEXT) }
+        AppLockManager.setPin("1234")
+        AppLockManager.recordUnlock()
+        ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("app_lock", Context.MODE_PRIVATE)
+            .edit()
+            .putLong("last_unlocked", System.currentTimeMillis() - 5 * 60 * 1000 + 1_000)
+            .commit()
+        val scenario = launchFragment()
+        waitForListSize(scenario, 1)
+
+        scenario.onFragment { fragment ->
+            val holder = fragment.requireView().findViewById<RecyclerView>(R.id.recyclerView)
+                .findViewHolderForAdapterPosition(0)!!
+            holder.itemView.findViewById<android.view.View>(R.id.btnNote).performClick()
+        }
+        flushMainLooper()
+        val notesDialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertTrue(notesDialog.isShowing)
+
+        Thread.sleep(1_100)
+        Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(1_001, TimeUnit.MILLISECONDS)
+        flushMainLooper()
+
+        assertFalse(notesDialog.isShowing)
+        assertTrue(currentList(scenario).isEmpty())
+        onView(withId(R.id.recyclerView)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        onView(withId(R.id.tvEmpty)).check(matches(withText(R.string.unlock)))
+        assertEquals("timeout-content", runBlocking { repository.allHistory.first().single().content })
+    }
+
+    private fun AlertDialog.findAllEditTexts(): List<EditText> {
+        val result = mutableListOf<EditText>()
+        collectEditTexts(window?.decorView as? ViewGroup ?: return result, result)
+        return result
+    }
+
+    private fun collectEditTexts(root: ViewGroup, out: MutableList<EditText>) {
+        for (i in 0 until root.childCount) {
+            val child = root.getChildAt(i)
+            if (child is EditText) out.add(child)
+            if (child is ViewGroup) collectEditTexts(child, out)
+        }
     }
 }

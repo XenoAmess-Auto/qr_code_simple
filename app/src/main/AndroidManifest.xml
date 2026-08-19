@@ -47,7 +47,8 @@
 
         <activity
             android:name=".CameraScanActivity"
-            android:label="@string/camera_scan" />
+            android:label="@string/camera_scan"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".ScanImageActivity"
@@ -71,6 +72,7 @@
         <activity
             android:name=".GenerateActivity"
             android:label="@string/generate_qr"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar"
             android:exported="true">
             <!-- 系统分享：文本直接生成二维码 -->
             <intent-filter>
@@ -104,7 +106,8 @@
 
         <activity
             android:name=".BatchGenerateActivity"
-            android:label="@string/batch_generate" />
+            android:label="@string/batch_generate"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".BatchResultActivity"
@@ -114,19 +117,23 @@
         <!-- 连续扫描模式 -->
         <activity
             android:name=".ContinuousScanActivity"
-            android:label="@string/continuous_scan" />
+            android:label="@string/continuous_scan"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".PrivacySettingsActivity"
-            android:label="@string/privacy_settings" />
+            android:label="@string/privacy_settings"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".DatabaseSecurityActivity"
-            android:label="@string/database_security" />
+            android:label="@string/database_security"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".BackupActivity"
-            android:label="@string/backup_restore" />
+            android:label="@string/backup_restore"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
 
         <activity
             android:name=".HistoryDetailActivity"

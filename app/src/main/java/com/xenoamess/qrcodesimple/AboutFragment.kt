@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -180,10 +181,22 @@ class AboutFragment : Fragment() {
             .setMessage("$header\n\n$content")
             .setPositiveButton(R.string.share) { _, _ -> shareCrashLog(content) }
             .setNegativeButton(R.string.clear_logs) { _, _ ->
+                showClearCrashLogsConfirmation(logs.size)
+            }
+            .setNeutralButton(R.string.close, null)
+            .show()
+    }
+
+    private fun showClearCrashLogsConfirmation(logCount: Int) {
+        val ctx = requireContext()
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.clear_logs)
+            .setMessage(getString(R.string.delete_selected_confirm, logCount))
+            .setPositiveButton(R.string.clear) { _, _ ->
                 CrashLogger.clear(ctx)
                 Toast.makeText(ctx, getString(R.string.crash_log_cleared), Toast.LENGTH_SHORT).show()
             }
-            .setNeutralButton(R.string.close, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -192,7 +205,10 @@ class AboutFragment : Fragment() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, content)
         }
-        startActivity(Intent.createChooser(intent, getString(R.string.share)))
+        startExternalActivity(
+            Intent.createChooser(intent, getString(R.string.share)),
+            R.string.no_app_found
+        )
     }
 
     private fun readVersionHistory(): String? {
@@ -224,8 +240,15 @@ class AboutFragment : Fragment() {
     }
 
     private fun openUrl(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        startActivity(intent)
+        startExternalActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)), R.string.no_browser_found)
+    }
+
+    private fun startExternalActivity(intent: Intent, errorMessageRes: Int) {
+        try {
+            externalActivityLauncherForTesting?.invoke(this, intent) ?: startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(requireContext(), errorMessageRes, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {
@@ -238,5 +261,6 @@ class AboutFragment : Fragment() {
 
         /** Keeps the UI test hermetic while production always reads the packaged asset. */
         internal var versionHistoryLoaderForTesting: ((android.content.Context) -> String?)? = null
+        internal var externalActivityLauncherForTesting: ((AboutFragment, Intent) -> Unit)? = null
     }
 }

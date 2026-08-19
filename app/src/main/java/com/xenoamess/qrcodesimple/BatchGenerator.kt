@@ -13,14 +13,46 @@ import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.WorkbookFactory
-import java.io.InputStreamReader
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStreamReader
 
 /**
  * CSV/Excel 数据导入和批量生成管理器
  */
 object BatchGenerator {
+
+    internal const val MAX_IMPORT_SOURCE_BYTES = 4 * 1024 * 1024
+    internal const val MAX_IMPORT_PHYSICAL_ROWS = 1_000
+    internal const val MAX_IMPORT_ERRORS = 100
+    private const val MAX_IMPORT_FIELDS = MAX_IMPORT_PHYSICAL_ROWS * 16
+
+    private class ImportLimitException(val limit: BatchResultTransfer.Limit) : Exception()
+
+    private class ImportBudget {
+        private var rows = 0
+        private var fields = 0
+        private var bytes = 0L
+
+        fun addRow(values: List<String>): BatchResultTransfer.Limit? {
+            rows++
+            if (rows > MAX_IMPORT_PHYSICAL_ROWS) return BatchResultTransfer.Limit.ITEM_COUNT
+            fields += values.size
+            if (fields > MAX_IMPORT_FIELDS) return BatchResultTransfer.Limit.ITEM_COUNT
+            for (value in values) {
+                if (value.length > BatchResultTransfer.MAX_ITEM_CHARACTERS) {
+                    return BatchResultTransfer.Limit.ITEM_LENGTH
+                }
+                bytes += BatchResultTransfer.serializedStringBytes(value)
+                if (bytes > BatchResultTransfer.MAX_SERIALIZED_BYTES) {
+                    return BatchResultTransfer.Limit.TOTAL_BYTES
+                }
+            }
+            return null
+        }
+    }
 
     data class BatchItem(
         val content: String,
@@ -34,7 +66,8 @@ object BatchGenerator {
 
     data class BatchResult(
         val items: List<BatchItem>,
-        val errors: List<String>
+        val errors: List<String>,
+        val limitExceeded: BatchResultTransfer.Limit? = null
     )
 
     /**
@@ -44,31 +77,48 @@ object BatchGenerator {
     suspend fun parseCsv(context: Context, uri: Uri): BatchResult = withContext(Dispatchers.IO) {
         val items = mutableListOf<BatchItem>()
         val errors = mutableListOf<String>()
+        val importBudget = ImportBudget()
+        val itemBudget = BatchResultTransfer.Budget()
 
         try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                val reader = InputStreamReader(inputStream)
+            val source = readImportSource(context, uri)
+            ByteArrayInputStream(source).use { inputStream ->
+                val reader = InputStreamReader(inputStream, Charsets.UTF_8)
                 val csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)
                     .setHeader()
                     .setSkipHeaderRecord(true)
                     .setIgnoreHeaderCase(true)
                     .setTrim(true)
                     .get()
-                val csvParser = CSVParser.parse(reader, csvFormat)
+                CSVParser.parse(reader, csvFormat).use { csvParser ->
+                    importBudget.addRow(csvParser.headerNames)?.let { limit ->
+                        return@withContext BatchResult(items, errors, limit)
+                    }
 
-                var lineNumber = 1
-                for (record in csvParser) {
-                    lineNumber++
-                    try {
-                        val item = parseCsvRecord(record)
-                        items.add(item)
-                    } catch (e: Exception) {
-                        errors.add("Line $lineNumber: ${e.message}")
+                    var lineNumber = 1
+                    for (record in csvParser) {
+                        lineNumber++
+                        importBudget.addRow(record.toList())?.let { limit ->
+                            return@withContext BatchResult(items, errors, limit)
+                        }
+                        try {
+                            val item = parseCsvRecord(record)
+                            itemBudget.add(item)?.let { limit ->
+                                return@withContext BatchResult(items, errors, limit)
+                            }
+                            items.add(item)
+                        } catch (e: Exception) {
+                            if (!addImportError(errors, "Line $lineNumber: ${e.message}")) {
+                                return@withContext BatchResult(items, errors, BatchResultTransfer.Limit.ITEM_COUNT)
+                            }
+                        }
                     }
                 }
             }
+        } catch (e: ImportLimitException) {
+            return@withContext BatchResult(items, errors, e.limit)
         } catch (e: Exception) {
-            errors.add("Failed to parse CSV: ${e.message}")
+            addImportError(errors, "Failed to parse CSV: ${e.message}")
         }
 
         BatchResult(items, errors)
@@ -84,53 +134,102 @@ object BatchGenerator {
     suspend fun parseExcel(context: Context, uri: Uri): BatchResult = withContext(Dispatchers.IO) {
         val items = mutableListOf<BatchItem>()
         val errors = mutableListOf<String>()
+        val importBudget = ImportBudget()
+        val itemBudget = BatchResultTransfer.Budget()
 
         try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            val source = readImportSource(context, uri)
+            ByteArrayInputStream(source).use { inputStream ->
                 val workbook = WorkbookFactory.create(inputStream)
-                val sheet = workbook.getSheetAt(0)
+                workbook.use {
+                    val sheet = workbook.getSheetAt(0)
+                    if (sheet.physicalNumberOfRows > MAX_IMPORT_PHYSICAL_ROWS) {
+                        return@withContext BatchResult(items, errors, BatchResultTransfer.Limit.ITEM_COUNT)
+                    }
 
-                val rowIterator = sheet.iterator()
-                if (!rowIterator.hasNext()) {
-                    return@withContext BatchResult(emptyList(), listOf("Empty Excel file"))
-                }
+                    val rowIterator = sheet.iterator()
+                    if (!rowIterator.hasNext()) {
+                        return@withContext BatchResult(emptyList(), listOf("Empty Excel file"))
+                    }
 
-                val firstRow = rowIterator.next()
-                val headerIndex = parseExcelHeader(firstRow)
-                val hasHeader = headerIndex["content"] != null
+                    val firstRow = rowIterator.next()
+                    importBudget.addRow(excelRowValues(firstRow))?.let { limit ->
+                        return@withContext BatchResult(items, errors, limit)
+                    }
+                    val headerIndex = parseExcelHeader(firstRow)
+                    val hasHeader = headerIndex["content"] != null
 
-                var rowNumber = 1
-
-                if (!hasHeader) {
-                    try {
-                        parseExcelRow(firstRow, headerIndex, false, rowNumber)?.let { item ->
-                            items.add(item)
+                    if (!hasHeader) {
+                        try {
+                            parseExcelRow(firstRow, headerIndex, false)?.let { item ->
+                                itemBudget.add(item)?.let { limit ->
+                                    return@withContext BatchResult(items, errors, limit)
+                                }
+                                items.add(item)
+                            }
+                        } catch (e: Exception) {
+                            if (!addImportError(errors, "Row ${firstRow.rowNum + 1}: ${e.message}")) {
+                                return@withContext BatchResult(items, errors, BatchResultTransfer.Limit.ITEM_COUNT)
+                            }
                         }
-                    } catch (e: Exception) {
-                        errors.add("Row $rowNumber: ${e.message}")
+                    }
+
+                    while (rowIterator.hasNext()) {
+                        val row = rowIterator.next()
+                        importBudget.addRow(excelRowValues(row))?.let { limit ->
+                            return@withContext BatchResult(items, errors, limit)
+                        }
+                        try {
+                            parseExcelRow(row, headerIndex, hasHeader)?.let { item ->
+                                itemBudget.add(item)?.let { limit ->
+                                    return@withContext BatchResult(items, errors, limit)
+                                }
+                                items.add(item)
+                            }
+                        } catch (e: Exception) {
+                            if (!addImportError(errors, "Row ${row.rowNum + 1}: ${e.message}")) {
+                                return@withContext BatchResult(items, errors, BatchResultTransfer.Limit.ITEM_COUNT)
+                            }
+                        }
                     }
                 }
-
-                while (rowIterator.hasNext()) {
-                    rowNumber++
-                    val row = rowIterator.next()
-                    try {
-                        parseExcelRow(row, headerIndex, hasHeader, rowNumber)?.let { item ->
-                            items.add(item)
-                        }
-                    } catch (e: Exception) {
-                        errors.add("Row $rowNumber: ${e.message}")
-                    }
-                }
-
-                workbook.close()
             }
+        } catch (e: ImportLimitException) {
+            return@withContext BatchResult(items, errors, e.limit)
         } catch (e: Exception) {
-            errors.add("Failed to parse Excel: ${e.message}")
+            addImportError(errors, "Failed to parse Excel: ${e.message}")
         }
 
         BatchResult(items, errors)
     }
+
+    private fun readImportSource(context: Context, uri: Uri): ByteArray {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        val input = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalArgumentException("Unable to open import file")
+        input.use {
+            var total = 0
+            while (true) {
+                val read = it.read(buffer)
+                if (read < 0) break
+                total += read
+                if (total > MAX_IMPORT_SOURCE_BYTES) {
+                    throw ImportLimitException(BatchResultTransfer.Limit.TOTAL_BYTES)
+                }
+                output.write(buffer, 0, read)
+            }
+        }
+        return output.toByteArray()
+    }
+
+    private fun addImportError(errors: MutableList<String>, error: String): Boolean {
+        if (errors.size >= MAX_IMPORT_ERRORS) return false
+        errors.add(error)
+        return true
+    }
+
+    private fun excelRowValues(row: Row): List<String> = row.mapNotNull(::getCellString)
 
     private fun parseExcelHeader(row: Row): Map<String, Int> {
         val headerMap = mutableMapOf<String, Int>()
@@ -147,7 +246,7 @@ object BatchGenerator {
         return headerMap
     }
 
-    private fun parseExcelRow(row: Row, headerIndex: Map<String, Int>, hasHeader: Boolean, rowNumber: Int): BatchItem? {
+    private fun parseExcelRow(row: Row, headerIndex: Map<String, Int>, hasHeader: Boolean): BatchItem? {
         val content = if (hasHeader) {
             headerIndex["content"]?.let { getCellString(row.getCell(it)) }?.trim()
         } else {
@@ -294,17 +393,13 @@ object BatchGenerator {
     fun parseSimpleBatch(
         text: String,
         format: BarcodeFormat = BarcodeFormat.QR_CODE
-    ): List<BatchItem> {
-        return text.lines()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .mapIndexed { index, content ->
-                BatchItem(
-                    content = content,
-                    format = format,
-                    fileName = "batch_${index + 1}"
-                )
-            }
+    ): List<BatchItem> = buildList {
+        for (line in text.lineSequence()) {
+            val content = line.trim()
+            if (content.isEmpty()) continue
+            add(BatchItem(content = content, format = format, fileName = "batch_${size + 1}"))
+            if (size > BatchResultTransfer.MAX_ITEMS) break
+        }
     }
 
     fun resolveBatchInput(

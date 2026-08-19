@@ -1,5 +1,7 @@
 package com.xenoamess.qrcodesimple
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
@@ -8,10 +10,12 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
@@ -64,11 +68,60 @@ class StandaloneActivityActionBarTest {
 
     @Test
     fun batchResultActivityExposesSaveMenuAndUpNavigation() {
-        val intent = Intent(ApplicationProvider.getApplicationContext(), BatchResultActivity::class.java).apply {
-            putStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS, arrayListOf("test"))
-            putExtra(BatchGenerateActivity.EXTRA_FORMAT, BarcodeFormat.QR_CODE.name)
-        }
+        val intent = BatchResultTransfer.createIntent(
+            ApplicationProvider.getApplicationContext(),
+            listOf(BatchGenerator.BatchItem("test"))
+        )
 
         assertActionBarAndMenu(ActivityScenario.launch(intent), intArrayOf(R.id.action_save_all))
+    }
+}
+
+@RunWith(ParameterizedRobolectricTestRunner::class)
+@Config(sdk = [28], application = QRCodeApp::class)
+class StandaloneActivityManifestTest(
+    private val activityClass: Class<out AppCompatActivity>,
+    private val labelRes: Int
+) {
+
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
+        fun standaloneActivities(): Collection<Array<Any>> = listOf(
+            arrayOf(CameraScanActivity::class.java, R.string.camera_scan),
+            arrayOf(GenerateActivity::class.java, R.string.generate_qr),
+            arrayOf(BatchGenerateActivity::class.java, R.string.batch_generate),
+            arrayOf(ContinuousScanActivity::class.java, R.string.continuous_scan),
+            arrayOf(PrivacySettingsActivity::class.java, R.string.privacy_settings),
+            arrayOf(DatabaseSecurityActivity::class.java, R.string.database_security),
+            arrayOf(BackupActivity::class.java, R.string.backup_restore)
+        )
+    }
+
+    @Test
+    fun manifestUsesActionBarThemeAndLocalizedLabel() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val activityInfo = context.packageManager.getActivityInfo(
+            ComponentName(context, activityClass),
+            0
+        )
+
+        assertEquals(R.style.Theme_QRCodeSimple_ActionBar, activityInfo.theme)
+        assertEquals(context.getString(labelRes), activityInfo.loadLabel(context.packageManager).toString())
+    }
+
+    @Test
+    fun activityShowsTitleAndUpNavigation() {
+        val scenario = ActivityScenario.launch(activityClass)
+        scenario.onActivity { activity ->
+            val actionBar = activity.supportActionBar
+            assertNotNull("${activityClass.simpleName} must expose an action bar", actionBar)
+            assertEquals(activity.getString(labelRes), actionBar?.title?.toString())
+            assertTrue(
+                "${activityClass.simpleName} must expose Up navigation",
+                actionBar!!.displayOptions and ActionBar.DISPLAY_HOME_AS_UP != 0
+            )
+        }
+        scenario.close()
     }
 }

@@ -10,6 +10,7 @@ import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -18,6 +19,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import java.util.concurrent.TimeUnit
 
 /**
  * 历史页平板双栏（sw600dp）测试：点击列表项时详情应嵌入右侧面板，
@@ -32,7 +34,11 @@ class HistoryTwoPaneTest {
 
     @Before
     fun setup() {
-        repository = HistoryRepository(ApplicationProvider.getApplicationContext())
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        repository = HistoryRepository(context)
+        AppLockManager.init(context)
+        AppLockManager.clearPin()
+        AppLockManager.setBiometricEnabled(false)
         runBlocking {
             repository.deleteAll()
             repository.insertScan("https://example.com/two-pane", HistoryType.QR_CODE)
@@ -44,6 +50,7 @@ class HistoryTwoPaneTest {
         scenario?.close()
         scenario = null
         runBlocking { repository.deleteAll() }
+        AppLockManager.clearPin()
     }
 
     private fun flushMainLooper() {
@@ -92,6 +99,51 @@ class HistoryTwoPaneTest {
             // 没有启动独立的 HistoryDetailActivity
             assertNull(
                 Shadows.shadowOf(fragment.requireActivity()).nextStartedActivity
+            )
+        }
+    }
+
+    @Test
+    fun `foreground timeout hides embedded detail without an emission`() {
+        AppLockManager.setPin("1234")
+        AppLockManager.recordUnlock()
+        ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getSharedPreferences("app_lock", android.content.Context.MODE_PRIVATE)
+            .edit()
+            .putLong("last_unlocked", System.currentTimeMillis() - 5 * 60 * 1000 + 1_000)
+            .commit()
+        launchFragment()
+        scenario?.onFragment { fragment ->
+            val rv = fragment.requireView().findViewById<RecyclerView>(R.id.recyclerView)
+            rv.findViewHolderForAdapterPosition(0)!!.itemView.performClick()
+            fragment.childFragmentManager.executePendingTransactions()
+        }
+
+        Thread.sleep(1_100)
+        Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(1_001, TimeUnit.MILLISECONDS)
+        flushMainLooper()
+
+        scenario?.onFragment { fragment ->
+            assertEquals(
+                android.view.View.GONE,
+                fragment.requireView().findViewById<android.view.View>(R.id.detailPaneContainer).visibility
+            )
+            val embedded = fragment.childFragmentManager.findFragmentById(R.id.detailPaneContainer)!!
+            assertEquals(android.view.View.GONE, embedded.requireView().visibility)
+        }
+
+        AppLockManager.recordUnlock()
+        waitForDiff()
+        scenario?.onFragment { fragment ->
+            assertEquals(
+                android.view.View.VISIBLE,
+                fragment.requireView().findViewById<android.view.View>(R.id.detailPaneContainer).visibility
+            )
+            val embedded = fragment.childFragmentManager.findFragmentById(R.id.detailPaneContainer)!!
+            assertEquals(android.view.View.VISIBLE, embedded.requireView().visibility)
+            assertEquals(
+                "https://example.com/two-pane",
+                embedded.requireView().findViewById<android.widget.TextView>(R.id.tvContent).text.toString()
             )
         }
     }

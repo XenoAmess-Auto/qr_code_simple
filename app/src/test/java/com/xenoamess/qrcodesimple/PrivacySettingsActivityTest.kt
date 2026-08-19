@@ -198,6 +198,40 @@ class PrivacySettingsActivityTest {
         idleMain()
 
         assertFalse(AppLockManager.isLockEnabled())
+        assertTrue(dialog.isShowing)
+
+        editTexts[1].setText("123456")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        idleMain()
+
+        assertTrue(AppLockManager.isLockEnabled())
+        assertFalse(dialog.isShowing)
+    }
+
+    @Test
+    fun shortPinKeepsDialogOpenAndCanBeCorrected() {
+        scenario.onActivity { activity ->
+            activity.findViewById<SwitchMaterial>(R.id.switchAppLock).performClick()
+        }
+        idleMain()
+
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        val editTexts = dialog.findAllEditTexts()
+        editTexts[0].setText("123")
+        editTexts[1].setText("123")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        idleMain()
+
+        assertFalse(AppLockManager.isLockEnabled())
+        assertTrue(dialog.isShowing)
+
+        editTexts[0].setText("1234")
+        editTexts[1].setText("1234")
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        idleMain()
+
+        assertTrue(AppLockManager.isLockEnabled())
+        assertFalse(dialog.isShowing)
     }
 
     @Test

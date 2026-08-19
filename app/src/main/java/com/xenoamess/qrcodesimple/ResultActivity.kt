@@ -37,6 +37,8 @@ class ResultActivity : AppCompatActivity() {
     private val results = mutableListOf<QRResult>()
     private val scanResults = mutableListOf<QRCodeScanner.ScanResult>()
     private var scanJob: Job? = null
+    private var ownedMediaUri: Uri? = null
+    private var ownedMediaLease: String? = null
 
     companion object {
         const val EXTRA_BITMAP_URI = "bitmap_uri"
@@ -61,7 +63,15 @@ class ResultActivity : AppCompatActivity() {
 
         val uriString = intent.getStringExtra(EXTRA_BITMAP_URI)
         if (uriString != null) {
-            processImage(Uri.parse(uriString))
+            val uri = Uri.parse(uriString)
+            if (intent.getBooleanExtra(ScanImageProcessor.EXTRA_OWNED_TEMP_FILE, false)) {
+                ownedMediaUri = uri
+                ownedMediaLease = intent.getStringExtra(
+                    ScanImageProcessor.EXTRA_OWNED_TEMP_FILE_LEASE
+                )
+                ScanImageProcessor.retainOwnedSharedMedia(applicationContext, uri, ownedMediaLease)
+            }
+            processImage(uri)
         } else {
             Toast.makeText(this, getString(R.string.no_image_provided), Toast.LENGTH_SHORT).show()
             finish()
@@ -69,8 +79,31 @@ class ResultActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         scanJob?.cancel()
+        ScanImageProcessor.releaseOwnedSharedMedia(
+            applicationContext,
+            ownedMediaUri,
+            ownedMediaLease
+        )
+        super.onDestroy()
+    }
+
+    override fun finish() {
+        val uri = ownedMediaUri
+        val lease = ownedMediaLease
+        ownedMediaUri = null
+        ownedMediaLease = null
+        val job = scanJob
+        job?.cancel()
+        if (job != null && !job.isCompleted) {
+            val appContext = applicationContext
+            job.invokeOnCompletion {
+                ScanImageProcessor.deleteOwnedSharedMedia(appContext, uri, uri != null, lease)
+            }
+        } else {
+            ScanImageProcessor.deleteOwnedSharedMedia(applicationContext, uri, uri != null, lease)
+        }
+        super.finish()
     }
 
     private fun setupRecyclerView() {

@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
@@ -14,13 +16,21 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.lang.ref.WeakReference
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -31,6 +41,7 @@ object AppUpdateManager {
     private const val APK_MIME_TYPE = "application/vnd.android.package-archive"
     private const val DOWNLOAD_CONNECT_TIMEOUT_MS = 10_000
     private const val DOWNLOAD_READ_TIMEOUT_MS = 30_000
+    private const val UPDATES_DIRECTORY = "updates"
 
     /** Tests can replace checker results without network access. */
     internal var checkerForTesting: ((
@@ -42,24 +53,42 @@ object AppUpdateManager {
     /** Tests can supply deterministic artifact streams while exercising size/hash/file handling. */
     internal var downloadConnectionFactoryForTesting: ((URL) -> HttpURLConnection)? = null
 
-    /** User may grant unknown-source permission outside the app, then return to continue. */
+    internal var canInstallPackagesForTesting: ((Context) -> Boolean)? = null
+    internal var acquireUpdateApkForTesting: (suspend (
+        Context,
+        UpdateDecider.ReleaseInfo,
+        (Int, Boolean) -> Unit,
+        () -> Unit
+    ) -> File?)? = null
+    internal var archiveVerifierForTesting: ((Context, File, Long) -> Boolean)? = null
+    internal var installApkForTesting: ((Activity, File) -> Boolean)? = null
+
+    /** External-flow state is process-local: it survives recreation but safely expires on process loss. */
+    private val stateLock = Any()
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var pendingInstall: UpdateDecider.ReleaseInfo? = null
-    private var progressDialog: AlertDialog? = null
+    private var pendingInstaller: InstallerAttempt? = null
+    private var nextDownloadGeneration = 0L
+    private var activeDownload: DownloadSession? = null
 
     fun checkManually(activity: Activity) {
+        cleanupUpdateArtifacts(activity)
         check(activity, UpdateDecider.Channel.STABLE, manual = true)
     }
 
     /** Beta is intentionally manual-only and is only wired from About. */
     fun checkBetaUpdate(activity: Activity) {
+        cleanupUpdateArtifacts(activity)
         check(activity, UpdateDecider.Channel.BETA, manual = true)
     }
 
     /** Stable-only automatic check with the existing 24-hour preference throttle. */
     fun maybeAutoCheck(activity: Activity) {
+        cleanupUpdateArtifacts(activity)
         if (!QRCodeApp.isAppUpdateAutoCheckEnabled(activity)) return
         if (!QRCodeApp.tryMarkAppUpdateChecked(activity)) return
         val localVersion = installedVersion(activity) ?: return
+        val host = WeakReference(activity)
         CoroutineScope(Dispatchers.IO).launch {
             val outcome = checkForChannel(
                 UpdateDecider.Channel.STABLE,
@@ -68,19 +97,51 @@ object AppUpdateManager {
             )
             if (outcome !is UpdateDecider.CheckOutcome.UpdateAvailable) return@launch
             withContext(Dispatchers.Main) {
-                if (!activity.isFinishing && !activity.isDestroyed) {
-                    showUpdateDialog(activity, outcome.info)
+                host.get()?.takeUnless { it.isFinishing || it.isDestroyed }?.let {
+                    showUpdateDialog(it, outcome.info)
                 }
             }
         }
     }
 
-    /** Called from the host Activity's onResume after the unknown-source settings screen. */
+    /** Called on resume to resolve a package-installer attempt, which has no reliable result callback. */
     fun onHostResume(activity: Activity) {
-        val pending = pendingInstall ?: return
-        if (!canInstallPackages(activity)) return
-        pendingInstall = null
-        downloadAndInstall(activity, pending)
+        consumePendingInstallIfAuthorized(activity)
+
+        val attempt = synchronized(stateLock) {
+            pendingInstaller.also { pendingInstaller = null }
+        }
+        if (attempt != null) {
+            attempt.file.delete()
+            val installed = installedVersion(activity)
+            if (installed == null || installed.versionCode < attempt.info.versionCode) {
+                showInstallFailure(activity, attempt.info)
+            }
+        }
+    }
+
+    /** Receives the unknown-source settings result from MainActivity's Activity Result launcher. */
+    fun onInstallPermissionResult(activity: Activity) {
+        val pending = synchronized(stateLock) {
+            pendingInstall.also { pendingInstall = null }
+        } ?: return
+        if (canInstallPackages(activity)) {
+            downloadAndInstall(activity, pending)
+        } else {
+            Toast.makeText(
+                activity,
+                R.string.update_install_permission_not_granted,
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    /** Releases UI and blocking network work owned by a destroyed Activity. */
+    fun onHostDestroy(activity: Activity) {
+        val session = synchronized(stateLock) {
+            activeDownload?.takeIf { it.host.get() === activity }
+        } ?: return
+        cancelDownload(session)
     }
 
     private fun check(activity: Activity, channel: UpdateDecider.Channel, manual: Boolean) {
@@ -89,15 +150,17 @@ object AppUpdateManager {
             if (manual) showCheckFailure(activity, channel)
             return
         }
+        val host = WeakReference(activity)
         CoroutineScope(Dispatchers.IO).launch {
             val outcome = checkForChannel(channel, localVersion.versionCode, localVersion.versionName)
             withContext(Dispatchers.Main) {
-                if (activity.isFinishing || activity.isDestroyed) return@withContext
+                val currentHost = host.get()?.takeUnless { it.isFinishing || it.isDestroyed }
+                    ?: return@withContext
                 when (outcome) {
-                    is UpdateDecider.CheckOutcome.UpdateAvailable -> showUpdateDialog(activity, outcome.info)
+                    is UpdateDecider.CheckOutcome.UpdateAvailable -> showUpdateDialog(currentHost, outcome.info)
                     UpdateDecider.CheckOutcome.UpToDate -> if (manual) {
                         Toast.makeText(
-                            activity,
+                            currentHost,
                             if (channel == UpdateDecider.Channel.BETA) {
                                 R.string.beta_update_already_latest
                             } else {
@@ -108,7 +171,7 @@ object AppUpdateManager {
                     }
                     is UpdateDecider.CheckOutcome.Error -> {
                         Log.w(TAG, "Update check failed: ${outcome.error}")
-                        if (manual) showCheckFailure(activity, channel)
+                        if (manual) showCheckFailure(currentHost, channel)
                     }
                 }
             }
@@ -127,6 +190,8 @@ object AppUpdateManager {
                 UpdateDecider.Channel.BETA ->
                     AppUpdateChecker.checkBeta(localVersionCode, localVersionName)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "Update checker threw", e)
             UpdateDecider.CheckOutcome.Error(UpdateDecider.UpdateCheckError.NETWORK)
@@ -171,83 +236,169 @@ object AppUpdateManager {
 
     private fun startInstall(activity: Activity, info: UpdateDecider.ReleaseInfo) {
         if (!canInstallPackages(activity)) {
-            pendingInstall = info
+            synchronized(stateLock) { pendingInstall = info }
             requestInstallPermission(activity)
             return
         }
         downloadAndInstall(activity, info)
     }
 
+    private fun consumePendingInstallIfAuthorized(activity: Activity) {
+        if (!canInstallPackages(activity)) return
+        val pending = synchronized(stateLock) {
+            pendingInstall.also { pendingInstall = null }
+        } ?: return
+        downloadAndInstall(activity, pending)
+    }
+
+    internal fun startInstallForTesting(activity: Activity, info: UpdateDecider.ReleaseInfo) {
+        startInstall(activity, info)
+    }
+
     private fun canInstallPackages(context: Context): Boolean {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+        return canInstallPackagesForTesting?.invoke(context) ?: (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
             context.packageManager.canRequestPackageInstalls()
+        )
     }
 
     private fun requestInstallPermission(activity: Activity) {
         Toast.makeText(activity, R.string.update_install_permission_needed, Toast.LENGTH_LONG).show()
+        if (activity !is MainActivity) {
+            val pending = synchronized(stateLock) {
+                pendingInstall.also { pendingInstall = null }
+            }
+            pending?.let { showInstallFailure(activity, it) }
+            return
+        }
         try {
-            activity.startActivity(
-                Intent(
-                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                    Uri.parse("package:${activity.packageName}")
-                )
+            val intent = Intent(
+                Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                Uri.parse("package:${activity.packageName}")
             )
+            activity.launchUnknownSourcesSettings(intent)
         } catch (e: Exception) {
             Log.w(TAG, "Cannot open unknown-sources settings", e)
-            pendingInstall?.let { showInstallFailure(activity, it) }
-            pendingInstall = null
+            val pending = synchronized(stateLock) {
+                pendingInstall.also { pendingInstall = null }
+            }
+            pending?.let { showInstallFailure(activity, it) }
         }
     }
 
     private fun downloadAndInstall(activity: Activity, info: UpdateDecider.ReleaseInfo) {
-        showProgressDialog(activity, info)
-        CoroutineScope(Dispatchers.IO).launch {
-            val file = acquireUpdateApk(
-                activity = activity,
-                info = info,
-                onProgress = { percent, incremental ->
-                    activity.runOnUiThread {
-                        if (!activity.isFinishing && !activity.isDestroyed) {
-                            updateProgressDialog(percent, incremental)
+        cleanupUpdateArtifacts(activity)
+        val lifecycleOwner = activity as? LifecycleOwner ?: run {
+            showInstallFailure(activity, info)
+            return
+        }
+        val applicationContext = activity.applicationContext
+        val session: DownloadSession
+        val previous = synchronized(stateLock) {
+            session = DownloadSession(++nextDownloadGeneration, activity)
+            activeDownload.also { activeDownload = session }
+        }
+        previous?.cancel()
+        previous?.dismissProgress()
+        showProgressDialog(activity, info, session)
+        lateinit var job: Job
+        job = lifecycleOwner.lifecycleScope.launch(start = CoroutineStart.LAZY) {
+            var file: File? = null
+            try {
+                val archiveVerified = withContext(Dispatchers.IO) {
+                    val progressCallback = { percent: Int, incremental: Boolean ->
+                        postToSession(session) {
+                            updateProgressDialog(session, percent, incremental)
                         }
                     }
-                },
-                onIncrementalFallback = {
-                    activity.runOnUiThread {
-                        if (!activity.isFinishing && !activity.isDestroyed) {
-                            showIncrementalFallback()
+                    val fallbackCallback = {
+                        postToSession(session) {
+                            showIncrementalFallback(session)
                         }
                     }
+                    val acquireForTesting = acquireUpdateApkForTesting
+                    file = if (acquireForTesting != null) {
+                        acquireForTesting(
+                            applicationContext,
+                            info,
+                            progressCallback,
+                            fallbackCallback
+                        )
+                    } else {
+                        acquireUpdateApk(
+                            applicationContext,
+                            info,
+                            progressCallback,
+                            fallbackCallback,
+                            session
+                        )
+                    }
+                    ensureActive()
+                    val verified = file?.let {
+                        archiveVerifierForTesting?.invoke(applicationContext, it, info.versionCode)
+                            ?: ApkArchiveVerifier.verify(applicationContext, it, info.versionCode)
+                    } == true
+                    ensureActive()
+                    verified
                 }
-            )
-            val archiveVerified = file?.let {
-                ApkArchiveVerifier.verify(activity, it, info.versionCode)
-            } == true
-            withContext(Dispatchers.Main) {
-                dismissProgressDialog()
-                if (activity.isFinishing || activity.isDestroyed) {
+                ensureActive()
+                if (!isCurrent(session)) throw CancellationException("Update download superseded")
+                val host = session.host.get()?.takeUnless { it.isFinishing || it.isDestroyed }
+                    ?: throw CancellationException("Update host destroyed")
+                if (file != null && archiveVerified && installApk(host, file!!)) {
+                    val retained = synchronized(stateLock) {
+                        if (activeDownload === session) {
+                            pendingInstaller = InstallerAttempt(info, file!!)
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    if (retained) file = null else file?.delete()
+                } else {
                     file?.delete()
-                    return@withContext
+                    file = null
+                    showInstallFailure(host, info)
                 }
-                if (file != null && archiveVerified && installApk(activity, file)) {
-                    return@withContext
-                }
+            } catch (e: CancellationException) {
                 file?.delete()
-                showInstallFailure(activity, info)
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Update download failed", e)
+                file?.delete()
+                file = null
+                if (isCurrent(session)) {
+                    session.host.get()?.takeUnless { it.isFinishing || it.isDestroyed }?.let {
+                        showInstallFailure(it, info)
+                    }
+                }
+            } finally {
+                completeSession(session)
             }
         }
+        if (session.attachJob(job)) job.start()
     }
 
     private suspend fun acquireUpdateApk(
-        activity: Activity,
+        context: Context,
         info: UpdateDecider.ReleaseInfo,
         onProgress: (percent: Int, incremental: Boolean) -> Unit,
-        onIncrementalFallback: () -> Unit
+        onIncrementalFallback: () -> Unit,
+        session: DownloadSession
     ): File? {
-        val outputFile = updateOutputFile(activity, info) ?: return null
-        val installedApk = ApkPatcher.installedApkFile(activity)
+        val job = currentCoroutineContext()[Job]
+        val isCancelled = { job?.isActive == false }
+        val outputFile = updateOutputFile(context, info, session.generation) ?: return null
+        protectArtifact(session, outputFile)
+        protectArtifact(session, File(outputFile.parentFile, "${outputFile.name}.part"))
+        val installedApk = ApkPatcher.installedApkFile(context)
         val localApkSha256 = if (installedApk != null && info.chain != null) {
-            runCatching { ApkPatcher.sha256(installedApk) }.getOrNull()
+            try {
+                ApkPatcher.sha256(installedApk, isCancelled)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
         } else {
             null
         }
@@ -257,15 +408,18 @@ object AppUpdateManager {
             remoteApkSizeBytes = info.apkSizeBytes
         )
         if (plan is ChainPlanner.UpdatePlan.Incremental) {
-            val updater = IncrementalUpdater(activity).apply {
+            val updater = IncrementalUpdater(context).apply {
+                workArtifactListener = { protectArtifact(session, it) }
                 downloader = { url, destination, hop, progress ->
-                    downloadVerifiedArtifact(
+                    downloadVerifiedArtifactForSession(
                         url = url,
                         endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
                         destination = destination,
                         expectedSizeBytes = hop.sizeBytes,
                         expectedSha256 = hop.patchSha256,
-                        onProgress = progress
+                        onProgress = progress,
+                        isCancelled = isCancelled,
+                        session = session
                     ) != null
                 }
             }
@@ -277,16 +431,19 @@ object AppUpdateManager {
                 onProgress = { onProgress(it, true) }
             )
             if (incrementalResult != null) return incrementalResult
+            currentCoroutineContext().ensureActive()
             onIncrementalFallback()
         }
-        return downloadVerifiedArtifact(
+        return downloadVerifiedArtifactForSession(
             url = info.apkUrl,
             // Stable 与 Beta 的 APK 均来自 GitHub Releases（beta-archive）；Pages 仅存元数据。
             endpointTrust = UpdateDecider.EndpointTrust.GITHUB_RELEASE,
             destination = outputFile,
             expectedSizeBytes = info.apkSizeBytes,
             expectedSha256 = info.apkSha256,
-            onProgress = { onProgress(it, false) }
+            onProgress = { onProgress(it, false) },
+            isCancelled = isCancelled,
+            session = session
         )
     }
 
@@ -300,7 +457,28 @@ object AppUpdateManager {
         destination: File,
         expectedSizeBytes: Long,
         expectedSha256: String,
-        onProgress: (Int) -> Unit
+        onProgress: (Int) -> Unit,
+        isCancelled: () -> Boolean = { false }
+    ): File? = downloadVerifiedArtifactForSession(
+        url,
+        endpointTrust,
+        destination,
+        expectedSizeBytes,
+        expectedSha256,
+        onProgress,
+        isCancelled,
+        null
+    )
+
+    private fun downloadVerifiedArtifactForSession(
+        url: String,
+        endpointTrust: UpdateDecider.EndpointTrust,
+        destination: File,
+        expectedSizeBytes: Long,
+        expectedSha256: String,
+        onProgress: (Int) -> Unit,
+        isCancelled: () -> Boolean,
+        session: DownloadSession?
     ): File? {
         if (!UpdateDecider.isTrustedInitialEndpoint(url, endpointTrust) ||
             expectedSizeBytes !in 1..UpdateDecider.MAX_ARTIFACT_BYTES ||
@@ -313,10 +491,13 @@ object AppUpdateManager {
         // 因此镜像只影响可达性，不影响完整性；直连候选保持完整端点校验。
         val candidates = UpdateMirrors.candidates(url)
         candidates.forEachIndexed { index, candidate ->
+            if (isCancelled() || session?.isCancelled() == true) {
+                throw CancellationException("Update download cancelled")
+            }
             val verifyResolvedEndpoint = index == candidates.lastIndex
             val result = downloadVerifiedArtifactOnce(
                 candidate, endpointTrust, verifyResolvedEndpoint,
-                destination, expectedSizeBytes, expectedSha256, onProgress
+                destination, expectedSizeBytes, expectedSha256, onProgress, isCancelled, session
             )
             if (result != null) return result
         }
@@ -330,7 +511,9 @@ object AppUpdateManager {
         destination: File,
         expectedSizeBytes: Long,
         expectedSha256: String,
-        onProgress: (Int) -> Unit
+        onProgress: (Int) -> Unit,
+        isCancelled: () -> Boolean,
+        session: DownloadSession?
     ): File? {
         val directory = destination.parentFile ?: return null
         val partFile = File(directory, "${destination.name}.part")
@@ -338,6 +521,9 @@ object AppUpdateManager {
         var completed = false
         var replacedDestination = false
         try {
+            if (isCancelled() || session?.isCancelled() == true) {
+                throw CancellationException("Update download cancelled")
+            }
             if (!directory.mkdirs() && !directory.isDirectory) return null
             partFile.delete()
             connection = (downloadConnectionFactoryForTesting?.invoke(URL(url))
@@ -347,6 +533,10 @@ object AppUpdateManager {
                 readTimeout = DOWNLOAD_READ_TIMEOUT_MS
                 instanceFollowRedirects = true
                 setRequestProperty("User-Agent", "qr_code_simple/${BuildConfig.VERSION_NAME}")
+            }
+            if (session != null && !session.attachConnection(connection)) {
+                connection.disconnect()
+                throw CancellationException("Update download cancelled")
             }
             if (connection.responseCode != HttpURLConnection.HTTP_OK ||
                 (verifyResolvedEndpoint &&
@@ -367,6 +557,9 @@ object AppUpdateManager {
                 FileOutputStream(partFile).use { output ->
                     val buffer = ByteArray(64 * 1024)
                     while (true) {
+                        if (isCancelled() || session?.isCancelled() == true) {
+                            throw CancellationException("Update download cancelled")
+                        }
                         val read = input.read(buffer)
                         if (read < 0) break
                         downloadedBytes += read
@@ -384,10 +577,19 @@ object AppUpdateManager {
                     }
                 }
             }
+            if (isCancelled() || session?.isCancelled() == true) {
+                throw CancellationException("Update download cancelled")
+            }
             if (downloadedBytes != expectedSizeBytes ||
-                !ApkPatcher.sha256(partFile).equals(expectedSha256, ignoreCase = true)
+                !ApkPatcher.sha256(
+                    partFile,
+                    isCancelled = { isCancelled() || session?.isCancelled() == true }
+                ).equals(expectedSha256, ignoreCase = true)
             ) {
                 return null
+            }
+            if (isCancelled() || session?.isCancelled() == true) {
+                throw CancellationException("Update download cancelled")
             }
             if (destination.exists() && !destination.delete()) return null
             replacedDestination = true
@@ -397,17 +599,24 @@ object AppUpdateManager {
             }
             completed = destination.isFile
             return destination.takeIf { completed }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "Artifact download failed", e)
             return null
         } finally {
             connection?.disconnect()
+            connection?.let { session?.clearConnection(it) }
             partFile.delete()
             if (!completed && replacedDestination) destination.delete()
         }
     }
 
-    private fun updateOutputFile(context: Context, info: UpdateDecider.ReleaseInfo): File? {
+    private fun updateOutputFile(
+        context: Context,
+        info: UpdateDecider.ReleaseInfo,
+        generation: Long
+    ): File? {
         val name = when (info.channel) {
             UpdateDecider.Channel.STABLE -> UpdateDecider.canonicalApkFileName(info.versionName)
             UpdateDecider.Channel.BETA -> {
@@ -415,10 +624,60 @@ object AppUpdateManager {
                     ?.replace("qr-code-simple-", "qr-code-simple-beta-")
             }
         } ?: return null
-        return File(File(context.filesDir, "updates"), name)
+        return File(File(context.filesDir, UPDATES_DIRECTORY), "$name.$generation.download")
+    }
+
+    /** Removes update artifacts that no live download or installer attempt still owns. */
+    internal fun cleanupUpdateArtifacts(context: Context) {
+        synchronized(stateLock) {
+            val protectedPaths = buildSet {
+                activeDownload?.protectedArtifacts()?.forEach { add(it.absolutePath) }
+                pendingInstaller?.file?.let { add(it.absolutePath) }
+            }
+            cleanupUpdateArtifacts(context, protectedPaths)
+        }
+    }
+
+    internal fun cleanupUpdateArtifacts(context: Context, protectedPaths: Set<String>) {
+        val directory = File(context.filesDir, UPDATES_DIRECTORY)
+        directory.listFiles().orEmpty().forEach { artifact ->
+            if (!isUpdateWorkArtifact(artifact) || isProtected(artifact, protectedPaths)) return@forEach
+            if (artifact.isDirectory) artifact.deleteRecursively() else artifact.delete()
+        }
+        if (directory.listFiles().isNullOrEmpty()) directory.delete()
+    }
+
+    private fun isUpdateWorkArtifact(file: File): Boolean =
+        file.name.endsWith(".download") ||
+            file.name.endsWith(".part") ||
+            file.name == "incremental" ||
+            file.name.startsWith("incremental-") ||
+            isLegacyUpdateApk(file)
+
+    private fun isLegacyUpdateApk(file: File): Boolean {
+        if (!file.isFile) return false
+        val name = file.name
+        if (!name.startsWith(UpdateDecider.CANONICAL_APK_PREFIX) || !name.endsWith(".apk")) {
+            return false
+        }
+        val version = name
+            .removePrefix(UpdateDecider.CANONICAL_APK_PREFIX)
+            .removeSuffix(".apk")
+        return UpdateDecider.canonicalApkFileName(version) == name
+    }
+
+    private fun isProtected(file: File, protectedPaths: Set<String>): Boolean {
+        val path = file.absolutePath
+        val childPrefix = "$path${File.separator}"
+        return protectedPaths.any { protected -> protected == path || protected.startsWith(childPrefix) }
+    }
+
+    private fun protectArtifact(session: DownloadSession, file: File) = synchronized(stateLock) {
+        if (activeDownload === session) session.protectArtifact(file)
     }
 
     private fun installApk(activity: Activity, file: File): Boolean {
+        installApkForTesting?.let { return it(activity, file) }
         return try {
             val uri = FileProvider.getUriForFile(
                 activity,
@@ -457,7 +716,11 @@ object AppUpdateManager {
         builder.show()
     }
 
-    private fun showProgressDialog(activity: Activity, info: UpdateDecider.ReleaseInfo) {
+    private fun showProgressDialog(
+        activity: Activity,
+        info: UpdateDecider.ReleaseInfo,
+        session: DownloadSession
+    ) {
         val padding = (24 * activity.resources.displayMetrics.density).toInt()
         val progressBar = ProgressBar(
             activity,
@@ -491,15 +754,20 @@ object AppUpdateManager {
                 )
             )
         }
-        progressDialog = MaterialAlertDialogBuilder(activity)
+        session.progressDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(activity.getString(R.string.update_downloading, info.versionName))
             .setView(content)
+            .setNegativeButton(R.string.cancel) { _, _ -> cancelDownload(session) }
             .setCancelable(false)
             .show()
     }
 
-    private fun updateProgressDialog(percent: Int, incremental: Boolean) {
-        val root = progressDialog?.window?.decorView ?: return
+    private fun updateProgressDialog(
+        session: DownloadSession,
+        percent: Int,
+        incremental: Boolean
+    ) {
+        val root = session.progressDialog?.window?.decorView ?: return
         root.findViewWithTag<ProgressBar>(PROGRESS_BAR_TAG)?.progress = percent
         root.findViewWithTag<TextView>(PROGRESS_TEXT_TAG)?.let { text ->
             text.text = text.context.getString(
@@ -513,16 +781,42 @@ object AppUpdateManager {
         }
     }
 
-    private fun showIncrementalFallback() {
-        val root = progressDialog?.window?.decorView ?: return
+    private fun showIncrementalFallback(session: DownloadSession) {
+        val root = session.progressDialog?.window?.decorView ?: return
         root.findViewWithTag<ProgressBar>(PROGRESS_BAR_TAG)?.progress = 0
         root.findViewWithTag<TextView>(PROGRESS_TEXT_TAG)?.text =
             root.context.getString(R.string.update_incremental_fallback)
     }
 
-    private fun dismissProgressDialog() {
-        progressDialog?.dismiss()
-        progressDialog = null
+    private fun postToSession(session: DownloadSession, action: () -> Unit) {
+        mainHandler.post {
+            if (isCurrent(session) &&
+                session.host.get()?.let { !it.isFinishing && !it.isDestroyed } == true
+            ) {
+                action()
+            }
+        }
+    }
+
+    private fun isCurrent(session: DownloadSession): Boolean = synchronized(stateLock) {
+        activeDownload === session && !session.isCancelled()
+    }
+
+    private fun completeSession(session: DownloadSession) {
+        synchronized(stateLock) {
+            if (activeDownload === session) activeDownload = null
+        }
+        session.clearConnection()
+        session.dismissProgress()
+    }
+
+    private fun cancelDownload(session: DownloadSession? = synchronized(stateLock) { activeDownload }) {
+        session ?: return
+        synchronized(stateLock) {
+            if (activeDownload === session) activeDownload = null
+        }
+        session.cancel()
+        session.dismissProgress()
     }
 
     private fun installedVersion(context: Context): InstalledVersion? {
@@ -548,6 +842,98 @@ object AppUpdateManager {
         val versionCode: Long,
         val versionName: String
     )
+
+    private data class InstallerAttempt(
+        val info: UpdateDecider.ReleaseInfo,
+        val file: File
+    )
+
+    private class DownloadSession(
+        val generation: Long,
+        activity: Activity
+    ) {
+        val host = WeakReference(activity)
+        private var job: Job? = null
+        var progressDialog: AlertDialog? = null
+        @Volatile private var cancelled = false
+        private var connection: HttpURLConnection? = null
+        private val protectedArtifacts = mutableSetOf<File>()
+
+        fun attachJob(value: Job): Boolean = synchronized(this) {
+            job = value
+            if (cancelled) {
+                value.cancel()
+                false
+            } else {
+                true
+            }
+        }
+
+        fun attachConnection(value: HttpURLConnection): Boolean = synchronized(this) {
+            if (cancelled || job?.isActive != true) {
+                false
+            } else {
+                connection = value
+                true
+            }
+        }
+
+        fun clearConnection(value: HttpURLConnection? = null) = synchronized(this) {
+            if (value == null || connection === value) connection = null
+        }
+
+        fun isCancelled(): Boolean = cancelled || job?.isActive == false
+
+        fun isActive(): Boolean = !cancelled && job?.isActive == true
+
+        fun protectArtifact(file: File) = synchronized(this) {
+            protectedArtifacts += file.absoluteFile
+        }
+
+        fun protectedArtifacts(): Set<File> = synchronized(this) {
+            protectedArtifacts.toSet()
+        }
+
+        fun cancel() {
+            val activeConnection = synchronized(this) {
+                cancelled = true
+                connection.also { connection = null }
+            }
+            job?.cancel()
+            activeConnection?.disconnect()
+        }
+
+        fun dismissProgress() {
+            progressDialog?.dismiss()
+            progressDialog = null
+            host.clear()
+        }
+    }
+
+    internal fun resetForTesting() {
+        cancelDownload()
+        synchronized(stateLock) {
+            pendingInstall = null
+            pendingInstaller?.file?.delete()
+            pendingInstaller = null
+        }
+        canInstallPackagesForTesting = null
+        acquireUpdateApkForTesting = null
+        archiveVerifierForTesting = null
+        installApkForTesting = null
+    }
+
+    internal fun hasPendingInstallForTesting(): Boolean = synchronized(stateLock) {
+        pendingInstall != null
+    }
+
+    internal fun hasPendingInstallerForTesting(): Boolean = synchronized(stateLock) {
+        pendingInstaller != null
+    }
+
+    internal fun hasActiveDownloadForTesting(): Boolean = synchronized(stateLock) {
+        activeDownload?.isActive() == true
+    }
 
     private const val PROGRESS_BAR_TAG = "app_update_progress_bar"
     private const val PROGRESS_TEXT_TAG = "app_update_progress_text"

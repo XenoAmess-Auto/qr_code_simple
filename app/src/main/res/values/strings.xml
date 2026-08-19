@@ -66,6 +66,7 @@
     <string name="svg_saved">SVG saved</string>
     <string name="saved_to">Saved to: %1$s</string>
     <string name="failed_to_save">Failed to save: %1$s</string>
+    <string name="storage_write_permission_denied">Storage permission is required to save to the public Pictures or Downloads folder</string>
     <string name="failed_to_generate">Failed to generate QR code: %1$s</string>
     <string name="unknown_error">Unknown error</string>
 
@@ -85,6 +86,9 @@
     <string name="restoration_retrying">Trying image restoration…</string>
     <string name="restored_after_enhancement">Recognized after image restoration</string>
     <string name="shared_multiple_first_only">%1$d images shared; only the first one will be processed</string>
+    <string name="shared_media_too_large">Shared media is too large to scan</string>
+    <string name="scan_queue_busy">Scanner is busy. Please try again.</string>
+    <string name="share_text_too_large">Too much text to share at once. Select fewer results.</string>
     <string name="history_retention">Auto-delete history</string>
     <string name="history_retention_forever">Keep forever</string>
     <string name="history_retention_days">%1$d days</string>
@@ -308,6 +312,7 @@
     <string name="update_incremental_progress_percent">Applying incremental update: %1$d%%</string>
     <string name="update_incremental_fallback">Incremental update failed. Downloading the full APK…</string>
     <string name="update_install_permission_needed">Please allow installing apps from this source, then return to continue</string>
+    <string name="update_install_permission_not_granted">Install permission was not granted. You can try the update again.</string>
     <string name="update_install_failed_title">Auto-update failed</string>
     <string name="update_install_failed_message">The update could not be installed automatically. You can download it manually from the release page.</string>
     <string name="beta_update_install_failed_message">The beta update could not be installed. Please try again later.</string>
@@ -675,7 +680,13 @@
     <string name="auto_open_url">Auto-open safe links</string>
 
     <string name="auto_copy_result">Auto-copy result</string>
-    <string name="export_excel">Export as Excel</string>
+    <string name="webdav_restore_confirm">Restore this backup from the server? Matching history will be merged.</string>
+    <string name="backup_import_unsupported">Unsupported or empty backup file</string>
+    <string name="backup_import_invalid_structure">Invalid backup structure</string>
+    <string name="backup_import_no_valid_records">Backup contains no valid records</string>
+    <string name="backup_import_too_large">Backup file exceeds the %1$d MiB limit</string>
+    <string name="backup_import_unsupported_version">Unsupported backup version: %1$d</string>
+    <string name="export_excel">Export Excel report</string>
     <string name="stats_title">Statistics</string>
     <string name="stats_7d">7 days: %1$d scans</string>
 
@@ -700,4 +711,9 @@
     <string name="about_section_preferences">Preferences</string>
     <string name="about_section_updates">Updates &amp; diagnostics</string>
     <string name="about_section_project">Project &amp; support</string>
+    <string name="batch_limit_items">A batch can contain at most %1$d items.</string>
+    <string name="batch_limit_item_length">Each batch item can contain at most %1$d characters.</string>
+    <string name="batch_limit_total_size">Batch data can be at most %1$d MB.</string>
+    <string name="batch_data_unavailable">Batch data is missing, invalid, or expired. Please try again.</string>
+    <string name="continuous_state_unavailable">The scan session could not be restored. Scan again before exporting.</string>
 </resources>

@@ -45,7 +45,7 @@ interface HistoryDao {
         isFavorite: Boolean,
         notes: String?,
         tags: String?
-    )
+    ): Int
 
     @Query("""
         UPDATE history SET type = :type, timestamp = :timestamp, barcodeFormat = :barcodeFormat
@@ -75,11 +75,22 @@ interface HistoryDao {
     suspend fun upsert(item: HistoryItem): Long {
         val insertedId = insertIgnore(item)
         if (insertedId != -1L) return insertedId
-        updateByContentAndGenerated(
+        val updated = updateByContentAndGenerated(
             item.content, item.isGenerated, item.type, item.timestamp, item.barcodeFormat,
             item.styleJson, item.isFavorite, item.notes, item.tags
         )
+        if (updated != 1) return -1L
         return findByContentAndGenerated(item.content, item.isGenerated)?.id ?: -1L
+    }
+
+    @Transaction
+    suspend fun upsertAll(items: List<HistoryItem>): Int {
+        var writtenCount = 0
+        items.forEach { item ->
+            check(upsert(item) != -1L) { "History restore did not write an item" }
+            writtenCount++
+        }
+        return writtenCount
     }
 
     @Transaction

@@ -250,6 +250,11 @@ class QRCodeApp : Application() {
         }
 
         cleanupExpiredHistory()
+        AppUpdateManager.cleanupUpdateArtifacts(this)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            ScanImageProcessor.cleanupExpiredSharedMedia(this@QRCodeApp)
+        }
 
         // 初始化恶意链接黑名单（assets 内置 + filesDir 在线更新产物）
         SecurityManager.init(this)

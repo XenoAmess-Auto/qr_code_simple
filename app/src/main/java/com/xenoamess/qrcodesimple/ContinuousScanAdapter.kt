@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.xenoamess.qrcodesimple.databinding.ItemContinuousScanResultBinding
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,9 +40,25 @@ class ContinuousScanAdapter(
             // 显示已保存状态
             ivSaved.visibility = if (item.isSaved) View.VISIBLE else View.GONE
             
-            btnCopy.setOnClickListener { onCopy(position) }
-            btnShare.setOnClickListener { onShare(position) }
-            btnDelete.setOnClickListener { onDelete(position) }
+            btnCopy.setOnClickListener {
+                val currentPosition = items.indexOf(item)
+                if (currentPosition >= 0) onCopy(currentPosition)
+            }
+            btnShare.setOnClickListener {
+                val currentPosition = items.indexOf(item)
+                if (currentPosition >= 0) onShare(currentPosition)
+            }
+            btnDelete.setOnClickListener {
+                MaterialAlertDialogBuilder(holder.itemView.context)
+                    .setTitle(R.string.delete_item)
+                    .setMessage(R.string.delete_item_confirm)
+                    .setPositiveButton(R.string.delete) { _, _ ->
+                        val currentPosition = items.indexOf(item)
+                        if (currentPosition >= 0) onDelete(currentPosition)
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            }
         }
     }
 

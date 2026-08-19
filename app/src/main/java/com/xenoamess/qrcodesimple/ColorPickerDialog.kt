@@ -17,24 +17,39 @@ import androidx.fragment.app.DialogFragment
 /**
  * 全屏颜色选取对话框。
  * ColorPickerView / Hex 输入 / RGBA 输入 三方双向联动。
- * 通过 [onColorSelected] 回调返回用户最终选定的颜色（含 alpha）。
+ * 通过 Fragment Result 或 [onColorSelected] 回调返回用户最终选定的颜色（含 alpha）。
  */
 class ColorPickerDialog : DialogFragment() {
 
-    private var initialColor: Int = Color.BLACK
     var onColorSelected: ((Int) -> Unit)? = null
+    private var initialColor: Int = Color.BLACK
+    private var currentColor: Int = Color.BLACK
 
     /** true 时忽略编辑框变化，防止循环同步 */
     private var updatingFromCode = false
 
     fun setInitialColor(color: Int): ColorPickerDialog {
         initialColor = color
+        arguments = (arguments ?: Bundle()).apply { putInt(ARG_INITIAL_COLOR, color) }
+        return this
+    }
+
+    fun setResultTarget(requestKey: String, requestId: Int = 0): ColorPickerDialog {
+        arguments = (arguments ?: Bundle()).apply {
+            putString(ARG_RESULT_KEY, requestKey)
+            putInt(ARG_REQUEST_ID, requestId)
+        }
         return this
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, 0)
+        currentColor = if (savedInstanceState?.containsKey(STATE_CURRENT_COLOR) == true) {
+            savedInstanceState.getInt(STATE_CURRENT_COLOR)
+        } else {
+            arguments?.getInt(ARG_INITIAL_COLOR, initialColor) ?: initialColor
+        }
     }
 
     override fun onCreateView(
@@ -52,13 +67,14 @@ class ColorPickerDialog : DialogFragment() {
         val etB = view.findViewById<EditText>(R.id.etB)
         val etA = view.findViewById<EditText>(R.id.etA)
 
-        picker.setColor(initialColor)
-        applyColorToPreview(preview, initialColor)
-        updateHexField(hexInput, initialColor)
-        updateRgbaFields(etR, etG, etB, etA, initialColor)
+        picker.setColor(currentColor)
+        applyColorToPreview(preview, currentColor)
+        updateHexField(hexInput, currentColor)
+        updateRgbaFields(etR, etG, etB, etA, currentColor)
 
         // --- ColorPickerView → Hex / RGBA ---
         picker.onColorChanged = { color ->
+            currentColor = color
             if (!updatingFromCode) {
                 applyColorToPreview(preview, color)
                 updateHexField(hexInput, color)
@@ -108,7 +124,17 @@ class ColorPickerDialog : DialogFragment() {
         // --- 关闭 / 确定 ---
         view.findViewById<View>(R.id.btnClose).setOnClickListener { dismiss() }
         view.findViewById<View>(R.id.btnConfirm).setOnClickListener {
-            onColorSelected?.invoke(picker.currentColor)
+            val color = picker.currentColor
+            arguments?.getString(ARG_RESULT_KEY)?.let { requestKey ->
+                parentFragmentManager.setFragmentResult(
+                    requestKey,
+                    Bundle().apply {
+                        putInt(RESULT_COLOR, color)
+                        putInt(RESULT_REQUEST_ID, arguments?.getInt(ARG_REQUEST_ID) ?: 0)
+                    }
+                )
+            }
+            onColorSelected?.invoke(color)
             dismiss()
         }
 
@@ -122,6 +148,11 @@ class ColorPickerDialog : DialogFragment() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(STATE_CURRENT_COLOR, currentColor)
+        super.onSaveInstanceState(outState)
+    }
+
     private fun syncAll(
         picker: ColorPickerView,
         preview: View,
@@ -133,6 +164,7 @@ class ColorPickerDialog : DialogFragment() {
         color: Int
     ) {
         updatingFromCode = true
+        currentColor = color
         picker.setColor(color)
         applyColorToPreview(preview, color)
         updateHexField(hexInput, color)
@@ -178,5 +210,14 @@ class ColorPickerDialog : DialogFragment() {
         } else {
             etA.setText(Color.alpha(color).toString())
         }
+    }
+
+    companion object {
+        const val RESULT_COLOR = "color"
+        const val RESULT_REQUEST_ID = "request_id"
+        private const val ARG_INITIAL_COLOR = "initial_color"
+        private const val ARG_RESULT_KEY = "result_key"
+        private const val ARG_REQUEST_ID = "request_id"
+        private const val STATE_CURRENT_COLOR = "current_color"
     }
 }

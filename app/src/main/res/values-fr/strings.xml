@@ -102,6 +102,7 @@
     <string name="saved_to">Enregistré dans : %1$s</string>
 
     <string name="failed_to_save">Échec de l\'enregistrement : %1$s</string>
+    <string name="storage_write_permission_denied">L’autorisation de stockage est requise pour enregistrer dans le dossier public Images ou Téléchargements</string>
 
     <string name="failed_to_generate">Échec de la génération du code QR : %1$s</string>
 
@@ -133,6 +134,9 @@
     <string name="restored_after_enhancement">Reconnu après restauration de l\'image</string>
 
     <string name="shared_multiple_first_only">%1$d images partagées ; seule la première sera traitée</string>
+    <string name="shared_media_too_large">Le média partagé est trop volumineux pour être analysé</string>
+    <string name="scan_queue_busy">Le scanner est occupé. Réessayez.</string>
+    <string name="share_text_too_large">Trop de texte à partager en une fois. Sélectionnez moins de résultats.</string>
 
     <string name="history_retention">Suppression automatique de l\'historique</string>
 
@@ -470,6 +474,7 @@
     <string name="update_incremental_fallback">Échec de la mise à jour incrémentale. Téléchargement de l\'APK complet…</string>
 
     <string name="update_install_permission_needed">Autorisez l\'installation d\'applications depuis cette source, puis revenez pour continuer</string>
+    <string name="update_install_permission_not_granted">L\'autorisation d\'installation n\'a pas été accordée. Vous pouvez réessayer la mise à jour.</string>
 
     <string name="update_install_failed_title">Échec de la mise à jour automatique</string>
 
@@ -1126,7 +1131,13 @@ https://another.com
 
     <string name="auto_copy_result">Copier automatiquement le résultat</string>
 
-    <string name="export_excel">Exporter en Excel</string>
+    <string name="webdav_restore_confirm">Restaurer cette sauvegarde depuis le serveur ? Les historiques correspondants seront fusionnés.</string>
+    <string name="backup_import_unsupported">Fichier de sauvegarde non pris en charge ou vide</string>
+    <string name="backup_import_invalid_structure">Structure de sauvegarde non valide</string>
+    <string name="backup_import_no_valid_records">La sauvegarde ne contient aucun enregistrement valide</string>
+    <string name="backup_import_too_large">Le fichier de sauvegarde dépasse la limite de %1$d Mio</string>
+    <string name="backup_import_unsupported_version">Version de sauvegarde non prise en charge : %1$d</string>
+    <string name="export_excel">Exporter le rapport Excel</string>
     <string name="stats_title">Statistiques</string>
     <string name="stats_7d">7 jours : %1$d scans</string>
 
@@ -1154,4 +1165,9 @@ https://another.com
     <string name="about_section_preferences">Préférences</string>
     <string name="about_section_updates">Mises à jour et diagnostic</string>
     <string name="about_section_project">Projet et soutien</string>
+    <string name="batch_limit_items">Un lot peut contenir au maximum %1$d éléments.</string>
+    <string name="batch_limit_item_length">Chaque élément du lot peut contenir au maximum %1$d caractères.</string>
+    <string name="batch_limit_total_size">Les données du lot sont limitées à %1$d Mo.</string>
+    <string name="batch_data_unavailable">Les données du lot sont absentes, non valides ou expirées. Réessayez.</string>
+    <string name="continuous_state_unavailable">La session d\'analyse n\'a pas pu être restaurée. Relancez une analyse avant l\'export.</string>
 </resources>

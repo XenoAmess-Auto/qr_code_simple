@@ -3,16 +3,19 @@ package com.xenoamess.qrcodesimple
 import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.xenoamess.qrcodesimple.data.HistoryType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
 import java.util.Calendar
 
 @RunWith(RobolectricTestRunner::class)
@@ -93,11 +96,44 @@ class ContinuousScanAdapterTest : BaseAdapterTest() {
     }
 
     @Test
-    fun deleteButtonTriggersCallback() {
+    fun oldHolderCopyAndShareResolveItemAfterInsertionAtFront() {
+        val original = ContinuousScanActivity.ScanResult("original")
+        val items = mutableListOf(original)
+        val operatedItems = mutableListOf<String>()
+        val adapter = ContinuousScanAdapter(
+            items,
+            onCopy = { operatedItems += items[it].content },
+            onShare = { operatedItems += items[it].content },
+            onDelete = {}
+        )
+        val recyclerView = RecyclerView(context).apply {
+            layoutManager = LinearLayoutManager(context)
+            this.adapter = adapter
+        }
+        val holder = adapter.createViewHolder(recyclerView, 0)
+        adapter.onBindViewHolder(holder, 0)
+
+        items.add(0, ContinuousScanActivity.ScanResult("new"))
+        adapter.notifyItemInserted(0)
+        holder.itemView.findViewById<View>(R.id.btnCopy).performClick()
+        holder.itemView.findViewById<View>(R.id.btnShare).performClick()
+
+        assertEquals(listOf("original", "original"), operatedItems)
+    }
+
+    @Test
+    fun deleteButtonRequiresConfirmationBeforeCallback() {
         var callbackPosition: Int? = null
         val item = ContinuousScanActivity.ScanResult("delete me")
         val holder = bindFirstItem(item, onDelete = { callbackPosition = it })
         holder.itemView.findViewById<View>(R.id.btnDelete).performClick()
+
+        assertNull(callbackPosition)
+        val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+        assertTrue(dialog.isShowing)
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        flushMainLooper()
+
         assertEquals(0, callbackPosition)
     }
 }

@@ -54,6 +54,8 @@
     </style>
 
     <style name="Theme.QRCodeSimple.ActionBar" parent="Theme.QRCodeSimple.Base">
+        <item name="windowActionBar">true</item>
+        <item name="windowNoTitle">false</item>
         <item name="actionBarStyle">@style/Widget.QRCodeSimple.ActionBar</item>
     </style>
 

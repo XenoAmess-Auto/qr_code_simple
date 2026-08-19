@@ -2,6 +2,7 @@ package com.xenoamess.qrcodesimple
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.xenoamess.qrcodesimple.data.AppDatabase
 import com.xenoamess.qrcodesimple.data.HistoryItem
 import com.xenoamess.qrcodesimple.data.HistoryRepository
 import com.xenoamess.qrcodesimple.data.HistoryType
@@ -12,6 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.StringReader
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -280,12 +282,38 @@ class HistoryBackupManagerTest {
     }
 
     @Test
+    fun `exported csv roundtrips quoted CR and LF fields as complete records`() = runBlocking {
+        val expected = HistoryItem(
+            content = "first line\r\nsecond line",
+            type = HistoryType.QR_CODE,
+            timestamp = 123456789L,
+            isGenerated = true,
+            barcodeFormat = "QR_CODE",
+            isFavorite = true,
+            notes = "note with CR\rand LF\nend",
+            tags = "tag one\r\ntag two",
+            styleJson = "{\n  \"shape\": \"square\"\r\n}"
+        )
+        repository.insert(expected)
+
+        val csv = HistoryBackupManager.exportToCsv(context)
+        repository.deleteAll()
+        val result = HistoryBackupManager.importFromCsv(context, StringReader(csv))
+
+        assertTrue(result.success)
+        assertEquals(1, result.count)
+        val restored = repository.allHistory.first().single()
+        assertEquals(expected.content, restored.content)
+        assertEquals(expected.notes, restored.notes)
+        assertEquals(expected.tags, restored.tags)
+        assertEquals(expected.styleJson, restored.styleJson)
+    }
+
+    @Test
     fun `import from csv handles empty rows and no header`() = runBlocking {
         val csv = """
-            content,type,timestamp,isGenerated
             hello,QR_CODE,123,true
 
-            ,QR_CODE,123,true
         """.trimIndent()
 
         val result = HistoryBackupManager.importFromCsv(context, csv)
@@ -300,9 +328,160 @@ class HistoryBackupManagerTest {
     }
 
     @Test
+    fun `header-only and all-invalid CSV do not report success`() = runBlocking {
+        val headerOnly = HistoryBackupManager.importFromCsv(
+            context,
+            "content,type,timestamp,isGenerated,barcodeFormat,isFavorite,notes,tags,styleJson\r\n"
+        )
+        val invalidRecords = HistoryBackupManager.importFromCsv(
+            context,
+            "content,type,timestamp,isGenerated\r\nvalue,NOT_A_TYPE,nope,maybe\r\n"
+        )
+
+        assertFalse(headerOnly.success)
+        assertFalse(invalidRecords.success)
+        assertEquals(0, repository.allHistory.first().size)
+    }
+
+    @Test
+    fun `structurally malformed CSV does not report success`() = runBlocking {
+        val result = HistoryBackupManager.importFromCsv(
+            context,
+            StringReader("content,type,timestamp,isGenerated\r\n\"unterminated,QR_CODE,123,true")
+        )
+
+        assertFalse(result.success)
+        assertEquals(context.getString(R.string.backup_import_invalid_structure), result.message)
+        assertEquals(0, repository.allHistory.first().size)
+    }
+
+    @Test
+    fun `valid CSV record followed by unterminated quote imports nothing`() = runBlocking {
+        val csv = """
+            content,type,timestamp,isGenerated
+            valid,QR_CODE,123,true
+            "unterminated,QR_CODE,124,true
+        """.trimIndent()
+
+        val result = HistoryBackupManager.importFromCsv(context, StringReader(csv))
+
+        assertFalse(result.success)
+        assertEquals(0, result.count)
+        assertEquals(0, repository.allHistory.first().size)
+    }
+
+    @Test
+    fun `valid CSV record followed by invalid field imports nothing`() = runBlocking {
+        val csv = """
+            content,type,timestamp,isGenerated
+            valid,QR_CODE,123,true
+            invalid,QR_CODE,not-a-timestamp,true
+        """.trimIndent()
+
+        val result = HistoryBackupManager.importFromCsv(context, csv)
+
+        assertFalse(result.success)
+        assertEquals(0, result.count)
+        assertEquals(0, repository.allHistory.first().size)
+    }
+
+    @Test
+    fun `successful CSV import writes every validated record`() = runBlocking {
+        val csv = """
+            content,type,timestamp,isGenerated
+            first,QR_CODE,123,true
+            second,BARCODE,124,false
+        """.trimIndent()
+
+        val result = HistoryBackupManager.importFromCsv(context, csv)
+
+        assertTrue(result.success)
+        assertEquals(2, result.count)
+        assertEquals(setOf("first", "second"), repository.allHistory.first().map { it.content }.toSet())
+    }
+
+    @Test
+    fun `privacy mode allows atomic backup restore without changing privacy setting`() = runBlocking {
+        QRCodeApp.setPrivacyMode(context, true)
+        try {
+            val result = HistoryBackupManager.importFromJson(
+                context,
+                """{"version":1,"items":[{"content":"first","type":"QR_CODE"},{"content":"second","type":"BARCODE"}]}"""
+            )
+
+            assertTrue(result.success)
+            assertEquals(2, result.count)
+            assertEquals(setOf("first", "second"), repository.allHistory.first().map { it.content }.toSet())
+            assertTrue(QRCodeApp.isPrivacyMode(context))
+        } finally {
+            QRCodeApp.setPrivacyMode(context, false)
+        }
+    }
+
+    @Test
+    fun `database failure rolls back the entire CSV import transaction`() = runBlocking {
+        val database = AppDatabase.getDatabase(context)
+        database.openHelper.writableDatabase.execSQL(
+            """
+                CREATE TRIGGER fail_second_backup_item
+                BEFORE INSERT ON history
+                WHEN NEW.content = 'second'
+                BEGIN
+                    SELECT RAISE(ABORT, 'forced import failure');
+                END
+            """.trimIndent()
+        )
+        QRCodeApp.setPrivacyMode(context, true)
+        try {
+            val result = HistoryBackupManager.importFromCsv(
+                context,
+                "first,QR_CODE,123,true\nsecond,QR_CODE,124,true"
+            )
+
+            assertFalse(result.success)
+            assertEquals(0, result.count)
+            assertEquals(0, repository.allHistory.first().size)
+            assertTrue(QRCodeApp.isPrivacyMode(context))
+        } finally {
+            database.openHelper.writableDatabase.execSQL("DROP TRIGGER fail_second_backup_item")
+            QRCodeApp.setPrivacyMode(context, false)
+        }
+    }
+
+    @Test
     fun `import from empty json returns failure`() = runBlocking {
         val result = HistoryBackupManager.importFromJson(context, "")
         assertFalse(result.success)
         assertEquals(0, result.count)
+    }
+
+    @Test
+    fun `JSON with invalid structure fields or zero records does not report success`() = runBlocking {
+        val invalidStructure = HistoryBackupManager.importFromJson(context, "{\"version\":1,\"items\":{}}")
+        val emptyItems = HistoryBackupManager.importFromJson(context, "{\"version\":1,\"items\":[]}")
+        val invalidItems = HistoryBackupManager.importFromJson(
+            context,
+            """{"version":1,"items":[{"content":"","type":"QR_CODE"},{"content":"x","type":"NOPE"}]}"""
+        )
+
+        assertFalse(invalidStructure.success)
+        assertEquals(context.getString(R.string.backup_import_invalid_structure), invalidStructure.message)
+        assertFalse(emptyItems.success)
+        assertEquals(context.getString(R.string.backup_import_no_valid_records), emptyItems.message)
+        assertFalse(invalidItems.success)
+        assertEquals(context.getString(R.string.backup_import_invalid_structure), invalidItems.message)
+        assertEquals(0, repository.allHistory.first().size)
+    }
+
+    @Test
+    fun `valid JSON item followed by invalid item imports nothing`() = runBlocking {
+        val result = HistoryBackupManager.importFromJson(
+            context,
+            """{"version":1,"items":[{"content":"valid","type":"QR_CODE"},{"content":"bad","type":"NOPE"}]}"""
+        )
+
+        assertFalse(result.success)
+        assertEquals(0, result.count)
+        assertEquals(0, repository.allHistory.first().size)
     }
 }

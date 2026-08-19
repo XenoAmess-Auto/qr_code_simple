@@ -1,7 +1,9 @@
 package com.xenoamess.qrcodesimple
 
 import android.content.Context
+import android.content.ActivityNotFoundException
 import android.os.Looper
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.testing.FragmentScenario
@@ -21,6 +23,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import org.robolectric.shadows.ShadowToast
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -35,6 +38,7 @@ class AboutFragmentUiTest {
         QRCodeApp.setAppUpdateAutoCheckEnabled(context, false)
         AppUpdateManager.checkerForTesting = null
         AboutFragment.versionHistoryLoaderForTesting = null
+        AboutFragment.externalActivityLauncherForTesting = null
         scenario = FragmentScenario.launchInContainer(
             AboutFragment::class.java,
             themeResId = R.style.Theme_QRCodeSimple
@@ -46,6 +50,7 @@ class AboutFragmentUiTest {
         scenario.close()
         AppUpdateManager.checkerForTesting = null
         AboutFragment.versionHistoryLoaderForTesting = null
+        AboutFragment.externalActivityLauncherForTesting = null
         QRCodeApp.setAppUpdateAutoCheckEnabled(
             ApplicationProvider.getApplicationContext(),
             false
@@ -169,6 +174,37 @@ class AboutFragmentUiTest {
         val dialog = ShadowDialog.getLatestDialog() as AlertDialog
         val message = dialog.findViewById<TextView>(android.R.id.message)?.text.toString()
         assertEquals("v0.2.6\n- verified updates", message)
+    }
+
+    @Test
+    fun `missing browser shows feedback without crashing`() {
+        AboutFragment.externalActivityLauncherForTesting = { _, _ ->
+            throw ActivityNotFoundException("no handler")
+        }
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<View>(R.id.btnGitHubProject).performClick()
+        }
+
+        assertEquals(
+            ApplicationProvider.getApplicationContext<Context>().getString(R.string.no_browser_found),
+            ShadowToast.getTextOfLatestToast()
+        )
+    }
+
+    @Test
+    fun `missing share handler shows feedback without crashing`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        AboutFragment.externalActivityLauncherForTesting = { _, _ ->
+            throw ActivityNotFoundException("no handler")
+        }
+        scenario.onFragment { fragment ->
+            AboutFragment::class.java.getDeclaredMethod("shareCrashLog", String::class.java).apply {
+                isAccessible = true
+                invoke(fragment, "share-handler-test")
+            }
+        }
+
+        assertEquals(context.getString(R.string.no_app_found), ShadowToast.getTextOfLatestToast())
     }
 
     @Test

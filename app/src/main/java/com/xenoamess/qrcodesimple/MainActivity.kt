@@ -1,15 +1,10 @@
 package com.xenoamess.qrcodesimple
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
 import com.xenoamess.qrcodesimple.databinding.ActivityMainBinding
@@ -29,9 +24,13 @@ class MainActivity : AppCompatActivity() {
     private var pendingGenerateContent: String? = null
     private var pendingGenerateFormat: String? = null
     private var pendingGenerateStyleJson: String? = null
+    private val unknownSourcesSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        AppUpdateManager.onInstallPermissionResult(this)
+    }
 
     companion object {
-        private const val REQUEST_PERMISSIONS = 100
         private const val EXTRA_GENERATE_CONTENT = "generate_content"
         private const val EXTRA_GENERATE_FORMAT = "generate_format"
         private const val EXTRA_GENERATE_STYLE_JSON = "generate_style_json"
@@ -59,7 +58,6 @@ class MainActivity : AppCompatActivity() {
         // 设置沉浸式状态栏并处理安全区域（状态栏、导航栏、灵动岛等）
         setupEdgeToEdge()
 
-        checkPermissions()
         setupViewPager()
         setupNavigation()
 
@@ -82,6 +80,15 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         maybeAutoUploadWebdav()
+    }
+
+    override fun onDestroy() {
+        AppUpdateManager.onHostDestroy(this)
+        super.onDestroy()
+    }
+
+    internal fun launchUnknownSourcesSettings(intent: Intent) {
+        unknownSourcesSettingsLauncher.launch(intent)
     }
 
     /** WebDAV 自动上传：开启开关且配置齐全时，退后台节流上传（1 小时窗口内不重复）。 */
@@ -190,47 +197,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkPermissions() {
-        val permissions = mutableListOf<String>()
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            permissions.add(Manifest.permission.CAMERA)
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                != PackageManager.PERMISSION_GRANTED) {
-                permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
-            }
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO)
-                != PackageManager.PERMISSION_GRANTED) {
-                permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
-            }
-        } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-                permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-
-        if (permissions.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, permissions.toTypedArray(), REQUEST_PERMISSIONS)
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSIONS) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                Toast.makeText(this, getString(R.string.permissions_granted), Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, getString(R.string.permissions_denied), Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 }

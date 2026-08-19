@@ -107,7 +107,7 @@
 | `HistoryDetailActivity` | `HistoryDetailActivityTest.kt` | tag chips 显示、笔记可见性、收藏按钮状态、分享 intent、重新生成 intent。 |
 | `AboutFragment` | `AboutFragmentUiTest.kt` | 版本号显示、语言切换对话框、隐私设置跳转、外部链接 intent。 |
 | `PrivacySettingsActivity` | `PrivacySettingsActivityTest.kt` | 隐私模式开关、应用锁开关/PIN 设置、确认对话框。 |
-| `BackupActivity` | `BackupActivityTest.kt` | 导出 JSON/CSV intent、导入 intent 启动。 |
+| `BackupActivity` | `BackupActivityTest.kt` / `BackupActivityWebdavTest.kt` | 导出 JSON/CSV intent、包含 qrbak 且排除 XLSX 的导入 intent、重建后加密导出不降级、无效输入/空异常流失败、密码对话框校验、WebDAV 恢复确认和配置提交。 |
 | `DatabaseSecurityActivity` | `DatabaseSecurityActivityTest.kt` | 加密状态显示、重置数据库确认、备份跳转。 |
 | `BatchResultActivity` + `BatchResultAdapter` | `BatchResultAdapterTest.kt` | 网格项绑定（成功/失败）、单条保存回调。 |
 | `ScanImageFragment` | `ScanImageFragmentTest.kt` | 相册/相机/文件 launcher 选择入口。 |

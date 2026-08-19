@@ -15,7 +15,7 @@
 - ✅ **50+ 种条码格式** - 支持 QR Code、Data Matrix（含中文/UTF-8）、Aztec、PDF417、汉信码（Han Xin Code）、MaxiCode、Micro QR、Code 128/39/93、EAN-13/8、UPC-A/E、Codabar、ITF、Pharmacode、Plessey、MSI Plessey、Telepen、RSS-14、RSS Expanded、UPC/EAN Extension 等可扫描格式的扫描与生成，同时支持大量 OkapiBarcode 仅生成格式（Code 2 of 5 系列、邮政码、Codablock F、Grid Matrix、Code One 等）。
 - ✅ **智能内容解析** - 自动识别 WiFi、联系人、日历、邮件、URL、地理位置等，提供一键操作。
 - ✅ **结构化内容向导** - 表单化生成 WiFi / 联系人 / 日历事件 / 邮件 / 短信 / 电话 / 地理位置 / 网址二维码。
-- ✅ **批量生成** - 从 CSV 或 Excel 导入带逐行格式、颜色和文件名的数据批量生成条码，支持预设样式、中心 Logo、失败重试与流式 ZIP 导出。
+- ✅ **批量生成** - 从 CSV 或 Excel 导入带逐行格式、颜色和文件名的数据批量生成条码，支持预设样式、中心 Logo、失败重试、流式 ZIP 导出与有大小边界的可恢复草稿。
 - ✅ **样式定制** - 前景/背景色、多段渐变、中心 Logo（方形 / 圆角矩形 / 圆形，圆角半径可调）、模块形状、定位图案、圆角比例、纠错等级。
 - ✅ **二维码修复** - 识别失败时自动进行图像修复重试（灰度 / 对比度 / 二值化等变体）。
 
@@ -27,8 +27,8 @@
 - ✅ **智能分类** - 自动归类为链接、文本、WiFi、联系人等。
 - ✅ **收藏 / 置顶** - 标记重要内容。
 - ✅ **标签系统** - 自定义标签管理。
-- ✅ **导入 / 导出** - JSON / CSV / Excel 备份，支持密码加密的备份文件（AES-256-GCM + PBKDF2），入口在 关于 → 隐私设置。
-- ✅ **WebDAV 云同步** - 把加密备份上传 / 恢复到自管 WebDAV 服务器（备份以同步密码加密，密码经 Android Keystore 加密存储），支持手动与节流自动上传。
+- ✅ **导入 / 导出** - 支持可恢复的 JSON / CSV 备份、Excel 报表导出和密码加密备份文件（AES-256-GCM + PBKDF2），入口在 关于 → 隐私设置。
+- ✅ **WebDAV 云同步** - 把加密备份上传 / 恢复到自管 WebDAV 服务器（备份以同步密码加密，密码经 Android Keystore 加密存储）；恢复前必须确认，编辑后的凭据仅在请求成功后保存。
 - ✅ **扫描结果直达** - 相机结果卡片一键收藏 / 加备注。
 - ✅ **保留策略** - 自动清理 30 / 90 / 365 天前的历史记录（收藏保留）。
 
@@ -39,7 +39,7 @@
 - ✅ **智能 / 点击对焦** - 根据码大小自动对焦，支持点击对焦。
 - ✅ **扫描区域限定** - 开启框选模式后拖动选择区域，仅识别区域内条码。
 - ✅ **视频扫描** - 每 500 毫秒抽样解码视频条码，并保留每条结果对应的采样时间点。
-- ✅ **分享扫描** - 从任意应用（相册、文件管理器等）分享图片或视频到本应用直接识别。
+- ✅ **分享扫描** - 从任意应用分享图片或视频直接识别，并对导入大小设硬上限、跨重建单次路由及自动清理临时文件。
 - ✅ **多码同屏** - 一帧识别多个条码时结果卡片可循环切换；相机页可直接从相册选图识别。
 - ✅ **扫码自动化** - 可选开关：自动复制结果、自动打开经安全检查为 SAFE/LOW 的链接（隐私设置内，默认关闭）。
 
@@ -216,7 +216,7 @@
 | `READ_MEDIA_IMAGES` | 从相册选择图片扫描 |
 | `READ_MEDIA_VIDEO` | 从视频文件中扫描条码 |
 | `READ_EXTERNAL_STORAGE` (`maxSdkVersion=32`) | 兼容 Android 12 及以下访问图片 |
-| `WRITE_EXTERNAL_STORAGE` (`maxSdkVersion=28`) | 兼容 Android 9 及以下写入图片 |
+| `WRITE_EXTERNAL_STORAGE` (`maxSdkVersion=28`) | Android 9 及以下仅在用户保存到公共图片/下载目录时按需申请；Android 10 及以上使用 MediaStore，不申请此权限 |
 
 ---
 
@@ -303,6 +303,7 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── ScanImageActivity.kt             # 图片扫描 UI + 系统分享入口（图片/视频）
 ├── ScanImageFragment.kt             # 图片扫描逻辑
 ├── ScanImageProcessor.kt            # 图片/视频扫描路由（共用）
+├── ScanImageShareViewModel.kt       # 分享媒体导入的跨重建单次消费状态
 ├── ContinuousScanActivity.kt        # 连续（批量）扫描 UI
 ├── ContinuousScanAdapter.kt         # 连续扫描列表适配器
 ├── VideoScanActivity.kt             # 视频文件扫描

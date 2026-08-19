@@ -102,6 +102,7 @@
     <string name="saved_to">Сохранено в: %1$s</string>
 
     <string name="failed_to_save">Не удалось сохранить: %1$s</string>
+    <string name="storage_write_permission_denied">Для сохранения в общую папку изображений или загрузок требуется разрешение на хранилище</string>
 
     <string name="failed_to_generate">Не удалось создать QR-код: %1$s</string>
 
@@ -133,6 +134,9 @@
     <string name="restored_after_enhancement">Распознано после восстановления изображения</string>
 
     <string name="shared_multiple_first_only">Отправлено %1$d изображений; будет обработано только первое</string>
+    <string name="shared_media_too_large">Размер отправленного медиафайла слишком велик для сканирования</string>
+    <string name="scan_queue_busy">Сканер занят. Повторите попытку.</string>
+    <string name="share_text_too_large">Слишком много текста для одной отправки. Выберите меньше результатов.</string>
 
     <string name="history_retention">Автоудаление истории</string>
 
@@ -470,6 +474,7 @@
     <string name="update_incremental_fallback">Инкрементальное обновление не удалось. Загрузка полного APK…</string>
 
     <string name="update_install_permission_needed">Разрешите установку приложений из этого источника и вернитесь</string>
+    <string name="update_install_permission_not_granted">Разрешение на установку не предоставлено. Вы можете повторить попытку обновления.</string>
 
     <string name="update_install_failed_title">Автообновление не удалось</string>
 
@@ -1126,7 +1131,13 @@ https://another.com
 
     <string name="auto_copy_result">Автоматически копировать результат</string>
 
-    <string name="export_excel">Экспорт в Excel</string>
+    <string name="webdav_restore_confirm">Восстановить эту резервную копию с сервера? Совпадающие записи истории будут объединены.</string>
+    <string name="backup_import_unsupported">Неподдерживаемый или пустой файл резервной копии</string>
+    <string name="backup_import_invalid_structure">Недопустимая структура резервной копии</string>
+    <string name="backup_import_no_valid_records">Резервная копия не содержит допустимых записей</string>
+    <string name="backup_import_too_large">Файл резервной копии превышает ограничение в %1$d МиБ</string>
+    <string name="backup_import_unsupported_version">Неподдерживаемая версия резервной копии: %1$d</string>
+    <string name="export_excel">Экспорт отчёта Excel</string>
 
     <string name="stats_title">Статистика</string>
 
@@ -1160,4 +1171,9 @@ https://another.com
     <string name="about_section_preferences">Настройки</string>
     <string name="about_section_updates">Обновления и диагностика</string>
     <string name="about_section_project">Проект и поддержка</string>
+    <string name="batch_limit_items">Пакет может содержать не более %1$d элементов.</string>
+    <string name="batch_limit_item_length">Каждый элемент пакета может содержать не более %1$d символов.</string>
+    <string name="batch_limit_total_size">Размер пакетных данных не должен превышать %1$d МБ.</string>
+    <string name="batch_data_unavailable">Пакетные данные отсутствуют, недействительны или устарели. Повторите попытку.</string>
+    <string name="continuous_state_unavailable">Не удалось восстановить сеанс сканирования. Перед экспортом выполните сканирование снова.</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import java.io.File
 import java.security.MessageDigest
+import kotlinx.coroutines.CancellationException
 
 /** Verifies that an archive can only replace this exact installed application identity. */
 object ApkArchiveVerifier {
@@ -20,7 +21,7 @@ object ApkArchiveVerifier {
         archiveFile: File,
         expectedVersionCode: Long
     ): Boolean {
-        return runCatching {
+        return try {
             val packageManager = context.packageManager
             val installed = toIdentity(
                 packageManager.getPackageInfo(
@@ -35,7 +36,11 @@ object ApkArchiveVerifier {
                 )
             )
             matches(context.packageName, expectedVersionCode, installed, archive)
-        }.getOrDefault(false)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            false
+        }
     }
 
     internal fun matches(

@@ -32,13 +32,10 @@ class BatchResultAdapterTest {
 
     @Before
     fun setup() {
-        val intent = android.content.Intent(
+        val intent = BatchResultTransfer.createIntent(
             ApplicationProvider.getApplicationContext(),
-            BatchResultActivity::class.java
-        ).apply {
-            putStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS, arrayListOf("test"))
-            putExtra(BatchGenerateActivity.EXTRA_FORMAT, BarcodeFormat.QR_CODE.name)
-        }
+            listOf(BatchGenerator.BatchItem("test"))
+        )
         scenario = ActivityScenario.launch(intent)
         idleMain()
     }

@@ -97,6 +97,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 ### 扫描入口
 
+- `MainActivity` 首次创建不集中申请运行时权限。图片和视频选择使用 SAF，不申请 `READ_EXTERNAL_STORAGE` 或 `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO`；实时扫码页实际进入且相机权限缺失时，由 `CameraScanFragment` 单独申请 `CAMERA`。
+- 公共目录导出遵循分版本按需策略：API 28 的普通栅格图、批量单图与 ZIP 仅在用户点击保存后申请 `WRITE_EXTERNAL_STORAGE`，待办操作可跨配置重建并在授权后恢复；API 29+ 直接使用 scoped `MediaStore`，不申请写存储权限。
 - 实时扫描（相机/视频）：`QRCodeScanner.scan(context, bitmap)` 或 `QRCodeScanner.scanSync(context, bitmap)` 默认使用 `CAMERA_SCAN_CONFIG`（总超时 2s / 单引擎 1.5s），6 个引擎并行启动并在首批有效结果后返回，以降低单帧延迟。
 - 图片扫描：`QRCodeScanner.scanAsFlow(context, bitmap, IMAGE_SCAN_CONFIG)` 使用总超时 120s / 单引擎 60s，任一引擎识别到结果即通过 `Flow` 分批 emit；`ResultActivity` 收集到首个结果即展示，后续结果动态追加。
 - 扫描器使用共享的 6 线程 daemon 池。每次扫描先以 `getPixels` / `setPixels` 建立扫描器自有 Bitmap；调用方可在扫描返回后释放原图，而自有副本会等所有阻塞引擎实际退出后再回收。结果同时保留 ZXing 格式和应用层精确 `appFormat`，按 `text + appFormat` 去重。
@@ -114,7 +116,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 - 手机历史详情 Activity 使用带返回键的内嵌 Material Toolbar 并处理系统栏安全区；平板仍只嵌入复用的详情 Fragment，不重复显示 Toolbar。
 - 保留策略：`PrivacySettingsActivity` 可配置自动清理（永久/30/90/365 天），存于 `app_settings`；`QRCodeApp.onCreate` 启动时执行一次 `deleteOlderThan`（收藏豁免），0 表示永久保留。
 - 平板双栏：`layout-sw600dp/fragment_history.xml` 为列表 + 详情双栏；`HistoryFragment.openHistoryDetail` 检测到 `detailPaneContainer` 时嵌入 `HistoryDetailFragment`，否则启动 `HistoryDetailActivity`。列表布局经 `<include android:id="@+id/listPart">` 在两种配置间复用（ViewBinding 生成嵌套绑定 `binding.listPart`）。
-- 备份导出支持明文 JSON / CSV 与加密备份（`QRBK1` magic + AES-256/GCM + PBKDF2 10 万次）；导入按内容自动识别（magic → 密码框，`{` / `[` → JSON，其余 → CSV）。
+- 备份导出支持明文 JSON / CSV 与加密备份（`QRBK1` magic + AES-256/GCM + PBKDF2 10 万次）；XLSX 是只用于阅读/分析的报表导出，不是可恢复的备份格式。导入 picker 接受 JSON、CSV 和 `qrbak`（`application/octet-stream`），导入后按内容严格识别 magic、JSON 或备份 CSV；空文件、XLSX、随机二进制、无效 UTF-8 和任意文本不会再回退为 CSV。
+- SAF 导出在启动 picker 前记录显式格式，返回后不根据 URI 后缀推断。格式状态可跨 Activity 重建恢复，但加密密码绝不写入 saved state；若重建或进程状态丢失导致密码不可用，加密导出明确失败而不会降级为明文。取消、`RESULT_OK` 但 URI 为空、成功或失败都会消费并清理待处理敏感状态。
 - 恶意链接黑名单：`assets/security/blacklist.json` 内置（version 1），`PrivacySettingsActivity` 可开启静默在线更新（默认关；24h 节流；任何失败仅记日志）。开启需要 `INTERNET` 权限；其他网络用途为用户手动检查更新，以及用户显式打开后的 Stable 自动检查。
 
 ## 5. 扫描引擎
@@ -142,7 +145,8 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `StyleConfigSerialization.kt` | 样式配置 JSON 序列化/反序列化 |
 | `SvgQRCodeGenerator.kt` | 全格式 SVG 导出（ZXing 路径 + bitmap 回退） |
 | `QRCodeScanner.kt` | 多引擎扫描器 |
-| `ScanImageProcessor.kt` | 图片/视频 Uri 扫描路由（ScanImageFragment 与系统分享入口共用） |
+| `ScanImageProcessor.kt` | 图片/视频 Uri 扫描路由；有界导入队列饱和时给出失败反馈，取消任务立即移出队列；系统分享导入执行声明大小预检、流式硬上限（图片 32 MiB / 视频 512 MiB）、15 秒超时、残片删除和 24 小时孤儿清理，消费 Activity 销毁时只释放内存 lease、明确 finish 时才删文件 |
+| `ScanImageShareViewModel.kt` | 系统分享请求的跨配置重建状态；请求和路由结果均只消费一次，且不持有 Activity |
 | `RestorationRescan.kt` | 图片扫描无结果时的修复重试编排 |
 | `QRCodeRestorationManager.kt` | 修复变体生成（灰度 / 对比度 / 锐化 / 二值化 / 缩放） |
 | `BackupCrypto.kt` | 备份加密原语（AES-256/GCM + PBKDF2，magic `QRBK1`） |
@@ -150,12 +154,12 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `BlacklistUpdater.kt` | 黑名单在线更新（可选、静默；5s 超时 + 64KB 上限 + schema/版本校验） |
 | `AppUpdateChecker.kt` | 更新元数据获取：Stable 使用 GitHub `releases/latest` 后再读取 Release 中的 `version.json`；Beta 固定读取 GitHub Pages。请求 5s 超时、1 MiB 上限，并校验初始和重定向后的受信 HTTPS 端点 |
 | `UpdateDecider.kt` | 纯解析/决策层：校验 `version.json`、Stable canonical asset、可信 URL 与增量链；以 `versionCode` 为主、语义版本仅处理同 code 的并列比较 |
-| `AppUpdateManager.kt` | 更新编排：Stable 自动检查默认关且 24h 节流；Beta 仅由 About 手动检查。下载到私有 `filesDir/updates`，按精确大小和 SHA-256 校验；增量失败或不安全时回退完整 APK；API 26+ 请求安装未知来源权限后继续安装 |
+| `AppUpdateManager.kt` | 更新编排：Stable 自动检查默认关且 24h 节流；Beta 仅由 About 手动检查。下载到私有 `filesDir/updates`，按精确大小和 SHA-256 校验；清理新式会话产物和旧式 canonical APK 遗留时保护 active session / `pendingInstaller`；增量失败或不安全时回退完整 APK；API 26+ 请求安装未知来源权限后继续安装 |
 | `ApkArchiveVerifier.kt` | 安装前校验 APK archive 的包名、目标 `versionCode` 和签名证书集合必须与已安装应用一致 |
-| `ApkPatcher.kt` / `IncrementalUpdater.kt` / `ChainPlanner.kt` | 已校验 ApkDiffPatch（`ZiPat1`，`libapkpatch.so` native）增量链：基础 APK hash 匹配、补丁总量更小且每跳 hash 校验通过才使用；否则完整下载 |
+| `ApkPatcher.kt` / `IncrementalUpdater.kt` / `ChainPlanner.kt` | 已校验 ApkDiffPatch（`ZiPat1`，`libapkpatch.so` native）增量链：基础 APK hash 匹配、补丁总量更小且每跳 hash 校验通过才使用；否则完整下载。已进入 JNI 的 patch 不做危险强制中断，取消结果与临时文件由会话隔离并在 native 返回后清理 |
 | `QuickScanTileService.kt` | 下拉快捷设置磁贴（一键进入相机扫描） |
 | `baselineprofile/` | Baseline Profile 生成模块（`:app:generateReleaseBaselineProfile` 在模拟器/真机上生成 `app/src/release/generated/baselineProfiles/baseline-prof.txt`，release 构建自动合并进 R8 art profile） |
-| `app/src/androidTest/` | 仪器测试（启动冒烟、MediaStore Q+、SQLCipher 真机加密、视频扫描全管线），CI `android-test` job 在 API 35 模拟器上运行 |
+| `app/src/androidTest/` | 仪器测试（启动冒烟、真实 ActionBar/Up、MediaStore Q+、SQLCipher 真机加密、视频扫描全管线），CI `android-test` job 在 API 28 与 API 35 模拟器上运行；断言失败不重试并保存诊断产物 |
 | `HistoryDetailFragment.kt` | 历史详情内容页；手机由 HistoryDetailActivity 薄包装承载，平板 sw600dp 双栏嵌入右侧面板 |
 | `ScanRegionMapper.kt` | 框选区域视图坐标 → 帧 bitmap 像素坐标映射（FILL_CENTER + 旋转变换） |
 | `decoder/BarcodeScanUtils.kt` | 自定义一维码预处理工具 |
@@ -177,9 +181,9 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `ColorPickerView.kt` | 色谱式颜色选取自定义 View（SV 方格 + Hue 色相条 + Alpha 透明度条） |
 | `ColorPickerDialog.kt` | 颜色选取对话框（含 hex / RGBA 输入） |
 | `AngleDialView.kt` | 圆形角度旋钮（用于渐变角度） |
-| `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel）；以 Intent JSON 传递完整逐行数据，支持进程重建 |
-| `BatchResultActivity.kt` | 批量结果页：全尺寸 PNG 落 cache，仅保留缩略图；单图/ZIP 均流式导出并支持失败重试 |
-| `ContinuousScanActivity.kt` | 连续扫描 Activity |
+| `BatchGenerateActivity.kt` | 批量生成 Activity（CSV / Excel）；直接输入和导入快照统一按 2 MiB UTF-8 JSON 实际大小限制，状态原子写入 no-backup 私有目录，失败时保留上一可恢复 token；结果 Intent 仅传严格 UUID token |
+| `BatchResultActivity.kt` | 批量结果页：消费私有 token 数据并在最终完成时清理；全尺寸 PNG 落 cache，仅保留缩略图；单图/ZIP 均流式导出并支持失败重试 |
+| `ContinuousScanActivity.kt` | 连续扫描 Activity；会话恢复快照位于 no-backup 私有目录，缺失快照禁止空数据导出，首个有效新结果会建立可导出的新会话 |
 | `HistoryDetailActivity.kt` | 历史记录详情页 |
 | `ui/result/QRResultAdapter.kt` | 多扫描结果 RecyclerView 适配器 |
 | `docs/ui-testing-plan.md` | 全页面 UI/Adapter 测试补全计划 |
@@ -190,13 +194,14 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 | `.github/scripts/build_beta_delta_chains.py` / `build_stable_delta_chains.py` | 维护 Beta 存档或 Stable 历史的 ApkDiffPatch 单跳补丁（ZipDiff + ZipPatch 回打自验 + libapkpatch.so 守卫）；补丁源跨通道：Stable 覆盖最近 4 个已存档 Beta，Beta 覆盖最近 2 个 Stable，支持双向增量切换 |
 | `docs/versioning-and-update-system.md` | Git 版本模型、Stable/Beta 发布、`version.json`、签名连续性和首轮发布操作说明 |
 | `CrashLogger.kt` | 本地崩溃日志：全局未捕获异常写 filesDir/crash_logs（上限 10 份），About 页查看/分享/清除，不上报 |
-| `WebDavClient.kt` / `WebDavSyncManager.kt` | WebDAV 云同步：加密备份手动上传/恢复，密码经 EncryptedSharedPreferences 落盘 |
+| `WebDavClient.kt` / `WebDavSyncManager.kt` | WebDAV 云同步：加密备份手动上传/恢复；下载恢复前确认，候选配置仅在请求成功后经 SecurePrefs 落盘 |
 | `NetworkUtils.kt` | 元数据 GET 的指数退避重试（默认 3 次）；大文件下载不走此路径 |
 | `UpdateMirrors.kt` | GitHub 下载加速：可代理主机 URL 展开为公共镜像候选列表轮询；完整性由 SHA-256/签名校验兜底 |
 | `ContentBuilder.kt` | 结构化内容生成器（WiFi/vCard/VEVENT/mailto/sms/tel/geo），与 ContentParser 严格互逆，roundtrip 测试保护 |
 | `SecurePrefs.kt` | Keystore AES/GCM 自管加密键值存储（替代弃用的 EncryptedSharedPreferences；读旧格式透明迁移） |
 | `DailyBuckets.kt` / `SimpleBarChartView.kt` | 历史页近 14 天扫码统计柱状图（自绘，无图表依赖） |
 | `BatchGenerator.kt` | CSV / Excel 解析、逐行字段 JSON 编解码与基础批量生成 |
+| `PrivateStateFileStore.kt` / `BatchResultTransfer.kt` | no-backup 私有状态 token、严格校验、原子写、过期清理与批量数据硬上限 |
 | `scanner/MlKitEngine.kt`（`src/playstore` / `src/fdroid`） | ML Kit 引擎隔离：默认构建用真实实现，`-Pfdroid` 用 stub 返回空结果 |
 | `docs/fdroid-readiness.md` | F-Droid 纯源码构建（`-Pfdroid`）说明与上架剩余人工步骤 |
 

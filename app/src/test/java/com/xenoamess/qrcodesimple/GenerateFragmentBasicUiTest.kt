@@ -1,5 +1,8 @@
 package com.xenoamess.qrcodesimple
 
+import android.graphics.Color
+import android.view.View
+import com.google.android.material.textfield.TextInputEditText
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
@@ -93,6 +96,29 @@ class GenerateFragmentBasicUiTest : BaseGenerateFragmentUiTest() {
         }
 
         assertBitmapGenerated()
+    }
+
+    @Test
+    fun foregroundColorDialog_deliversEditedColorAfterRecreation() {
+        scenario.onFragment { fragment ->
+            fragment.requireView().findViewById<View>(R.id.btnPickForegroundColor).performClick()
+            fragment.parentFragmentManager.executePendingTransactions()
+            val dialog = fragment.parentFragmentManager.fragments.filterIsInstance<ColorPickerDialog>().single()
+            dialog.requireView().findViewById<TextInputEditText>(R.id.etHexInput).setText("#0000FF")
+        }
+
+        scenario.recreate()
+
+        scenario.onFragment { fragment ->
+            fragment.parentFragmentManager.executePendingTransactions()
+            val dialog = fragment.parentFragmentManager.fragments.filterIsInstance<ColorPickerDialog>().single()
+            dialog.requireView().findViewById<View>(R.id.btnConfirm).performClick()
+            val styleField = GenerateFragment::class.java.getDeclaredField("selectedStyle").apply {
+                isAccessible = true
+            }
+            val style = styleField.get(fragment) as AdvancedBarcodeGenerator.StyleConfig
+            Assert.assertEquals(Color.BLUE, style.foregroundColor)
+        }
     }
 
     @Test

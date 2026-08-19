@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.After
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -58,17 +59,25 @@ class AboutCrashLogsTest {
     }
 
     @Test
-    fun `dialog with logs shows content and clear button works`() {
+    fun `clearing logs requires explicit confirmation`() {
         CrashLogger.write(context, Thread.currentThread(), IllegalStateException("test-crash-marker"))
         clickCrashLogs()
 
-        val dialog = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
-        assertNotNull(dialog)
-        val message = dialog.findViewById<android.widget.TextView>(android.R.id.message)?.text?.toString() ?: ""
+        val logsDialog = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+        assertNotNull(logsDialog)
+        val message = logsDialog.findViewById<android.widget.TextView>(android.R.id.message)?.text?.toString() ?: ""
         assertTrue(message.contains("test-crash-marker"))
 
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).performClick()
+        logsDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).performClick()
         idleMain()
+        assertTrue(CrashLogger.listLogs(context).isNotEmpty())
+
+        val confirmDialog = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+        assertNotSame(logsDialog, confirmDialog)
+        assertTrue(confirmDialog.isShowing)
+        confirmDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).performClick()
+        idleMain()
+
         assertTrue(CrashLogger.listLogs(context).isEmpty())
     }
 

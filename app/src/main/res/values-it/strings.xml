@@ -102,6 +102,7 @@
     <string name="saved_to">Salvato in: %1$s</string>
 
     <string name="failed_to_save">Salvataggio non riuscito: %1$s</string>
+    <string name="storage_write_permission_denied">È necessaria l’autorizzazione di archiviazione per salvare nella cartella pubblica Immagini o Download</string>
 
     <string name="failed_to_generate">Generazione del codice QR non riuscita: %1$s</string>
 
@@ -133,6 +134,9 @@
     <string name="restored_after_enhancement">Riconosciuto dopo il ripristino dell\'immagine</string>
 
     <string name="shared_multiple_first_only">%1$d immagini condivise; verrà elaborata solo la prima</string>
+    <string name="shared_media_too_large">Il file multimediale condiviso è troppo grande per la scansione</string>
+    <string name="scan_queue_busy">Lo scanner è occupato. Riprova.</string>
+    <string name="share_text_too_large">Troppo testo da condividere in una volta. Seleziona meno risultati.</string>
 
     <string name="history_retention">Eliminazione automatica cronologia</string>
 
@@ -470,6 +474,7 @@
     <string name="update_incremental_fallback">Aggiornamento incrementale non riuscito. Download dell\'APK completo…</string>
 
     <string name="update_install_permission_needed">Consenti l\'installazione di app da questa fonte, poi torna per continuare</string>
+    <string name="update_install_permission_not_granted">L\'autorizzazione all\'installazione non è stata concessa. Puoi riprovare l\'aggiornamento.</string>
 
     <string name="update_install_failed_title">Aggiornamento automatico non riuscito</string>
 
@@ -1126,7 +1131,13 @@ https://another.com
 
     <string name="auto_copy_result">Copia automaticamente il risultato</string>
 
-    <string name="export_excel">Esporta come Excel</string>
+    <string name="webdav_restore_confirm">Ripristinare questo backup dal server? Le cronologie corrispondenti verranno unite.</string>
+    <string name="backup_import_unsupported">File di backup non supportato o vuoto</string>
+    <string name="backup_import_invalid_structure">Struttura del backup non valida</string>
+    <string name="backup_import_no_valid_records">Il backup non contiene record validi</string>
+    <string name="backup_import_too_large">Il file di backup supera il limite di %1$d MiB</string>
+    <string name="backup_import_unsupported_version">Versione del backup non supportata: %1$d</string>
+    <string name="export_excel">Esporta report Excel</string>
 
     <string name="stats_title">Statistiche</string>
 
@@ -1160,4 +1171,9 @@ https://another.com
     <string name="about_section_preferences">Preferenze</string>
     <string name="about_section_updates">Aggiornamenti e diagnostica</string>
     <string name="about_section_project">Progetto e supporto</string>
+    <string name="batch_limit_items">Un batch può contenere al massimo %1$d elementi.</string>
+    <string name="batch_limit_item_length">Ogni elemento del batch può contenere al massimo %1$d caratteri.</string>
+    <string name="batch_limit_total_size">I dati del batch possono occupare al massimo %1$d MB.</string>
+    <string name="batch_data_unavailable">I dati del batch sono mancanti, non validi o scaduti. Riprova.</string>
+    <string name="continuous_state_unavailable">Impossibile ripristinare la sessione di scansione. Esegui una nuova scansione prima di esportare.</string>
 </resources>

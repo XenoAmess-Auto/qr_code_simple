@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.graphics.Bitmap
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xenoamess.qrcodesimple.data.BarcodeFormat
@@ -36,7 +37,25 @@ sealed interface GenerateExportState {
     data class Failed(val id: Long, val message: String?) : GenerateExportState
 }
 
-class GenerateViewModel : ViewModel() {
+internal enum class PendingImageType {
+    FOREGROUND,
+    BACKGROUND
+}
+
+internal enum class RasterSaveFormat {
+    PNG,
+    JPEG,
+    WEBP
+}
+
+internal data class PendingRasterSave(
+    val size: Int,
+    val format: RasterSaveFormat
+)
+
+class GenerateViewModel(
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
     private val _previewState = MutableStateFlow<GeneratePreviewState>(GeneratePreviewState.Empty)
     val previewState: StateFlow<GeneratePreviewState> = _previewState.asStateFlow()
     private val _exportState = MutableStateFlow<GenerateExportState>(GenerateExportState.Idle)
@@ -52,6 +71,44 @@ class GenerateViewModel : ViewModel() {
         is GeneratePreviewState.Ready -> state.request
         is GeneratePreviewState.Invalid -> state.request
         is GeneratePreviewState.Failed -> state.request
+    }
+
+    internal fun beginImageCrop(type: PendingImageType) {
+        savedStateHandle[PENDING_IMAGE_TYPE] = type.name
+    }
+
+    internal fun consumePendingImageType(): PendingImageType? {
+        val value = savedStateHandle.get<String>(PENDING_IMAGE_TYPE)
+        savedStateHandle[PENDING_IMAGE_TYPE] = null
+        return value?.let { name -> PendingImageType.entries.firstOrNull { it.name == name } }
+    }
+
+    fun clearPendingImageType() {
+        savedStateHandle[PENDING_IMAGE_TYPE] = null
+    }
+
+    fun setPendingSvgPath(path: String) {
+        savedStateHandle[PENDING_SVG_PATH] = path
+    }
+
+    fun consumePendingSvgPath(): String? {
+        val path = savedStateHandle.get<String>(PENDING_SVG_PATH)
+        savedStateHandle[PENDING_SVG_PATH] = null
+        return path
+    }
+
+    internal fun setPendingRasterSave(size: Int, format: RasterSaveFormat) {
+        savedStateHandle[PENDING_RASTER_SIZE] = size
+        savedStateHandle[PENDING_RASTER_FORMAT] = format.name
+    }
+
+    internal fun consumePendingRasterSave(): PendingRasterSave? {
+        val size = savedStateHandle.get<Int>(PENDING_RASTER_SIZE)
+        val formatName = savedStateHandle.get<String>(PENDING_RASTER_FORMAT)
+        savedStateHandle[PENDING_RASTER_SIZE] = null
+        savedStateHandle[PENDING_RASTER_FORMAT] = null
+        val format = formatName?.let { name -> RasterSaveFormat.entries.firstOrNull { it.name == name } }
+        return if (size != null && format != null) PendingRasterSave(size, format) else null
     }
 
     fun preview(request: GenerateRequest) {
@@ -137,5 +194,9 @@ class GenerateViewModel : ViewModel() {
     private companion object {
         const val PREVIEW_DEBOUNCE_MS = 180L
         const val PREVIEW_SIZE = 512
+        const val PENDING_IMAGE_TYPE = "pending_image_type"
+        const val PENDING_SVG_PATH = "pending_svg_path"
+        const val PENDING_RASTER_SIZE = "pending_raster_size"
+        const val PENDING_RASTER_FORMAT = "pending_raster_format"
     }
 }

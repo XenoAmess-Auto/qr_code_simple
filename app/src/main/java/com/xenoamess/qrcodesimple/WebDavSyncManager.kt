@@ -61,7 +61,11 @@ object WebDavSyncManager {
         return Config(url, username, password)
     }
 
-    fun hasConfig(context: Context): Boolean = loadConfig(context) != null
+    fun hasConfig(context: Context): Boolean =
+        !context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_URL, null)
+            ?.trim()
+            .isNullOrEmpty()
 
     /** 自动上传开关（默认关）：开启后主 Activity 退到后台时节流上传。 */
     fun isAutoUploadEnabled(context: Context): Boolean =
@@ -116,8 +120,21 @@ object WebDavSyncManager {
     }
 
     /** 上传：以 WebDAV 密码加密导出全部历史，PUT 到远端固定文件名。 */
-    suspend fun upload(context: Context): Outcome = withContext(Dispatchers.IO) {
-        val config = loadConfig(context) ?: return@withContext Outcome.NOT_CONFIGURED
+    suspend fun upload(context: Context): Outcome = upload(context, ::loadConfig)
+
+    internal suspend fun upload(
+        context: Context,
+        configLoader: (Context) -> Config?
+    ): Outcome {
+        val config = configLoader(context) ?: return Outcome.NOT_CONFIGURED
+        return try {
+            upload(context, config)
+        } finally {
+            config.password.fill('\u0000')
+        }
+    }
+
+    internal suspend fun upload(context: Context, config: Config): Outcome = withContext(Dispatchers.IO) {
         if (config.password.isEmpty()) return@withContext Outcome.NOT_CONFIGURED
         val data = try {
             HistoryBackupManager.exportEncryptedJson(context, config.password)
@@ -138,8 +155,21 @@ object WebDavSyncManager {
     }
 
     /** 恢复：GET 远端备份并用 WebDAV 密码解密导入（按现有去重规则合并）。 */
-    suspend fun download(context: Context): Outcome = withContext(Dispatchers.IO) {
-        val config = loadConfig(context) ?: return@withContext Outcome.NOT_CONFIGURED
+    suspend fun download(context: Context): Outcome = download(context, ::loadConfig)
+
+    internal suspend fun download(
+        context: Context,
+        configLoader: (Context) -> Config?
+    ): Outcome {
+        val config = configLoader(context) ?: return Outcome.NOT_CONFIGURED
+        return try {
+            download(context, config)
+        } finally {
+            config.password.fill('\u0000')
+        }
+    }
+
+    internal suspend fun download(context: Context, config: Config): Outcome = withContext(Dispatchers.IO) {
         if (config.password.isEmpty()) return@withContext Outcome.NOT_CONFIGURED
         val (result, data) = WebDavClient.download(config.remoteFileUrl(), config.username, config.password)
         when (result) {

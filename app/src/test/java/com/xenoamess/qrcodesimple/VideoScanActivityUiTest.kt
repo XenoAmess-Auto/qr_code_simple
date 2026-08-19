@@ -34,6 +34,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowDialog
+import org.robolectric.shadows.ShadowToast
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [28], application = QRCodeApp::class)
@@ -161,6 +162,43 @@ class VideoScanActivityUiTest {
         val sharedIntent = startedIntent?.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
         assertNotNull(sharedIntent)
         assertEquals("https://example.com", sharedIntent?.getStringExtra(Intent.EXTRA_TEXT))
+    }
+
+    @Test
+    fun oversizedSelectedTextIsNotPutInShareIntent() {
+        launchWithUri(Uri.fromFile(java.io.File("/dev/null/nonexistent.mp4")).toString())
+        injectResult("x".repeat(VideoScanActivity.MAX_SHARE_TEXT_CHARS + 1))
+        onView(withId(R.id.btnSelectAll)).perform(click())
+
+        onView(withId(R.id.btnShareSelected)).perform(click())
+        flushMainLooper()
+
+        scenario?.onActivity { activity ->
+            assertEquals(null, Shadows.shadowOf(activity).nextStartedActivity)
+            assertEquals(
+                activity.getString(R.string.share_text_too_large),
+                ShadowToast.getTextOfLatestToast()
+            )
+        }
+    }
+
+    @Test
+    fun oversizedAllTextIsNotPutInShareIntent() {
+        launchWithUri(Uri.fromFile(java.io.File("/dev/null/nonexistent.mp4")).toString())
+        injectResult("x".repeat(VideoScanActivity.MAX_SHARE_TEXT_CHARS + 1))
+
+        scenario?.onActivity { activity ->
+            val shareAll = VideoScanActivity::class.java.getDeclaredMethod("shareAll")
+            shareAll.isAccessible = true
+            shareAll.invoke(activity)
+            assertEquals(null, Shadows.shadowOf(activity).nextStartedActivity)
+        }
+        flushMainLooper()
+        assertEquals(
+            ApplicationProvider.getApplicationContext<Context>()
+                .getString(R.string.share_text_too_large),
+            ShadowToast.getTextOfLatestToast()
+        )
     }
 
     @Test

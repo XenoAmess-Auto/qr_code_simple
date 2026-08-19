@@ -85,6 +85,9 @@
     <string name="restoration_retrying">Bildwiederherstellung wird versucht…</string>
     <string name="restored_after_enhancement">Nach Bildwiederherstellung erkannt</string>
     <string name="shared_multiple_first_only">%1$d Bilder geteilt; nur das erste wird verarbeitet</string>
+    <string name="shared_media_too_large">Die geteilte Mediendatei ist zu groß zum Scannen</string>
+    <string name="scan_queue_busy">Der Scanner ist ausgelastet. Bitte versuchen Sie es erneut.</string>
+    <string name="share_text_too_large">Zu viel Text zum gleichzeitigen Teilen. Wählen Sie weniger Ergebnisse aus.</string>
     <string name="history_retention">Verlauf automatisch löschen</string>
     <string name="history_retention_forever">Für immer behalten</string>
     <string name="history_retention_days">%1$d Tage</string>
@@ -204,6 +207,7 @@
     <string name="update_incremental_progress_percent">Inkrementelles Update wird angewendet: %1$d%%</string>
     <string name="update_incremental_fallback">Inkrementelles Update fehlgeschlagen. Vollständige APK wird heruntergeladen…</string>
     <string name="update_install_permission_needed">Bitte erlaube die Installation aus dieser Quelle und kehre dann zurück</string>
+    <string name="update_install_permission_not_granted">Die Installationsberechtigung wurde nicht erteilt. Du kannst das Update erneut versuchen.</string>
     <string name="update_install_failed_title">Automatisches Update fehlgeschlagen</string>
     <string name="update_install_failed_message">Das Update konnte nicht automatisch installiert werden. Du kannst es manuell von der Release-Seite herunterladen.</string>
     <string name="beta_update_install_failed_message">Das Beta-Update konnte nicht installiert werden. Bitte versuche es später erneut.</string>
@@ -263,6 +267,7 @@
     <string name="svg_saved">SVG gespeichert</string>
     <string name="saved_to">Gespeichert in: %1$s</string>
     <string name="failed_to_save">Speichern fehlgeschlagen: %1$s</string>
+    <string name="storage_write_permission_denied">Zum Speichern im öffentlichen Bilder- oder Download-Ordner ist die Speicherberechtigung erforderlich</string>
     <string name="failed_to_generate">QR-Code-Generierung fehlgeschlagen: %1$s</string>
     <string name="unknown_error">Unbekannter Fehler</string>
     <string name="scan_result">Scan-Ergebnis</string>
@@ -627,7 +632,13 @@
     <string name="auto_open_url">Sichere Links automatisch öffnen</string>
 
     <string name="auto_copy_result">Ergebnis automatisch kopieren</string>
-    <string name="export_excel">Als Excel exportieren</string>
+    <string name="webdav_restore_confirm">Dieses Backup vom Server wiederherstellen? Übereinstimmende Verläufe werden zusammengeführt.</string>
+    <string name="backup_import_unsupported">Nicht unterstützte oder leere Backup-Datei</string>
+    <string name="backup_import_invalid_structure">Ungültige Backup-Struktur</string>
+    <string name="backup_import_no_valid_records">Das Backup enthält keine gültigen Einträge</string>
+    <string name="backup_import_too_large">Die Backup-Datei überschreitet das Limit von %1$d MiB</string>
+    <string name="backup_import_unsupported_version">Nicht unterstützte Backup-Version: %1$d</string>
+    <string name="export_excel">Excel-Bericht exportieren</string>
     <string name="stats_title">Statistiken</string>
     <string name="stats_7d">7 Tage: %1$d Scans</string>
 
@@ -655,4 +666,9 @@
     <string name="about_section_preferences">Einstellungen</string>
     <string name="about_section_updates">Updates &amp; Diagnose</string>
     <string name="about_section_project">Projekt &amp; Unterstützung</string>
+    <string name="batch_limit_items">Ein Stapel darf höchstens %1$d Einträge enthalten.</string>
+    <string name="batch_limit_item_length">Jeder Stapeleintrag darf höchstens %1$d Zeichen enthalten.</string>
+    <string name="batch_limit_total_size">Stapeldaten dürfen höchstens %1$d MB groß sein.</string>
+    <string name="batch_data_unavailable">Die Stapeldaten fehlen, sind ungültig oder abgelaufen. Bitte erneut versuchen.</string>
+    <string name="continuous_state_unavailable">Die Scan-Sitzung konnte nicht wiederhergestellt werden. Vor dem Export erneut scannen.</string>
 </resources>

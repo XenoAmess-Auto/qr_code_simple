@@ -15,7 +15,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **50+ Barcode Formats** - Scan and generate QR Code, Data Matrix (including Chinese/UTF-8), Aztec, PDF417, Han Xin Code (汉信码), MaxiCode, Micro QR, Code 128/39/93, EAN-13/8, UPC-A/E, Codabar, ITF, Pharmacode, Plessey, MSI Plessey, Telepen, RSS-14, RSS Expanded, UPC/EAN Extension, and many more OkapiBarcode-only generate-only formats (Code 2 of 5 variants, postal codes, Codablock F, Grid Matrix, Code One, etc.).
 - ✅ **Smart Content Parsing** - Auto-detect WiFi, contacts, calendar, email, URLs, and geo-location with one-tap actions.
 - ✅ **Structured Content Wizard** - Form-based generation for WiFi / contact / calendar event / email / SMS / phone / geo / URL codes.
-- ✅ **Batch Generation** - Import CSV or Excel data with per-row format, colors, and filenames; generate retryable results with preset styles, center logo, and streamed ZIP export.
+- ✅ **Batch Generation** - Import CSV or Excel data with per-row format, colors, and filenames; generate retryable results with preset styles, center logo, streamed ZIP export, and size-bounded recoverable drafts.
 - ✅ **Style Customization** - Foreground/background colors, multi-stop gradients, center logo (square / rounded-rect / circle with adjustable corner radius), module shapes, position patterns, corner radius, and error correction levels.
 - ✅ **QR Code Repair** - Automatic restoration retry for blurry or low-contrast codes (grayscale / contrast / binarization variants).
 
@@ -27,8 +27,8 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Smart Categories** - Auto-classify into links, text, WiFi, contacts, and more.
 - ✅ **Favorites / Pinning** - Mark important items.
 - ✅ **Tag System** - Custom tag management.
-- ✅ **Import / Export** - JSON / CSV / Excel backup, plus optional password-encrypted backups (AES-256-GCM + PBKDF2); entry via About → Privacy Settings.
-- ✅ **WebDAV Cloud Sync** - Upload/restore the encrypted backup to a self-hosted WebDAV server (backup encrypted with the sync password, password stored via Android Keystore), manual or throttled auto-upload.
+- ✅ **Import / Export** - Restorable JSON / CSV backups, an Excel report export, plus optional password-encrypted backups (AES-256-GCM + PBKDF2); entry via About → Privacy Settings.
+- ✅ **WebDAV Cloud Sync** - Upload/restore the encrypted backup to a self-hosted WebDAV server (backup encrypted with the sync password, password stored via Android Keystore); restores require confirmation and edited credentials are saved only after a successful request.
 - ✅ **Quick Result Actions** - Favorite or annotate a scan result right from the camera result card.
 - ✅ **Retention Policy** - Auto-delete history older than 30 / 90 / 365 days (favorites are kept).
 
@@ -39,7 +39,7 @@ A feature-rich Android QR/Barcode scanning and generation app.
 - ✅ **Auto / Tap-to-focus** - Adapts to code size; tap to focus manually.
 - ✅ **Scan Region Limit** - Toggle region mode and drag to decode only within the selected area.
 - ✅ **Video Scan** - Decode barcodes from 500 ms video samples and retain each result's sample position.
-- ✅ **Share to Scan** - Share images or videos from any app straight into the scanner (gallery, file manager, etc.).
+- ✅ **Share to Scan** - Share images or videos from any app straight into the scanner, with bounded imports, lifecycle-safe one-shot routing, and automatic temporary-file cleanup.
 - ✅ **Multi-code View** - Cycle through multiple codes detected in one frame; pick an image from the gallery right on the camera page.
 - ✅ **Scan Automation** - Optional toggles: auto-copy result, auto-open links verified SAFE/LOW by the security check (in Privacy Settings, default off).
 
@@ -212,6 +212,8 @@ The full file index and architectural notes live in [`docs/knowledge-base.md`](d
 
 Set `JAVA_HOME` to your JDK 21 install and put `sdk.dir=/path/to/Android/Sdk` into `local.properties`. `local.properties` is git-ignored.
 
+On Android 9 (API 28), `WRITE_EXTERNAL_STORAGE` is requested only when the user saves generated output to the public Pictures or Downloads folder. Android 10+ saves through scoped `MediaStore` without requesting that permission.
+
 ---
 
 ## Build Instructions
@@ -282,6 +284,7 @@ app/src/main/java/com/xenoamess/qrcodesimple/
 ├── ScanImageActivity.kt             # Static-image scan UI + share target (image/video)
 ├── ScanImageFragment.kt             # Static-image scan logic
 ├── ScanImageProcessor.kt            # Shared image/video scan routing
+├── ScanImageShareViewModel.kt       # Retained one-shot state for shared media imports
 ├── ContinuousScanActivity.kt        # Continuous (batch) scan mode
 ├── ContinuousScanAdapter.kt         # List adapter for continuous scan
 ├── VideoScanActivity.kt             # Decode barcodes from video files

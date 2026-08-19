@@ -1,5 +1,6 @@
 package com.xenoamess.qrcodesimple
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
@@ -15,6 +16,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -28,6 +30,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,6 +42,29 @@ class BatchResultActivity : AppCompatActivity() {
     private lateinit var adapter: BatchResultAdapter
     private val results = mutableListOf<BatchResult>()
     private var batchStyle: AdvancedBarcodeGenerator.StyleConfig? = null
+    private var transferToken: String? = null
+    private var transferPayload: BatchResultTransfer.Payload? = null
+    private var batchGenerationComplete = false
+    private var pendingSaveAction: PendingSaveAction? = null
+    private var pendingSingleIndex = -1
+
+    private enum class PendingSaveAction { SINGLE, ZIP }
+
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            resumePendingSaveIfReady()
+        } else {
+            clearPendingSave()
+            Toast.makeText(this, R.string.storage_write_permission_denied, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private companion object {
+        const val STATE_PENDING_SAVE_ACTION = "pending_save_action"
+        const val STATE_PENDING_SINGLE_INDEX = "pending_single_index"
+    }
 
     /** bitmap is deliberately a small preview; the full PNG always lives in [imageFile]. */
     data class BatchResult(
@@ -56,29 +82,24 @@ class BatchResultActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        pendingSaveAction = savedInstanceState?.getString(STATE_PENDING_SAVE_ACTION)
+            ?.let { name -> PendingSaveAction.entries.firstOrNull { it.name == name } }
+        pendingSingleIndex = savedInstanceState?.getInt(STATE_PENDING_SINGLE_INDEX, -1) ?: -1
         binding = ActivityBatchResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.batch_result)
         setupRecyclerView()
 
-        // The JSON is primitive Intent data, so Android restores it after process death.
-        val items = BatchGenerator.itemsFromJson(intent.getStringExtra(BatchGenerateActivity.EXTRA_BATCH_ITEMS_JSON))
-            .ifEmpty { legacyItemsFromIntent() }
+        transferToken = PrivateStateFileStore.validToken(intent.getStringExtra(BatchGenerateActivity.EXTRA_BATCH_TOKEN))
+        transferPayload = runCatching { BatchResultTransfer.read(this, transferToken) }.getOrNull()
+        val items = transferPayload?.items.orEmpty()
         if (items.isEmpty()) {
-            Toast.makeText(this, R.string.no_content_to_generate, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.batch_data_unavailable, Toast.LENGTH_LONG).show()
             finish()
             return
         }
         generateBatch(items)
-    }
-
-    private fun legacyItemsFromIntent(): List<BatchGenerator.BatchItem> {
-        val format = intent.getStringExtra(BatchGenerateActivity.EXTRA_FORMAT)
-            ?.let { runCatching { BarcodeFormat.valueOf(it) }.getOrNull() } ?: BarcodeFormat.QR_CODE
-        return intent.getStringArrayListExtra(BatchGenerateActivity.EXTRA_CONTENTS)
-            ?.mapIndexed { index, content -> BatchGenerator.BatchItem(content, format, fileName = "batch_${index + 1}") }
-            .orEmpty()
     }
 
     private fun setupRecyclerView() {
@@ -92,16 +113,10 @@ class BatchResultActivity : AppCompatActivity() {
     }
 
     internal fun readStyleFromIntent(): AdvancedBarcodeGenerator.StyleConfig? {
-        val styleJson = intent.getStringExtra(BatchGenerateActivity.EXTRA_STYLE_JSON) ?: return null
+        val payload = transferPayload ?: return null
+        val styleJson = payload.styleJson ?: return null
         var style = styleConfigFromJson(styleJson) ?: return null
-        intent.getStringExtra(BatchGenerateActivity.EXTRA_LOGO_PATH)?.let { path ->
-            val file = File(path)
-            try {
-                BitmapFactory.decodeFile(path)?.let { style = style.copy(logoBitmap = it) }
-            } finally {
-                file.delete()
-            }
-        }
+        payload.logoBitmap?.let { style = style.copy(logoBitmap = it) }
         return style
     }
 
@@ -124,9 +139,11 @@ class BatchResultActivity : AppCompatActivity() {
                 binding.progressBar.progress = (index + 1) * 100 / items.size
             }
             binding.progressBar.visibility = View.GONE
+            batchGenerationComplete = true
             val success = results.count { it.imageFile != null }
             binding.tvProgress.text = getString(R.string.batch_generated_count, success, results.size)
             if (success == 0) Toast.makeText(this@BatchResultActivity, R.string.batch_all_failed, Toast.LENGTH_LONG).show()
+            resumePendingSaveIfReady()
         }
     }
 
@@ -182,6 +199,12 @@ class BatchResultActivity : AppCompatActivity() {
     }
 
     internal fun saveSingleImage(result: BatchResult) {
+        val index = results.indexOf(result)
+        if (index < 0 || result.imageFile == null) return
+        requestPublicStorageSave(PendingSaveAction.SINGLE, index)
+    }
+
+    private fun saveSingleImageNow(result: BatchResult) {
         val source = result.imageFile ?: return
         lifecycleScope.launch {
             try {
@@ -196,21 +219,24 @@ class BatchResultActivity : AppCompatActivity() {
     private fun copySingleToMediaStore(source: File, fileName: String): String {
         val fullName = "${safeFileName(fileName)}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues().apply {
+            writePendingMediaStore(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fullName)
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
                 put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/BatchQR")
-            }) ?: error(getString(R.string.unknown_error))
-            contentResolver.openOutputStream(uri)?.use { output -> FileInputStream(source).use { it.copyTo(output) } } ?: error(getString(R.string.unknown_error))
+            }) { output -> FileInputStream(source).use { it.copyTo(output) } }
             return fullName
         }
         val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BatchQR").apply { mkdirs() }
         val target = File(directory, fullName)
-        FileInputStream(source).use { input -> FileOutputStream(target).use { input.copyTo(it) } }
+        writeLegacyFileAtomically(target) { output -> FileInputStream(source).use { it.copyTo(output) } }
         return target.absolutePath
     }
 
     internal fun saveAllAsZip() {
+        requestPublicStorageSave(PendingSaveAction.ZIP)
+    }
+
+    private fun saveAllAsZipNow() {
         lifecycleScope.launch {
             try {
                 val name = "batch_qr_${SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.getDefault()).format(Date())}.zip"
@@ -220,6 +246,38 @@ class BatchResultActivity : AppCompatActivity() {
                 Toast.makeText(this@BatchResultActivity, R.string.zip_save_failed, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun requestPublicStorageSave(action: PendingSaveAction, singleIndex: Int = -1) {
+        pendingSaveAction = action
+        pendingSingleIndex = singleIndex
+        if (requiresLegacyPublicStoragePermission(this)) {
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else {
+            resumePendingSaveIfReady()
+        }
+    }
+
+    private fun resumePendingSaveIfReady() {
+        if (pendingSaveAction == null || !batchGenerationComplete || requiresLegacyPublicStoragePermission(this)) return
+        val action = pendingSaveAction
+        val result = if (action == PendingSaveAction.SINGLE) results.getOrNull(pendingSingleIndex) else null
+        if (action == PendingSaveAction.SINGLE && result?.imageFile == null) {
+            clearPendingSave()
+            Toast.makeText(this, getString(R.string.failed_to_save, getString(R.string.unknown_error)), Toast.LENGTH_SHORT).show()
+            return
+        }
+        clearPendingSave()
+        when (action) {
+            PendingSaveAction.SINGLE -> saveSingleImageNow(requireNotNull(result))
+            PendingSaveAction.ZIP -> saveAllAsZipNow()
+            null -> Unit
+        }
+    }
+
+    private fun clearPendingSave() {
+        pendingSaveAction = null
+        pendingSingleIndex = -1
     }
 
     private fun writeZipToMediaStore(name: String, sourceResults: List<BatchResult>): String {
@@ -236,19 +294,47 @@ class BatchResultActivity : AppCompatActivity() {
             } }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, ContentValues().apply {
+            writePendingMediaStore(MediaStore.Downloads.EXTERNAL_CONTENT_URI, ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, name)
                 put(MediaStore.MediaColumns.MIME_TYPE, "application/zip")
                 put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-            }) ?: error(getString(R.string.unknown_error))
-            contentResolver.openOutputStream(uri)?.use(::write) ?: error(getString(R.string.unknown_error))
+            }, write = ::write)
             return name
         }
         val target = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name)
-        val temporary = File(target.parentFile, ".${target.name}.partial")
-        FileOutputStream(temporary).use(::write)
-        if (!temporary.renameTo(target)) error(getString(R.string.unknown_error))
+        writeLegacyFileAtomically(target, ::write)
         return target.absolutePath
+    }
+
+    internal fun writePendingMediaStore(
+        collection: Uri,
+        values: ContentValues,
+        openOutputStream: (Uri) -> OutputStream? = contentResolver::openOutputStream,
+        write: (OutputStream) -> Unit
+    ) {
+        values.put(MediaStore.MediaColumns.IS_PENDING, 1)
+        val uri = contentResolver.insert(collection, values) ?: error(getString(R.string.unknown_error))
+        try {
+            requireNotNull(openOutputStream(uri)) { getString(R.string.unknown_error) }.use(write)
+            val updated = contentResolver.update(uri, ContentValues().apply {
+                put(MediaStore.MediaColumns.IS_PENDING, 0)
+            }, null, null)
+            if (updated <= 0) error(getString(R.string.unknown_error))
+        } catch (exception: Exception) {
+            runCatching { contentResolver.delete(uri, null, null) }
+            throw exception
+        }
+    }
+
+    internal fun writeLegacyFileAtomically(target: File, write: (OutputStream) -> Unit) {
+        val directory = requireNotNull(target.parentFile).apply { mkdirs() }
+        val temporary = File.createTempFile(".${target.name}.", ".partial", directory)
+        try {
+            FileOutputStream(temporary).use(write)
+            if (!temporary.renameTo(target)) error(getString(R.string.unknown_error))
+        } finally {
+            temporary.delete()
+        }
     }
 
     private fun safeFileName(value: String): String = value
@@ -256,12 +342,21 @@ class BatchResultActivity : AppCompatActivity() {
         .trim('_', '.')
         .ifEmpty { "barcode" }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        pendingSaveAction?.let { outState.putString(STATE_PENDING_SAVE_ACTION, it.name) }
+        outState.putInt(STATE_PENDING_SINGLE_INDEX, pendingSingleIndex)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
         results.forEach { result ->
             result.bitmap?.recycle()
             result.imageFile?.delete()
         }
         batchStyle?.logoBitmap?.recycle()
+        if (isFinishing) {
+            BatchResultTransfer.delete(this, transferToken)
+        }
         super.onDestroy()
     }
 

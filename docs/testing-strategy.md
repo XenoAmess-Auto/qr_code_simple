@@ -136,7 +136,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 - `UpdateDeciderTest` 断言 `version.json` 必须具有正整数 `versionCode`、语义 `versionName`、64 位十六进制 `apkSha256` 和正数 `apkSize`；不合格 metadata 不会被视为“已是最新”。
 - Stable 测试要求 GitHub Release 的 `version.json`、标签和 `qr-code-simple-<version>.apk` 一致；只有不存在 canonical APK 候选时才允许旧 `app-release.apk` 兼容别名。
 - Beta 测试固定使用 Pages 的 `/beta/version.json` 和 `/beta/qr-code-simple-beta.apk`，并确认 Beta 只能手动检查。
-- 下载测试确认精确大小、SHA-256、HTTPS 可信端点和临时文件清理；`ApkArchiveVerifierTest` 覆盖 APK 包名、目标版本号和签名证书集合验证。
+- 下载测试确认精确大小、SHA-256、HTTPS 可信端点和临时文件清理；孤儿清理测试覆盖新式 `.download` / `.part` / `incremental-*`、旧式 `qr-code-simple-<version>.apk`，并验证 active session 与 `pendingInstaller` 文件受保护；`ApkArchiveVerifierTest` 覆盖 APK 包名、目标版本号和签名证书集合验证。
 - `ChainPlannerTest` 与 `IncrementalUpdaterTest` 覆盖 hash 匹配、补丁更小、多跳结果 hash 和失败后完整 APK 回退所依赖的安全条件；`ApkPatcherTest` 覆盖 ZiPat1 格式分派与 native 缺失时的受控异常；`IncrementalUpdateInstrumentedTest` 用预生成 ZiPat1 夹具在模拟器上验证 ART 打补丁字节一致。
 
 ## 6. UI 与 Adapter 测试
@@ -153,7 +153,9 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 - 对话框与设置：确认/取消、开关状态、外部链接 intent。
 - 自定义 View：触摸事件、颜色/角度变化、回调。
 - 导航：底部导航与 ViewPager2 联动、deep-link/shortcut，以及独立结果页的 ActionBar、Up 和操作菜单。
+- 权限：`MainActivityPermissionTest` 在 API 28 与 API 35 分阶段验证首启创建不申请存储/媒体等权限，进入默认实时扫码相机路径后仅按需申请 `CAMERA`；生成页与批量结果页的保存测试验证 API 28 仅在用户写入公共 Pictures/Downloads 时申请 `WRITE_EXTERNAL_STORAGE`、跨重建恢复待办且拒绝时明确报错，API 29+ 不申请该权限。
 - 扫描管线：精确应用格式映射、stride-aware YUV、连续会话 CSV/JSON/XLSX 转义、视频采样时间显示，以及取消后等待阻塞引擎实际退出再回收 Bitmap。
+- 分享扫描入口：声明大小与实际流式上限、异常流残片清理、跨配置重建单次路由、旧 host 不回调、最终消费者 owned 临时文件清理及过期孤儿清理。
 - 生成管线：防抖预览、导出串行状态、异步保存/分享完成等待、格式筛选和批量导航。
 
 所有页面和测试批次的具体计划见 `docs/ui-testing-plan.md`。
@@ -171,11 +173,17 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 ./gradlew :app:testDebugUnitTest --tests "*UpdateDeciderTest*"
 ./gradlew :app:testDebugUnitTest --tests "*AppUpdateCheckerTest*"
 
+# API 28/35 首启与相机按需权限策略
+./gradlew :app:testDebugUnitTest --tests "*MainActivityPermissionTest*"
+
+# API 28 公共目录写入按需权限与 API 29+ scoped storage 契约
+./gradlew :app:testDebugUnitTest --tests "*GenerateFragmentSaveTest*" --tests "*BatchFileScenarioTest*"
+
 # 静态检查、覆盖率报告与门禁
 ./gradlew :app:lintDebug
 ./gradlew :app:jacocoTestReport :app:jacocoTestCoverageVerification -PexcludeExtendedUiTests
 
-# 需要已连接的模拟器/设备；CI 最多重试三次
+# 需要已连接的模拟器/设备；断言失败直接失败并上传 logcat、窗口层级和截图
 ./gradlew :app:connectedDebugAndroidTest
 
 # Stable 发布前的 R8 release-path smoke tests
@@ -187,7 +195,7 @@ app/src/test/java/com/xenoamess/qrcodesimple/
 
 `lintDebug` 与覆盖率门禁均为 CI 验证的一部分。Lint baseline 只保留已记录项；不要以跳过 lint 代替修复新问题。
 
-CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执行上述 JVM 验证，另有 API 35 的 Google ATD（`google_atd`）测试模拟器运行 `connectedDebugAndroidTest`。通用 Debug 和 Release APK 均包含 `armeabi-v7a`、`arm64-v8a`、`x86` 与 `x86_64` ABI 的 OpenCV 原生库。仅 `master` 的 push 会在这两个 job 成功后构建与 Debug 同证书的 Beta；Stable 标签工作流先运行 R8 release-path smoke tests，再执行同一 JVM 验证命令。release AndroidTest 会省略被测 APK 已提供的 tracing/Kotlin 依赖，因此 `-PreleaseInstrumentedTest` 会额外应用 `app/proguard-release-test-rules.pro`；正式 Stable APK 不使用该测试专用规则。
+CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执行上述 JVM 验证，另有 API 35 Google ATD 与 minSdk API 28 AOSP 两套模拟器运行 `connectedDebugAndroidTest`。仪器测试断言失败不自动重试；runner 对单次 Gradle 执行、模拟器 step 和整个 job 分层限时，失败或收到终止信号时逐条限时采集 adb 设备状态、logcat、Activity/窗口状态、窗口层级和截图，避免挂死诊断本身阻塞退出。通用 Debug 和 Release APK 均包含 `armeabi-v7a`、`arm64-v8a`、`x86` 与 `x86_64` ABI 的 OpenCV 原生库。仅 `master` 的 push 会在这两个 job 成功后构建与 Debug 同证书的 Beta；Stable 标签工作流先运行 R8 release-path smoke tests，再执行同一 JVM 验证命令。release AndroidTest 会省略被测 APK 已提供的 tracing/Kotlin 依赖，因此 `-PreleaseInstrumentedTest` 会额外应用 `app/proguard-release-test-rules.pro`；正式 Stable APK 不使用该测试专用规则。
 
 ### 7.1 版本元数据与发布产物核验
 
@@ -215,10 +223,10 @@ CI 在 `.github/workflows/build.yml` 中配置：`master`/`main` 的 push/PR 执
 - 覆盖率由 JaCoCo 生成（`./gradlew :app:jacocoTestReport`）。`app/build.gradle` 关闭 AGP 内置覆盖率，改用 Gradle JaCoCo 插件并开启 `includeNoLocationClasses = true`，使 Robolectric 加载的类也能被计入；同时排除 `jdk.internal.reflect.*` 避免 Gradle worker 序列化异常。
 - 覆盖率门禁：`jacocoTestCoverageVerification` 已接入 CI（指令 ≥ 0.80，行 ≥ 0.75，`-PexcludeExtendedUiTests` 口径）。
 - 更新通道：Stable 自动检查默认关闭且仅检查 Stable；Beta 只从 About 页按钮手动检查。`version.json` 的 SHA-256 和大小是必填安全边界，不允许为了兼容旧 metadata 删除它们。
-- 增量更新：补丁链只是优化。基础 APK hash 不匹配、补丁验证失败或补丁不比完整 APK 小时，都必须走已校验的完整 APK 下载。补丁格式为 ApkDiffPatch `ZiPat1`（`libapkpatch.so` native 打补丁），发布物由 `ApkNormalized + apksigner 34.0.0` 重签产生。
+- 增量更新：补丁链只是优化。基础 APK hash 不匹配、补丁验证失败或补丁不比完整 APK 小时，都必须走已校验的完整 APK 下载。补丁格式为 ApkDiffPatch `ZiPat1`（`libapkpatch.so` native 打补丁），发布物由 `ApkNormalized + apksigner 34.0.0` 重签产生。JNI patch 已进入 native 后不能安全强制中断；取消后的结果和文件已隔离，测试不应尝试危险线程终止。
 - 金样测试：`GenerationGoldenTest` 固定输入断言 SVG 输出 SHA-256，防止生成图案在依赖升级时静默变化；预期变更需更新金样并注明原因。
-- 场景测试套件（0.2.3）：`ContentActionScenarioTest`（各内容类型动作分发）、`ContentActionWifiModernTest`（API 29 WiFi 路径）、`BackupActivityFileRoundtripTest`（真实文件备份往返）、`HistoryScenarioTest` / `HistoryDetailScenarioTest`（筛选/搜索/标签/分享/详情操作）、`BatchFileScenarioTest`（CSV/Excel 导入 + ZIP/PNG 落盘）、`ScanRegionTouchTest`、`CameraScanScenarioTest`、`BlacklistUpdaterDownloadTest`、`AppShortcutManagerTest`、`CameraFocusManagerTest`。
-- 批量生成测试还覆盖逐行字段 Intent JSON 往返、Activity 重建后的字段保真、逐行颜色覆盖批量样式，以及失败原因与重试回调；结果页只保存缩略图，导出从 cache PNG 流式读取。
+- 场景测试套件（0.2.3）：`ContentActionScenarioTest`（各内容类型动作分发）、`ContentActionWifiModernTest`（API 29 WiFi 路径）、`BackupActivityFileRoundtripTest`（真实文件备份往返、显式导出格式、加密密码重试、无效文件拒绝）、`BackupActivityWebdavTest`（恢复确认与候选配置提交）、`HistoryScenarioTest` / `HistoryDetailScenarioTest`（筛选/搜索/标签/分享/详情操作）、`BatchFileScenarioTest`（CSV/Excel 导入 + ZIP/PNG 落盘）、`ScanRegionTouchTest`、`CameraScanScenarioTest`、`BlacklistUpdaterDownloadTest`、`AppShortcutManagerTest`、`CameraFocusManagerTest`。
+- 批量生成测试还覆盖 no-backup 私有 token 往返、大数据不进入 Intent、token traversal/缺失/过期/当前 token 清理豁免/完成清理、条数/单项/UTF-8 JSON 序列化边界、状态保存失败保留旧快照、Activity 重建后的字段保真、逐行颜色覆盖批量样式，以及失败原因与重试回调；结果页只保存缩略图，导出从 cache PNG 流式读取。
 - Robolectric 测试要点：
   - AlertDialog/AppCompat 按钮点击经 Handler 投递，断言前必须 idle 主 Looper；
   - Dispatchers.IO/后台协程不受主 Looper 控制，用谓词轮询（waitUntil）代替固定 sleep；

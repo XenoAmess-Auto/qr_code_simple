@@ -126,6 +126,63 @@ class BatchGeneratorTest {
     }
 
     @Test
+    fun `parseCsv rejects item count and item length over hard limits`() = runBlocking {
+        val tooMany = buildString {
+            appendLine("content")
+            repeat(BatchResultTransfer.MAX_ITEMS + 1) { appendLine("item-$it") }
+        }
+        val countResult = BatchGenerator.parseCsv(context, createCsvFile(tooMany, "too-many.csv"))
+        assertEquals(BatchResultTransfer.Limit.ITEM_COUNT, countResult.limitExceeded)
+
+        val tooLong = "content\n${"x".repeat(BatchResultTransfer.MAX_ITEM_CHARACTERS + 1)}"
+        val lengthResult = BatchGenerator.parseCsv(context, createCsvFile(tooLong, "too-long.csv"))
+        assertEquals(BatchResultTransfer.Limit.ITEM_LENGTH, lengthResult.limitExceeded)
+    }
+
+    @Test
+    fun `parseCsv stops after bounded number of entirely invalid rows`() = runBlocking {
+        val csv = buildString {
+            appendLine("content,format")
+            repeat(BatchGenerator.MAX_IMPORT_ERRORS + 1) { appendLine(",QR_CODE") }
+        }
+
+        val result = BatchGenerator.parseCsv(context, createCsvFile(csv, "all-invalid.csv"))
+
+        assertTrue(result.items.isEmpty())
+        assertEquals(BatchGenerator.MAX_IMPORT_ERRORS, result.errors.size)
+        assertEquals(BatchResultTransfer.Limit.ITEM_COUNT, result.limitExceeded)
+    }
+
+    @Test
+    fun `csv and excel reject overlong filename fields`() = runBlocking {
+        val filename = "f".repeat(BatchResultTransfer.MAX_ITEM_CHARACTERS + 1)
+        val csvResult = BatchGenerator.parseCsv(
+            context,
+            createCsvFile("content,filename\nvalid,$filename", "long-filename.csv")
+        )
+        val excelResult = BatchGenerator.parseExcel(
+            context,
+            createExcelFile(
+                listOf(listOf("content", "filename"), listOf("valid", filename)),
+                "long-filename.xlsx"
+            )
+        )
+
+        assertEquals(BatchResultTransfer.Limit.ITEM_LENGTH, csvResult.limitExceeded)
+        assertEquals(BatchResultTransfer.Limit.ITEM_LENGTH, excelResult.limitExceeded)
+    }
+
+    @Test
+    fun `parseCsv rejects source bytes before parsing`() = runBlocking {
+        val oversized = "x".repeat(BatchGenerator.MAX_IMPORT_SOURCE_BYTES + 1)
+
+        val result = BatchGenerator.parseCsv(context, createCsvFile(oversized, "oversized.csv"))
+
+        assertEquals(BatchResultTransfer.Limit.TOTAL_BYTES, result.limitExceeded)
+        assertTrue(result.items.isEmpty())
+    }
+
+    @Test
     fun `parseCsv with color names returns correct colors`() {
         runBlocking {
             val csv = """
@@ -201,6 +258,15 @@ class BatchGeneratorTest {
         assertEquals(2, items.size)
         assertEquals(BarcodeFormat.CODE_128, items[0].format)
         assertEquals("batch_1", items[0].fileName)
+    }
+
+    @Test
+    fun `parseSimpleBatch stops after enough rows to report the item limit`() {
+        val text = List(BatchResultTransfer.MAX_ITEMS + 100) { "item-$it" }.joinToString("\n")
+        val items = BatchGenerator.parseSimpleBatch(text)
+
+        assertEquals(BatchResultTransfer.MAX_ITEMS + 1, items.size)
+        assertEquals(BatchResultTransfer.Limit.ITEM_COUNT, BatchResultTransfer.validate(items))
     }
 
     @Test

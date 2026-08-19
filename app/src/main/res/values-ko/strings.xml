@@ -90,6 +90,7 @@
     <string name="svg_saved">SVG가 저장되었습니다</string>
     <string name="saved_to">저장 위치: %1$s</string>
     <string name="failed_to_save">저장 실패: %1$s</string>
+    <string name="storage_write_permission_denied">공용 사진 또는 다운로드 폴더에 저장하려면 저장소 권한이 필요합니다</string>
     <string name="failed_to_generate">QR 코드 생성 실패: %1$s</string>
 
     <!-- 결과 -->
@@ -100,6 +101,9 @@
     <string name="restoration_retrying">이미지 복원 시도 중…</string>
     <string name="restored_after_enhancement">이미지 복원 후 인식됨</string>
     <string name="shared_multiple_first_only">%1$d개의 이미지가 공유되었습니다. 첫 번째 이미지만 처리합니다</string>
+    <string name="shared_media_too_large">공유한 미디어가 너무 커서 스캔할 수 없습니다</string>
+    <string name="scan_queue_busy">스캔 작업이 사용 중입니다. 다시 시도해 주세요.</string>
+    <string name="share_text_too_large">한 번에 공유할 텍스트가 너무 많습니다. 선택한 결과 수를 줄여 주세요.</string>
     <string name="history_retention">기록 자동 삭제</string>
     <string name="history_retention_forever">영구 보관</string>
     <string name="history_retention_days">%1$d일</string>
@@ -297,6 +301,7 @@
     <string name="update_incremental_progress_percent">증분 업데이트 적용 중: %1$d%%</string>
     <string name="update_incremental_fallback">증분 업데이트에 실패했습니다. 전체 APK를 다운로드하는 중입니다…</string>
     <string name="update_install_permission_needed">이 출처의 앱 설치를 허용한 후 돌아와 주세요</string>
+    <string name="update_install_permission_not_granted">설치 권한이 허용되지 않았습니다. 업데이트를 다시 시도할 수 있습니다.</string>
     <string name="update_install_failed_title">자동 업데이트 실패</string>
     <string name="update_install_failed_message">업데이트를 자동으로 설치할 수 없습니다. 릴리스 페이지에서 수동으로 다운로드할 수 있습니다.</string>
     <string name="beta_update_install_failed_message">베타 업데이트를 설치할 수 없습니다. 나중에 다시 시도해 주세요.</string>
@@ -639,7 +644,13 @@
     <string name="auto_open_url">안전한 링크 자동 열기</string>
 
     <string name="auto_copy_result">결과 자동 복사</string>
-    <string name="export_excel">Excel로 내보내기</string>
+    <string name="webdav_restore_confirm">서버에서 이 백업을 복원할까요? 일치하는 기록은 병합됩니다.</string>
+    <string name="backup_import_unsupported">지원되지 않거나 비어 있는 백업 파일</string>
+    <string name="backup_import_invalid_structure">백업 구조가 올바르지 않습니다</string>
+    <string name="backup_import_no_valid_records">백업에 유효한 레코드가 없습니다</string>
+    <string name="backup_import_too_large">백업 파일이 %1$d MiB 제한을 초과합니다</string>
+    <string name="backup_import_unsupported_version">지원되지 않는 백업 버전: %1$d</string>
+    <string name="export_excel">Excel 보고서 내보내기</string>
     <string name="stats_title">통계</string>
     <string name="stats_7d">7일: %1$d회 스캔</string>
 
@@ -667,4 +678,9 @@
     <string name="about_section_preferences">환경설정</string>
     <string name="about_section_updates">업데이트 및 진단</string>
     <string name="about_section_project">프로젝트 및 지원</string>
+    <string name="batch_limit_items">배치에는 최대 %1$d개 항목을 포함할 수 있습니다.</string>
+    <string name="batch_limit_item_length">각 배치 항목은 최대 %1$d자까지 가능합니다.</string>
+    <string name="batch_limit_total_size">배치 데이터는 최대 %1$dMB까지 가능합니다.</string>
+    <string name="batch_data_unavailable">배치 데이터가 없거나 잘못되었거나 만료되었습니다. 다시 시도하세요.</string>
+    <string name="continuous_state_unavailable">스캔 세션을 복원할 수 없습니다. 내보내기 전에 다시 스캔하세요.</string>
 </resources>

@@ -2,7 +2,15 @@ package com.xenoamess.qrcodesimple
 
 import androidx.test.core.app.ApplicationProvider
 import java.io.File
+import java.util.Collections
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -75,5 +83,59 @@ class ApkPatcherTest {
         } catch (e: IllegalArgumentException) {
             assertEquals(true, e.message?.contains("unknown patch format"))
         }
+    }
+
+    @Test
+    fun `concurrent native patches use isolated temporary files`() {
+        val base = writeFile("parallel-base.bin", ByteArray(16))
+        val patch = writeFile("parallel.patch", "ZiPat1&parallel".toByteArray())
+        val entered = CountDownLatch(2)
+        val release = CountDownLatch(1)
+        val tempPaths = Collections.synchronizedList(mutableListOf<String>())
+        val executor = Executors.newFixedThreadPool(2)
+        val outputs = listOf(File(dir, "parallel-1.apk"), File(dir, "parallel-2.apk"))
+
+        try {
+            val futures = outputs.map { output ->
+                executor.submit {
+                    ApkPatcher.applyPatch(context, base, patch, output) { _, _, outputPath, _, tempPath, _ ->
+                        tempPaths += tempPath
+                        assertTrue(File(tempPath).isFile)
+                        entered.countDown()
+                        release.await(3, TimeUnit.SECONDS)
+                        File(outputPath).writeBytes(byteArrayOf(1))
+                        0
+                    }
+                }
+            }
+            assertTrue(entered.await(3, TimeUnit.SECONDS))
+            release.countDown()
+            futures.forEach { it.get(3, TimeUnit.SECONDS) }
+        } finally {
+            release.countDown()
+            executor.shutdownNow()
+        }
+
+        assertEquals(2, tempPaths.size)
+        assertNotEquals(tempPaths[0], tempPaths[1])
+        assertTrue(outputs.all(File::isFile))
+        assertTrue(tempPaths.all { !File(it).exists() })
+    }
+
+    @Test
+    fun `native patch cancellation is preserved and temporary file is removed`() {
+        val base = writeFile("cancel-base.bin", ByteArray(16))
+        val patch = writeFile("cancel.patch", "ZiPat1&cancel".toByteArray())
+        val output = File(dir, "cancel.apk")
+        var tempPath: String? = null
+
+        assertThrows(CancellationException::class.java) {
+            ApkPatcher.applyPatch(context, base, patch, output) { _, _, _, _, temp, _ ->
+                tempPath = temp
+                throw CancellationException("cancelled")
+            }
+        }
+
+        assertFalse(File(tempPath!!).exists())
     }
 }

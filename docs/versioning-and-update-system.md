@@ -74,7 +74,7 @@ git fetch --unshallow --tags
 `build.yml` 的 `beta` job 只在推送 `master` 时运行，且依赖 `build` 与 `android-test`：
 
 - `build` 执行 debug 构建、JVM/Robolectric 单元测试、lint、JaCoCo 报告与覆盖率门禁。
-- `android-test` 在 API 35 模拟器上运行 `:app:connectedDebugAndroidTest`，失败时最多重试三次。
+- `android-test` 在 API 35 Google ATD 和 minSdk API 28 AOSP 模拟器上运行 `:app:connectedDebugAndroidTest`；断言失败直接失败并上传测试报告、logcat、窗口层级和截图。
 - 只有两个 job 均成功，Beta 才会使用与 Debug 同证书的 release-signed APK。
 
 Beta 发布到 GitHub Pages 的固定路径：
@@ -217,6 +217,10 @@ Beta 使用同一组安全必需字段，但 `apkFile` 为 `qr-code-simple-beta.
 - 每个补丁的大小、SHA-256、每一跳输出 SHA-256，以及最终 APK SHA-256 均通过校验。
 
 补丁格式为 ApkDiffPatch 的 `ZiPat1`（客户端内置 4 ABI `libapkpatch.so`，native 流式打补丁）。`ApkPatcher` 只接受 `ZiPat1` 头，其他格式一律拒绝；native 缺失或失败会包装成普通异常而不是崩溃。旧 bsdiff 方案的 64 MiB 内存上限已随 jbsdiff 一起移除，当前 150MB+ 的通用 APK 可以直接走增量。链缺失、基础 hash 不匹配、补丁不够小、下载失败或任一回放校验失败时，更新器都会清理临时文件并回退完整 APK。
+
+每个下载会话使用带 generation 的 `.download` / `.part` 文件及独立 `incremental-<id>` 工作目录。应用启动和更新入口会清理无主临时产物，同时兼容清理旧客户端留下的严格合法 `updates/qr-code-simple-<version>.apk`；相似文件名、目录、当前 active session 拥有的文件和等待系统安装器处理的 `pendingInstaller` APK 均不会被删除。
+
+取消会话会立即断开可控网络连接、停止后续校验并隔离该会话的 UI、安装结果和文件所有权。已经进入 `libapkpatch.so` JNI 的单次 patch 调用无法由 Kotlin 协程安全强制中断；它返回后仍会经过取消检查并清理输出。这里保留的残余风险仅是 native 调用返回前可能继续占用短时 CPU / I/O，不使用 `Thread.stop` 等危险线程终止手段。
 
 `chains` 只按已安装 `versionCode` 查表，与来源通道无关：Stable 元数据可为已存档 Beta 提供链（补丁随 Stable Release 上传），Beta 元数据可为最近 Stable 提供链（补丁随 `beta-archive` 上传）。因此 Stable ↔ Beta 双向切换与通道内升级走同一条已验证增量路径；只有当目标 `versionCode` 严格大于本机时才构成更新，同提交重发的同 code 包不会被当作更新。
 
