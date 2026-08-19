@@ -1,6 +1,7 @@
 package com.xenoamess.qrcodesimple
 
 import android.graphics.Rect
+import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.Insets
@@ -84,8 +85,14 @@ class EdgeToEdgeInsetsDeviceTest {
                 .setInsets(WindowInsetsCompat.Type.systemBars(), systemBarInsets)
                 .setInsets(WindowInsetsCompat.Type.displayCutout(), displayCutoutInsets)
                 .build()
+            // API 28 cannot propagate synthetic compat insets from decor to child views.
+            val insetTarget = if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
+                activity.findViewById(android.R.id.content)
+            } else {
+                activity.window.decorView
+            }
             ViewCompat.dispatchApplyWindowInsets(
-                activity.window.decorView,
+                insetTarget,
                 insets
             )
             activity.window.decorView.requestLayout()
