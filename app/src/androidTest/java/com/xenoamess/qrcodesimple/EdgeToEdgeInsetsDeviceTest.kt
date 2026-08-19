@@ -25,30 +25,31 @@ class EdgeToEdgeInsetsDeviceTest {
     @Test
     fun decorActionBarConsumesTopInsetWithoutAddingContentGap() {
         ActivityScenario.launch(GenerateActivity::class.java).use { scenario ->
-            dispatchTestInsets(scenario)
+            dispatchTestInsetsWhenSupported(scenario)
 
             scenario.onActivity { activity ->
                 val content = activity.findViewById<ViewGroup>(android.R.id.content)
                 val contentChild = content.getChildAt(0)
                 val actionBar = activity.findViewById<View>(androidx.appcompat.R.id.action_bar)
                 val decor = activity.window.decorView
+                val expectedInsets = expectedSafeInsets(decor)
 
-                assertEquals(safeInsets.left, content.paddingLeft)
-                assertEquals(safeInsets.right, content.paddingRight)
-                assertEquals(safeInsets.bottom, content.paddingBottom)
+                assertEquals(expectedInsets.left, content.paddingLeft)
+                assertEquals(expectedInsets.right, content.paddingRight)
+                assertEquals(expectedInsets.bottom, content.paddingBottom)
 
                 val decorBounds = decor.screenBounds()
                 val contentBounds = content.screenBounds()
                 val childBounds = contentChild.screenBounds()
                 val actionBarBounds = actionBar.screenBounds()
                 assertTrue(actionBarBounds.width() > 0 && actionBarBounds.height() > 0)
-                assertEquals(decorBounds.top + safeInsets.top, actionBarBounds.top)
+                assertEquals(decorBounds.top + expectedInsets.top, actionBarBounds.top)
                 assertEquals(actionBarBounds.bottom, childBounds.top)
                 assertEquals(actionBarBounds.bottom - contentBounds.top, content.paddingTop)
-                assertEquals(contentBounds.left + safeInsets.left, childBounds.left)
+                assertEquals(contentBounds.left + expectedInsets.left, childBounds.left)
                 assertEquals(contentBounds.top + content.paddingTop, childBounds.top)
-                assertEquals(contentBounds.right - safeInsets.right, childBounds.right)
-                assertEquals(contentBounds.bottom - safeInsets.bottom, childBounds.bottom)
+                assertEquals(contentBounds.right - expectedInsets.right, childBounds.right)
+                assertEquals(contentBounds.bottom - expectedInsets.bottom, childBounds.bottom)
             }
         }
     }
@@ -56,48 +57,59 @@ class EdgeToEdgeInsetsDeviceTest {
     @Test
     fun noActionBarContentKeepsAllInsetsAndMatchingGeometry() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            dispatchTestInsets(scenario)
+            dispatchTestInsetsWhenSupported(scenario)
 
             scenario.onActivity { activity ->
                 val content = activity.findViewById<ViewGroup>(android.R.id.content)
                 val contentChild = content.getChildAt(0)
+                val expectedInsets = expectedSafeInsets(activity.window.decorView)
 
-                assertEquals(safeInsets.left, content.paddingLeft)
-                assertEquals(safeInsets.top, content.paddingTop)
-                assertEquals(safeInsets.right, content.paddingRight)
-                assertEquals(safeInsets.bottom, content.paddingBottom)
+                assertEquals(expectedInsets.left, content.paddingLeft)
+                assertEquals(expectedInsets.top, content.paddingTop)
+                assertEquals(expectedInsets.right, content.paddingRight)
+                assertEquals(expectedInsets.bottom, content.paddingBottom)
 
                 val contentBounds = content.screenBounds()
                 val childBounds = contentChild.screenBounds()
-                assertEquals(contentBounds.left + safeInsets.left, childBounds.left)
-                assertEquals(contentBounds.top + safeInsets.top, childBounds.top)
-                assertEquals(contentBounds.right - safeInsets.right, childBounds.right)
-                assertEquals(contentBounds.bottom - safeInsets.bottom, childBounds.bottom)
+                assertEquals(contentBounds.left + expectedInsets.left, childBounds.left)
+                assertEquals(contentBounds.top + expectedInsets.top, childBounds.top)
+                assertEquals(contentBounds.right - expectedInsets.right, childBounds.right)
+                assertEquals(contentBounds.bottom - expectedInsets.bottom, childBounds.bottom)
             }
         }
     }
 
-    private fun <T : androidx.appcompat.app.AppCompatActivity> dispatchTestInsets(
+    private fun <T : androidx.appcompat.app.AppCompatActivity> dispatchTestInsetsWhenSupported(
         scenario: ActivityScenario<T>
     ) {
-        scenario.onActivity { activity ->
-            val insets = WindowInsetsCompat.Builder()
-                .setInsets(WindowInsetsCompat.Type.systemBars(), systemBarInsets)
-                .setInsets(WindowInsetsCompat.Type.displayCutout(), displayCutoutInsets)
-                .build()
-            // API 28 cannot propagate synthetic compat insets from decor to child views.
-            val insetTarget = if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
-                activity.findViewById(android.R.id.content)
-            } else {
-                activity.window.decorView
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            scenario.onActivity { activity ->
+                val insets = WindowInsetsCompat.Builder()
+                    .setInsets(WindowInsetsCompat.Type.systemBars(), systemBarInsets)
+                    .setInsets(WindowInsetsCompat.Type.displayCutout(), displayCutoutInsets)
+                    .build()
+                ViewCompat.dispatchApplyWindowInsets(
+                    activity.window.decorView,
+                    insets
+                )
+                activity.window.decorView.requestLayout()
             }
-            ViewCompat.dispatchApplyWindowInsets(
-                insetTarget,
-                insets
-            )
-            activity.window.decorView.requestLayout()
         }
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+    }
+
+    private fun expectedSafeInsets(decor: View): Insets {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) return safeInsets
+
+        val rootInsets = requireNotNull(ViewCompat.getRootWindowInsets(decor))
+        val systemBars = rootInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+        val displayCutout = rootInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+        return Insets.of(
+            maxOf(systemBars.left, displayCutout.left),
+            maxOf(systemBars.top, displayCutout.top),
+            maxOf(systemBars.right, displayCutout.right),
+            maxOf(systemBars.bottom, displayCutout.bottom)
+        )
     }
 
     private fun View.screenBounds(): Rect {
