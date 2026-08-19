@@ -132,6 +132,10 @@
             android:name=".HistoryDetailActivity"
             android:label="@string/history_detail" />
 
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Theme.QRCodeSimple.ActionBar" />
+
         <!-- 下拉快捷设置 Tile：快速扫码 -->
         <service
             android:name=".QuickScanTileService"

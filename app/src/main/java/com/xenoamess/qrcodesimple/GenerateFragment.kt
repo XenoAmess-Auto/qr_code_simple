@@ -179,22 +179,34 @@ class GenerateFragment : Fragment() {
 
     private fun launchCrop(sourceUri: Uri, destinationUri: Uri) {
         try {
-            val options = CropImageContractOptions(
-                uri = sourceUri,
-                cropImageOptions = CropImageOptions(
-                    customOutputUri = destinationUri,
-                    guidelines = CropImageView.Guidelines.ON,
-                    fixAspectRatio = false,
-                    activityTitle = getString(R.string.crop_image),
-                    outputCompressQuality = 100
-                )
-            )
-            cropLauncher.launch(options)
+            cropLauncher.launch(createCropOptions(sourceUri, destinationUri))
         } catch (e: Exception) {
             Log.e(TAG, "launchCrop failed", e)
             pendingImageType = null
             Toast.makeText(context, getString(R.string.failed_to_load_image), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    internal fun createCropOptions(sourceUri: Uri, destinationUri: Uri): CropImageContractOptions {
+        val context = requireContext()
+        return CropImageContractOptions(
+            uri = sourceUri,
+            cropImageOptions = CropImageOptions(
+                customOutputUri = destinationUri,
+                guidelines = CropImageView.Guidelines.ON,
+                fixAspectRatio = false,
+                activityTitle = getString(R.string.crop_image),
+                cropMenuCropButtonTitle = getString(R.string.confirm),
+                activityMenuIconColor = context.getColor(R.color.app_primary),
+                activityMenuTextColor = context.getColor(R.color.app_primary),
+                toolbarColor = context.getColor(R.color.app_surface),
+                toolbarTitleColor = context.getColor(R.color.app_text_primary),
+                toolbarBackButtonColor = context.getColor(R.color.app_text_secondary),
+                toolbarTintColor = context.getColor(R.color.app_primary),
+                activityBackgroundColor = context.getColor(R.color.app_background),
+                outputCompressQuality = 100
+            )
+        )
     }
 
     override fun onCreateView(

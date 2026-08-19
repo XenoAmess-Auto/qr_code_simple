@@ -93,6 +93,7 @@ QR Code Simple 是一款 Android 二维码/条码扫描与生成应用。
 
 - `MainActivity` 的五个主目的地使用 `BottomNavigationView` 与 `ViewPager2` 双向联动，不再使用顶部文字 tab。
 - `ResultActivity`、`VideoScanActivity`、`BatchResultActivity` 使用 `Theme.QRCodeSimple.ActionBar`，保证独立页面始终有 Up 导航和操作菜单。
+- `CropImageActivity` 也必须在 Manifest 中使用 `Theme.QRCodeSimple.ActionBar`；生成页会显式传入本地化确认文案与亮暗主题语义色，保证前景/背景图片裁剪始终有可见的返回和确认操作。
 
 ### 扫描入口
 
