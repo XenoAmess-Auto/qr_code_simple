@@ -46,6 +46,8 @@
 -dontwarn org.etsi.**
 -dontwarn org.apache.commons.io.**
 -dontwarn org.apache.commons.compress.**
+# Commons CSV references this optional SpotBugs annotation only as metadata.
+-dontwarn edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 -dontwarn org.apache.logging.**
 -dontwarn org.apache.log4j.**
 -keep class javax.xml.stream.** { *; }
