@@ -9,6 +9,7 @@
 -keep class com.xenoamess.qrcodesimple.BatchGenerator { *; }
 -keep class com.xenoamess.qrcodesimple.BatchGenerator$* { *; }
 -keep class com.xenoamess.qrcodesimple.BatchGenerateActivity { *; }
+-keep class com.xenoamess.qrcodesimple.BatchResultTransfer { *; }
 -keep class com.xenoamess.qrcodesimple.BatchResultActivity { *; }
 -keep class com.xenoamess.qrcodesimple.data.BarcodeFormat { *; }
 -keep class com.xenoamess.qrcodesimple.R$* { *; }
