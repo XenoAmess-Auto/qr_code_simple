@@ -106,11 +106,11 @@ object AppUpdateManager {
 
     /** Called on resume to resolve a package-installer attempt, which has no reliable result callback. */
     fun onHostResume(activity: Activity) {
-        consumePendingInstallIfAuthorized(activity)
-
         val attempt = synchronized(stateLock) {
             pendingInstaller.also { pendingInstaller = null }
         }
+        consumePendingInstallIfAuthorized(activity)
+
         if (attempt != null) {
             attempt.file.delete()
             val installed = installedVersion(activity)
