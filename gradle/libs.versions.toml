@@ -2,7 +2,7 @@
 agp = "9.4.0"
 kotlin = "2.3.21"
 ksp = "2.3.12"
-baselineprofile = "1.5.0-rc02"
+baselineprofile = "1.5.0"
 benchmark = "1.5.0"
 
 coreKtx = "1.13.1"
