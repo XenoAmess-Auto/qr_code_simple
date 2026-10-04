@@ -318,7 +318,7 @@ dependencies {
                 because 'prevent intermittent CI hang from non-daemon threads in play-services'
             }
         }
-        implementation('org.apache.commons:commons-lang3:3.20.0') {
+        implementation('org.apache.commons:commons-lang3:3.21.0') {
             because 'GHSA-j288-q9x7-2f5v: uncontrolled recursion in commons-lang3 < 3.18.0 (ships via commons-compress ← POI; parses user-imported Excel files)'
         }
         implementation('org.apache.logging.log4j:log4j-api:2.26.1') {
